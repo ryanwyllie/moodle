@@ -1463,6 +1463,11 @@ class core_admin_renderer extends plugin_renderer_base {
                             $stringtouse = 'environmentrecommendversion';
                         }
 
+                        // The env result contains an unsupported version as well as min so we need
+                        // to display a different message
+                        if ($rec->unsupported = $environment_result->getUnsupportedVersion()) {
+                            $stringtouse .= 'unsupported';
+                        }
                     } else if ($environment_result->getPart() == 'custom_check') {
                         // We are checking installed & enabled things
                         if ($environment_result->getLevel() == 'required') {
