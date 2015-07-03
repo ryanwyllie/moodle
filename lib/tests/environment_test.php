@@ -128,4 +128,198 @@ END;
         $this->assertFalse(environment_verify_plugin('mod_someother', $plugin1['PLUGIN']));
         $this->assertFalse(environment_verify_plugin('mod_someother', $plugin2['PLUGIN']));
     }
+
+    /**
+     * Test the environment_check_php_min_version() function sets NO_PHP_VERSION_FOUND
+     * error code on $result if $data doesn't contain a version
+     */
+    public function test_check_php_min_version_sets_error_code_on_missing_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+        $minversion = environment_check_php_min_version($data, $currentversion, $result);
+
+        $this->assertNull($minversion,
+            'environment_check_php_min_version returns null if no version is found');
+        $this->assertFalse($result->getStatus(),
+            'environment_check_php_min_version sets result status to false if no version is found');
+        $this->assertEquals(NO_PHP_VERSION_FOUND, $result->getErrorCode(),
+            'environment_check_php_min_version sets result error code to NO_PHP_VERSION_FOUND if no version is found');
+    }
+
+    /**
+     * Test the environment_check_php_min_version() function sets result status to false
+     * if the $currentversion is less than the min version
+     */
+    public function test_check_php_min_version_set_status_false_on_missing_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.6';
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+
+        // Set the min version in the correct data location.
+        $data['#']['PHP']['0']['@']['version'] = $expectedversion;
+        $actualversion = environment_check_php_min_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_min_version returns the min version defined in the data');
+        $this->assertFalse($result->getStatus(),
+            'environment_check_php_min_version sets result status to false if given version is less than minimum required');
+    }
+
+    /**
+     * Test the environment_check_php_min_version() function sets result status to true
+     * if the $currentversion is equal to the min version
+     */
+    public function test_check_php_min_version_set_status_true_on_matching_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.5';
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+
+        // Set the min version in the correct data location.
+        $data['#']['PHP']['0']['@']['version'] = $expectedversion;
+        $actualversion = environment_check_php_min_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_min_version returns the min version defined in the data');
+        $this->assertTrue($result->getStatus(),
+            'environment_check_php_min_version sets result status to true if given version is equal to the minimum required');
+    }
+
+    /**
+     * Test the environment_check_php_min_version() function sets result status to true
+     * if the $currentversion is greater than to the min version
+     */
+    public function test_check_php_min_version_set_status_true_on_newer_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.5';
+        $data = array();
+        $currentversion = '5.6';
+        $result = new environment_results('php');
+
+        // Set the min version in the correct data location.
+        $data['#']['PHP']['0']['@']['version'] = $expectedversion;
+        $actualversion = environment_check_php_min_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_min_version returns the min version defined in the data');
+        $this->assertTrue($result->getStatus(),
+            'environment_check_php_min_version sets result status to true if given version is greater than the minimum required');
+    }
+
+    /**
+     * Test the environment_check_php_unsupported_version() function returns null if no
+     * unsupported version is set in the data
+     */
+    public function test_check_php_unsupported_version_returns_null_on_missing_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+        $unsupportedversion = environment_check_php_unsupported_version($data, $currentversion, $result);
+
+        $result->setStatus(true);
+
+        $this->assertNull($unsupportedversion,
+            'environment_check_php_unsupported_version returns null if no unsupported version is found');
+        $this->assertTrue($result->getStatus(),
+            "environment_check_php_unsupported_version doesn't change result status if no unsupported version is found");
+    }
+
+    /**
+     * Test the environment_check_php_unsupported_version() function returns the unsupported version if
+     * unsupported version is set in the data and doesn't change the result status if the current
+     * version is less than the unsupported version
+     */
+    public function test_check_php_unsupported_version_less_than_unsupported_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.6';
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+
+        // Set up test data.
+        $data['#']['PHP']['0']['@']['unsupported-version'] = $expectedversion;
+        $result->setStatus(true);
+
+        $actualversion = environment_check_php_unsupported_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_unsupported_version returns the unsupported version if defined in the data');
+        $this->assertTrue($result->getStatus(),
+            "environment_check_php_unsupported_version doesn't change result status if the current version".
+            " is less than the unsupported version");
+    }
+
+    /**
+     * Test the environment_check_php_unsupported_version() function returns the unsupported version if
+     * unsupported version is set in the data and changes the result status to false if the current
+     * version is equal to the unsupported version
+     */
+    public function test_check_php_unsupported_version_return_equal_to_unsupported_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.5';
+        $data = array();
+        $currentversion = '5.5';
+        $result = new environment_results('php');
+
+        // Set up test data.
+        $data['#']['PHP']['0']['@']['unsupported-version'] = $expectedversion;
+        $result->setStatus(true);
+
+        $actualversion = environment_check_php_unsupported_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_unsupported_version returns the unsupported version if defined in the data');
+        $this->assertFalse($result->getStatus(),
+            "environment_check_php_unsupported_version doesn't change result status if the current version".
+            " is equal to the unsupported version");
+    }
+
+
+    /**
+     * Test the environment_check_php_unsupported_version() function returns the unsupported version if
+     * unsupported version is set in the data and sets the result status to false if the current
+     * version is greater than the unsupported allowed version
+     */
+    public function test_check_php_unsupported_version_greater_than_unsupported_version() {
+        global $CFG;
+        require_once($CFG->libdir.'/environmentlib.php');
+
+        $expectedversion = '5.6';
+        $data = array();
+        $currentversion = '5.7';
+        $result = new environment_results('php');
+
+        // Set the unsupported version in the data.
+        $data['#']['PHP']['0']['@']['unsupported-version'] = $expectedversion;
+        // Make sure the result wasn't already false.
+        $result->setStatus(true);
+
+        $actualversion = environment_check_php_unsupported_version($data, $currentversion, $result);
+
+        $this->assertEquals($expectedversion, $actualversion,
+            'environment_check_php_unsupported_version returns the unsupported version if defined in the data');
+        $this->assertFalse($result->getStatus(),
+            "environment_check_php_unsupported_version sets the result status to false if the current version".
+            " is greater than the unsupported version");
+    }
 }

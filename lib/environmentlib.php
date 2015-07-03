@@ -832,49 +832,106 @@ function environment_check_php($version, $env_select) {
 
     $result = new environment_results('php');
 
-/// Get the enviroment version we need
+    // Get the enviroment version we need.
     if (!$data = get_environment_for_version($version, $env_select)) {
-    /// Error. No version data found
+        // Error. No version data found.
         $result->setStatus(false);
         $result->setErrorCode(NO_VERSION_DATA_FOUND);
         return $result;
     }
 
-/// Extract the php part
+    // Extract the php part.
     if (!isset($data['#']['PHP'])) {
-    /// Error. No PHP section found
+        // Error. No PHP section found.
         $result->setStatus(false);
         $result->setErrorCode(NO_PHP_SECTION_FOUND);
         return $result;
     } else {
-    /// Extract level and version
+        // Extract level.
         $level = get_level($data['#']['PHP']['0']);
-        if (!isset($data['#']['PHP']['0']['@']['version'])) {
-            $result->setStatus(false);
-            $result->setErrorCode(NO_PHP_VERSION_FOUND);
-            return $result;
-        } else {
-            $needed_version = $data['#']['PHP']['0']['@']['version'];
-        }
     }
 
-/// Now search the version we are using
-    $current_version = normalize_version(phpversion());
+    // Now search the version we are using.
+    $currentversion = normalize_version(phpversion());
 
-/// And finally compare them, saving results
-    if (version_compare($current_version, $needed_version, '>=')) {
+    // Check that the current PHP version is greater than the minimum required.
+    // This will modify $result.
+    $minversion = environment_check_php_min_version($data, $currentversion, $result);
+
+    // If no minimum version is defined then we should return early as it is required.
+    if (!$minversion) {
+        return $result;
+    }
+
+    // Check the current PHP version is less than the max allowed (if configured).
+    // This may modify $result.
+    $unsupportedversion = environment_check_php_unsupported_version($data, $currentversion, $result);
+
+    // If the check has an unsupported PHP version (not all do) then save it in the result.
+    if ($unsupportedversion) {
+        $result->setUnsupportedVersion($unsupportedversion);
+    }
+
+    $result->setLevel($level);
+    $result->setCurrentVersion($currentversion);
+    $result->setNeededVersion($minversion);
+
+    // Do any actions defined in the XML file.
+    process_environment_result($data['#']['PHP'][0], $result);
+
+    return $result;
+}
+
+/**
+ * Checks that the given current version is greater or equal to the minimum required PHP version
+ *
+ * @param array $data the environment details for the requested XML version
+ * @param string $current_version the current PHP version
+ * @param object $result the environment_results object for storing the result of the check
+ * @return string|null the minimum PHP version required or null in none is defined in env config
+ */
+function environment_check_php_min_version($data, $currentversion, &$result) {
+
+    if (!isset($data['#']['PHP']['0']['@']['version'])) {
+        $result->setStatus(false);
+        $result->setErrorCode(NO_PHP_VERSION_FOUND);
+        return null;
+    } else {
+        $minversion = $data['#']['PHP']['0']['@']['version'];
+    }
+
+    if (version_compare($currentversion, $minversion, '>=')) {
         $result->setStatus(true);
     } else {
         $result->setStatus(false);
     }
-    $result->setLevel($level);
-    $result->setCurrentVersion($current_version);
-    $result->setNeededVersion($needed_version);
 
-/// Do any actions defined in the XML file.
-    process_environment_result($data['#']['PHP'][0], $result);
+    return $minversion;
+}
 
-    return $result;
+/**
+ * Checks that the given current version is less than the unsupported PHP version
+ * if an unsupported version has been set in the environment config
+ *
+ * @param array $data the environment details for the requested XML version
+ * @param string $current_version the current PHP version
+ * @param object $result the environment_results object for storing the result of the check
+ * @return string|null the unsupported PHP version or null if no max version is set in the env config
+ */
+function environment_check_php_unsupported_version($data, $currentversion, &$result) {
+
+    if (isset($data['#']['PHP']['0']['@']['unsupported-version'])) {
+        $unsupportedversion = $data['#']['PHP']['0']['@']['unsupported-version'];
+
+        // Only modify the result if we've failed the check.
+        if (!version_compare($currentversion, $unsupportedversion, '<')) {
+            $result->setStatus(false);
+        }
+
+        return $unsupportedversion;
+    } else {
+        return null;
+    }
 }
 
 /**
@@ -1232,9 +1289,13 @@ class environment_results {
      */
     var $current_version;
     /**
-     * @var string version needed
+     * @var string minimum version needed
      */
     var $needed_version;
+    /**
+     * @var string unsupported
+     */
+    var $unsupported_version;
     /**
      * @var string Aux. info (DB vendor, library...)
      */
@@ -1267,6 +1328,7 @@ class environment_results {
         $this->level='required';
         $this->current_version='';
         $this->needed_version='';
+        $this->unsupported_version='';
         $this->info='';
         $this->feedback_str='';
         $this->bypass_str='';
@@ -1319,6 +1381,15 @@ class environment_results {
      */
     function setNeededVersion($needed_version) {
         $this->needed_version=$needed_version;
+    }
+
+    /**
+     * Set the unsupported version
+     *
+     * @param string $unsupported_version the unsupported version
+     */
+    function setUnsupportedVersion($unsupported_version) {
+        $this->unsupported_version = $unsupported_version;
     }
 
     /**
@@ -1410,6 +1481,15 @@ class environment_results {
      */
     function getNeededVersion() {
         return $this->needed_version;
+    }
+
+    /**
+     * Get the unsupported version
+     *
+     * @return string get the unsupported version
+     */
+    function getUnsupportedVersion() {
+        return $this->unsupported_version;
     }
 
     /**
