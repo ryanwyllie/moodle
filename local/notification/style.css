@@ -1,0 +1,13 @@
+.clickable {
+    cursor: pointer;
+}
+
+.clickable.unseen {
+    background-color: rgba(0,0,255,0.1);
+}
+
+#notification-container {
+    width: 400px;
+    height: 400px;
+    overflow: scroll;
+}
