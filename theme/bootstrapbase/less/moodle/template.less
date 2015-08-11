@@ -1,0 +1,18 @@
+/* Styling for mustache templates */
+.hero-unit {
+    > h3:first-child  {
+        /*
+         * Had to copy the style because recess doesn't compile
+         * the :extend function. It only supports less v1.3.
+         *
+         * A better solution is:
+         * &:extend(.hero-unit h1);
+         */
+
+        margin-bottom: 0;
+        font-size: 60px;
+        line-height: 1;
+        color: @heroUnitHeadingColor;
+        letter-spacing: -1px;
+    }
+}
