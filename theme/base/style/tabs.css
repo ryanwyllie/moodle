@@ -75,3 +75,11 @@
     color: #000;
     text-decoration: none;
 }
+
+.tabtree .tab-content .tab-pane {
+    display: none;
+}
+
+.tabtree .tab-content .tab-pane.here {
+    display: block;
+}
