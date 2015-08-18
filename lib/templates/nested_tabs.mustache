@@ -1,0 +1,77 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/nested_tabs
+
+    Moodle tabs template.
+
+    The purpose of this template is to render a list of tabs
+    with content.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * title A cleaned string (use clean_text()) to display as the title.
+    * message A cleaned string (use clean_text()) to display as the subtext.
+
+    Example context (json):
+    {
+    }
+}}
+{{< core/tabs }}
+    {{$ tablist }}
+        <li>
+            <a href="#{{ uniqid }}-1"
+                role="tab"
+                aria-controls="{{ id }}"
+                data-toggle="tab">
+
+                NTab 1
+            </a>
+        </li>
+        <li>
+            <a href="#{{ uniqid }}-2"
+                role="tab"
+                aria-controls="{{ id }}"
+                data-toggle="tab">
+
+                NTab 2
+            </a>
+        </li>
+    {{/ tablist }}
+
+    {{$ tabcontent }}
+        <div role="tabpanel"
+            class="tab-pane"
+            id="{{ uniqid }}-1">
+
+            NTab content 1
+            <a href="#">test</a>
+        </div>
+        <div role="tabpanel"
+            class="tab-pane"
+            id="{{ uniqid }}-2">
+
+            NTab content 2
+            <a href="#">test</a>
+        </div>
+    {{/ tabcontent }}
+{{/ core/tabs }}

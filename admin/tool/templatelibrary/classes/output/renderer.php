@@ -45,7 +45,19 @@ class renderer extends plugin_renderer_base {
      */
     public function render_list_templates_page($page) {
         $data = $page->export_for_template($this);
-        return parent::render_from_template('tool_templatelibrary/list_templates_page', $data);
+
+        $return = parent::render_from_template('tool_templatelibrary/list_templates_page', $data);
+
+        $tabdata = array(
+            'tabs' => array(
+                array('id'=>'tab1','name'=>'Tab 1','content'=>'This is tab 1 content'),
+                array('id'=>'tab2','name'=>'Tab 2','content'=>'This is tab 2 content'),
+                array('id'=>'tab3','name'=>'Tab 3','content'=>'This is tab 3 content')
+            )
+        );
+        $return .= parent::render_from_template('core/tabs', $tabdata);
+
+        return $return;
     }
 
 }
