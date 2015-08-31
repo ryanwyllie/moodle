@@ -55,15 +55,21 @@ class controller implements renderable, templatable {
         return new stdClass;
     }
 
-    public function retrieve($limit = 0, $offset = 0) {
+    public function retrieve($limit = 0, $offset = 0, DateTime $before = null, DateTime $after = null) {
         $repository = new repository();
-        $notifications = $repository->retrieve($limit, $offset);
+        $total = $repository->count_all();
+        $total_unseen = $repository->count_all_unseen();
+        $notifications = $repository->retrieve($limit, $offset, $before, $after);
 
         $serialise_notification = function($notification) {
             return $this->serialiser->to_array($notification);
         };
 
-        return array('notifications' => array_map($serialise_notification, $notifications));
+        return array(
+            'total_count' => $total,
+            'total_unseen_count' => $total_unseen,
+            'notifications' => array_map($serialise_notification, $notifications)
+        );
     }
 
     public function update() {

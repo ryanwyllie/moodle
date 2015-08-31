@@ -77,6 +77,7 @@ class external extends external_api {
 
     public static function retrieve($limit = 0, $offset = 0) {
         $controller = new \local_notification\controller();
+        sleep(2);
         return $controller->retrieve($limit, $offset);
     }
 

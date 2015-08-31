@@ -18,59 +18,137 @@
  * Because every module is returned from a request for any other module, this
  * forces the loading of all modules with a single request.
  *
- * @module     local_notification/refresh
+ * @module     local_notification/notification
  * @package    local_notification
  * @copyright  2015 Ryan Wyllie
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      2.9
  */
 define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function($, ajax, templates, notification) {
-    function loadNotifications(limit, offset, notifications) {
+    var NotificationController = function(listElement, countElement) {
+        this.listElement = $(listElement);
+        this.countElement = $(countElement);
+        this.limit = 10;
+        this.offset = 0;
+        this.notifications = [];
+        this.isLoading = false;
+        this.loaderElement = this.listElement.find('#notification-loader');
+        this.unseenCount = 0;
+
+        this.addListeners();
+    };
+
+    NotificationController.prototype.loadNew = function() {
+        var controller = this;
+
+        controller.load({limit: controller.limit, offset: controller.offset}).done(function(data) {
+            var notificationData = data['notifications'];
+            controller.notifications = notificationData.concat(controller.notifications);
+
+            $(notificationData.reverse()).each(function(index, data) {
+                templates.render('local_notification/item', data).done(function(html, js) {
+                    controller.listElement.prepend(html);
+                    // And execute any JS that was in the template.
+                    templates.runTemplateJS(js);
+                }).fail(notification.exception);
+            });
+        });
+    }
+
+    NotificationController.prototype.loadMore = function() {
+        var controller = this;
+
+        controller.load({limit: controller.limit, offset: controller.offset}).done(function(data) {
+            var notificationData = data['notifications'];
+            controller.notifications = controller.notifications.concat(notificationData);
+
+            $(notificationData).each(function(index, data) {
+                templates.render('local_notification/item', data).done(function(html, js) {
+                    $(html).insertBefore(controller.loaderElement);
+                    // And execute any JS that was in the template.
+                    templates.runTemplateJS(js);
+                }).fail(notification.exception);
+            });
+        });
+    };
+
+    NotificationController.prototype.load = function(args) {
+        var controller = this;
+        controller.loading();
+
         var promises = ajax.call([{
             methodname: 'local_notification_retrieve',
-            args:{limit: limit, offset: offset}
+            args: args
         }]);
 
         promises[0].done(function(data) {
-            notifications = data['notifications'] = notifications.concat(data['notifications']);
-            offset += limit;
+            controller.updateUnseen(data.total_unseen_count);
 
+            controller.notifications = controller.notifications.concat(data['notifications']);
+
+            /**
             // We have the data - lets re-render the template with it.
             templates.render('local_notification/notifications', data).done(function(html, js) {
                 $('#notification-list').replaceWith(html);
                 // And execute any JS that was in the template.
                 templates.runTemplateJS(js);
             }).fail(notification.exception);
+            */
+            controller.loaded();
         }).fail(notification.exception);
 
         return promises[0];
+    };
+
+    NotificationController.prototype.updateUnseen = function(count) {
+        if (this.unseenCount == count) {
+            return;
+        }
+
+        this.unseenCount = count;
+
+        /**
+        if (count > 99) {
+            this.countElement.html('99+');
+        } else {
+            this.countElement.html(count);
+        }
+        */
     }
 
-    return /** @alias module:local_notification/notification */ {
-        /**
-         * Refresh the middle of the page!
-         *
-         * @method refresh
-         */
-        init: function(limit, offset, notifications) {
-            // Disable more button while  we do first load
-            $('#more').prop('disabled', true);
+    NotificationController.prototype.loading = function() {
+        this.isLoading = true;
+        this.loaderElement.addClass('loading');
+        this.countElement.addClass('loading');
+    };
 
-            // load first set of notifications
-            loadNotifications(limit, offset, notifications).done(function() {
-                $('#more').prop('disabled', false);
-            });
+    NotificationController.prototype.loaded = function() {
+        this.isLoading = false;
+        this.loaderElement.removeClass('loading');
+        this.countElement.removeClass('loading');
+    };
 
-            $('.notification').on('click', function() {
-                $( this ).removeClass('unseen');
-            });
+    NotificationController.prototype.hasLoadedAllNotifications = function() {
+        return this.totalCount == this.notifications.length;
+    };
 
-            $('#more').on('click', function() {
-                $('#more').prop('disabled', true);
-                loadNotifications(limit, offset, notifications).done(function() {
-                    $('#more').prop('disabled', false);
-                });
-            });
+    NotificationController.prototype.addListeners = function() {
+        var controller = this;
+
+        this.listElement.scroll(function(e) {
+            if (!controller.isLoading && !controller.hasLoadedAllNotifications()) {
+                if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
+                    e.preventDefault();
+                    controller.loadMore();
+                }
+            }
+        });
+    };
+
+    return {
+        init: function(listElement, countElement) {
+            var controller = new NotificationController(listElement, countElement);
+            controller.loadNew();
         },
     };
 });

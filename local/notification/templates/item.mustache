@@ -15,27 +15,18 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local_notification/index_page
+    @template local_notification/item
 
     Starting point for an awesome template.
-
 }}
-<table id="notification-list" class="table table-hover"> 
-    <thead> 
-        <tr> 
-            <th>ID</th> 
-            <th>Type</th> 
-            <th>Description</th> 
-            <th>Created</th> 
-        </tr> 
-    </thead> 
-    {{#notifications}} 
-    <tr class="notification clickable {{^seen}}unseen{{/seen}}" data-notification-id="{{id}}">
-        <td>{{id}}</td>
-        <td>{{type}}</td>
-        <td>{{description}}</td>
-        <td>{{created_date}}</td>
-    </tr>
-    {{/notifications}} 
-</table>
-
+<li class="notification-item">
+    <div class="row-fluid">
+        <div class="span2"> </div>
+        <div class="span10">
+            <p>{{ description }}</p>
+            <p>{{ created_date }}</p>
+        </div>
+    </div>
+</li>
+{{# js }}
+{{/ js }}

@@ -91,13 +91,48 @@ class repository {
     private static $data = array();
 
     public function __construct() {
+        $notifications = array();
+
         for ($i = 0; $i < 100; $i++) {
-            self::$data[] = new notification($i, 'user', 'desc'.rand(), false);
+            $notifications[] = new notification($i, 'user', 'desc'.rand(), false);
         }
+
+        self::$data = array_reverse($notifications);
     }
 
-    public function retrieve($limit = 0, $offset = 0) {
+    public function retrieve($limit = 0, $offset = 0, DateTime $before = null, DateTime $after = null) {
         $limit = ($limit) ? $limit : count(self::$data);
-        return array_slice(self::$data, $offset, $limit);
+
+        $results = array();
+
+        foreach (self::$data as $notification) {
+            if (isset($before) && $notification->createddate > $before) {
+                continue;
+            }
+
+            if (isset($after) && $notification->createddate < $after) {
+                continue;
+            }
+
+            $results[] = $notification;
+        }
+
+        return array_slice($results, $offset, $limit);
+    }
+
+    public function count_all() {
+        return count(self::$data);
+    }
+
+    public function count_all_unseen() {
+        $count = 0;
+
+        foreach (self::$data as $notification) {
+            if (!$notification->has_been_seen()) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }

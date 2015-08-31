@@ -3112,6 +3112,11 @@ EOD;
         return html_writer::tag('ul', implode("\n", $lis), $attrs);
     }
 
+    public function notification_menu() {
+        $data = array();
+        return parent::render_from_template('local_notification/menu', $data);
+    }
+
     /**
      * Construct a user menu, returning HTML that can be echoed out by a
      * layout file.

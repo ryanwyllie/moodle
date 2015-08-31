@@ -1,0 +1,59 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_notification/menu
+
+    Starting point for an awesome template.
+}}
+<div class="local-notification-menu">
+    <ul class="nav">
+        <li class="dropdown">
+            <a href="#" data-toggle="dropdown">
+                <div id="notification-icon-container">
+                    <div class="spinner">
+                        <div class="double-bounce1"></div>
+                        <div class="double-bounce2"></div>
+                    </div>
+                    <div id="notification-count" class="circle">
+
+                    </div>
+                </div>
+            </a>
+            <div id="notification-menu" class="dropdown-menu pull-right">
+                <div class="header">
+                    <h3>Notifications</h3>
+                </div>
+                <ul id="notification-list" class="scroll-y">
+                    <li id="notification-loader" class="loading">
+                        <div class="spinner">
+                            <div class="bounce1"></div>
+                            <div class="bounce2"></div>
+                            <div class="bounce3"></div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+</div>
+{{# js }}
+    require(['jquery', 'local_notification/notification'], function($, notification) {
+        var iconContainer = $('#notification-icon-container');
+        var list = $('#notification-list');
+        notification.init(list, iconContainer);
+    });
+{{/ js }}
