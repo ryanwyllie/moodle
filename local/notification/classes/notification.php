@@ -93,7 +93,7 @@ class repository {
     public function __construct() {
         $notifications = array();
 
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $notifications[] = new notification($i, 'user', 'desc'.rand(), false);
         }
 

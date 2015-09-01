@@ -23,23 +23,24 @@
     <ul class="nav">
         <li class="dropdown">
             <a href="#" data-toggle="dropdown">
-                <div id="notification-icon-container">
-                    <div class="spinner">
+                <div class="menu-icon-container">
+                    <div class="loading-icon">
                         <div class="double-bounce1"></div>
                         <div class="double-bounce2"></div>
                     </div>
-                    <div id="notification-count" class="circle">
-
+                    <div class="menu-icon">
+                        {{# pix }} i/publish, core, View notifications{{/ pix }}
+                        <div role="menu-item-count" class="superscript"></div>
                     </div>
                 </div>
             </a>
-            <div id="notification-menu" class="dropdown-menu pull-right">
-                <div class="header">
+            <div class="header-menu dropdown-menu pull-right">
+                <div role="menu-header" class="header">
                     <h3>Notifications</h3>
                 </div>
-                <ul id="notification-list" class="scroll-y">
-                    <li id="notification-loader" class="loading">
-                        <div class="spinner">
+                <ul role="menu-items" class="infinite-list scrollable">
+                    <li role="menu-loading-item">
+                        <div class="loading-icon">
                             <div class="bounce1"></div>
                             <div class="bounce2"></div>
                             <div class="bounce3"></div>
@@ -52,8 +53,7 @@
 </div>
 {{# js }}
     require(['jquery', 'local_notification/notification'], function($, notification) {
-        var iconContainer = $('#notification-icon-container');
-        var list = $('#notification-list');
-        notification.init(list, iconContainer);
+        var rootElement = $(".local-notification-menu");
+        notification.init(rootElement);
     });
 {{/ js }}
