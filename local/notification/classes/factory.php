@@ -15,28 +15,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the only page in this plugin.
+ * Class containing data for index page
  *
  * @package    local_notification
  * @copyright  2015 Ryan Wyllie
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_notification;
 
-require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/classes/controller.php');
+use DateTime;
 
-$title = get_string('pagetitle', 'local_notification');
-$pagetitle = get_string('pagetitle', 'local_notification');
-// Set up the page.
-$url = new moodle_url("/local/notification/index.php");
-$PAGE->set_context(context_system::instance());
-$PAGE->set_url($url);
-$PAGE->set_title($title);
-$PAGE->set_heading($title);
-$output = $PAGE->get_renderer('local_notification');
-echo $output->header();
+class factory {
 
-$controller = new \local_notification\controller();
-echo $output->render($controller);
+    private $repository;
 
-echo $output->footer();
+    public function __construct() {
+        $this->repository = new \local_notification\repository();
+    }
+
+    public function create_from_event(\core\event\base $event) {
+        $notification = new \local_notification\notification(null, 'user',
+            $event->get_url(), $event->relateduserid, $event->get_description());
+
+        $this->repository->create($notification);
+    }
+}

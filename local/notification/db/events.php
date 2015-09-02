@@ -15,22 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local notification external services.
+ * Event observer.
  *
- * @package    local_notification
- * @copyright  2015 Ryan Wyllie
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_notification
+ * @category  event
+ * @copyright 2015 Ryan Wyllie <ryan@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$functions = array(
+defined('MOODLE_INTERNAL') || die();
 
-    'local_notification_query' => array(
-        'classname'   => 'local_notification\external',
-        'methodname'  => 'query',
-        'classpath'   => '',
-        'description' => 'Return some site info.',
-        'type'        => 'read',
-        'capabilities'=> '',
+$observers = array (
+    array (
+        'eventname' => '*', // Listen for everything.
+        'callback'  => 'local_notification_observer::process',
+        'internal'  => false, // This means that we get events only after transaction commit.
     )
 );
-

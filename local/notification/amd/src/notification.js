@@ -81,7 +81,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         controller.loading();
 
         var promises = ajax.call([{
-            methodname: 'local_notification_retrieve',
+            methodname: 'local_notification_query',
             args: args
         }]);
 

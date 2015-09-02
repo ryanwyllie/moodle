@@ -28,21 +28,25 @@ use DateTime;
 class notification {
 
     private $id;
-
     private $type;
-
+    private $url;
+    private $user_id;
     private $description;
-
     private $seen;
-
+    private $actioned;
     private $createddate;
 
-    public function __construct($id, $type, $description, $seen, DateTime $createddate = null) {
-        $this->createddate = ($createddate) ? $createddate : new DateTime();
+    public function __construct($id = null, $type, $url, $user_id, $description,
+            $seen = false, $actioned = false, DateTime $createddate = null) {
+
         $this->id = $id;
         $this->type = $type;
+        $this->url = $url;
+        $this->user_id = $user_id;
         $this->description = $description;
         $this->seen = $seen;
+        $this->action = $actioned;
+        $this->createddate = ($createddate) ? $createddate : new DateTime();
     }
 
     public function get_id() {
@@ -51,6 +55,14 @@ class notification {
 
     public function get_type() {
         return $this->type;
+    }
+
+    public function get_url() {
+        return $this->url;
+    }
+
+    public function get_user_id() {
+        return $this->user_id;
     }
 
     public function get_description() {
@@ -65,12 +77,24 @@ class notification {
         return $this->seen;
     }
 
+    public function has_been_actioned() {
+        return $this->actioned;
+    }
+
+    public function set_id($id) {
+        // TODO: Type checking here.
+        // Can only set the id once.
+        if (!isset($this->id)) {
+            $this->id = $id;
+        }
+    }
+
     public function mark_as_seen() {
         $this->seen = true;
     }
 
-    public function mark_as_unseen() {
-        $this->seen = false;
+    public function mark_as_actioned() {
+        $this->actioned = true;
     }
 }
 
@@ -79,60 +103,12 @@ class serialiser {
         return array(
             'id' => $notification->get_id(),
             'type' => $notification->get_type(),
+            'url' => $notification->get_url(),
+            'user_id' => $notification->get_user_id(),
             'description' => $notification->get_description(),
             'seen' => $notification->has_been_seen(),
+            'actioned' => $notification->has_been_actioned(),
             'created_date' => $notification->get_created_date()->format(DateTime::ATOM),
         );
-    }
-}
-
-class repository {
-
-    private static $data = array();
-
-    public function __construct() {
-        $notifications = array();
-
-        for ($i = 0; $i < 20; $i++) {
-            $notifications[] = new notification($i, 'user', 'desc'.rand(), false);
-        }
-
-        self::$data = array_reverse($notifications);
-    }
-
-    public function retrieve($limit = 0, $offset = 0, DateTime $before = null, DateTime $after = null) {
-        $limit = ($limit) ? $limit : count(self::$data);
-
-        $results = array();
-
-        foreach (self::$data as $notification) {
-            if (isset($before) && $notification->createddate > $before) {
-                continue;
-            }
-
-            if (isset($after) && $notification->createddate < $after) {
-                continue;
-            }
-
-            $results[] = $notification;
-        }
-
-        return array_slice($results, $offset, $limit);
-    }
-
-    public function count_all() {
-        return count(self::$data);
-    }
-
-    public function count_all_unseen() {
-        $count = 0;
-
-        foreach (self::$data as $notification) {
-            if (!$notification->has_been_seen()) {
-                $count++;
-            }
-        }
-
-        return $count;
     }
 }
