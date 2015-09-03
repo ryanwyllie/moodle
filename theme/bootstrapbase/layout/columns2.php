@@ -55,8 +55,8 @@ echo $OUTPUT->doctype() ?>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </a>
-            <?php echo $OUTPUT->notification_menu(); ?>
             <?php echo $OUTPUT->user_menu(); ?>
+            <?php echo $OUTPUT->notification_menu(); ?>
             <div class="nav-collapse collapse">
                 <?php echo $OUTPUT->custom_menu(); ?>
                 <ul class="nav pull-right">
