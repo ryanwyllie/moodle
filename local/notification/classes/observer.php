@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 class local_notification_observer {
 
     // TODO: Replace this with user config.
-    $supportedevents = array (
+    private static $supportedevents = array (
         '\core\event\user_enrolment_created'
     );
 
@@ -44,14 +44,14 @@ class local_notification_observer {
      * @param \core\event\base $event
      */
     public static function process(\core\event\base $event) {
-        if ($this->can_handle_event($event)) {
+        if (self::can_handle_event($event)) {
             $factory = new \local_notification\factory();
             $factory->create_from_event($event);
         }
     }
 
-    private function can_handle_event(\core\event\base $event) {
-        if (in_array($event->eventname, $supportedevents)) {
+    private static function can_handle_event(\core\event\base $event) {
+        if (in_array($event->eventname, self::$supportedevents)) {
             if (!$even->anonymous) {
                 return true;
             }

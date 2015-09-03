@@ -28,53 +28,60 @@ require_once(__DIR__."/notification.php");
 use DateTime;
 use \local_notification\notification as notification;
 
+define('NOTIFICATION_TABLE', 'local_notification');
+define('NOTIFICATION_USER_TABLE', 'local_notification_user');
+define('DEFAULT_SORT', NOTIFICATION_TABLE.'.created desc');
+
 class repository {
 
-    private static $data = array();
-
-    public function __construct() {
-        $notifications = array();
-
-        for ($i = 0; $i < 20; $i++) {
-            $notifications[] = new notification($i, 'user', 'http://www.google.com', 1, 'desc'.rand());
-        }
-
-        self::$data = array_reverse($notifications);
-    }
-
     public function retrieve_all_for_user($user, $limit = 0, $offset = 0, DateTime $before = null, DateTime $after = null) {
-        $limit = ($limit) ? $limit : count(self::$data);
+        global $DB;
 
-        $results = array();
+        $params = array('user_id' => $user->id);
+        $where_clauses = array('un.notification_id = u.id', 'un.user_id = :user_id');
 
-        foreach (self::$data as $notification) {
-            if (isset($before) && $notification->createddate > $before) {
-                continue;
-            }
-
-            if (isset($after) && $notification->createddate < $after) {
-                continue;
-            }
-
-            $results[] = $notification;
+        if (!is_null($before)) {
+            $where_clauses[] = 'n.created_date <= :before';
+            $params['before'] = strtotime($before->format(DateTime::ATOM));
         }
 
-        return array_slice($results, $offset, $limit);
+        if (!is_null($after)) {
+            $where_clauses[] = 'n.created_date >= :after';
+            $params['after'] = strtotime($after->format(DateTime::ATOM));
+        }
+
+        $sql = sprintf("SELECT * FROM {%s} as n, {%S} as un WHERE %s ORDER BY %s",
+            NOTIFICATION_TABLE, NOTIFICATION_USER_TABLE, 
+            implode(' AND ', $where_clauses), DEFAULT_SORT);
+
+        $records = $DB->get_records_sql($sql, $params, $offset, $limit);
+
+        return array_map($this->unpack_from_db_record, $records);
     }
 
     public function count_all_for_user($user) {
-        return count(self::$data);
+        global $DB;
+
+        return $DB->count_records_select(NOTIFICATION_USER_TABLE,
+            "user_id = :user_id", array('user_id' => $user->id));
     }
 
     public function count_all_unseen_for_user($user) {
-        $count = 0;
+        global $DB;
 
-        foreach (self::$data as $notification) {
-            if (!$notification->has_been_seen()) {
-                $count++;
-            }
-        }
+        return $DB->count_records_select(NOTIFICATION_USER_TABLE,
+            "user_id = :user_id AND seen = 0", array('user_id' => $user->id));
+    }
 
-        return $count;
+    private function unpack_from_db_record($record) {
+        $createddate = new DateTime();
+        $createddate->setTimestamp($record->created_date);
+
+        $seen = $record->seen ? true : false;
+        $actioned = $record->actioned ? true : false;
+
+        return new notification($record->id, $record->type,
+            $record->url, $record->user_id, $record->description,
+            $seen, $actioned, $createddate);
     }
 }
