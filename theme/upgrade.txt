@@ -9,6 +9,7 @@ information provided here is intended especially for theme designer.
 * Meta description is now included in standard_head_html for homepage in bootstrapbase.
   If your theme includes a meta description directly in a layout for the frontpage,
   you will need to remove it or override the standard_head_html instead.
+* Themes Clean and More page header logo only displays on front page and login page.
 
 === 2.9 ===
 
