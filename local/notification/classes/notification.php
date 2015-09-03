@@ -45,7 +45,7 @@ class notification {
         $this->user_id = $user_id;
         $this->description = $description;
         $this->seen = $seen;
-        $this->action = $actioned;
+        $this->actioned = $actioned;
         $this->createddate = ($createddate) ? $createddate : new DateTime();
     }
 

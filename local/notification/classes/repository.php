@@ -30,7 +30,7 @@ use \local_notification\notification as notification;
 
 define('NOTIFICATION_TABLE', 'local_notification');
 define('NOTIFICATION_USER_TABLE', 'local_notification_user');
-define('DEFAULT_SORT', NOTIFICATION_TABLE.'.created desc');
+define('DEFAULT_SORT', 'created_date DESC');
 
 class repository {
 
@@ -38,7 +38,7 @@ class repository {
         global $DB;
 
         $params = array('user_id' => $user->id);
-        $where_clauses = array('un.notification_id = u.id', 'un.user_id = :user_id');
+        $where_clauses = array('un.notification_id = n.id', 'un.user_id = :user_id');
 
         if (!is_null($before)) {
             $where_clauses[] = 'n.created_date <= :before';
@@ -50,13 +50,14 @@ class repository {
             $params['after'] = strtotime($after->format(DateTime::ATOM));
         }
 
-        $sql = sprintf("SELECT * FROM {%s} as n, {%S} as un WHERE %s ORDER BY %s",
-            NOTIFICATION_TABLE, NOTIFICATION_USER_TABLE, 
-            implode(' AND ', $where_clauses), DEFAULT_SORT);
+        $where_string = implode(' AND ', $where_clauses);
+
+        $sql = sprintf("SELECT n.*, un.user_id, un.seen, un.actioned FROM {%s} AS n, {%s} AS un WHERE %s ORDER BY %s",
+            NOTIFICATION_TABLE, NOTIFICATION_USER_TABLE, $where_string, 'n.'.DEFAULT_SORT);
 
         $records = $DB->get_records_sql($sql, $params, $offset, $limit);
 
-        return array_map($this->unpack_from_db_record, $records);
+        return array_map(array($this, "unpack_from_db_record"), array_values($records));
     }
 
     public function count_all_for_user($user) {
