@@ -45,7 +45,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
     NotificationController.prototype.loadNew = function() {
         var controller = this;
 
-        controller.load({limit: controller.limit, offset: controller.offset}).done(function(data) {
+        controller.load({limit: controller.limit, offset: controller.notifications.length}).done(function(data) {
             var notificationData = data['notifications'];
             controller.notifications = notificationData.concat(controller.notifications);
 
@@ -62,7 +62,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
     NotificationController.prototype.loadMore = function() {
         var controller = this;
 
-        controller.load({limit: controller.limit, offset: controller.offset}).done(function(data) {
+        controller.load({limit: controller.limit, offset: controller.notifications.length}).done(function(data) {
             var notificationData = data['notifications'];
             controller.notifications = controller.notifications.concat(notificationData);
 
