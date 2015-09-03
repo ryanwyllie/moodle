@@ -19,16 +19,20 @@
 
     Starting point for an awesome template.
 }}
-<li class="notification-item">
-    <div class="row-fluid">
-        <div class="span2">
-            {{# pix }} i/user, core, User notification {{/ pix }}
+<li class="notification-item {{^ actioned }}highlight{{/ actioned }}">
+    <a href="{{ url }}">
+        <div class="row-fluid">
+            <div class="span2 thumbnail-container">
+                <div class="thumbnail">
+                    {{# pix }} i/user, core, User notification {{/ pix }}
+                </div>
+            </div>
+            <div class="span10 content">
+                <p>{{ description }}</p>
+                <p>{{ created_date }}</p>
+            </div>
         </div>
-        <div class="span10">
-            <p>{{ description }}</p>
-            <p>{{ created_date }}</p>
-        </div>
-    </div>
+    </a>
 </li>
 {{# js }}
 {{/ js }}
