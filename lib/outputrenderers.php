@@ -3113,8 +3113,12 @@ EOD;
     }
 
     public function notification_menu() {
-        $data = array();
-        return parent::render_from_template('local_notification/menu', $data);
+        if (isloggedin()) {
+            $data = array();
+            return parent::render_from_template('local_notification/menu', $data);
+        } else {
+            return '';
+        }
     }
 
     /**

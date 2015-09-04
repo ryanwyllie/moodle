@@ -36,6 +36,9 @@ class factory {
     }
 
     public function create_from_event(\core\event\base $event) {
+        // TODO: Need to handle different event types here because
+        // the data isn't going to map perfectly.
+
         $notification = new notification(null, 'user',
             $event->get_url()->out(), $event->relateduserid, $event->get_description());
 
