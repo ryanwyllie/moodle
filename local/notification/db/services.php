@@ -24,12 +24,21 @@
 
 $functions = array(
 
-    'local_notification_query' => array(
+    'local_notifications_query' => array(
         'classname'   => 'local_notification\external',
-        'methodname'  => 'query',
+        'methodname'  => 'query_notifications',
         'classpath'   => '',
-        'description' => 'Return some site info.',
+        'description' => '',
         'type'        => 'read',
+        'capabilities'=> '',
+    ),
+
+    'local_notifications_update' => array(
+        'classname'   => 'local_notification\external',
+        'methodname'  => 'update_notifications',
+        'classpath'   => '',
+        'description' => '',
+        'type'        => 'update',
         'capabilities'=> '',
     )
 );

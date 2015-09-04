@@ -28,6 +28,7 @@ require_once("$CFG->dirroot/webservice/externallib.php");
 require_once(__DIR__."/notification.php");
 require_once(__DIR__."/repository.php");
 
+use DateTime;
 use external_api;
 use external_function_parameters;
 use external_value;
@@ -46,12 +47,8 @@ use \local_notification\serialiser as serialiser;
  */
 class external extends external_api {
 
-    /**
-     * Wrap the core function get_site_info.
-     *
-     * @return external_function_parameters
-     */
-    public static function query_parameters() {
+    // START query_notifications.
+    public static function query_notifications_parameters() {
         return new external_function_parameters(
             array(
                 'limit' => new external_value(
@@ -70,15 +67,11 @@ class external extends external_api {
         );
     }
 
-    /**
-     * Expose to AJAX
-     * @return boolean
-     */
-    public static function query_is_allowed_from_ajax() {
+    public static function query_notifications_is_allowed_from_ajax() {
         return true;
     }
 
-    public static function query($limit = 0, $offset = 0) {
+    public static function query_notifications($limit = 0, $offset = 0) {
         global $USER;
 
         // TODO: Remove me.
@@ -101,7 +94,78 @@ class external extends external_api {
         );
     }
 
-    public static function query_returns() {
+    public static function query_notifications_returns() {
         return \core_webservice_external::get_site_info_returns();
+    }
+    // END query_notifications.
+
+    // START update_notifications
+    public static function update_notifications_parameters() {
+        return new external_function_parameters(
+            array(
+                'notifications' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id' => new external_value(PARAM_INT, 'notification id'),
+                            'type' => new external_value(PARAM_ALPHANUMEXT, 'notification type'),
+                            'description' => new external_value(PARAM_TEXT, 'notification description'),
+                            'url' => new external_value(PARAM_TEXT, 'notification url'),
+                            'user_id' => new external_value(PARAM_INT, 'notification user_id'),
+                            'created_date' => new external_value(PARAM_TEXT, 'notification created_date'),
+                            'seen' => new external_value(PARAM_BOOL, 'notification seen'),
+                            'actioned' => new external_value(PARAM_BOOL, 'notification actioned'),
+                        )
+                    )
+                )
+            ),
+            'update notifications parameters'
+        );
+    }
+
+    public static function update_notifications_is_allowed_from_ajax() {
+        return true;
+    }
+
+    public static function update_notifications($notifications_data) {
+        global $USER;
+
+        $notifications = array_map('self::unpack_from_request_data', $notifications_data);
+
+        $serialiser = new serialiser();
+        $repository = new repository();
+
+        $repository->update_multiple($notifications);
+
+        $total = $repository->count_all_for_user($USER);
+        $total_unseen = $repository->count_all_unseen_for_user($USER);
+
+        $serialise_notification = function($notification) use ($serialiser) {
+            return $serialiser->to_array($notification);
+        };
+
+        return array(
+            'total_count' => $total,
+            'total_unseen_count' => $total_unseen,
+            'notifications' => array_map($serialise_notification, $notifications)
+        );
+    }
+
+    public static function update_notifications_returns() {
+        return \core_webservice_external::get_site_info_returns();
+    }
+    // END update_notifications.
+
+    private static function unpack_from_request_data($data) {
+
+        return new notification(
+            $data['id'],
+            $data['type'],
+            $data['url'],
+            $data['user_id'],
+            $data['description'],
+            $data['seen'] ? true : false,
+            $data['actioned'] ? true : false,
+            DateTime::createFromFormat(DateTime::ATOM, $data['created_date'])
+        );
     }
 }

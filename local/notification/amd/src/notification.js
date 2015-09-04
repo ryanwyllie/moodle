@@ -33,6 +33,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         this.elements.iconContainer = this.elements.root.find('.menu-icon-container');
         this.elements.loader = this.elements.list.find('[role="menu-loading-item"]');
         this.elements.count = this.elements.iconContainer.find('[role="menu-item-count"]');
+        this.elements.menuToggle = this.elements.root.find('[data-toggle="dropdown"]');
         this.limit = 10;
         this.offset = 0;
         this.notifications = [];
@@ -42,6 +43,18 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         this.addListeners();
     };
 
+    NotificationController.prototype.getUnseenNotifications = function() {
+        return this.notifications.filter(function(notification, index, array) {
+            return notification.seen ? false : true;
+        });
+    };
+
+    NotificationController.prototype.getNotificationById = function(id) {
+        return this.notifications.filter(function(notification, index, array) {
+            return notification.id == id;
+        })[0];
+    }
+
     NotificationController.prototype.loadNew = function() {
         var controller = this;
 
@@ -50,8 +63,16 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
             controller.notifications = notificationData.concat(controller.notifications);
 
             $(notificationData.reverse()).each(function(index, data) {
-                templates.render('local_notification/item', data).done(function(html, js) {
-                    controller.elements.list.prepend(html);
+                var templateData = {};
+                // Need to make a copy because template renderer pollutes the object
+                // with properties.
+                $.extend(templateData, data);
+
+                templates.render('local_notification/item', templateData).done(function(html, js) {
+                    var element = $(html);
+                    controller.elements.list.prepend(element);
+                    element.data('notification-id', templateData.id);
+                    controller.addNotificationClickHandler(element);
                     // And execute any JS that was in the template.
                     templates.runTemplateJS(js);
                 }).fail(notification.exception);
@@ -65,10 +86,20 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         controller.load({limit: controller.limit, offset: controller.notifications.length}).done(function(data) {
             var notificationData = data['notifications'];
             controller.notifications = controller.notifications.concat(notificationData);
+            // Any newly loaded ones with the menu open are considered "seen".
+            controller.updateUnseen();
 
             $(notificationData).each(function(index, data) {
-                templates.render('local_notification/item', data).done(function(html, js) {
-                    $(html).insertBefore(controller.elements.loader);
+                var templateData = {};
+                // Need to make a copy because template renderer pollutes the object
+                // with properties.
+                $.extend(templateData, data);
+
+                templates.render('local_notification/item', templateData).done(function(html, js) {
+                    var element = $(html);
+                    element.insertBefore(controller.elements.loader);
+                    element.data('notification-id', templateData.id);
+                    controller.addNotificationClickHandler(element);
                     // And execute any JS that was in the template.
                     templates.runTemplateJS(js);
                 }).fail(notification.exception);
@@ -81,12 +112,12 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         controller.loading();
 
         var promises = ajax.call([{
-            methodname: 'local_notification_query',
+            methodname: 'local_notifications_query',
             args: args
         }]);
 
         promises[0].done(function(data) {
-            controller.updateUnseen(data.total_unseen_count);
+            controller.updateUnseenCount(data.total_unseen_count);
             controller.totalCount = data.total_count;
             controller.loaded();
         }).fail(notification.exception);
@@ -94,7 +125,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         return promises[0];
     };
 
-    NotificationController.prototype.updateUnseen = function(count) {
+    NotificationController.prototype.updateUnseenCount = function(count) {
         if (this.unseenCount == count) {
             return;
         }
@@ -111,7 +142,26 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
             element.html(count);
             element.addClass('visible');
         }
-    }
+    };
+
+    NotificationController.prototype.updateUnseen = function() {
+        var controller = this;
+        var unseenNotifications = this.getUnseenNotifications();
+
+        $(unseenNotifications).each(function(index, notification) {
+            notification.seen = true;
+        });
+
+        var promises = ajax.call([{
+            methodname: 'local_notifications_update',
+            args: { notifications: unseenNotifications }
+        }]);
+
+        promises[0].done(function(data) {
+            controller.updateUnseenCount(data.total_unseen_count);
+            controller.totalCount = data.total_count;
+        }).fail(notification.exception);
+    };
 
     NotificationController.prototype.loading = function() {
         this.isLoading = true;
@@ -125,6 +175,32 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
 
     NotificationController.prototype.hasLoadedAllNotifications = function() {
         return this.notifications.length >= this.totalCount;
+    };
+
+    NotificationController.prototype.addNotificationClickHandler = function(element) {
+        var controller = this;
+
+        element.click(function(e) {
+            var id = element.data('notification-id');
+
+            if (id == null) {
+                return;
+            }
+
+            var notification = controller.getNotificationById(id);
+            notification.actioned = true;
+
+            var promises = ajax.call([{
+                methodname: 'local_notifications_update',
+                args: { notifications: [notification] }
+            }]);
+
+            promises[0].done(function(data) {
+                controller.updateUnseenCount(data.total_unseen_count);
+                controller.totalCount = data.total_count;
+                element.removeClass('highlight');
+            }).fail(notification.exception);
+        });
     };
 
     NotificationController.prototype.addListeners = function() {
@@ -167,6 +243,10 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
                     controller.loadMore();
                 }
             }
+        });
+
+        this.elements.menuToggle.click(function(e) {
+            controller.updateUnseen();
         });
     };
 

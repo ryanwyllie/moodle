@@ -74,6 +74,39 @@ class repository {
             "user_id = :user_id AND seen = 0", array('user_id' => $user->id));
     }
 
+    public function update_multiple(array $notifications) {
+        // TODO: Make this more performant.
+        foreach ($notifications as $notification) {
+            $this->update_single($notification);
+        }
+    }
+
+    public function update_single(notification $notification) {
+        // TODO: Make this more performant.
+        global $DB;
+
+        $notification_data = array(
+            'id' => $notification->get_id(),
+            'type' => $notification->get_type(),
+            'description' => $notification->get_description(),
+            'created_date' => strtotime($notification->get_created_date()->format(DateTime::ATOM)),
+            'url' => $notification->get_url()
+        );
+
+        $DB->update_record(NOTIFICATION_TABLE, $notification_data);
+
+        $notification_user_id = $DB->get_field(NOTIFICATION_USER_TABLE, 'id',
+            array('notification_id' => $notification->get_id(), 'user_id' => $notification->get_user_id()));
+
+        $notification_user_data = array(
+            'id' => $notification_user_id,
+            'seen' => $notification->has_been_seen() ? 1 : 0,
+            'actioned' => $notification->has_been_actioned() ? 1 : 0
+        );
+
+        $DB->update_record(NOTIFICATION_USER_TABLE, $notification_user_data);
+    }
+
     private function unpack_from_db_record($record) {
         $createddate = new DateTime();
         $createddate->setTimestamp($record->created_date);
