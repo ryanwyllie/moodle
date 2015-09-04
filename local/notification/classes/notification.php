@@ -81,10 +81,14 @@ class notification {
         return $this->actioned;
     }
 
+    public function has_id() {
+        return isset($this->id);
+    }
+
     public function set_id($id) {
         // TODO: Type checking here.
         // Can only set the id once.
-        if (!isset($this->id)) {
+        if (!$this->has_id()) {
             $this->id = $id;
         }
     }

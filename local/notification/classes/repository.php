@@ -34,6 +34,27 @@ define('DEFAULT_SORT', 'created_date DESC');
 
 class repository {
 
+    public function create(notification &$notification) {
+        global $DB;
+
+        if ($notification->has_id()) {
+            return;
+        }
+
+        $returnid = true;
+        list($notification_data, $notification_user_data) = $this->pack_for_db($notification);
+
+        error_log("NOTIFICATION_DATA:".var_export($notification_data, true));
+        error_log("NOTIFICATION_USER_DATA:".var_export($notification_user_data, true));
+
+        $id = $DB->insert_record(NOTIFICATION_TABLE, $notification_data, $returnid);
+        $notification->set_id($id);
+
+        $notification_user_data['notification_id'] = $id;
+
+        $DB->insert_record(NOTIFICATION_USER_TABLE, $notification_user_data, !$returnid);
+    }
+
     public function retrieve_all_for_user($user, $limit = 0, $offset = 0, DateTime $before = null, DateTime $after = null) {
         global $DB;
 
@@ -85,26 +106,40 @@ class repository {
         // TODO: Make this more performant.
         global $DB;
 
+        list($notification_data, $notification_user_data) = $this->pack_for_db($notification);
+
+        $DB->update_record(NOTIFICATION_TABLE, $notification_data);
+        $DB->update_record(NOTIFICATION_USER_TABLE, $notification_user_data);
+    }
+
+    private function pack_for_db(notification $notification) {
+        global $DB;
+
         $notification_data = array(
-            'id' => $notification->get_id(),
             'type' => $notification->get_type(),
             'description' => $notification->get_description(),
             'created_date' => strtotime($notification->get_created_date()->format(DateTime::ATOM)),
             'url' => $notification->get_url()
         );
 
-        $DB->update_record(NOTIFICATION_TABLE, $notification_data);
-
-        $notification_user_id = $DB->get_field(NOTIFICATION_USER_TABLE, 'id',
-            array('notification_id' => $notification->get_id(), 'user_id' => $notification->get_user_id()));
-
         $notification_user_data = array(
-            'id' => $notification_user_id,
+            'user_id' => $notification->get_user_id(),
             'seen' => $notification->has_been_seen() ? 1 : 0,
             'actioned' => $notification->has_been_actioned() ? 1 : 0
         );
 
-        $DB->update_record(NOTIFICATION_USER_TABLE, $notification_user_data);
+        if ($notification->has_id()) {
+            $notification_data['id'] = $notification->get_id();
+
+            $notification_user_id = $DB->get_field(NOTIFICATION_USER_TABLE, 'id',
+                array('notification_id' => $notification->get_id(), 'user_id' => $notification->get_user_id()));
+
+            if (isset($notification_user_id)) {
+                $notification_user_data['id'] = $notification_user_id;
+            }
+        }
+
+        return array($notification_data, $notification_user_data);
     }
 
     private function unpack_from_db_record($record) {

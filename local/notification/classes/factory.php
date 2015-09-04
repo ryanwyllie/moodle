@@ -24,18 +24,20 @@
 namespace local_notification;
 
 use DateTime;
+use \local_notification\notification as notification;
+use \local_notification\repository as repository;
 
 class factory {
 
     private $repository;
 
     public function __construct() {
-        $this->repository = new \local_notification\repository();
+        $this->repository = new repository();
     }
 
     public function create_from_event(\core\event\base $event) {
-        $notification = new \local_notification\notification(null, 'user',
-            $event->get_url(), $event->relateduserid, $event->get_description());
+        $notification = new notification(null, 'user',
+            $event->get_url()->out(), $event->relateduserid, $event->get_description());
 
         $this->repository->create($notification);
     }

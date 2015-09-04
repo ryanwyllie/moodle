@@ -52,7 +52,7 @@ class local_notification_observer {
 
     private static function can_handle_event(\core\event\base $event) {
         if (in_array($event->eventname, self::$supportedevents)) {
-            if (!$even->anonymous) {
+            if (!$event->anonymous) {
                 return true;
             }
         }
