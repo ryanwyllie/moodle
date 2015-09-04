@@ -62,20 +62,37 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
             var notificationData = data['notifications'];
             controller.notifications = notificationData.concat(controller.notifications);
 
+            var promises = [];
+            var renderedTemplates = [];
+
             $(notificationData.reverse()).each(function(index, data) {
                 var templateData = {};
                 // Need to make a copy because template renderer pollutes the object
                 // with properties.
                 $.extend(templateData, data);
 
-                templates.render('local_notification/item', templateData).done(function(html, js) {
+                var renderer = templates.render('local_notification/item', templateData);
+                renderer.done(function(html, js) {
+                    renderedTemplates[index] = { html: html, js: js, id: templateData.id};
+                }).fail(notification.exception);
+
+                promises.push(renderer);
+            });
+
+            // Have to wait for all promises to resolve in order to guarantee
+            // item ordering.
+            $.when.apply($, promises).done(function() {
+                $(renderedTemplates).each(function(index, data) {
+                    var html = data.html;
+                    var js = data.js;
+                    var id = data.id;
                     var element = $(html);
                     controller.elements.list.prepend(element);
-                    element.data('notification-id', templateData.id);
+                    element.data('notification-id', id);
                     controller.addNotificationClickHandler(element);
                     // And execute any JS that was in the template.
                     templates.runTemplateJS(js);
-                }).fail(notification.exception);
+                });
             });
         });
     }
@@ -89,20 +106,38 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
             // Any newly loaded ones with the menu open are considered "seen".
             controller.updateUnseen();
 
+            var promises = [];
+            var renderedTemplates = [];
+
             $(notificationData).each(function(index, data) {
                 var templateData = {};
                 // Need to make a copy because template renderer pollutes the object
                 // with properties.
                 $.extend(templateData, data);
 
-                templates.render('local_notification/item', templateData).done(function(html, js) {
+                var renderer = templates.render('local_notification/item', templateData);
+                renderer.done(function(html, js) {
+                    renderedTemplates[index] = { html: html, js: js, id: templateData.id};
+                }).fail(notification.exception);
+
+                promises.push(renderer);
+            });
+
+            // Have to wait for all promises to resolve in order to guarantee
+            // item ordering.
+            $.when.apply($, promises).done(function() {
+                $(renderedTemplates).each(function(index, data) {
+                    var html = data.html;
+                    var js = data.js;
+                    var id = data.id;
+                    var element = $(html);
                     var element = $(html);
                     element.insertBefore(controller.elements.loader);
-                    element.data('notification-id', templateData.id);
+                    element.data('notification-id', id);
                     controller.addNotificationClickHandler(element);
                     // And execute any JS that was in the template.
                     templates.runTemplateJS(js);
-                }).fail(notification.exception);
+                });
             });
         });
     };
