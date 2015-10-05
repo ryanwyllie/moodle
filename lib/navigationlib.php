@@ -3777,6 +3777,9 @@ class settings_navigation extends navigation_node {
             $coursenode->add(get_string('filters', 'admin'), $url, self::TYPE_SETTING, null, null, new pix_icon('i/filter', ''));
         }
 
+        // Keep track of any plugin functions that we load.
+        $seenpluginfunctions = array();
+
         // View course reports.
         if (has_capability('moodle/site:viewreports', $coursecontext)) { // Basic capability for listing of reports.
             $reportnav = $coursenode->add(get_string('reports'), null, self::TYPE_CONTAINER, null, 'coursereports',
@@ -3795,6 +3798,8 @@ class settings_navigation extends navigation_node {
 
             $reports = get_plugin_list_with_function('report', 'extend_navigation_course', 'lib.php');
             foreach ($reports as $reportfunction) {
+                // Remember that this function has been loaded so that we don't call it again later.
+                $seenpluginfunctions[$reportfunction] = true;
                 $reportfunction($reportnav, $course, $coursecontext);
             }
         }
@@ -3929,7 +3934,10 @@ class settings_navigation extends navigation_node {
         $pluginsfunction = get_plugins_with_function('extend_navigation_course', 'lib.php');
         foreach ($pluginsfunction as $plugintype => $plugins) {
             foreach ($plugins as $pluginfunction) {
-                $pluginfunction($coursenode, $course, $coursecontext);
+                // Ignore functions we've already loaded (e.g. reports).
+                if (empty($seenpluginfunctions[$pluginfunction])) {
+                    $pluginfunction($coursenode, $course, $coursecontext);
+                }
             }
         }
 
