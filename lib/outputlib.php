@@ -96,6 +96,53 @@ function theme_get_revision() {
     }
 }
 
+/**
+ * Checks if the themes for the site have been locked using
+ * config.php.
+ *
+ * @return bool
+ */
+function theme_is_theme_change_locked() {
+    global $CFG;
+    return isset($CFG->config_php_settings['theme']);
+}
+
+/**
+ * Returns an array containing the list of locked themes (themes
+ * defined in config.php) if theme changing has been locked.
+ *
+ * @return array keys are the theme names and the values are an array
+ *               containing each device the theme has been set for.
+ */
+function theme_get_locked_themes() {
+    global $CFG;
+
+    // If the themes aren't currently locked then return empty array.
+    if (!theme_is_theme_change_locked()) {
+        return array();
+    }
+
+    $devices = core_useragent::get_device_type_list();
+    $themes = array();
+
+    // Check the config to find out which devices have had themes defined
+    // in config.php.
+    foreach ($devices as $device) {
+        $themeconfigname = core_useragent::get_device_type_cfg_var_name($device);
+        // A locked theme is one that is configured in config.php.
+        if (isset($CFG->config_php_settings[$themeconfigname])) {
+            $theme = $CFG->$themeconfigname;
+
+            if (isset($themes[$theme])) {
+                $themes[$theme][] = $device;
+            } else {
+                $themes[$theme] = array($device);
+            }
+        }
+    }
+
+    return $themes;
+}
 
 /**
  * This class represents the configuration variables of a Moodle theme.

@@ -39,8 +39,21 @@ preferences,moodle|/user/preferences.php|preferences',
     $ADMIN->add('themes', $temp);
     $ADMIN->add('themes', new admin_externalpage('themeselector', new lang_string('themeselector','admin'), $CFG->wwwroot . '/theme/index.php'));
 
+    $themes = array();
+    // If the theme for the site has been locked then we only want to display
+    // the hardcoded themes in the nav tree.
+    if (theme_is_theme_change_locked()) {
+        $lockedthemes = theme_get_locked_themes();
+        foreach (array_keys($lockedthemes) as $themename) {
+            $themedirectory = core_component::get_plugin_directory('theme', $themename);
+            $themes[$themename] = $themedirectory;
+        }
+    } else {
+        $themes = core_component::get_plugin_list('theme');
+    }
+
     // settings for each theme
-    foreach (core_component::get_plugin_list('theme') as $theme => $themedir) {
+    foreach ($themes as $theme => $themedir) {
         $settings_path = "$themedir/settings.php";
         if (file_exists($settings_path)) {
             $settings = new admin_settingpage('themesetting'.$theme, new lang_string('pluginname', 'theme_'.$theme));
