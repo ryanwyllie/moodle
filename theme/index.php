@@ -48,9 +48,12 @@ if ($reset and confirm_sesskey()) {
 } else if ($choose && $device && !$unsettheme && confirm_sesskey()) {
     // Load the theme to make sure it is valid.
     $theme = theme_config::load($choose);
-    // Get the config argument for the chosen device.
-    $themename = core_useragent::get_device_type_cfg_var_name($device);
-    set_config($themename, $theme->name);
+
+    if (!theme_is_device_locked($device)) {
+        // Get the config argument for the chosen device.
+        $themename = core_useragent::get_device_type_cfg_var_name($device);
+        set_config($themename, $theme->name);
+    }
 
     // Create a new page for the display of the themes readme.
     // This ensures that the readme page is shown using the new theme.
@@ -75,7 +78,9 @@ if ($reset and confirm_sesskey()) {
     exit;
 } else if ($device && $unsettheme && confirm_sesskey() && ($device != 'default')) {
     // Unset the theme and continue.
-    unset_config(core_useragent::get_device_type_cfg_var_name($device));
+    if (!theme_is_device_locked($device)) {
+        unset_config(core_useragent::get_device_type_cfg_var_name($device));
+    }
     $device = '';
 }
 
@@ -137,10 +142,15 @@ if (!empty($CFG->enabledevicedetection) && empty($device)) {
         $deviceurl = new moodle_url('/theme/index.php', array('device' => $thedevice, 'sesskey' => sesskey()));
         $select = new single_button($deviceurl, $strthemeselect, 'get');
 
+        $lockwarning = '';
+        if (theme_is_device_locked($thedevice)) {
+            $lockwarning = html_writer::div(get_string('configoverride', 'admin'), 'alert alert-info');
+        }
+
         $table->data[] = array(
             $OUTPUT->heading(ucfirst($thedevice), 3),
             $screenshotcell,
-            $headingthemename . $OUTPUT->render($select) . $unsetthemebutton
+            $headingthemename . $lockwarning . $OUTPUT->render($select) . $unsetthemebutton
         );
     }
 } else {
@@ -152,10 +162,19 @@ if (!empty($CFG->enabledevicedetection) && empty($device)) {
         $device = core_useragent::get_device_type();
     }
 
+    $themelocked = empty($CFG->enabledevicedetection) && theme_is_device_locked($device);
     $table->id = 'adminthemeselector';
     $table->head = array(get_string('theme'), get_string('info'));
 
-    $themes = core_component::get_plugin_list('theme');
+    $themes = array();
+    if ($themelocked) {
+        $heading = get_string('currenttheme', 'admin');
+        $themename = theme_get_locked_theme_for_device($device);
+        $themedirectory = core_component::get_plugin_directory('theme', $themename);
+        $themes[$themename] = $themedirectory;
+    } else {
+        $themes = core_component::get_plugin_list('theme');
+    }
 
     foreach ($themes as $themename => $themedir) {
 
@@ -198,6 +217,10 @@ if (!empty($CFG->enabledevicedetection) && empty($device)) {
         $row[] = html_writer::empty_tag('img', array('src'=>$screenshotpath, 'alt'=>$strthemename));
         // Contents of the second cell.
         $infocell = $OUTPUT->heading($strthemename, 3);
+
+        if ($themelocked) {
+            $infocell .= html_writer::div(get_string('configoverride', 'admin'), 'alert alert-info');
+        }
 
         // Button to choose this as the main theme or unset this theme for devices other then default.
         if (($ischosentheme) && ($device != 'default')) {
