@@ -28,6 +28,7 @@ $choose = optional_param('choose', '', PARAM_PLUGIN);
 $reset  = optional_param('reset', 0, PARAM_BOOL);
 $device = optional_param('device', '', PARAM_TEXT);
 $unsettheme = optional_param('unsettheme', 0, PARAM_BOOL);
+$themelocked = theme_is_theme_change_locked();
 
 admin_externalpage_setup('themeselector');
 
@@ -45,7 +46,7 @@ unset($SESSION->theme);
 if ($reset and confirm_sesskey()) {
     theme_reset_all_caches();
 
-} else if ($choose && $device && !$unsettheme && confirm_sesskey()) {
+} else if (!$themelocked && $choose && $device && !$unsettheme && confirm_sesskey()) {
     // Load the theme to make sure it is valid.
     $theme = theme_config::load($choose);
     // Get the config argument for the chosen device.
@@ -73,7 +74,7 @@ if ($reset and confirm_sesskey()) {
     echo $output->continue_button($CFG->wwwroot . '/theme/index.php');
     echo $output->footer();
     exit;
-} else if ($device && $unsettheme && confirm_sesskey() && ($device != 'default')) {
+} else if (!$themelocked && $device && $unsettheme && confirm_sesskey() && ($device != 'default')) {
     // Unset the theme and continue.
     unset_config(core_useragent::get_device_type_cfg_var_name($device));
     $device = '';
@@ -85,7 +86,40 @@ if ($reset and confirm_sesskey()) {
 $table = new html_table();
 $table->data = array();
 $heading = '';
-if (!empty($CFG->enabledevicedetection) && empty($device)) {
+if ($themelocked) {
+    $heading = get_string('currenttheme', 'admin');
+    $strthemenotselected = get_string('themenoselected', 'admin');
+    $strthemeselect = get_string('themeselect', 'admin');
+
+    $table->id = 'admindeviceselector';
+    $table->head = array(get_string('devicetype', 'admin'), get_string('currenttheme', 'admin'), get_string('info'));
+
+    // Get the themes configured by config.php.
+    $themes = theme_get_locked_themes();
+
+    foreach ($themes as $themename => $devices) {
+        foreach ($devices as $thedevice) {
+            $themename = clean_param($themename, PARAM_THEME);
+            $strthemename = get_string('pluginname', 'theme_'.$themename);
+            // Link to the screenshot, now mandatory - the image path is hardcoded because we need image from other themes,
+            // not the current one.
+            $screenshoturl = new moodle_url('/theme/image.php',
+                array('theme' => $themename, 'image' => 'screenshot', 'component' => 'theme'));
+            // Contents of the screenshot/preview cell.
+            $screenshotcell = html_writer::empty_tag('img', array('src' => $screenshoturl, 'alt' => $strthemename));
+
+            // Show the name of the locked theme.
+            $infocell = $OUTPUT->heading($strthemename, 3);
+            $infocell .= html_writer::tag('p', get_string('themelocked', 'admin'));
+
+            $table->data[] = array(
+                $OUTPUT->heading(ucfirst($thedevice), 3),
+                $screenshotcell,
+                $infocell
+            );
+        }
+    }
+} else if (!empty($CFG->enabledevicedetection) && empty($device)) {
     $heading = get_string('selectdevice', 'admin');
     // Display a list of devices that a user can select a theme for.
 

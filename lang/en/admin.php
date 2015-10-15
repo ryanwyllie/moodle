@@ -1045,6 +1045,7 @@ $string['tasktempfilecleanup'] = 'Delete stale temp files';
 $string['tempdatafoldercleanup'] = 'Clean up temporary data files older than';
 $string['themedesignermode'] = 'Theme designer mode';
 $string['themelist'] = 'Theme list';
+$string['themelocked'] = 'Your theme has been defined by the site configuration';
 $string['themenoselected'] = 'No theme selected';
 $string['themeresetcaches'] = 'Clear theme caches';
 $string['themeselect'] = 'Change theme';
