@@ -60,7 +60,7 @@ function atto_table_strings_for_js() {
                                           'width',
                                           'outer',
                                           'noborder',
-                                          'transparent',
+                                          'inherit',
                                           'themedefault'),
                                     'atto_table');
 

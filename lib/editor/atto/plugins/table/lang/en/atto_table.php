@@ -54,6 +54,7 @@ $string['deletecolumn'] = 'Delete column';
 $string['deleterow'] = 'Delete row';
 $string['edittable'] = 'Edit table';
 $string['headers'] = 'Define headers on';
+$string['inherit'] = 'inherit';
 $string['movecolumnleft'] = 'Move column left';
 $string['movecolumnright'] = 'Move column right';
 $string['moverowdown'] = 'Move row down';

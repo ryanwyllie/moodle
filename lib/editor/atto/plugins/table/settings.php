@@ -50,7 +50,9 @@ if ($ADMIN->fulltree) {
 
     $name = new lang_string('borderstyles', 'atto_table');
     $desc = new lang_string('borderstyles_desc', 'atto_table');
-    $default = ['none' => 'none',
+    $default = ['initial' => 'initial',
+    'unset' => 'unset',
+    'none' => 'none',
     'hidden' => 'hidden',
     'dotted' => 'dotted',
     'dashed' => 'dashed',
