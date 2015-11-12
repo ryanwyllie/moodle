@@ -31,8 +31,11 @@
     {}
 }}
 <form name="test-form">
-    <input name="test1" data-mdl-is="input"></input>
-    <input name="test2" data-mdl-is="input_repeat"></mdl-input>
+    <input name="test1" value="dfsd" data-mdl-is="input"></input>
+    <input name="test2" data-mdl-is="input_repeat"></input>
+    <mdl-input name="test5"></mdl-input>
+    <mdl-input-repeat name="test3"></mdl-input-repeat>
+    <mdl-input-repeat name="test4"></mdl-input-repeat>
 </form>
 {{#js}}
     require(['jquery', 'core/form'], function($, form) {
