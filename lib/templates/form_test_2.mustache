@@ -36,20 +36,12 @@
     <mdl-input name="test5"></mdl-input>
     <mdl-input-repeat name="test3"></mdl-input-repeat>
     <mdl-input-repeat name="test4"></mdl-input-repeat>
+
+    {{> core/form_element_input {"name":"test5"} }}
 </form>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<div id="replace-me"></div>
 {{#js}}
-    require(['jquery', 'core/form', 'core/templates'], function($, form, templates) {
+    require(['jquery', 'core/form'], function($, form) {
         var formElement = $('form[name="test-form"]');
         form.enhance(formElement);
-
-        templates.render('core/form_test_2', {}).done(function (html, js) {
-            templates.replaceNode($('#replace-me'), html, js);
-        });
     });
 {{/js}}
