@@ -31,6 +31,8 @@
     {}
 }}
 <link href="poly-input.html" rel="import">
+<link href="poly-timezone.html" rel="import">
+<link href="poly-editor.html" rel="import">
 
 <form name="test-form">
     <input name="test1" value="dfsd" data-mdl-is="input"></input>
@@ -41,7 +43,9 @@
 
     {{> core/form_element_input {"name":"test5"} }}
 
-    <poly-input name="polymer-input"></poly-input>
+    <poly-timezone name="polymer-timezone-thing"></poly-timezone>
+    <poly-editor name="atto-editor"></poly-editor>
+    <poly-editor name="atto-editor-2"></poly-editor>
 </form>
 {{#js}}
     require(['jquery', 'core/form'], function($, form) {
