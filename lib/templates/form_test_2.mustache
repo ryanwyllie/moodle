@@ -30,6 +30,8 @@
     Example context (json):
     {}
 }}
+<link href="poly-input.html" rel="import">
+
 <form name="test-form">
     <input name="test1" value="dfsd" data-mdl-is="input"></input>
     <input name="test2" data-mdl-is="input_repeat"></input>
@@ -38,6 +40,8 @@
     <mdl-input-repeat name="test4"></mdl-input-repeat>
 
     {{> core/form_element_input {"name":"test5"} }}
+
+    <poly-input name="polymer-input"></poly-input>
 </form>
 {{#js}}
     require(['jquery', 'core/form'], function($, form) {

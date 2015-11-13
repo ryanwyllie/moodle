@@ -1,0 +1,29 @@
+<dom-module id="poly-input">
+
+  <template>
+    <style>
+      /* CSS rules for your element */
+    </style>
+
+    <!-- local DOM for your element -->
+
+    <input name={{name}}></input> <!-- data bindings in local DOM -->
+  </template>
+
+  <script>
+    // element registration
+    Polymer({
+      is: "poly-input",
+
+      // add properties and methods on the element's prototype
+
+      properties: {
+        // declare properties for the element's public API
+        name: {
+          type: String
+        }
+      }
+    });
+  </script>
+
+</dom-module>

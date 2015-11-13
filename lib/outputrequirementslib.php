@@ -1488,6 +1488,11 @@ class page_requirements_manager {
 
         $output = '';
 
+        // Add webcomponent polyfill first.
+        $output .= html_writer::script('', $this->js_fix_url('/lib/webcomponents.js'));
+        $polymer_url = new moodle_url("polymer.html");
+        $output .= '<link rel="import" href="'.$polymer_url->out().'">';
+
         // Add all standard CSS for this page.
         $output .= $this->get_css_code();
 
