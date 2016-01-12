@@ -34,7 +34,7 @@
     }
 
 }}
-<div id="external-registration-page-container" class="hidden">
+<div id="external-registration-page-container">
     <button id="cancel-external-registration" class="btn btn-danger">
         <span class="btn-text">Cancel</span>
         <div class="btn-loader">
@@ -50,40 +50,6 @@
         <p>Loading...</p>
     </div>
     <div id="tool-type-capabilities-template-container"></div>
-</div>
-
-<div id="external-registration-form-container" class="centered-menu">
-    <div class="well">
-        <form class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="registration-url">URL</label>
-                <div class="controls">
-                    <input name="tool-url"
-                        class="input-block-level"
-                        type="url"
-                        id="external-registration-url"
-                        placeholder="Tool registration URL..."
-                        required>
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <button id="external-registration-submit" type="button" class="btn btn-success">
-                        <span class="btn-text">Create</span>
-                        <div class="btn-loader">
-                            {{> mod_lti/loader }}
-                        </div>
-                    </button>
-                    <button id="external-registration-cancel" type="button" class="btn btn-danger">
-                        <span class="btn-text">Cancel</span>
-                        <div class="btn-loader">
-                            {{> mod_lti/loader }}
-                        </div>
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
 </div>
 {{#js}}
     require(['mod_lti/external_registration'], function(registration) {

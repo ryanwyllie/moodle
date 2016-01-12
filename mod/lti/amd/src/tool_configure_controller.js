@@ -31,6 +31,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
     var SELECTORS = {
         REGISTRATION_FEEDBACK_CONTAINER: '#registration-feedback-container',
         EXTERNAL_REGISTRATION_CONTAINER: '#external-registration-container',
+        EXTERNAL_REGISTRATION_PAGE_CONTAINER: '#external-registration-page-container',
         CARTRIDGE_REGISTRATION_CONTAINER: '#cartridge-registration-container',
         CARTRIDGE_REGISTRATION_FORM: '#cartridge-registration-form',
         TOOL_LIST_CONTAINER: '#tool-list-container',
@@ -63,7 +64,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         return $(SELECTORS.REGISTRATION_CHOICE_CONTAINER);
     };
 
-    var getURL = function() {
+    var getToolURL = function() {
         return $(SELECTORS.TOOL_URL).val();
     };
 
@@ -79,10 +80,11 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         getRegistrationChoiceContainer().addClass('hidden');
     };
 
-    var showExternalRegistration = function() {
+    var showExternalRegistration = function(url) {
         hideCartridgeRegistration();
         hideRegistrationChoices();
         getExternalRegistrationContainer().removeClass('hidden');
+        getExternalRegistrationContainer().find(SELECTORS.EXTERNAL_REGISTRATION_PAGE_CONTAINER).attr('data-registration-url', url);
     };
 
     var showCartridgeRegistration = function(url) {
@@ -174,10 +176,6 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
             reloadToolList();
         });
 
-        $(document).on(ltiEvents.START_EXTERNAL_REGISTRATION, function() {
-            hideToolList();
-        });
-
         $(document).on(ltiEvents.STOP_EXTERNAL_REGISTRATION, function() {
             showToolList();
             showRegistrationChoices();
@@ -199,30 +197,38 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         var toolButton = getToolCreateButton();
         toolButton.click(function(e) {
             e.preventDefault();
-            toolButton.addClass("loading"); // TODO: Function for this.
-            var url = getURL();
-            if (url == "") {
-                return;
-            }
-            var promise = toolType.isCartridge(url);
-
-            promise.done(function(result) {
-                if (result.iscartridge) {
-                    $(document).trigger(ltiEvents.START_CARTRIDGE_REGISTRATION, url);
-                    toolButton.removeClass("loading"); // TODO: Function for this.
-                    $(SELECTORS.TOOL_URL).val('');
-                }
-            }).fail(function() { stopLoading() });
-
+            addTool();
         });
         toolButton.keypress(function(e) {
             if (!e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
                 if (e.keyCode == KEYS.ENTER || e.keyCode == KEYS.SPACE) {
+                    addTool();
                     e.preventDefault();
-                    showExternalRegistration();
                 }
             }
         });
+        var addTool = function() {
+            var url = getToolURL();
+            if (url == "") {
+                return;
+            }
+            toolButton.addClass("loading"); // TODO: Function for this.
+            var promise = toolType.isCartridge(url);
+
+            promise.done(function(result) {
+                if (result.iscartridge) {
+                    toolButton.removeClass("loading"); // TODO: Function for this.
+                    $(SELECTORS.TOOL_URL).val('');
+                    $(document).trigger(ltiEvents.START_CARTRIDGE_REGISTRATION, url);
+                } else {
+                    showExternalRegistration(url);
+                    toolButton.removeClass("loading"); // TODO: Function for this.
+                    $(SELECTORS.TOOL_URL).val('');
+                    $(document).trigger(ltiEvents.START_EXTERNAL_REGISTRATION);
+                    hideToolList();
+                }
+            }).fail(function() { stopLoading() });
+        }
 
         var feedbackContainer = getRegistrationFeedbackContainer();
         feedbackContainer.click(function(e) {

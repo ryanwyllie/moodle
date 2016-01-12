@@ -43,7 +43,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
     };
 
     var getRegistrationURL = function() {
-        return $(SELECTORS.REGISTRATION_URL).val();
+        return $(SELECTORS.EXTERNAL_REGISTRATION_CONTAINER).attr('data-registration-url');
     };
 
     var getRegistrationSubmitButton = function() {
@@ -171,7 +171,6 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
             container.find('form').submit();
             showExternalRegistrationContent();
             hideRegistrationForm();
-            $(document).trigger(ltiEvents.START_EXTERNAL_REGISTRATION);
         });
 
         return promise;
@@ -295,18 +294,9 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
     };
 
     var registerEventListeners = function() {
-        var submitButton = getRegistrationSubmitButton();
-        submitButton.click(function(e) {
-            e.preventDefault();
+
+        $(document).on(ltiEvents.START_EXTERNAL_REGISTRATION, function() {
             submitExternalRegistration();
-        });
-        submitButton.keypress(function(e) {
-            if (!e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
-                if (e.keyCode == KEYS.ENTER || e.keyCode == KEYS.SPACE) {
-                    e.preventDefault();
-                    submitExternalRegistration();
-                }
-            }
         });
 
         var cancelExternalRegistrationButton = getExternalRegistrationCancelButton();
