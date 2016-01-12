@@ -553,9 +553,13 @@ function lti_view($lti, $course, $cm, $context) {
 }
 
 function lti_check_type_for_cartridge($type) {
-    if (preg_match('/\.xml$/', $type->lti_toolurl)) {
+    if (lti_is_cartridge($type->lti_toolurl)) {
         lti_load_cartridge($type->lti_toolurl, $type);
     }
+}
+
+function lti_is_cartridge($url) {
+    return preg_match('/\.xml$/', $url);
 }
 
 /**

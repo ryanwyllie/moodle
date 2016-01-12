@@ -25,25 +25,22 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.1
  */
-define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/events', 'mod_lti/keys'],
-        function($, ajax, notification, templates, ltiEvents, KEYS) {
+define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/events', 'mod_lti/keys', 'mod_lti/tool_type'],
+        function($, ajax, notification, templates, ltiEvents, KEYS, toolType) {
 
     var SELECTORS = {
         REGISTRATION_FEEDBACK_CONTAINER: '#registration-feedback-container',
         EXTERNAL_REGISTRATION_CONTAINER: '#external-registration-container',
         CARTRIDGE_REGISTRATION_CONTAINER: '#cartridge-registration-container',
+        CARTRIDGE_REGISTRATION_FORM: '#cartridge-registration-form',
         TOOL_LIST_CONTAINER: '#tool-list-container',
-        REGISTRATION_URL_BUTTON: '#registration-url-button',
-        CARTRIDGE_URL_BUTTON: '#cartridge-url-button',
-        REGISTRATION_CHOICE_CONTAINER: '#registration-choice-container'
+        TOOL_CREATE_BUTTON: '#tool-create-button',
+        REGISTRATION_CHOICE_CONTAINER: '#registration-choice-container',
+        TOOL_URL: '#tool-url'
     };
 
-    var getRegistrationURLButton = function() {
-        return $(SELECTORS.REGISTRATION_URL_BUTTON);
-    };
-
-    var getCartridgeURLButton = function() {
-        return $(SELECTORS.CARTRIDGE_URL_BUTTON);
+    var getToolCreateButton = function() {
+        return $(SELECTORS.TOOL_CREATE_BUTTON);
     };
 
     var getRegistrationFeedbackContainer = function() {
@@ -66,6 +63,10 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         return $(SELECTORS.REGISTRATION_CHOICE_CONTAINER);
     };
 
+    var getURL = function() {
+        return $(SELECTORS.TOOL_URL).val();
+    };
+
     var hideExternalRegistration = function() {
         getExternalRegistrationContainer().addClass('hidden');
     };
@@ -84,10 +85,11 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         getExternalRegistrationContainer().removeClass('hidden');
     };
 
-    var showCartridgeRegistration = function() {
+    var showCartridgeRegistration = function(url) {
         hideExternalRegistration();
         hideRegistrationChoices();
         getCartridgeRegistrationContainer().removeClass('hidden');
+        getCartridgeRegistrationContainer().find(SELECTORS.CARTRIDGE_REGISTRATION_FORM).attr('data-cartridge-url', url);
     };
 
     var showRegistrationChoices = function() {
@@ -181,7 +183,12 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
             showRegistrationChoices();
         });
 
+        $(document).on(ltiEvents.START_CARTRIDGE_REGISTRATION, function(event, url) {
+            showCartridgeRegistration(url);
+        });
+
         $(document).on(ltiEvents.STOP_CARTRIDGE_REGISTRATION, function() {
+            getCartridgeRegistrationContainer().find(SELECTORS.CARTRIDGE_REGISTRATION_FORM).removeAttr('data-cartridge-url');
             showRegistrationChoices();
         });
 
@@ -189,30 +196,30 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
             showRegistrationFeedback(data);
         });
 
-        var externalRegistrationButton = getRegistrationURLButton();
-        externalRegistrationButton.click(function(e) {
+        var toolButton = getToolCreateButton();
+        toolButton.click(function(e) {
             e.preventDefault();
-            showExternalRegistration();
+            toolButton.addClass("loading"); // TODO: Function for this.
+            var url = getURL();
+            if (url == "") {
+                return;
+            }
+            var promise = toolType.isCartridge(url);
+
+            promise.done(function(result) {
+                if (result.iscartridge) {
+                    $(document).trigger(ltiEvents.START_CARTRIDGE_REGISTRATION, url);
+                    toolButton.removeClass("loading"); // TODO: Function for this.
+                    $(SELECTORS.TOOL_URL).val('');
+                }
+            }).fail(function() { stopLoading() });
+
         });
-        externalRegistrationButton.keypress(function(e) {
+        toolButton.keypress(function(e) {
             if (!e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
                 if (e.keyCode == KEYS.ENTER || e.keyCode == KEYS.SPACE) {
                     e.preventDefault();
                     showExternalRegistration();
-                }
-            }
-        });
-
-        var cartridgeRegistrationButton = getCartridgeURLButton();
-        cartridgeRegistrationButton.click(function(e) {
-            e.preventDefault();
-            showCartridgeRegistration();
-        });
-        cartridgeRegistrationButton.keypress(function(e) {
-            if (!e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
-                if (e.keyCode == KEYS.ENTER || e.keyCode == KEYS.SPACE) {
-                    e.preventDefault();
-                    showCartridgeRegistration();
                 }
             }
         });

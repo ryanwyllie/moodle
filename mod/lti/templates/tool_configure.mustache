@@ -34,24 +34,29 @@
     }
 
 }}
-<h2>{{#str}} manage_tool_proxies, mod_lti {{/str}}</h2>
+<h2>{{#str}} manage_external_tools, mod_lti {{/str}}</h2>
 <div class="container-fluid">
     <div id="main-content-container">
         <div id="registration-form-container">
             <div id="registration-choice-container" class="centered-menu">
                 <div class="well">
-                    <p class="lead">Automatically configure a new external tool using a</p>
-                    <ul id="choice-list">
-                        <li>
-                            <button id="cartridge-url-button" class="btn btn-primary btn-large">Configuration URL</button>
-                        </li>
-                        <li>
-                            <p class="buffer-text lead">or</p>
-                        </li>
-                        <li>
-                            <button id="registration-url-button" class="btn btn-primary btn-large">Registration URL</button>
-                        </li>
-                    </ul>
+                    <p class="lead">Add an external tool</p>
+                    <form class="form-horizontal">
+                        <div class="control-group">
+                            <input name="url"
+                                class="input-large"
+                                type="url"
+                                id="tool-url"
+                                placeholder="Tool URL..."
+                                required>
+                            <button id="tool-create-button" type="button" class="btn btn-success">
+                                <span class="btn-text">Add</span>
+                                <div class="btn-loader">
+                                    {{> mod_lti/loader }}
+                                </div>
+                            </button>
+                        </div>
+                    </form>
                     <p>alternatively you can <a href="{{configuremanualurl}}">configure a tool manually</a></p>
                 </div>
             </div>

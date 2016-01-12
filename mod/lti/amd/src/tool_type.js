@@ -85,6 +85,21 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return this.query({toolproxyid: id});
         },
 
+        isCartridge: function(url) {
+            var request = {
+                methodname: 'mod_lti_is_cartridge',
+                args: {
+                    url: url
+                }
+            };
+
+            var promise = ajax.call([request])[0];
+
+            promise.fail(notification.exception);
+
+            return promise;
+        },
+
         constants: {
             state: {
                 configured: 1,

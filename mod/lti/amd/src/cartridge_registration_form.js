@@ -38,7 +38,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'mod_lti/tool_type', 'mod_lt
     };
 
     var getCartridgeURL = function() {
-        return $(SELECTORS.CARTRIDGE_URL).val();
+        return $(SELECTORS.REGISTRATION_FORM).attr('data-cartridge-url');
     };
 
     var getSubmitButton = function() {

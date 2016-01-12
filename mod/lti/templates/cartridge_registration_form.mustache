@@ -37,17 +37,8 @@
 <div class="centered-menu">
     <div class="well">
         <form id="cartridge-registration-form" class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="registration-url">URL</label>
-                <div class="controls">
-                    <input name="tool-url"
-                        class="input-block-level"
-                        type="url"
-                        id="cartridge-url"
-                        placeholder="XML cartridge URL..."
-                        required>
-                </div>
-            </div>
+            <p class="lead text-center">Enter your consumer key and shared secret</p>
+            <p class="text-center">or leave blank if you don't need them</p>
             <div class="control-group">
                 <label class="control-label" for="registration-key">Consumer Key</label>
                 <div class="controls">
@@ -69,7 +60,7 @@
             <div class="control-group">
                 <div class="controls">
                     <button id="cartridge-registration-submit" type="button" class="btn btn-success">
-                        <span class="btn-text">Create</span>
+                        <span class="btn-text">Done</span>
                         <div class="btn-loader">
                             {{> mod_lti/loader }}
                         </div>

@@ -891,4 +891,55 @@ class mod_lti_external extends external_api {
             )
         );
     }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.0
+     */
+    public static function is_cartridge_parameters() {
+        return new external_function_parameters(
+            array(
+                'url' => new external_value(PARAM_URL, 'Tool url'),
+            )
+        );
+    }
+
+    /**
+     * Determine if the url to a tool is for a cartridge.
+     *
+     * @return bool True if the url is for a cartridge.
+     * @since Moodle 3.0
+     * @throws moodle_exception
+     */
+    public static function is_cartridge($url) {
+        /*$params = self::validate_parameters(self::is_cartridge_parameters(),
+                                            array(
+                                                'url' => $url,
+                                            ));*/
+        $warnings = array();
+
+        $context = context_system::instance();
+        self::validate_context($context);
+        require_capability('mod/lti:manage', $context);
+
+        $iscartridge = lti_is_cartridge($url);
+
+        return array('iscartridge' => $iscartridge);
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 3.0
+     */
+    public static function is_cartridge_returns() {
+        return new external_function_parameters(
+            array(
+                'iscartridge' => new external_value(PARAM_BOOL, 'True if the URL is a cartridge'),
+            )
+        );
+    }
 }

@@ -113,4 +113,13 @@ $functions = array(
         'capabilities'  => 'mod/lti:manage',
         'ajax'          => true
     ),
+
+    'mod_lti_is_cartridge' => array(
+        'classname'     => 'mod_lti_external',
+        'methodname'    => 'is_cartridge',
+        'description'   => 'Determine if the given url is for a cartridge',
+        'type'          => 'read',
+        'capabilities'  => 'mod/lti:manage',
+        'ajax'          => true
+    ),
 );
