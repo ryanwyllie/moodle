@@ -580,6 +580,7 @@ function lti_load_cartridge($url, $type) {
 
     $type->lti_typename = getTag("title", $cartridge) ?: $type->lti_typename;
     $type->lti_toolurl = getTag("launch_url", $cartridge) ?: $type->lti_toolurl;
+    $type->lti_description = getTag("description", $cartridge) ?: $type->lti_description;
     $type->lti_icon = getTag("property", $cartridge, "icon_url") ?: $type->lti_icon;
 }
 
