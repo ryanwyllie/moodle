@@ -1535,6 +1535,23 @@ function lti_get_tool_proxy_from_guid($toolproxyguid) {
 }
 
 /**
+ * Get the tool proxy instance given its registration URL
+ *
+ * @param string $regurl Tool proxy registration URL
+ *
+ * @return array
+ */
+function lti_get_tool_proxies_from_registration_url($regurl) {
+    global $DB;
+
+    return $DB->get_records_sql(
+        'SELECT * FROM {lti_tool_proxies}
+        WHERE '.$DB->sql_compare_text('regurl', 256).' = :regurl',
+        array('regurl' => $regurl)
+    );
+}
+
+/**
  * Generates some of the tool proxy configuration based on the admin configuration details
  *
  * @param int $id
@@ -2134,6 +2151,8 @@ function get_tool_icon_url(stdClass $type) {
     }
 
     if (empty($iconurl)) {
+        // TODO: This throws a pile of warnings when running. Gets run when the tool
+        // doesn't have an icon url set in the DB.
         $iconurl = $OUTPUT->pix_url('icon', 'lti')->out();
     }
 

@@ -160,6 +160,25 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         return ajax.call([request])[0];
     };
 
+    var cancelRegistration = function() {
+        startLoadingCancel();
+        var promise = $.Deferred();
+
+        if (hasCreatedToolProxy()) {
+            var id = getToolProxyId();
+            toolProxy.delete(id).done(function() {
+                promise.resolve();
+            });
+        } else {
+            promise.resolve();
+        }
+
+        promise.done(function() {
+            finishExternalRegistration();
+            stopLoadingCancel();
+        });
+    };
+
     var renderExternalRegistrationWindow = function(registrationRequest) {
         var promise = templates.render('mod_lti/tool_proxy_registration_form', registrationRequest);
 
@@ -255,7 +274,11 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
 
                 }).fail(promise.fail);
 
-            }).fail(promise.fail);
+            }).fail(function(exception) {
+                cancelRegistration();
+                $(document).trigger(ltiEvents.REGISTRATION_FEEDBACK, {status: 'error', message: exception.message, error: true});
+                promise.fail;
+            });
         }
 
         return promise;
@@ -272,25 +295,6 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         container.empty();
 
         $(document).trigger(ltiEvents.STOP_EXTERNAL_REGISTRATION);
-    };
-
-    var cancelRegistration = function() {
-        startLoadingCancel();
-        var promise = $.Deferred();
-
-        if (hasCreatedToolProxy()) {
-            var id = getToolProxyId();
-            toolProxy.delete(id).done(function() {
-                promise.resolve();
-            });
-        } else {
-            promise.resolve();
-        }
-
-        promise.done(function() {
-            finishExternalRegistration();
-            stopLoadingCancel();
-        });
     };
 
     var registerEventListeners = function() {

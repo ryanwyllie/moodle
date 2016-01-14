@@ -441,7 +441,7 @@ function lti_uninstall() {
 function lti_get_lti_types() {
     global $DB;
 
-    return $DB->get_records('lti_types');
+    return $DB->get_records('lti_types', null, 'state DESC, timemodified DESC');
 }
 
 /**
@@ -454,7 +454,7 @@ function lti_get_lti_types() {
 function lti_get_lti_types_from_proxy_id($toolproxyid) {
     global $DB;
 
-    return $DB->get_records('lti_types', array('toolproxyid' => $toolproxyid));
+    return $DB->get_records('lti_types', array('toolproxyid' => $toolproxyid), 'state DESC, timemodified DESC');
 }
 
 /**

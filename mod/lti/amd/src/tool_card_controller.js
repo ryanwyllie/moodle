@@ -171,7 +171,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
 
         // If the value hasn't change then don't bother sending the
         // update request.
-        if (snapshotVal && snapshotVal == description) {
+        if (snapshotVal == description) {
             return;
         }
 
@@ -224,7 +224,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
 
         // If the value hasn't change then don't bother sending the
         // update request.
-        if (snapshotVal && snapshotVal == name) {
+        if (snapshotVal == name) {
             return;
         }
 

@@ -34,7 +34,9 @@
     }
 
 }}
-<div class="alert alert-success">
+<div class="alert
+    {{^error}}alert-success{{/error}}
+    {{#error}}alert-error{{/error}}">
     <button type="button" class="close">&times;</button>
     <h4>{{status}}</h4>
     {{message}}
