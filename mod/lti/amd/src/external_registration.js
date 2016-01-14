@@ -164,6 +164,8 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         startLoadingCancel();
         var promise = $.Deferred();
 
+        // If we've created a proxy as part of this process then
+        // we need to delete it to clean up the data in the back end.
         if (hasCreatedToolProxy()) {
             var id = getToolProxyId();
             toolProxy.delete(id).done(function() {
@@ -174,15 +176,19 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         }
 
         promise.done(function() {
+            // Return to the original page.
             finishExternalRegistration();
             stopLoadingCancel();
         });
+
+        return promise;
     };
 
     var renderExternalRegistrationWindow = function(registrationRequest) {
         var promise = templates.render('mod_lti/tool_proxy_registration_form', registrationRequest);
 
         promise.done(function(html, js) {
+            // Show the external registration page in an iframe.
             var container = getExternalRegistrationTemplateContainer();
             container.append(html);
             templates.runTemplateJS(js);
@@ -196,18 +202,10 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
     };
 
     var setTypeStatusActive = function(typeData) {
-        var promise = $.Deferred();
-        startLoadingCapabilitiesContainer();
-
-        toolType.update({
+        return toolType.update({
             id: typeData.id,
             state: toolType.constants.state.configured
-        }).always(function() {
-            stopLoadingCapabilitiesContainer();
-            promise.resolve();
         });
-
-        return promise;
     };
 
     var promptForToolTypeCapabilitiesAgreement = function(typeData) {
@@ -224,13 +222,20 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
 
             var choiceContainer = container.find(SELECTORS.CAPABILITIES_AGREE_CONTAINER);
 
+            // The user agrees to allow the tool to use the groups of data so we can go
+            // ahead and activate it for them so that it can be used straight away.
             choiceContainer.on(ltiEvents.CAPABILITIES_AGREE, function() {
+                startLoadingCapabilitiesContainer();
                 setTypeStatusActive(typeData).always(function() {
+                    stopLoadingCapabilitiesContainer();
                     container.empty();
                     promise.resolve();
                 });
             });
 
+            // The user declines to let the tool use the data. In this case we leave
+            // the tool as pending and they can delete it using the main screen if they
+            // wish.
             choiceContainer.on(ltiEvents.CAPABILITIES_DECLINE, function() {
                 container.empty();
                 promise.resolve();
@@ -248,14 +253,17 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
         var promise = $.Deferred();
         var url = getRegistrationURL();
 
-        promise.done(function() { stopLoading() });
+        promise.always(function() { stopLoading() });
 
         if (url == "") {
-            // No URL has been input.
+            // No URL has been input so do nothing.
             promise.resolve();
         } else {
             startLoading();
 
+            // A tool proxy needs to exists before the external page is rendered because
+            // the external page sends requests back to Moodle for information that is stored
+            // in the proxy.
             toolProxy.create({regurl: url}).done(function(result) {
                 var id = result.id;
                 var regURL = result.regurl;
@@ -263,6 +271,8 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
                 // Save the id on the DOM to cleanup later.
                 setToolProxyId(id);
 
+                // There is a specific set of data needed to send to the external registration page
+                // in a form, so let's get it from our server.
                 getRegistrationRequest(id).done(function(registrationRequest) {
 
                     registrationRequest.reg_url = regURL;
@@ -275,9 +285,11 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
                 }).fail(promise.fail);
 
             }).fail(function(exception) {
+                // Clean up.
                 cancelRegistration();
+                // Let the user know what the error is.
                 $(document).trigger(ltiEvents.REGISTRATION_FEEDBACK, {status: 'error', message: exception.message, error: true});
-                promise.fail;
+                promise.fail(exception);
             });
         }
 
@@ -333,36 +345,45 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
 
         // This is gross but necessary due to isolated jQuery scopes between
         // child iframe and parent windows. There is no other way to communicate.
+        //
+        // This function gets called by the moodle page that received the redirect
+        // from the external registration page and handles the external page's returned
+        // parameters.
+        //
+        // See mod_lti/external_registration_return.
         window.triggerExternalRegistrationComplete = function(data) {
-            var status = data.status;
-            var message = "";
             var promise = $.Deferred();
+            var feedback = {
+                status: data.status,
+                message: "",
+                error: false
+            };
 
-            if (data.error == "") {
-                message = data.message;
-            } else {
-                message = data.error;
-            }
+            if (data.status == "success") {
+                feedback.message = data.message;
 
-            promise.done(function() {
-                finishExternalRegistration();
-                $(document).trigger(ltiEvents.REGISTRATION_FEEDBACK, {status: status, message: message});
-            });
-
-            if (status == "success") {
+                // Trigger appropriate events when we've completed the necessary requests.
                 promise.done(function() {
+                    finishExternalRegistration();
+                    $(document).trigger(ltiEvents.REGISTRATION_FEEDBACK, feedback);
                     $(document).trigger(ltiEvents.NEW_TOOL_TYPE);
                 });
 
+                // We should have created a tool proxy by this point.
                 if (hasCreatedToolProxy()) {
                     var proxyId = getToolProxyId();
 
+                    // We need the list of types that are linked to this proxy. We're assuming it'll
+                    // only be one because this process creates a one-to-one type->proxy.
                     toolType.getFromToolProxyId(proxyId).done(function(types) {
                         if (types && types.length) {
                             // There should only be one result.
                             var typeData = types[0];
 
+                            // Check if the external tool required access to any Moodle data (users, courses etc).
                             if (typeData.hascapabilitygroups) {
+                                // If it did then we ask the user to agree to those groups before the type is
+                                // activated (i.e. can be used in Moodle).
                                 promptForToolTypeCapabilitiesAgreement(typeData).always(function() {
                                     promise.resolve();
                                 });
@@ -376,7 +397,23 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/e
                         promise.resolve();
                     });
                 }
+            } else {
+                // Anything other than success is failure.
+                feedback.message = data.error;
+                feedback.error = true;
+
+                // Cancel registration to clean up any proxies and tools that were
+                // created.
+                promise.done(function() {
+                    cancelRegistration().always(function() {;
+                        $(document).trigger(ltiEvents.REGISTRATION_FEEDBACK, feedback);
+                    });
+                });
+
+                promise.resolve();
             }
+
+            return promise;
         };
     };
 
