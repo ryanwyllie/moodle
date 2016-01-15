@@ -690,7 +690,7 @@ class mod_lti_external extends external_api {
                 $data->lti_password = $secret;
             }
 
-            lti_load_cartridge($cartridgeurl, $data);
+            lti_load_type_from_cartridge($cartridgeurl, $data);
             $id = lti_add_type($type, $data);
         }
 

@@ -43,7 +43,7 @@ if ($cartridgeurl) {
     $data = new stdClass();
     $type->state = LTI_TOOL_STATE_CONFIGURED;
     $data->lti_coursevisible = 1;
-    lti_load_cartridge($cartridgeurl, $data);
+    lti_load_type_from_cartridge($cartridgeurl, $data);
     lti_add_type($type, $data);
 }
 

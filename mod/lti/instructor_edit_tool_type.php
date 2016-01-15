@@ -57,7 +57,7 @@ if ($data = $form->get_data()) {
         $type->id = $typeid;
         $name = json_encode($data->lti_typename);
 
-        lti_check_type_for_cartridge($data);
+        lti_load_type_if_cartridge($data);
 
         lti_update_type($type, $data);
 
@@ -80,7 +80,7 @@ if ($data = $form->get_data()) {
         $type->state = LTI_TOOL_STATE_CONFIGURED;
         $type->course = $COURSE->id;
 
-        lti_check_type_for_cartridge($data);
+        lti_load_type_if_cartridge($data);
 
         $id = lti_add_type($type, $data);
 

@@ -97,7 +97,7 @@ function lti_add_instance($lti, $mform) {
         $lti->toolurl = '';
     }
 
-    lti_check_for_cartridge($lti);
+    lti_load_tool_if_cartridge($lti);
 
     $lti->timecreated = time();
     $lti->timemodified = $lti->timecreated;
@@ -139,7 +139,7 @@ function lti_update_instance($lti, $mform) {
     global $DB, $CFG;
     require_once($CFG->dirroot.'/mod/lti/locallib.php');
 
-    lti_check_for_cartridge($lti);
+    lti_load_tool_if_cartridge($lti);
 
     $lti->timemodified = time();
     $lti->id = $lti->instance;
@@ -552,14 +552,52 @@ function lti_view($lti, $course, $cm, $context) {
     $completion->set_module_viewed($cm);
 }
 
-function lti_check_type_for_cartridge($type) {
+/**
+ * Loads the cartridge information into the tool type, if the launch url is for a cartridge file
+ *
+ * @param stdClass $type The tool type object to be filled in
+ * @since Moodle 3.1
+ */
+function lti_load_type_if_cartridge($type) {
     if (lti_is_cartridge($type->lti_toolurl)) {
-        lti_load_cartridge($type->lti_toolurl, $type);
+        lti_load_type_from_cartridge($type->lti_toolurl, $type);
     }
 }
 
+/**
+ * Loads the cartridge information into the new tool, if the launch url is for a cartridge file
+ *
+ * @param stdClass $lti The tools config
+ * @since Moodle 3.1
+ */
+function lti_load_tool_if_cartridge($lti) {
+    if (lti_is_cartridge($lti->toolurl)) {
+        lti_load_tool_from_cartridge($lti->toolurl, $lti);
+    }
+}
+
+/**
+ * Determines if the given url is for a IMS basic cartridge
+ *
+ * @param  string $type    The tool type object to be filled in
+ * @return True if the url is for a cartridge
+ * @since Moodle 3.1
+ */
 function lti_is_cartridge($url) {
-    return preg_match('/\.xml$/', $url);
+    // If it has xml at the end of the url, it's a cartridge.
+    if (preg_match('/\.xml$/', $url)) {
+        return true;
+    }
+    // Even if it doesn't have .xml, load the url to check if it's a cartridge..
+    $toolinfo = lti_load_cartridge($url,
+        array(
+            "launch_url" => "launchurl"
+        )
+    );
+    if (!empty($toolinfo['launchurl'])) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -569,24 +607,20 @@ function lti_is_cartridge($url) {
  * @param  stdClass $type    The tool type object to be filled in
  * @since Moodle 3.1
  */
-function lti_load_cartridge($url, $type) {
-    $cartridge = new DOMDocument();
-    $cartridge->load($url);
-
-    $errors = libxml_get_errors();
-    foreach ($errors as $error) {
-        print_error(sprintf("%s at line %d. ", trim($error->message, "\n\r\t ."), $error->line));
-    }
-
-    $type->lti_typename = getTag("title", $cartridge) ?: $type->lti_typename;
-    $type->lti_toolurl = getTag("launch_url", $cartridge) ?: $type->lti_toolurl;
-    $type->lti_description = getTag("description", $cartridge) ?: $type->lti_description;
-    $type->lti_icon = getTag("property", $cartridge, "icon_url") ?: $type->lti_icon;
-}
-
-function lti_check_for_cartridge($lti) {
-    if (preg_match('/\.xml$/', $lti->toolurl)) {
-        lti_tool_from_cartridge($lti->toolurl, $lti);
+function lti_load_type_from_cartridge($url, $type) {
+    $toolinfo = lti_load_cartridge($url,
+        array(
+            "title" => "lti_typename",
+            "launch_url" => "lti_toolurl",
+            "secure_launch_url" => "lti_securltoolurl",
+            "description" => "lti_description",
+        ),
+        array(
+            "icon_url" => "lti_icon"
+        )
+    );
+    foreach($toolinfo as $property => $value) {
+        $type->$property = $value;
     }
 }
 
@@ -597,32 +631,72 @@ function lti_check_for_cartridge($lti) {
  * @param  stdClass $lti    LTI object
  * @since Moodle 3.1
  */
-function lti_tool_from_cartridge($url, $lti) {
-    $cartridge = new DOMDocument();
-    $cartridge->load($url);
-
-    $errors = libxml_get_errors();
-    foreach ($errors as $error) {
-        print_error(sprintf("%s at line %d. ", trim($error->message, "\n\r\t ."), $error->line));
+function lti_load_tool_from_cartridge($url, $lti) {
+    $toolinfo = lti_load_cartridge($url,
+        array(
+            "launch_url" => "toolurl",
+            "secure_launch_url" => "securetoolurl",
+            "title" => "name"
+        )
+    );
+    foreach($toolinfo as $property => $value) {
+        $lti->$property = $value;
     }
-
-    $lti->toolurl = getTag("launch_url", $cartridge) ?: $lti->toolurl;
-    $lti->icon = getTag("icon", $cartridge) ?: $lti->icon;
 }
 
 /**
  * Search for a tag within an XML DOMDocument
  *
- * @param  stdClass    $tagName The name of the tag to search for
- * @param  DOMDocument $xml     The XML to find the tag in
+ * @param  stdClass $tagName The name of the tag to search for
+ * @param  array    $map The map of tags to keys in the return array
+ * @param  array    $properties The map of properties to keys in the return array
+ * @return array An associative array with the given keys and their values from the cartridge
  * @since Moodle 3.1
  */
-function getTag($tagName, $xml, $attribute = null) {
+function lti_load_cartridge($url, $map, $propertiesmap = array()) {
+    global $CFG;
+    require_once($CFG->libdir. "/filelib.php");
+    $curl = new curl();
+    $response = $curl->get($url);
+    $document = new DOMDocument();
+    $document->loadXML($response);
+    $cartridge = new DomXpath($document);
+    $errors = libxml_get_errors();
+    foreach ($errors as $error) {
+        print_error(sprintf("%s at line %d. ", trim($error->message, "\n\r\t ."), $error->line));
+    }
+
+    $toolinfo = array();
+    foreach ($map as $tag => $key) {
+        $value = get_tag($tag, $cartridge);
+        if ($value) {
+            $toolinfo[$key] = $value;
+        }
+    }
+    if (!empty($propertiesmap)) {
+        foreach ($propertiesmap as $property => $key) {
+            $value = get_tag("property", $cartridge, $property);
+            error_log("\n\nProperty is: " . $value . "\n\n");
+            if ($value) {
+                $toolinfo[$key] = $value;
+            }
+        }
+    }
+    return $toolinfo;
+}
+
+/**
+ * Search for a tag within an XML DOMDocument
+ *
+ * @param  stdClass $tagName The name of the tag to search for
+ * @param  XPath    $xpath   The XML to find the tag in
+ * @since Moodle 3.1
+ */
+function get_tag($tagname, $xpath, $attribute = null) {
     if ($attribute) {
-        $xpath = new DomXpath($xml);
-        $result = $xpath->query('//*[local-name() = \'' . $tagName . '\'][@name="' . $attribute . '"]');
+        $result = $xpath->query('//*[local-name() = \'' . $tagname . '\'][@name="' . $attribute . '"]');
     } else {
-        $result = $xml->getElementsByTagName($tagName);
+        $result = $xpath->query('//*[local-name() = \'' . $tagname . '\']');
     }
     if ($result->length > 0) {
         return $result->item(0)->nodeValue;
