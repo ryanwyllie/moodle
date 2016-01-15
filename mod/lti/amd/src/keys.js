@@ -14,9 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * A list of keys and their keycodes that are used by the LTI modules.
  *
  * @module     mod_lti/keys
  * @class      keys
@@ -26,7 +24,7 @@
  * @since      3.1
  */
 define([], function() {
-    return {
+    return /** @alias module:mod_lti/keys */ {
         ENTER: 13,
         SPACE: 32
     };

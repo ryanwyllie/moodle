@@ -14,9 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * Controls all of the behaviour and interaction with a tool type card. These are
+ * listed on the LTI tool type management page.
+ *
+ * See template: mod_lti/tool_card
  *
  * @module     mod_lti/tool_card_controller
  * @class      tool_card_controller
@@ -36,55 +37,162 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         ACTIVATE_BUTTON: '.tool-card-footer a.activate',
     };
 
+    // Timeout in seconds.
+    var ANNOUNCEMENT_TIMEOUT = 2000;
+
+    /**
+     * Return the delete button element.
+     *
+     * @method getDeleteButton
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery object
+     */
     var getDeleteButton = function(element) {
         return element.find(SELECTORS.DELETE_BUTTON);
     };
 
+    /**
+     * Return the element representing the tool type name.
+     *
+     * @method getNameElement
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery object
+     */
     var getNameElement = function(element) {
         return element.find(SELECTORS.NAME_ELEMENT);
     };
 
+    /**
+     * Return the element representing the tool type description.
+     *
+     * @method getDescriptionElement
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery object
+     */
     var getDescriptionElement = function(element) {
         return element.find(SELECTORS.DESCRIPTION_ELEMENT);
     };
 
+    /**
+     * Return the activate button for the type.
+     *
+     * @method getActivateButton
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery object
+     */
     var getActivateButton = function(element) {
         return element.find(SELECTORS.ACTIVATE_BUTTON);
     };
 
+    /**
+     * Checks if the type card has an activate button.
+     *
+     * @method hasActivateButton
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return bool
+     */
     var hasActivateButton = function(element) {
         return getActivateButton(element).length ? true : false;
     };
 
+    /**
+     * Return the element that contains the capabilities approval for
+     * the user.
+     *
+     * @method getCapabilitiesContainer
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return bool
+     */
     var getCapabilitiesContainer = function(element) {
         return element.find(SELECTORS.CAPABILITIES_CONTAINER);
     };
 
+    /**
+     * Checks if the tool type has capabilities that need approval. If it
+     * does then the container will be present.
+     *
+     * @method hasCapabilitiesContainer
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return bool
+     */
     var hasCapabilitiesContainer = function(element) {
         return getCapabilitiesContainer(element).length ? true : false;
     };
 
+    /**
+     * Get the type id.
+     *
+     * @method getTypeId
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return string Type ID
+     */
     var getTypeId = function(element) {
         return element.attr('data-type-id');
     };
 
+    /**
+     * Stop any announcement currently visible on the card.
+     *
+     * @method clearAllAnnouncements
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var clearAllAnnouncements = function(element) {
         element.removeClass('announcement loading success fail capabilities');
     };
 
+    /**
+     * Show the loading announcement.
+     *
+     * @method startLoading
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var startLoading = function(element) {
         clearAllAnnouncements(element);
         element.addClass('announcement loading');
     };
 
+    /**
+     * Hide the loading announcement.
+     *
+     * @method stopLoading
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var stopLoading = function(element) {
         element.removeClass('announcement loading');
     };
 
+    /**
+     * Check if the card is currently loading.
+     *
+     * @method isLoading
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return bool
+     */
     var isLoading = function(element) {
         return element.hasClass('announcement loading');
     };
 
+    /**
+     * Show the success announcement. The announcement is only
+     * visible for 2 seconds.
+     *
+     * @method announceSuccess
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
     var announceSuccess = function(element) {
         var promise = $.Deferred();
 
@@ -93,11 +201,20 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setTimeout(function() {
             element.removeClass('announcement success');
             promise.resolve();
-        }, 2000);
+        }, ANNOUNEMENT_TIMEOUT);
 
         return promise;
     };
 
+    /**
+     * Show the failure announcement. The announcement is only
+     * visible for 2 seconds.
+     *
+     * @method announceFailure
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
     var announceFailure = function(element) {
         var promise = $.Deferred();
 
@@ -106,16 +223,25 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setTimeout(function() {
             element.removeClass('announcement fail');
             promise.resolve();
-        }, 2000);
+        }, ANNOUNEMENT_TIMEOUT);
 
         return promise;
     };
 
+    /**
+     * Delete the tool type from the Moodle server. Triggers a success
+     * or failure announcement depending on the result.
+     *
+     * @method deleteType
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
     var deleteType = function(element) {
         var typeId = getTypeId(element);
 
         if (typeId == "") {
-            return;
+            return $.Deferred().resolve();
         }
 
         startLoading(element);
@@ -129,16 +255,41 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         });
 
         promise.fail(function() { announceFailure(element) });
+
+        return promise;
     };
 
+    /**
+     * Save a given value in a data attribute on the element.
+     *
+     * @method setValueSnapshot
+     * @private
+     * @param object jQuery object representing the element.
+     * @param string value to be saved.
+     */
     var setValueSnapshot = function(element, value) {
         element.attr('data-val-snapshot', value);
     };
 
+    /**
+     * Return the saved value from the element.
+     *
+     * @method getValueSnapshot
+     * @private
+     * @param object jQuery object representing the element.
+     * @return string the saved value.
+     */
     var getValueSnapshot = function(element) {
         return element.attr('data-val-snapshot');
     };
 
+    /**
+     * Save the current value of the tool description.
+     *
+     * @method snapshotDescription
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var snapshotDescription = function(element) {
         var descriptionElement = getDescriptionElement(element);
 
@@ -150,20 +301,29 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setValueSnapshot(descriptionElement, description);
     };
 
+    /**
+     * Send a request to update the description value for this tool
+     * in the Moodle server.
+     *
+     * @method updateDescription
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
     var updateDescription = function(element) {
         var typeId = getTypeId(element);
 
         // Return early if we don't have an id because it's
         // required to save the changes.
         if (typeId == "") {
-            return;
+            return $.Deferred().resolve();
         }
 
         var descriptionElement = getDescriptionElement(element);
 
         // Return early if we're already saving a value.
         if (descriptionElement.hasClass('loading')) {
-            return;
+            return $.Deferred().resolve();
         }
 
         var description = descriptionElement.text().trim();
@@ -172,7 +332,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         // If the value hasn't change then don't bother sending the
         // update request.
         if (snapshotVal == description) {
-            return;
+            return $.Deferred().resolve();
         }
 
         descriptionElement.addClass('loading');
@@ -193,6 +353,13 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         return promise;
     };
 
+    /**
+     * Save the current value of the tool name.
+     *
+     * @method snapshotName
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var snapshotName = function(element) {
         var nameElement = getNameElement(element);
 
@@ -204,19 +371,28 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setValueSnapshot(nameElement, name);
     };
 
-    var updateName = function(element, value) {
+    /**
+     * Send a request to update the name value for this tool
+     * in the Moodle server.
+     *
+     * @method updateName
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
+    var updateName = function(element) {
         var typeId = getTypeId(element);
 
         // Return if we don't have an id.
         if (typeId == "") {
-            return;
+            return $.Deferred().resolve();
         }
 
         var nameElement = getNameElement(element);
 
         // Return if we're already saving.
         if (nameElement.hasClass('loading')) {
-            return;
+            return $.Deferred().resolve();
         }
 
         var name = nameElement.text().trim();
@@ -225,7 +401,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         // If the value hasn't change then don't bother sending the
         // update request.
         if (snapshotVal == name) {
-            return;
+            return $.Deferred().resolve();
         }
 
         nameElement.addClass('loading');
@@ -245,12 +421,22 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         return promise;
     };
 
+    /**
+     * Send a request to update the state for this tool to be configured (active)
+     * in the Moodle server. A success or failure announcement is triggered depending
+     * on the result.
+     *
+     * @method setStatusActive
+     * @private
+     * @param object jQuery object representing the tool card.
+     * @return object jQuery Deferred object
+     */
     var setStatusActive = function(element) {
         var id = getTypeId(element);
 
         // Return if we don't have an id.
         if (id == "") {
-            return;
+            return $.Deferred().resolve();
         }
 
         startLoading(element);
@@ -278,17 +464,43 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
             stopLoading(element);
             announceFailure(element);
         });
+
+        return promise;
     };
 
+    /**
+     * Show the capabilities approval screen to show which groups of data this
+     * type requires access to in Moodle (if any).
+     *
+     * @method displayCapabilitiesApproval
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var displayCapabilitiesApproval = function(element) {
         element.addClass('announcement capabilities');
     };
 
+    /**
+     * Hide the capabilities approval screen.
+     *
+     * @method hideCapabilitiesApproval
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var hideCapabilitiesApproval = function(element) {
         element.removeClass('announcement capabilities');
     };
 
-    var approveTool = function(element) {
+    /**
+     * The user wishes to activate this tool so show them the capabilities that
+     * they need to agree to or if there are none then set the tool type's state
+     * to active.
+     *
+     * @method activateToolType
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
+    var activateToolType = function(element) {
         if (hasCapabilitiesContainer(element)) {
             displayCapabilitiesApproval(element);
         } else {
@@ -296,6 +508,13 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         }
     };
 
+    /**
+     * Sets up the listeners for user interaction on this tool type card.
+     *
+     * @method registerEventListeners
+     * @private
+     * @param object jQuery object representing the tool card.
+     */
     var registerEventListeners = function(element) {
         var deleteButton = getDeleteButton(element);
         deleteButton.click(function(e) {
@@ -314,6 +533,9 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         var descriptionElement = getDescriptionElement(element);
         descriptionElement.focus(function(e) {
             e.preventDefault();
+            // Save a copy of the current value for the description so that
+            // we can check if the user has changed it before sending a request to
+            // the server.
             snapshotDescription(element);
         });
         descriptionElement.blur(function(e) {
@@ -332,6 +554,9 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         var nameElement = getNameElement(element);
         nameElement.focus(function(e) {
             e.preventDefault();
+            // Save a copy of the current value for the name so that
+            // we can check if the user has changed it before sending a request to
+            // the server.
             snapshotName(element);
         });
         nameElement.blur(function(e) {
@@ -347,11 +572,12 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
             }
         });
 
+        // Only pending tool type cards have an activate button.
         if (hasActivateButton(element)) {
             var activateButton = getActivateButton(element);
             activateButton.click(function(e) {
                 e.preventDefault();
-                approveTool(element);
+                activateToolType(element);
             });
             activateButton.keypress(function(e) {
                 if (!e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
@@ -376,7 +602,13 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         }
     };
 
-    return {
+    return /** @alias module:mod_lti/tool_card_controller */ {
+
+        /**
+         * Initialise this module.
+         *
+         * @param object jQuery object representing the tool card.
+         */
         init: function(element) {
             registerEventListeners(element);
         }

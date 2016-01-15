@@ -14,9 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * Encapsules the behavior for creating a tool type from a cartridge URL
+ * in Moodle. Manages the UI while operations are occuring.
+ *
+ * See template: mod_lti/cartridge_registration_form
  *
  * @module     mod_lti/cartridge_registration_form
  * @class      cartridge_registration_form
@@ -167,7 +168,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'mod_lti/tool_type', 'mod_lt
     /**
      * Sets up the listeners for user interaction on the page.
      *
-     * @method registerEventListeners 
+     * @method registerEventListeners
      * @private
      */
     var registerEventListeners = function() {
@@ -200,7 +201,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'mod_lti/tool_type', 'mod_lt
         });
     };
 
-    return /** @alias module:mod_lt/cartridge_registration_form */ {
+    return /** @alias module:mod_lti/cartridge_registration_form */ {
 
         /**
          * Initialise this module.

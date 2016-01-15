@@ -14,9 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * Provides a list of events that can be triggered in the LTI management
+ * page.
  *
  * @module     mod_lti/events
  * @class      events
@@ -26,7 +25,7 @@
  * @since      3.1
  */
 define([], function() {
-    return {
+    return /** @alias module:mod_lti/events */ {
         NEW_TOOL_TYPE: 'lti.tool.type.new',
         START_EXTERNAL_REGISTRATION: 'lti.registration.external.start',
         STOP_EXTERNAL_REGISTRATION: 'lti.registration.external.stop',

@@ -14,9 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * Handles the return params from the external registration page after it
+ * redirects back to Moodle.
+ *
+ * See also: mod/lti/externalregistrationreturn.php
  *
  * @module     mod_lti/external_registration_return
  * @class      external_registration_return
@@ -25,9 +26,21 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.1
  */
-define(['jquery'], function($) {
+define([], function() {
 
-    return {
+    return /** @alias module:mod_lti/external_registration_return */ {
+
+        /**
+         * If this was rendered in an iframe then trigger the external registration
+         * complete behaviour in the parent page and provide the params returned from
+         * the external registration page.
+         *
+         * @param string message The registration message from the external registration page
+         * @param string error The registration error message from the external registration page, if
+         *                     there was an error.
+         * @param int id The tool proxy id for the external registration.
+         * @param string status Whether the external registration was successful or not.
+         */
         init: function(message, error, id, status) {
             if (window.parent) {
                 window.parent.triggerExternalRegistrationComplete({

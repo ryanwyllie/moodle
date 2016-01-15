@@ -14,9 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard Ajax wrapper for Moodle. It calls the central Ajax script,
- * which can call any existing webservice using the current session.
- * In addition, it can batch multiple requests and return multiple responses.
+ * Provides an interface for a tool type in the Moodle server.
  *
  * @module     mod_lti/tool_type
  * @class      tool_type
@@ -26,7 +24,19 @@
  * @since      3.1
  */
 define(['core/ajax', 'core/notification'], function(ajax, notification) {
-    return {
+    return /** @alias module:mod_lti/tool_type */ {
+        /**
+         * Get a list of tool types from Moodle for the given
+         * search args.
+         *
+         * See also:
+         * mod/lti/classes/external.php get_tool_types_parameters()
+         *
+         * @method query
+         * @public
+         * @param object Search parameters
+         * @return object jQuery deferred object
+         */
         query: function(args) {
             var request = {
                 methodname: 'mod_lti_get_tool_types',
@@ -40,6 +50,17 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return promise;
         },
 
+        /**
+         * Create a tool type in Moodle.
+         *
+         * See also:
+         * mod/lti/classes/external.php create_tool_type_parameters()
+         *
+         * @method create
+         * @public
+         * @param object Tool type properties
+         * @return object jQuery deferred object
+         */
         create: function(args) {
             var request = {
                 methodname: 'mod_lti_create_tool_type',
@@ -53,6 +74,17 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return promise;
         },
 
+        /**
+         * Update a tool type in Moodle.
+         *
+         * See also:
+         * mod/lti/classes/external.php update_tool_type_parameters()
+         *
+         * @method update
+         * @public
+         * @param object Tool type properties
+         * @return object jQuery deferred object
+         */
         update: function(args) {
             var request = {
                 methodname: 'mod_lti_update_tool_type',
@@ -66,6 +98,14 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return promise;
         },
 
+        /**
+         * Delete a tool type from Moodle.
+         *
+         * @method delete
+         * @public
+         * @param int Tool type ID
+         * @return object jQuery deferred object
+         */
         delete: function(id) {
             var request = {
                 methodname: 'mod_lti_delete_tool_type',
@@ -81,10 +121,27 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return promise;
         },
 
+        /**
+         * Get a list of tool types from Moodle for the given
+         * tool proxy id.
+         *
+         * @method query
+         * @public
+         * @param int Tool proxty id
+         * @return object jQuery deferred object
+         */
         getFromToolProxyId: function(id) {
             return this.query({toolproxyid: id});
         },
 
+        /**
+         * Check if the given URL is a cartridge URL.
+         *
+         * @method isCartridge
+         * @public
+         * @param string URL
+         * @return object jQuery deferred object
+         */
         isCartridge: function(url) {
             var request = {
                 methodname: 'mod_lti_is_cartridge',
@@ -100,6 +157,9 @@ define(['core/ajax', 'core/notification'], function(ajax, notification) {
             return promise;
         },
 
+        /**
+         * Tool type constants.
+         */
         constants: {
             state: {
                 configured: 1,
