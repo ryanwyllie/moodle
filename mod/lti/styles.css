@@ -278,8 +278,9 @@
     height: 35px;
 }
 
-.tool-card-header h4 {
+.tool-card-header .name {
     margin-bottom: 0;
+    white-space: nowrap;
 }
 
 .tool-card-header .tool-card-actions {
@@ -299,9 +300,15 @@
     height: 125px;
 }
 
+.tool-card-body .description {
+    max-height: 100px;
+}
+
 .tool-card-footer {
     height: 50px;
     text-align: center;
+    padding-top: 10px;
+    box-sizing: border-box;
 }
 
 .tool-card .contenteditable-container {
@@ -313,6 +320,7 @@
     padding: 0.25em;
     position: relative;
     z-index: 1;
+    overflow: auto;
 }
 
 .tool-card [contenteditable=true]:hover {

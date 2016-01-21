@@ -201,7 +201,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setTimeout(function() {
             element.removeClass('announcement success');
             promise.resolve();
-        }, ANNOUNEMENT_TIMEOUT);
+        }, ANNOUNCEMENT_TIMEOUT);
 
         return promise;
     };
@@ -223,7 +223,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/templates', 'mod_lti/t
         setTimeout(function() {
             element.removeClass('announcement fail');
             promise.resolve();
-        }, ANNOUNEMENT_TIMEOUT);
+        }, ANNOUNCEMENT_TIMEOUT);
 
         return promise;
     };

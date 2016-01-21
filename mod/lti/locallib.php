@@ -2141,7 +2141,7 @@ function lti_get_fqid($contexts, $id) {
 
 }
 
-function get_tool_icon_url(stdClass $type) {
+function get_tool_type_icon_url(stdClass $type) {
     global $OUTPUT;
 
     $iconurl = $type->secureicon;
@@ -2159,19 +2159,36 @@ function get_tool_icon_url(stdClass $type) {
     return $iconurl;
 }
 
-function get_tool_edit_url(stdClass $type) {
+function get_tool_type_edit_url(stdClass $type) {
     $url = new moodle_url('/mod/lti/typessettings.php', array('action' => 'update', 'id' => $type->id, 'sesskey' => sesskey()));
     return $url->out();
 }
 
-function get_tool_urls(stdClass $type) {
-    return array(
-        'icon' => get_tool_icon_url($type),
-        'edit' => get_tool_edit_url($type),
-    );
+function get_tool_type_course_url(stdClass $type) {
+    if ($type->course == 1) {
+        return;
+    } else {
+        $url = new moodle_url('/course/view.php', array('id' => $type->course));
+        return $url->out();
+    }
 }
 
-function get_tool_state_info(stdClass $type) {
+function get_tool_type_urls(stdClass $type) {
+    $courseurl = get_tool_type_course_url($type);
+
+    $urls = array(
+        'icon' => get_tool_type_icon_url($type),
+        'edit' => get_tool_type_edit_url($type),
+    );
+
+    if ($courseurl) {
+        $urls['course'] = $courseurl;
+    }
+
+    return $urls;
+}
+
+function get_tool_type_state_info(stdClass $type) {
     # TODO: lang strings.
     $state = '';
     $isconfigured = false;
@@ -2212,7 +2229,7 @@ function get_tool_state_info(stdClass $type) {
     );
 }
 
-function get_tool_capability_groups($type) {
+function get_tool_type_capability_groups($type) {
     $capabilities = lti_get_enabled_capabilities($type);
     $groups = array();
     $hasCourse = false;
@@ -2245,17 +2262,28 @@ function get_tool_capability_groups($type) {
     return $groups;
 }
 
+function get_tool_type_instance_ids($type) {
+    global $DB;
+
+    return array_keys($DB->get_records('lti', array('typeid' => $type->id), '', 'id'));
+}
+
 function serialise_tool_type(stdClass $type) {
-    $capabilitygroups = get_tool_capability_groups($type);
+    $capabilitygroups = get_tool_type_capability_groups($type);
+    $instanceids = get_tool_type_instance_ids($type);
 
     # TODO: lang strings.
     return array(
         'id' => $type->id,
         'name' => $type->name,
         'description' => isset($type->description) ? $type->description : "Default tool description placeholder until we can code this in.",
-        'urls' => get_tool_urls($type),
-        'state' => get_tool_state_info($type),
+        'urls' => get_tool_type_urls($type),
+        'state' => get_tool_type_state_info($type),
         'hascapabilitygroups' => !empty($capabilitygroups),
-        'capabilitygroups' => $capabilitygroups
+        'capabilitygroups' => $capabilitygroups,
+        // Course ID of 1 means it's not linked to a course.
+        'courseid' => $type->course == 1 ? 0 : $type->course,
+        'instanceids' => $instanceids,
+        'instancecount' => count($instanceids)
     );
 }

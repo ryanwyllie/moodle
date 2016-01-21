@@ -42,6 +42,75 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
 class mod_lti_external extends external_api {
 
     /**
+     * Returns description of a tool type
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.1
+     */
+    private static function get_tool_type_return_parameters() {
+        return new external_single_structure(
+            array(
+                'id' => new external_value(PARAM_INT, 'Tool type id'),
+                'name' => new external_value(PARAM_TEXT, 'Tool type name'),
+                'description' => new external_value(PARAM_TEXT, 'Tool type description'),
+                'urls' => new external_single_structure(
+                    array(
+                        'icon' => new external_value(PARAM_URL, 'Tool type icon URL'),
+                        'edit' => new external_value(PARAM_URL, 'Tool type edit URL'),
+                        'course' => new external_value(PARAM_URL, 'Tool type edit URL', VALUE_OPTIONAL),
+                    )
+                ),
+                'state' => new external_single_structure(
+                    array(
+                        'text' => new external_value(PARAM_TEXT, 'Tool type state name string'),
+                        'pending' => new external_value(PARAM_BOOL, 'Is the state pending'),
+                        'configured' => new external_value(PARAM_BOOL, 'Is the state configured'),
+                        'rejected' => new external_value(PARAM_BOOL, 'Is the state rejected'),
+                        'any' => new external_value(PARAM_BOOL, 'Is the state any'),
+                        'unknown' => new external_value(PARAM_BOOL, 'Is the state unknown'),
+                    )
+                ),
+                'hascapabilitygroups' => new external_value(PARAM_BOOL, 'Indicate if capabilitygroups is populated'),
+                'capabilitygroups' => new external_multiple_structure(
+                    new external_value(PARAM_TEXT, 'Tool type capability groups enabled'),
+                    'Array of capability groups', VALUE_DEFAULT, array()
+                ),
+                'courseid' => new external_value(PARAM_INT, 'Tool type course', VALUE_DEFAULT, 0),
+                'instanceids' => new external_multiple_structure(
+                    new external_value(PARAM_INT, 'LTI instance ID'),
+                    'IDs for the LTI instances using this type', VALUE_DEFAULT, array()
+                ),
+                'instancecount' => new external_value(PARAM_INT, 'The number of times this tool is being used')
+            ), 'Tool'
+        );
+    }
+
+    /**
+     * Returns description of a tool proxy
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.1
+     */
+    private static function get_tool_proxy_return_parameters() {
+        return new external_function_parameters(
+            array(
+                'id' => new external_value(PARAM_INT, 'Tool proxy id'),
+                'name' => new external_value(PARAM_TEXT, 'Tool proxy name'),
+                'regurl' => new external_value(PARAM_URL, 'Tool proxy registration URL'),
+                'state' => new external_value(PARAM_INT, 'Tool proxy state'),
+                'guid' => new external_value(PARAM_TEXT, 'Tool proxy globally unique identifier'),
+                'secret' => new external_value(PARAM_TEXT, 'Tool proxy shared secret'),
+                'vendorcode' => new external_value(PARAM_TEXT, 'Tool proxy consumer code'),
+                'capabilityoffered' => new external_value(PARAM_TEXT, 'Tool proxy capabilities offered'),
+                'serviceoffered' => new external_value(PARAM_TEXT, 'Tool proxy services offered'),
+                'toolproxy' => new external_value(PARAM_TEXT, 'Tool proxy'),
+                'timecreated' => new external_value(PARAM_INT, 'Tool proxy time created'),
+                'timemodified' => new external_value(PARAM_INT, 'Tool proxy modified'),
+            )
+        );
+    }
+
+    /**
      * Returns description of method parameters
      *
      * @return external_function_parameters
@@ -418,22 +487,7 @@ class mod_lti_external extends external_api {
      * @since Moodle 3.0
      */
     public static function create_tool_proxy_returns() {
-        return new external_function_parameters(
-            array(
-                'id' => new external_value(PARAM_INT, 'Tool proxy id'),
-                'name' => new external_value(PARAM_TEXT, 'Tool proxy name'),
-                'regurl' => new external_value(PARAM_URL, 'Tool proxy registration URL'),
-                'state' => new external_value(PARAM_INT, 'Tool proxy state'),
-                'guid' => new external_value(PARAM_TEXT, 'Tool proxy globally unique identifier'),
-                'secret' => new external_value(PARAM_TEXT, 'Tool proxy shared secret'),
-                'vendorcode' => new external_value(PARAM_TEXT, 'Tool proxy consumer code'),
-                'capabilityoffered' => new external_value(PARAM_TEXT, 'Tool proxy capabilities offered'),
-                'serviceoffered' => new external_value(PARAM_TEXT, 'Tool proxy services offered'),
-                'toolproxy' => new external_value(PARAM_TEXT, 'Tool proxy'),
-                'timecreated' => new external_value(PARAM_INT, 'Tool proxy time created'),
-                'timemodified' => new external_value(PARAM_INT, 'Tool proxy modified'),
-            )
-        );
+        return self::get_tool_proxy_return_parameters();
     }
 
     /**
@@ -483,22 +537,7 @@ class mod_lti_external extends external_api {
      * @since Moodle 3.0
      */
     public static function delete_tool_proxy_returns() {
-        return new external_function_parameters(
-            array(
-                'id' => new external_value(PARAM_INT, 'Tool proxy id'),
-                'name' => new external_value(PARAM_TEXT, 'Tool proxy name'),
-                'regurl' => new external_value(PARAM_URL, 'Tool proxy registration URL'),
-                'state' => new external_value(PARAM_INT, 'Tool proxy state'),
-                'guid' => new external_value(PARAM_TEXT, 'Tool proxy globally unique identifier'),
-                'secret' => new external_value(PARAM_TEXT, 'Tool proxy shared secret'),
-                'vendorcode' => new external_value(PARAM_TEXT, 'Tool proxy consumer code'),
-                'capabilityoffered' => new external_value(PARAM_TEXT, 'Tool proxy capabilities offered'),
-                'serviceoffered' => new external_value(PARAM_TEXT, 'Tool proxy services offered'),
-                'toolproxy' => new external_value(PARAM_TEXT, 'Tool proxy'),
-                'timecreated' => new external_value(PARAM_INT, 'Tool proxy time created'),
-                'timemodified' => new external_value(PARAM_INT, 'Tool proxy modified'),
-            )
-        );
+        return self::get_tool_proxy_return_parameters();
     }
 
     /**
@@ -607,34 +646,7 @@ class mod_lti_external extends external_api {
      */
     public static function get_tool_types_returns() {
         return new external_multiple_structure(
-            new external_single_structure(
-                array(
-                    'id' => new external_value(PARAM_INT, 'Tool type id'),
-                    'name' => new external_value(PARAM_TEXT, 'Tool type name'),
-                    'description' => new external_value(PARAM_TEXT, 'Tool type description'),
-                    'urls' => new external_single_structure(
-                        array(
-                            'icon' => new external_value(PARAM_URL, 'Tool type icon URL'),
-                            'edit' => new external_value(PARAM_URL, 'Tool type edit URL'),
-                        )
-                    ),
-                    'state' => new external_single_structure(
-                        array(
-                            'text' => new external_value(PARAM_TEXT, 'Tool type state name string'),
-                            'pending' => new external_value(PARAM_BOOL, 'Is the state pending'),
-                            'configured' => new external_value(PARAM_BOOL, 'Is the state configured'),
-                            'rejected' => new external_value(PARAM_BOOL, 'Is the state rejected'),
-                            'any' => new external_value(PARAM_BOOL, 'Is the state any'),
-                            'unknown' => new external_value(PARAM_BOOL, 'Is the state unknown'),
-                        )
-                    ),
-                    'hascapabilitygroups' => new external_value(PARAM_BOOL, 'Indicate if capabilitygroups is populated'),
-                    'capabilitygroups' => new external_multiple_structure(
-                        new external_value(PARAM_TEXT, 'Tool type capability groups enabled'),
-                        'Array of capability groups', VALUE_DEFAULT, array()
-                    )
-                ), 'Tool'
-            )
+            self::get_tool_type_return_parameters()
         );
     }
 
@@ -710,34 +722,7 @@ class mod_lti_external extends external_api {
      * @since Moodle 3.0
      */
     public static function create_tool_type_returns() {
-        return new external_function_parameters(
-            array(
-                'id' => new external_value(PARAM_INT, 'Tool type id'),
-                'name' => new external_value(PARAM_TEXT, 'Tool type name'),
-                'description' => new external_value(PARAM_TEXT, 'Tool type description'),
-                'urls' => new external_single_structure(
-                    array(
-                        'icon' => new external_value(PARAM_URL, 'Tool type icon URL'),
-                        'edit' => new external_value(PARAM_URL, 'Tool type edit URL'),
-                    )
-                ),
-                'state' => new external_single_structure(
-                    array(
-                        'text' => new external_value(PARAM_TEXT, 'Tool type state name string'),
-                        'pending' => new external_value(PARAM_BOOL, 'Is the state pending'),
-                        'configured' => new external_value(PARAM_BOOL, 'Is the state configured'),
-                        'rejected' => new external_value(PARAM_BOOL, 'Is the state rejected'),
-                        'any' => new external_value(PARAM_BOOL, 'Is the state any'),
-                        'unknown' => new external_value(PARAM_BOOL, 'Is the state unknown'),
-                    )
-                ),
-                'hascapabilitygroups' => new external_value(PARAM_BOOL, 'Indicate if capabilitygroups is populated'),
-                'capabilitygroups' => new external_multiple_structure(
-                    new external_value(PARAM_TEXT, 'Tool type capability groups enabled'),
-                    'Array of capability groups', VALUE_DEFAULT, array()
-                )
-            ), 'Tool'
-        );
+        return self::get_tool_type_return_parameters();
     }
 
     /**
@@ -816,34 +801,7 @@ class mod_lti_external extends external_api {
      * @since Moodle 3.0
      */
     public static function update_tool_type_returns() {
-        return new external_function_parameters(
-            array(
-                'id' => new external_value(PARAM_INT, 'Tool type id'),
-                'name' => new external_value(PARAM_TEXT, 'Tool type name'),
-                'description' => new external_value(PARAM_TEXT, 'Tool type description'),
-                'urls' => new external_single_structure(
-                    array(
-                        'icon' => new external_value(PARAM_URL, 'Tool type icon URL'),
-                        'edit' => new external_value(PARAM_URL, 'Tool type edit URL'),
-                    )
-                ),
-                'state' => new external_single_structure(
-                    array(
-                        'text' => new external_value(PARAM_TEXT, 'Tool type state name string'),
-                        'pending' => new external_value(PARAM_BOOL, 'Is the state pending'),
-                        'configured' => new external_value(PARAM_BOOL, 'Is the state configured'),
-                        'rejected' => new external_value(PARAM_BOOL, 'Is the state rejected'),
-                        'any' => new external_value(PARAM_BOOL, 'Is the state any'),
-                        'unknown' => new external_value(PARAM_BOOL, 'Is the state unknown'),
-                    )
-                ),
-                'hascapabilitygroups' => new external_value(PARAM_BOOL, 'Indicate if capabilitygroups is populated'),
-                'capabilitygroups' => new external_multiple_structure(
-                    new external_value(PARAM_TEXT, 'Tool type capability groups enabled'),
-                    'Array of capability groups', VALUE_DEFAULT, array()
-                )
-            ), 'Tool'
-        );
+        return self::get_tool_type_return_parameters();
     }
 
     /**
@@ -929,10 +887,10 @@ class mod_lti_external extends external_api {
      * @throws moodle_exception
      */
     public static function is_cartridge($url) {
-        /*$params = self::validate_parameters(self::is_cartridge_parameters(),
+        $params = self::validate_parameters(self::is_cartridge_parameters(),
                                             array(
                                                 'url' => $url,
-                                            ));*/
+                                            ));
         $warnings = array();
 
         $context = context_system::instance();

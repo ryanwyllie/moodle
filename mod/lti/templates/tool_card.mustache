@@ -56,8 +56,11 @@
                     {{state.text}}
                 </span>
                 <div class="tool-card-actions pull-right">
-                    <a class="edit" href="{{{urls.edit}}}">{{#pix}} t/edit, core, Edit{{/pix}}</a>
-                    <a class="delete" href="#">{{#pix}} t/delete, core, Reject{{/pix}}</a>
+                    {{#courseid}}
+                        <a href="{{{urls.course}}}" title="Course link">{{#pix}} i/course, core, Course type{{/pix}}</a>
+                    {{/courseid}}
+                    <a class="edit" href="{{{urls.edit}}}" title="Advanced edit">{{#pix}} t/edit, core, Advanced Edit{{/pix}}</a>
+                    <a class="delete" href="#" title="Delete">{{#pix}} t/delete, core, Delete{{/pix}}</a>
                 </div>
             </div>
             <img class="tool-card-icon" src="{{{urls.icon}}}" alt="{{name}}"></img>
@@ -75,6 +78,14 @@
         <div class="tool-card-footer">
             {{#state.pending}}
                 <a class="activate btn btn-success" href="#">Activate</a>
+            {{/state.pending}}
+            {{^state.pending}}
+                {{#instancecount}}
+                    <p>This type is being used {{instancecount}} times</p>
+                {{/instancecount}}
+                {{^instancecount}}
+                    <p>This type has not yet been used</p>
+                {{/instancecount}}
             {{/state.pending}}
         </div>
     </div>
