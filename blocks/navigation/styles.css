@@ -21,7 +21,7 @@
     background-image: url('[[pix:t/expanded]]');
 }
 
-.block_navigation .block_tree .tree_item.emptybranch {
+.block_navigation .block_tree .tree_item.emptybranch,
     padding-left: 21px;
     background-image: url('[[pix:t/collapsed_empty]]');
 }
@@ -74,7 +74,8 @@
     display: none;
 }
 
-.jsenabled .block_navigation .block_tree [aria-expanded="false"] .tree_item.branch {
+.jsenabled .block_navigation .block_tree [aria-expanded="false"] .tree_item.branch,
+.jsenabled .block_navigation .block_tree [aria-expanded="false"].tree_item.branch {
     background-image: url('[[pix:t/collapsed]]');
 }
 

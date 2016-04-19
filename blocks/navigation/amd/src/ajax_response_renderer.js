@@ -41,9 +41,15 @@ define(['jquery'], function($) {
      * @param {object} nodes jquery object representing the nodes to be build.
      * @return
      */
-    function buildDOM(rootElement, nodes) {
+    function buildDOM(rootElement, nodes, id) {
         var ul = $('<ul></ul>');
         ul.attr('role', 'group');
+        ul.attr('aria-hidden', 'true');
+
+        if (id) {
+            ul.attr('id', id);
+            ul.attr('style', 'display: none;');
+        }
 
         $.each(nodes, function(index, node) {
             if (typeof node !== 'object') {
@@ -52,12 +58,14 @@ define(['jquery'], function($) {
 
             var li = $('<li></li>');
             var p = $('<p></p>');
+            var id = null;
             var icon = null;
             var isBranch = (node.expandable || node.haschildren) ? true : false;
+            var treeitemnode = node.requiresajaxloading ? li : p;
 
             p.addClass('tree_item');
             p.attr('id', node.id);
-            li.attr('role', 'treeitem');
+            treeitemnode.attr('role', 'treeitem');
 
             if (node.requiresajaxloading) {
                 li.attr('data-requires-ajax', true);
@@ -68,8 +76,12 @@ define(['jquery'], function($) {
 
             if (isBranch) {
                 li.addClass('collapsed contains_branch');
-                li.attr('aria-expanded', false);
+                treeitemnode.attr('aria-expanded', false);
                 p.addClass('branch');
+                if (!node.requiresajaxloading) {
+                    id = node.key + '_group';
+                    p.attr('aria-owns', id);
+                }
             }
 
             if (node.icon && (!isBranch || node.type === NODETYPE.ACTIVITY || node.type === NODETYPE.RESOURCE)) {
@@ -121,7 +133,7 @@ define(['jquery'], function($) {
             ul.append(li);
 
             if (node.children && node.children.length) {
-                buildDOM(li, node.children);
+                buildDOM(li, node.children, id);
             } else if (isBranch && !node.requiresajaxloading) {
                 li.removeClass('contains_branch');
                 li.addClass('emptybranch');
@@ -140,6 +152,16 @@ define(['jquery'], function($) {
                 if (element.hasClass('contains_branch')) {
                     element.removeClass('contains_branch').addClass('emptybranch');
                 }
+            }
+
+            if (element.is('li') && element.attr('data-requires-ajax') === 'true') {
+                var p = element.find('p').first();
+                element.find('ul').first().attr('id', p.attr('id'));
+                p.attr('role', 'treeitem');
+                p.attr('aria-expanded', 'true');
+                p.attr('aria-owns', p.attr('id'));
+                p.removeAttr('id');
+                p.focus();
             }
         }
     };
