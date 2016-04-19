@@ -63,29 +63,49 @@ class behat_navigation extends behat_base {
         $nodetextliteral = behat_context_helper::escape($text);
         $hasblocktree = "[contains(concat(' ', normalize-space(@class), ' '), ' block_tree ')]";
         $hasbranch = "[contains(concat(' ', normalize-space(@class), ' '), ' branch ')]";
-        $hascollapsed = "li[@aria-expanded='false']";
-        $notcollapsed = "li[@aria-expanded='true']";
+        $hascollapsedli = "li[@aria-expanded='false']";
+        $notcollapsedli = "li[@aria-expanded='true']";
+        $hascollapsedp = "li/p[@aria-expanded='false']";
+        $notcollapsedp = "li/p[@aria-expanded='true']";
         $match = "[normalize-space(.)={$nodetextliteral}]";
 
         // Avoid problems with quotes.
         $isbranch = ($branch) ? $hasbranch : '';
         if ($collapsed === true) {
-            $iscollapsed = $hascollapsed;
+            $iscollapsed = $hascollapsedli;
         } else if ($collapsed === false) {
-            $iscollapsed = $notcollapsed;
+            $iscollapsed = $notcollapsedli;
         } else {
             $iscollapsed = 'li';
         }
 
         // First check root nodes, it can be a span or link.
-        $xpath  = "//ul{$hasblocktree}/$hascollapsed/p{$isbranch}/span{$match}|";
-        $xpath  .= "//ul{$hasblocktree}/$hascollapsed/p{$isbranch}/a{$match}|";
+        $xpath  = "//ul{$hasblocktree}/$hascollapsedli/p{$isbranch}/span{$match}|";
+        $xpath  .= "//ul{$hasblocktree}/$hascollapsedli/p{$isbranch}/a{$match}|";
 
         // Next search for the node containing the text within a link.
         $xpath .= "//ul{$hasblocktree}//ul/{$iscollapsed}/p{$isbranch}/a{$match}|";
 
         // Finally search for the node containing the text within a span.
-        $xpath .= "//ul{$hasblocktree}//ul/{$iscollapsed}/p{$isbranch}/span{$match}";
+        $xpath .= "//ul{$hasblocktree}//ul/{$iscollapsed}/p{$isbranch}/span{$match}|";
+
+        if ($collapsed === true) {
+            $iscollapsed = $hascollapsedp;
+        } else if ($collapsed === false) {
+            $iscollapsed = $notcollapsedp;
+        } else {
+            $iscollapsed = 'p';
+        }
+
+        // First check root nodes, it can be a span or link.
+        $xpath  .= "//ul{$hasblocktree}/$hascollapsedp{$isbranch}/span{$match}|";
+        $xpath  .= "//ul{$hasblocktree}/$hascollapsedp{$isbranch}/a{$match}|";
+
+        // Next search for the node containing the text within a link.
+        $xpath .= "//ul{$hasblocktree}//ul/{$iscollapsed}{$isbranch}/a{$match}|";
+
+        // Finally search for the node containing the text within a span.
+        $xpath .= "//ul{$hasblocktree}//ul/{$iscollapsed}{$isbranch}/span{$match}";
 
         $node = $this->find('xpath', $xpath, $exception);
         $this->ensure_node_is_visible($node);
@@ -262,9 +282,11 @@ class behat_navigation extends behat_base {
                 $node = $this->get_navigation_node($parentnodes[$i], $node);
             }
 
+            $nodep = $node->find('xpath', '/p');
             // Keep expanding all sub-parents if js enabled.
-            if ($this->running_javascript() && $node->hasAttribute('aria-expanded') &&
-                ($node->getAttribute('aria-expanded') == "false")) {
+            if ($this->running_javascript() && (
+                    ($node->hasAttribute('aria-expanded') && $node->getAttribute('aria-expanded') == "false") ||
+                    ($nodep->hasAttribute('aria-expanded') && $nodep->getAttribute('aria-expanded') == "false"))) {
 
                 $xpath = "/p[contains(concat(' ', normalize-space(@class), ' '), ' tree_item ')]";
                 $nodetoexpand = $node->find('xpath', $xpath);

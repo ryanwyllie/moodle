@@ -129,23 +129,6 @@ class block_settings_renderer extends plugin_renderer_base {
                 }
             }
 
-//            switch ($treeitemelement) {
-//                case self::TREEITEM_NODE_LI:
-//                    $liattr += ['role' => 'treeitem'] + $liexpandable + $expanded;
-//                    break;
-//                case self::TREEITEM_NODE_P:
-//                    $divattr += ['role' => 'treeitem', 'aria-owns' => $id . '_group'] + $expanded;
-//
-//                    if (isset($expanded['aria-expanded']) && $expanded['aria-expanded'] === 'false') {
-//                        $ulattr = ['aria-hidden' => 'true', 'style' => 'display: none;'];
-//                    }
-//                    break;
-//            }
-
-//            if (!empty($item->id)) {
-//                $divattr['id'] = $item->id;
-//            }
-
             $content = html_writer::tag('p', $content, $pattr) . $this->navigation_node($item, $ulattr, $depth + 1);
             if (!empty($item->preceedwithhr) && $item->preceedwithhr===true) {
                 $content = html_writer::empty_tag('hr') . $content;
