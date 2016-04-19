@@ -18,11 +18,15 @@
 .block_settings .block_tree .active_tree_node {font-weight:bold;}
 .jsenabled .block_settings .block_tree .tree_item.branch {cursor:pointer;}
 .jsenabled .block_settings .block_tree .emptybranch .tree_item,
-.jsenabled .block_settings .block_tree [aria-expanded="false"].emptybranch .tree_item.branch {
+.jsenabled .block_settings .block_tree [aria-expanded="false"].emptybranch .tree_item.branch 
+.jsenabled .block_settings .block_tree [aria-expanded="false"].emptybranch.tree_item.branch {
     background-image: url([[pix:t/collapsed_empty]]);background-position: 0 10%;background-repeat: no-repeat;
 }
 .jsenabled .block_settings .block_tree [aria-expanded="false"] ul {display: none;}
-.jsenabled .block_settings .block_tree [aria-expanded="false"] .tree_item.branch {background-image: url([[pix:t/collapsed]]);}
+.jsenabled .block_settings .block_tree [aria-expanded="false"] .tree_item.branch,
+.jsenabled .block_settings .block_tree [aria-expanded="false"].tree_item.branch {
+    background-image: url([[pix:t/collapsed]]);
+}
 .jsenabled .block_settings .block_tree [aria-expanded="false"].loading .tree_item.branch {background-image: url('[[pix:i/loading_small]]');}
 
 /** Internet explorer specific rules **/
