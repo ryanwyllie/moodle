@@ -2762,4 +2762,163 @@ class mod_assign_external extends external_api {
             ))
         );
     }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.1
+     */
+    public static function get_participant_parameters() {
+        return new external_function_parameters(
+            array(
+                'assignid' => new external_value(PARAM_INT, 'assign instance id'),
+                'userid' => new external_value(PARAM_INT, 'user id'),
+                'summaryonly' => new external_value(PARAM_BOOL, 'user id', VALUE_DEFAULT, false),
+            )
+        );
+    }
+
+    /**
+     * Get the user participating in the given assignment. An error with code 'usernotincourse'
+     * is thrown is the user isn't a participant of the given assignment.
+     *
+     * @param int $assignid the assign instance id
+     * @param int $userid the user id
+     * @return array of warnings and status result
+     * @since Moodle 3.0
+     * @throws moodle_exception
+     */
+    public static function get_participant($assignid, $userid, $summaryonly) {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . "/mod/assign/locallib.php");
+        require_once($CFG->dirroot . "/user/lib.php");
+
+        $params = self::validate_parameters(self::get_participant_parameters(), array(
+            'assignid' => $assignid,
+            'userid' => $userid,
+            'summaryonly' => $summaryonly
+        ));
+
+        // Request and permission validation.
+        $assign = $DB->get_record('assign', array('id' => $params['assignid']), 'id', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($assign, 'assign');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        $assign = new assign($context, null, null);
+        $assign->require_view_grades();
+
+        $participant = $assign->get_participant($params['userid']);
+        if (!$participant) {
+            // No participant found so we can return early.
+            throw new moodle_exception('usernotincourse');
+        }
+
+        $userdetails = array();
+        // Skip the expensive lookup of user detail if we're blind marking or the caller
+        // only wants a summary of the participant.
+        if ($assign->is_blind_marking() || $summaryonly) {
+            $userdetails = array('id' => $participant->id);
+        } else {
+            $userdetails = user_get_user_details($participant, $course);
+        }
+        // Preserve the fullname set by the assignment.
+        $userdetails['fullname'] = $participant->fullname;
+        $userdetails['submitted'] = $participant->submitted;
+        $userdetails['requiregrading'] = $participant->requiregrading;
+        if (!empty($participant->groupid)) {
+            $userdetails['groupid'] = $participant->groupid;
+        }
+        if (!empty($participant->groupname)) {
+            $userdetails['groupname'] = $participant->groupname;
+        }
+
+        return $userdetails;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 3.0
+     */
+    public static function get_participant_returns() {
+        return new external_single_structure(array(
+                'id'    => new external_value(PARAM_INT, 'ID of the user'),
+                'username'    => new external_value(PARAM_RAW, 'Username', VALUE_OPTIONAL),
+                'firstname'   => new external_value(PARAM_NOTAGS, 'The first name(s) of the user', VALUE_OPTIONAL),
+                'lastname'    => new external_value(PARAM_NOTAGS, 'The family name of the user', VALUE_OPTIONAL),
+                'fullname'    => new external_value(PARAM_NOTAGS, 'The fullname of the user'),
+                'idnumber'    => new external_value(PARAM_NOTAGS, 'The idnumber of the user', VALUE_OPTIONAL),
+                'email'       => new external_value(PARAM_TEXT, 'Email address', VALUE_OPTIONAL),
+                'address'     => new external_value(PARAM_MULTILANG, 'Postal address', VALUE_OPTIONAL),
+                'phone1'      => new external_value(PARAM_NOTAGS, 'Phone 1', VALUE_OPTIONAL),
+                'phone2'      => new external_value(PARAM_NOTAGS, 'Phone 2', VALUE_OPTIONAL),
+                'icq'         => new external_value(PARAM_NOTAGS, 'icq number', VALUE_OPTIONAL),
+                'skype'       => new external_value(PARAM_NOTAGS, 'skype id', VALUE_OPTIONAL),
+                'yahoo'       => new external_value(PARAM_NOTAGS, 'yahoo id', VALUE_OPTIONAL),
+                'aim'         => new external_value(PARAM_NOTAGS, 'aim id', VALUE_OPTIONAL),
+                'msn'         => new external_value(PARAM_NOTAGS, 'msn number', VALUE_OPTIONAL),
+                'department'  => new external_value(PARAM_TEXT, 'department', VALUE_OPTIONAL),
+                'institution' => new external_value(PARAM_TEXT, 'institution', VALUE_OPTIONAL),
+                'interests'   => new external_value(PARAM_TEXT, 'user interests (separated by commas)', VALUE_OPTIONAL),
+                'firstaccess' => new external_value(PARAM_INT, 'first access to the site (0 if never)', VALUE_OPTIONAL),
+                'lastaccess'  => new external_value(PARAM_INT, 'last access to the site (0 if never)', VALUE_OPTIONAL),
+                'description' => new external_value(PARAM_RAW, 'User profile description', VALUE_OPTIONAL),
+                'descriptionformat' => new external_value(PARAM_INT, 'User profile description format', VALUE_OPTIONAL),
+                'city'        => new external_value(PARAM_NOTAGS, 'Home city of the user', VALUE_OPTIONAL),
+                'url'         => new external_value(PARAM_URL, 'URL of the user', VALUE_OPTIONAL),
+                'country'     => new external_value(PARAM_ALPHA, 'Country code of the user, such as AU or CZ', VALUE_OPTIONAL),
+                'profileimageurlsmall' => new external_value(PARAM_URL, 'User image profile URL - small', VALUE_OPTIONAL),
+                'profileimageurl' => new external_value(PARAM_URL, 'User image profile URL - big', VALUE_OPTIONAL),
+                'customfields' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'type'  => new external_value(PARAM_ALPHANUMEXT, 'The type of the custom field'),
+                            'value' => new external_value(PARAM_RAW, 'The value of the custom field'),
+                            'name' => new external_value(PARAM_RAW, 'The name of the custom field'),
+                            'shortname' => new external_value(PARAM_RAW, 'The shortname of the custom field'),
+                        )
+                    ), 'User custom fields (also known as user profil fields)', VALUE_OPTIONAL),
+                'groups' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id'  => new external_value(PARAM_INT, 'group id'),
+                            'name' => new external_value(PARAM_RAW, 'group name'),
+                            'description' => new external_value(PARAM_RAW, 'group description'),
+                        )
+                    ), 'user groups', VALUE_OPTIONAL),
+                'roles' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'roleid'       => new external_value(PARAM_INT, 'role id'),
+                            'name'         => new external_value(PARAM_RAW, 'role name'),
+                            'shortname'    => new external_value(PARAM_ALPHANUMEXT, 'role shortname'),
+                            'sortorder'    => new external_value(PARAM_INT, 'role sortorder')
+                        )
+                    ), 'user roles', VALUE_OPTIONAL),
+                'preferences' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'name'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preferences'),
+                            'value' => new external_value(PARAM_RAW, 'The value of the custom field'),
+                        )
+                ), 'User preferences', VALUE_OPTIONAL),
+                'enrolledcourses' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id'  => new external_value(PARAM_INT, 'Id of the course'),
+                            'fullname' => new external_value(PARAM_RAW, 'Fullname of the course'),
+                            'shortname' => new external_value(PARAM_RAW, 'Shortname of the course')
+                        )
+                ), 'Courses where the user is enrolled - limited by which courses the user is able to see', VALUE_OPTIONAL),
+                'submitted' => new external_value(PARAM_BOOL, 'have they submitted their assignment'),
+                'requiregrading' => new external_value(PARAM_BOOL, 'is their submission waiting for grading'),
+                'groupid' => new external_value(PARAM_INT, 'for group assignments this is the group id', VALUE_OPTIONAL),
+                'groupname' => new external_value(PARAM_NOTAGS, 'for group assignments this is the group name', VALUE_OPTIONAL),
+            )
+        );
+    }
 }
