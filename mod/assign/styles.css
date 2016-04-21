@@ -545,6 +545,7 @@
 
 .path-mod-assign [data-region="grade-panel"] #id_gradeheader {
     display: table-cell;
+    min-width: 0;
 }
 
 .path-mod-assign [data-region="grade-panel"] #id_gradeheader > legend {
@@ -580,6 +581,10 @@
 .path-mod-assign #page-content [data-region="grade-panel"] .mform:not(.unresponsive) .fcontainer .fitem.fitem_ffilemanager .felement {
     padding: 6px 10px 10px;
     box-sizing: border-box;
+}
+
+.path-mod-assign #page-content [data-region="grade-panel"] .mform:not(.unresponsive) .fcontainer .fitem.fitem_f .felement .gradingform_rubric-description {
+    overflow: auto;
 }
 
 .path-mod-assign #page-content [data-region="grade-panel"] .mform:not(.unresponsive) .fitem.fitem_ftext .fitemtitle,
@@ -637,6 +642,7 @@
 
 .path-mod-assign [data-region="grade-panel"] .gradingform_rubric {
     padding-bottom: 0;
+    max-width: none;
 }
 
 .path-mod-assign [data-region="grade-panel"] .gradingform_rubric .criterion .description {
