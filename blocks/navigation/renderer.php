@@ -142,7 +142,7 @@ class block_navigation_renderer extends plugin_renderer_base {
                     'aria-expanded' => ($item->has_children() && (!$item->forceopen || $item->collapse)) ? "false" : "true"
                 );
                 if ($item->requiresajaxloading) {
-                    $liattr += [
+                    $pattr += [
                         'data-requires-ajax' => 'true',
                         'data-loaded' => 'false',
                         'data-node-id' => $item->id,
@@ -164,13 +164,9 @@ class block_navigation_renderer extends plugin_renderer_base {
             $liattr['class'] = join(' ', $liattr['class']);
             $pattr['class'] = join(' ', $pattr['class']);
             
-            if ($item->requiresajaxloading) {
-                $liattr += $treeitemattr;
-            } else {
-                $pattr += $depth > 1 ? $treeitemattr : [];
-                if (isset($pattr['aria-expanded']) && $pattr['aria-expanded'] === 'false') {
-                    $ulattr += ['aria-hidden' => 'true', 'style' => 'display: none;'];
-                }
+            $pattr += $depth > 1 ? $treeitemattr : [];
+            if (isset($pattr['aria-expanded']) && $pattr['aria-expanded'] === 'false') {
+                $ulattr += ['aria-hidden' => 'true', 'style' => 'display: none;'];
             }
 
             // Create the structure.

@@ -71,6 +71,16 @@
     list-style: none;
 }
 
+.jsenabled .block_navigation [role="treeitem"][aria-expanded="true"] > [role="group"],
+.jsenabled .block_navigation [role="treeitem"][aria-expanded="true"] + [role="group"] {
+    display: block;
+}
+
+.jsenabled .block_navigation [role="treeitem"][aria-expanded="false"] > [role="group"],
+.jsenabled .block_navigation [role="treeitem"][aria-expanded="false"] + [role="group"] {
+    display: none;
+}
+
 .jsenabled .block_navigation .block_tree [aria-expanded="false"] ul {
     display: none;
 }

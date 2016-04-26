@@ -41,15 +41,10 @@ define(['jquery'], function($) {
      * @param {object} nodes jquery object representing the nodes to be build.
      * @return
      */
-    function buildDOM(rootElement, nodes, id) {
+    function buildDOM(rootElement, nodes) {
         var ul = $('<ul></ul>');
         ul.attr('role', 'group');
-        ul.attr('aria-hidden', 'true');
-
-        if (id) {
-            ul.attr('id', id);
-            ul.attr('style', 'display: none;');
-        }
+        ul.hide();
 
         $.each(nodes, function(index, node) {
             if (typeof node !== 'object') {
@@ -58,30 +53,27 @@ define(['jquery'], function($) {
 
             var li = $('<li></li>');
             var p = $('<p></p>');
-            var id = null;
+            var id = node.id || node.key + '_tree_item';
             var icon = null;
             var isBranch = (node.expandable || node.haschildren) ? true : false;
-            var treeitemnode = node.requiresajaxloading ? li : p;
 
             p.addClass('tree_item');
-            p.attr('id', node.id);
-            treeitemnode.attr('role', 'treeitem');
+            p.attr('id', id);
+            p.attr('role', 'treeitem');
+            // Negative tab index to allow it to receive focus.
+            p.attr('tabindex', '-1');
 
             if (node.requiresajaxloading) {
-                li.attr('data-requires-ajax', true);
-                li.attr('data-node-id', node.id);
-                li.attr('data-node-key', node.key);
-                li.attr('data-node-type', node.type);
+                p.attr('data-requires-ajax', true);
+                p.attr('data-node-id', node.id);
+                p.attr('data-node-key', node.key);
+                p.attr('data-node-type', node.type);
             }
 
             if (isBranch) {
                 li.addClass('collapsed contains_branch');
-                treeitemnode.attr('aria-expanded', false);
+                p.attr('aria-expanded', false);
                 p.addClass('branch');
-                if (!node.requiresajaxloading) {
-                    id = node.key + '_group';
-                    p.attr('aria-owns', id);
-                }
             }
 
             if (node.icon && (!isBranch || node.type === NODETYPE.ACTIVITY || node.type === NODETYPE.RESOURCE)) {
@@ -133,14 +125,18 @@ define(['jquery'], function($) {
             ul.append(li);
 
             if (node.children && node.children.length) {
-                buildDOM(li, node.children, id);
+                buildDOM(p, node.children);
             } else if (isBranch && !node.requiresajaxloading) {
                 li.removeClass('contains_branch');
                 li.addClass('emptybranch');
             }
         });
 
-        rootElement.append(ul);
+        rootElement.parent().append(ul);
+        var id = rootElement.attr('id') + '_group';
+        ul.attr('id', id);
+        rootElement.attr('aria-owns', id);
+        rootElement.attr('role', 'treeitem');
     }
 
     return {
@@ -148,20 +144,16 @@ define(['jquery'], function($) {
             // The first element of the response is the existing node so we start with processing the children.
             if (nodes.children && nodes.children.length) {
                 buildDOM(element, nodes.children);
-            } else {
-                if (element.hasClass('contains_branch')) {
-                    element.removeClass('contains_branch').addClass('emptybranch');
-                }
-            }
 
-            if (element.is('li') && element.attr('data-requires-ajax') === 'true') {
-                var p = element.find('p').first();
-                element.find('ul').first().attr('id', p.attr('id'));
-                p.attr('role', 'treeitem');
-                p.attr('aria-expanded', 'true');
-                p.attr('aria-owns', p.attr('id'));
-                p.removeAttr('id');
-                p.focus();
+                var item = element.children("[role='treeitem']").first();
+                var group = element.find('#'+item.attr('aria-owns'));
+
+                item.attr('aria-expanded', true);
+                group.show();
+            } else {
+                if (element.parent().hasClass('contains_branch')) {
+                    element.parent().removeClass('contains_branch').addClass('emptybranch');
+                }
             }
         }
     };
