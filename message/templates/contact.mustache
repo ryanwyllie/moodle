@@ -1,0 +1,11 @@
+<div class="row-fluid contact">
+    <div class="span2 picture">
+        {{{picture}}}
+    </div>
+    <div class="span10 information">
+        <div class="name">{{name}} {{#isonline}}*{{/isonline}}</div>
+        {{#lastmessage}}
+            <p>{{.}}</p>
+        {{/lastmessage}}
+    </div>
+</div>

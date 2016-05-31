@@ -1,3 +1,95 @@
+/** The message area **/
+.messaging-area {
+    border: 1px solid black;
+
+    .contacts-area {
+        border-right: 1px solid black;
+
+        .searcharea {
+            padding: 5px;
+            text-align: center;
+        }
+
+        .contact {
+
+            &:hover {
+                background-color: #CCF2FF;
+                cursor: pointer
+            }
+
+            .information {
+                padding-left: 8px;
+                padding-right: 8px;
+
+                .name {
+                    font-weight: bold;
+                }
+            }
+        }
+
+        .tabs {
+            border-top: 1px solid black;
+
+            .tabconversations {
+                text-align: center;
+                border-right: 1px solid black;
+
+                &:hover {
+                    cursor: pointer
+                }
+            }
+            .tabcontacts {
+                text-align: center;
+
+                &:hover {
+                    cursor: pointer
+                }
+            }
+        }
+    }
+
+    .messages-area {
+
+        .messages {
+            overflow-y: auto;
+
+            .name {
+                font-weight: bold;
+            }
+
+            .blocktime {
+                clear: both;
+                font-weight: bold;
+                text-align: center;
+            }
+
+            .left {
+                float: left;
+                width: 80%;
+            }
+
+            .right {
+                float: right;
+                padding-right: 5px;
+                margin-right: 5px;
+                max-width: 80%;
+            }
+
+            .message {
+                border: 1px solid black;
+                padding-left: 5px;
+                margin-bottom: 5px;
+                clear: both;
+                font-size: 10px;
+            }
+        }
+
+        .response textarea {
+            width:80%;
+        }
+    }
+}
+
 #newmessageoverlay {
     .well;
     margin: 0 1em;

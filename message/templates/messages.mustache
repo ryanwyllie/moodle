@@ -1,0 +1,12 @@
+<div class="messages">
+    <div class="name">
+        {{userfromfullname}}
+    </div>
+    {{#messages}}
+        {{> core_message/message }}
+    {{/messages}}
+</div>
+<div class="response">
+    <textarea></textarea>
+    <input type="button" value="{{#str}}send, message{{/str}}">
+</div>
