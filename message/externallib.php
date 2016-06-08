@@ -409,6 +409,101 @@ class core_message_external extends external_api {
     }
 
     /**
+     * Get messagearea conversations parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function data_for_messagearea_conversations_parameters() {
+        return new external_function_parameters(array());
+    }
+
+    /**
+     * Get messagearea conversations.
+     *
+     * @return external_description
+     */
+    public static function data_for_messagearea_conversations() {
+        global $CFG, $DB, $PAGE, $USER;
+
+        // Check if messaging is enabled.
+        if (!$CFG->messaging) {
+            throw new moodle_exception('disabled', 'message');
+        }
+
+        self::validate_context(context_user::instance($USER->id));
+
+        $user = $DB->get_record('user', array('id' => $USER->id));
+        $contacts = \core_message\api::get_conversations($user);
+
+        $renderer = $PAGE->get_renderer('core_message');
+        return $contacts->export_for_template($renderer);
+    }
+
+    /**
+     * Get messagearea conversations returns.
+     *
+     * @return external_description
+     */
+    public static function data_for_messagearea_conversations_returns() {
+        return new external_function_parameters(
+            array(
+                'contacts' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'userid' => new external_value(PARAM_INT, 'The user\'s id'),
+                            'name' => new external_value(PARAM_NOTAGS, 'The user\'s name'),
+                            'picture' => new external_value(PARAM_RAW, 'The user\'s picture'),
+                            'lastmessage' => new external_value(PARAM_NOTAGS, 'The user\'s last message', VALUE_OPTIONAL),
+                            'isonline' => new external_value(PARAM_BOOL, 'The user\'s last message', VALUE_OPTIONAL),
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * Get messagearea contacts parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function data_for_messagearea_contacts_parameters() {
+        return self::data_for_messagearea_conversations_parameters();
+    }
+
+    /**
+     * Get messagearea contacts parameters.
+     *
+     * @return external_description
+     */
+    public static function data_for_messagearea_contacts() {
+        global $CFG, $DB, $USER, $PAGE;
+
+        // Check if messaging is enabled.
+        if (!$CFG->messaging) {
+            throw new moodle_exception('disabled', 'message');
+        }
+
+        self::validate_context(context_user::instance($USER->id));
+
+        $user = $DB->get_record('user', array('id' => $USER->id));
+
+        $contacts = \core_message\api::get_contacts($user);
+
+        $renderer = $PAGE->get_renderer('core_message');
+        return $contacts->export_for_template($renderer);
+    }
+
+    /**
+     * Get messagearea contacts returns.
+     *
+     * @return external_description
+     */
+    public static function data_for_messagearea_contacts_returns() {
+        return self::data_for_messagearea_conversations_returns();
+    }
+
+    /**
      * Get contacts parameters description.
      *
      * @return external_function_parameters

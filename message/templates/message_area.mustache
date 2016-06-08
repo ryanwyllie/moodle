@@ -12,3 +12,8 @@
         </div>
     </div>
 </div>
+{{#js}}
+    require(['message/message-area'], function(Messagearea) {
+        var messageArea = new Messagearea('.messaging-area');
+    });
+{{/js}}
