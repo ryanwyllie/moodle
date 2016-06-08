@@ -504,6 +504,67 @@ class core_message_external extends external_api {
     }
 
     /**
+     * Get messagearea messages parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function data_for_messagearea_messages_parameters() {
+        return new external_function_parameters(
+            array(
+                'userid' => new external_value(PARAM_INT, 'The user\'s id'),
+            )
+        );
+    }
+
+    /**
+     * Get messagearea messages.
+     *
+     * @param int $userid The id of the user we want to view the messages of
+     * @return external_description
+     */
+    public static function data_for_messagearea_messages($userid) {
+        global $CFG, $DB, $PAGE, $USER;
+
+        // Check if messaging is enabled.
+        if (!$CFG->messaging) {
+            throw new moodle_exception('disabled', 'message');
+        }
+
+        self::validate_context(context_user::instance($USER->id));
+
+        $currentuser = $DB->get_record('user', array('id' => $USER->id));
+        $otheruser = $DB->get_record('user', array('id' => $userid));
+        $messages = \core_message\api::get_messages($currentuser, $otheruser);
+
+        $renderer = $PAGE->get_renderer('core_message');
+        return $messages->export_for_template($renderer);
+    }
+
+    /**
+     * Get messagearea messages returns.
+     *
+     * @return external_description
+     */
+    public static function data_for_messagearea_messages_returns() {
+        return new external_function_parameters(
+            array(
+                'userfromfullname' => new external_value(PARAM_NOTAGS, 'The user\'s fullname'),
+                'userfromid' => new external_value(PARAM_INT, 'The user\'s id'),
+                'messages' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'text' => new external_value(PARAM_RAW, 'The text of the message'),
+                            'blocktime' => new external_value(PARAM_NOTAGS, 'The time to display above the message'),
+                            'position' => new external_value(PARAM_ALPHA, 'The position of the text'),
+                            'timesent' => new external_value(PARAM_NOTAGS, 'The time the message was sent'),
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * Get contacts parameters description.
      *
      * @return external_function_parameters
