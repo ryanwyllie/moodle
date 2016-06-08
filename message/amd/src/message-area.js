@@ -47,11 +47,18 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
     };
 
     Messagearea.prototype._loadContactArea = function(methodname) {
+        // Show loading template.
+        templates.render('core_message/loading', {}).done(function(html) {
+            this.find('.contacts').empty().append(html);
+        }.bind(this));
+
         // Call the web service to get our data.
         var promises = ajax.call([{
             methodname: methodname,
             args: []
         }]);
+
+        // Do stuff when we get data back.
         promises[0].then(function(data) {
             // We have the data - lets re-render the template with it.
             return templates.render('core_message/contacts', data).then(function(html, js) {
