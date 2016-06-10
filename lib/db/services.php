@@ -657,6 +657,7 @@ $functions = array(
         'description' => 'Send instant messages',
         'type' => 'write',
         'capabilities' => 'moodle/site:sendmessage',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_unblock_contacts' => array(

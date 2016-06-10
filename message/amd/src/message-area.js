@@ -29,6 +29,8 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         this._init();
     }
 
+    Messagearea.prototype.maxstringlength = 60;
+
     Messagearea.prototype.find = function(selector) {
         return this._node.find(selector);
     };
@@ -37,6 +39,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         this._node.on('click', '.tabconversations', this._loadConversations.bind(this));
         this._node.on('click', '.tabcontacts', this._loadContacts.bind(this));
         this._node.on('click', '.contact-msg', this._loadMessages.bind(this));
+        this._node.on('click', '.sendmessagebtn', this._sendMessage.bind(this));
     };
 
     Messagearea.prototype._loadConversations = function() {
@@ -76,7 +79,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
             this.find('.messages-area').empty().append(html);
         }.bind(this));
 
-
         // Get the user that was clicked.
         var userid = event.currentTarget.id.substr(8);
 
@@ -97,6 +99,75 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
                 templates.runTemplateJS(js);
             }.bind(this));
         }.bind(this)).fail(notification.exception);
+    };
+
+    Messagearea.prototype._sendMessage = function(event) {
+        // Get the variables we are going to use.
+        var userid = event.currentTarget.id.substr(15);
+        var text = this.find('#sendmessagetxt').val();
+
+        // Call the web service to save our message.
+        var promises = ajax.call([{
+            methodname: 'core_message_send_instant_messages',
+            args: {
+                messages : [
+                    {
+                        'touserid': userid,
+                        'text': text
+                    }
+                ]
+            }
+        }]);
+
+        // Update the DOM when we get some data back.
+        promises[0].then(function() {
+            // Set the data we need to update the messaging area.
+            this._addMessageToDom(text, userid);
+
+            // Empty the text area.
+            this.find('#sendmessagetxt').val('');
+
+        }.bind(this)).fail(notification.exception);
+    };
+
+    Messagearea.prototype._addMessageToDom = function(text, userid) {
+        var messagedata = {
+            'blocktime' : this._getBlockTime(),
+            'position': 'right',
+            'text': text,
+            'timesent': this._getMessageTime()
+        };
+
+        // Add the message.
+        templates.render('core_message/message', messagedata).then(function (html, js) {
+            this.find('.messages').append(html);
+            // And execute any JS that was in the template.
+            templates.runTemplateJS(js);
+        }.bind(this));
+
+        // Update the conversation on the left.
+        var leftmsg = text.substr(0, this.maxstringlength);
+        if (text.length > this.maxstringlength) {
+            leftmsg += " ...";
+        }
+        this.find('#contact-' + userid + ' .lastmessage').empty().append(leftmsg);
+    };
+
+    Messagearea.prototype._getBlockTime = function() {
+        return '';
+    };
+
+    Messagearea.prototype._getMessageTime = function() {
+        // Get the time to show.
+        var date = new Date();
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+
+        return hours + ':' + minutes + ' ' + ampm
     };
 
     return Messagearea;

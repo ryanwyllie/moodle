@@ -37,6 +37,11 @@ defined('MOODLE_INTERNAL') || die();
 class api {
 
     /**
+     * Maximum length of message to show in left panel.
+     */
+    const MAX_MSG_LENGTH = 60;
+
+    /**
      * Returns the contacts and their conversation to display in the contacts area.
      *
      * @param \stdClass $user The user
@@ -61,7 +66,10 @@ class api {
                 $contact->userid = $userfields->id;
                 $contact->name = fullname($userfields);
                 $contact->picture = $OUTPUT->user_picture($userfields, array('size' => 64, 'link' => false));
-                $contact->lastmessage = message_shorten_message($conversation->smallmessage, 60) . '...';
+                $contact->lastmessage = message_shorten_message($conversation->smallmessage, self::MAX_MSG_LENGTH);
+                if (\core_text::strlen($conversation->smallmessage) > self::MAX_MSG_LENGTH) {
+                    $contact->lastmessage .= ' ...';
+                }
                 $contact->isonline = $userfields->lastaccess >= $lastonlinetime;
                 $arrcontacts[] = new \core_message\output\contact($contact);
             }
