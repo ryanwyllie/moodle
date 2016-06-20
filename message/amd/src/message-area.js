@@ -167,7 +167,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function(
         hours = hours ? hours : 12;
         minutes = minutes < 10 ? '0' + minutes : minutes;
 
-        return hours + ':' + minutes + ' ' + ampm
+        return hours + ':' + minutes + ' ' + ampm;
     };
 
     return Messagearea;
