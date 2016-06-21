@@ -571,6 +571,7 @@ $functions = array(
         'type' => 'write',
         'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true,
     ),
     'core_message_delete_contacts' => array(
         'classname' => 'core_message_external',
@@ -580,6 +581,7 @@ $functions = array(
         'type' => 'write',
         'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true,
     ),
     'core_message_delete_conversation' => array(
         'classname' => 'core_message_external',
