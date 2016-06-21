@@ -568,6 +568,7 @@ $functions = array(
         'description' => 'Add contacts to the contact list',
         'type' => 'write',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true,
     ),
     'core_message_delete_contacts' => array(
         'classname' => 'core_message_external',
@@ -576,6 +577,7 @@ $functions = array(
         'description' => 'Remove contacts from the contact list',
         'type' => 'write',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true,
     ),
     'core_message_delete_message' => array(
         'classname' => 'core_message_external',
