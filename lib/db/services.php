@@ -585,6 +585,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Block contacts',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_create_contacts' => array(
@@ -593,6 +594,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Add contacts to the contact list',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_delete_contacts' => array(
@@ -601,6 +603,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Remove contacts from the contact list',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_delete_message' => array(
@@ -652,6 +655,14 @@ $functions = array(
         'type' => 'read',
         'ajax' => true,
     ),
+    'core_message_data_for_messagearea_get_profile' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'data_for_messagearea_get_profile',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Retrieve the template data for the users\'s profile',
+        'type' => 'read',
+        'ajax' => true,
+    ),
     'core_message_get_contacts' => array(
         'classname' => 'core_message_external',
         'methodname' => 'get_contacts',
@@ -700,6 +711,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Unblock contacts',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_notes_create_notes' => array(
