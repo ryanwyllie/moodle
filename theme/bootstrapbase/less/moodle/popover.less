@@ -387,10 +387,20 @@
                             text-align: right;
 
                             .block-button {
-                                margin-left: 5px;
-
                                 img {
                                     height: 15px;
+                                }
+                                .loading-icon {
+                                    padding: 0;
+                                }
+
+                                &.loading {
+                                    .loading-icon {
+                                        display: inline-block;
+                                    }
+                                    .block-icon {
+                                        display: none;
+                                    }
                                 }
                             }
                             .mark-read-button {
@@ -405,6 +415,7 @@
                                 vertical-align: top;
                                 float: right;
                                 text-align: center;
+                                margin-top: 20px;
 
                                 img {
                                     vertical-align: middle;
@@ -420,6 +431,9 @@
                                     height: 100%;
                                     display: none;
                                 }
+                            }
+                            .block-button + .expand-buttons {
+                                margin-top: 0;
                             }
                         }
 
