@@ -31,6 +31,7 @@ require_once($CFG->dirroot . '/badges/lib/awardlib.php');
 $badgeid = required_param('id', PARAM_INT);
 $role = optional_param('role', 0, PARAM_INT);
 $award = optional_param('award', false, PARAM_BOOL);
+$remove = optional_param('remove', false, PARAM_BOOL);
 
 require_login();
 
@@ -154,18 +155,28 @@ $existingselector = new badge_existing_users_selector('existingrecipients', $opt
 $recipientselector = new badge_potential_users_selector('potentialrecipients', $options);
 $recipientselector->set_existing_recipients($existingselector->find_users(''));
 
-if ($award && data_submitted() && has_capability('moodle/badges:awardbadge', $context)) {
+if (($award || $remove) && data_submitted() && has_capability('moodle/badges:awardbadge', $context)) {
     require_sesskey();
-    $users = $recipientselector->get_selected_users();
+    if ($award) {
+        $users = $recipientselector->get_selected_users();
+    } else {
+        $users = $existingselector->get_selected_users();
+    }
     foreach ($users as $user) {
-        if (process_manual_award($user->id, $USER->id, $issuerrole->roleid, $badgeid)) {
-            // If badge was successfully awarded, review manual badge criteria.
-            $data = new stdClass();
-            $data->crit = $badge->criteria[BADGE_CRITERIA_TYPE_MANUAL];
-            $data->userid = $user->id;
-            badges_award_handle_manual_criteria_review($data);
+        if ($award) {
+            if (process_manual_award($user->id, $USER->id, $issuerrole->roleid, $badgeid)) {
+                // If badge was successfully awarded, review manual badge criteria.
+                $data = new stdClass();
+                $data->crit = $badge->criteria[BADGE_CRITERIA_TYPE_MANUAL];
+                $data->userid = $user->id;
+                badges_award_handle_manual_criteria_review($data);
+            } else {
+                echo $OUTPUT->error_text(get_string('error:cannotawardbadge', 'badges'));
+            }
         } else {
-            echo $OUTPUT->error_text(get_string('error:cannotawardbadge', 'badges'));
+            if (!process_manual_remove($user->id, $USER->id, $issuerrole->roleid, $badgeid)) {
+                echo $OUTPUT->error_text(get_string('error:cannotremovebadge', 'badges'));
+            }
         }
     }
 
