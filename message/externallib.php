@@ -460,7 +460,7 @@ class core_message_external extends external_api {
 
         self::validate_context(context_user::instance($userid));
 
-        $contacts = \core_message\api::get_conversations($userid, $limitfrom, $limitnum);
+        $contacts = \core_message\api::get_conversations($userid, 0, $limitfrom, $limitnum);
 
         $renderer = $PAGE->get_renderer('core_message');
         return $contacts->export_for_template($renderer);
