@@ -250,10 +250,10 @@ if (!empty($user2realuser)) {
 // Get the renderer and the information we are going to be use.
 $renderer = $PAGE->get_renderer('core_message');
 if (!$user2realuser) {
-    $conversations = \core_message\api::get_conversations($user1->id);
+    $conversations = \core_message\api::get_conversations($user1->id, 0, 0, 20);
     $messages = null;
 } else {
-    $conversations = \core_message\api::get_conversations($user1->id, $user2->id);
+    $conversations = \core_message\api::get_conversations($user1->id, $user2->id, 0, 20);
     $messages = \core_message\api::get_messages($user1->id, $user2->id);
 }
 $messagearea = new \core_message\output\message_area_page($user1->id, $conversations, $messages);
