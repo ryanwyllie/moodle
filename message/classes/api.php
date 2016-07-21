@@ -200,41 +200,47 @@ class api {
         // soon for the sake of any developers' sanity when dealing with the messaging system.
         $now = time();
         $sql = "UPDATE {message}
-               SET timeuserfromdeleted = :time
-             WHERE useridfrom = :userid
-               AND useridto = :otheruserid";
+                   SET timeuserfromdeleted = :time
+                 WHERE useridfrom = :userid
+                   AND useridto = :otheruserid
+                   AND notification = 0";
         $DB->execute($sql, array('time' => $now, 'userid' => $userid, 'otheruserid' => $otheruserid));
 
         $sql = "UPDATE {message}
-               SET timeusertodeleted = :time
-             WHERE useridto = :userid
-               AND useridfrom = :otheruserid";
+                   SET timeusertodeleted = :time
+                 WHERE useridto = :userid
+                   AND useridfrom = :otheruserid
+                   AND notification = 0";
         $DB->execute($sql, array('time' => $now, 'userid' => $userid, 'otheruserid' => $otheruserid));
 
         $sql = "UPDATE {message_read}
-               SET timeuserfromdeleted = :time
-             WHERE useridfrom = :userid
-               AND useridto = :otheruserid";
+                   SET timeuserfromdeleted = :time
+                 WHERE useridfrom = :userid
+                   AND useridto = :otheruserid
+                   AND notification = 0";
         $DB->execute($sql, array('time' => $now, 'userid' => $userid, 'otheruserid' => $otheruserid));
 
         $sql = "UPDATE {message_read}
-               SET timeusertodeleted = :time
-             WHERE useridto = :userid
-               AND useridfrom = :otheruserid";
+                   SET timeusertodeleted = :time
+                 WHERE useridto = :userid
+                   AND useridfrom = :otheruserid
+                   AND notification = 0";
         $DB->execute($sql, array('time' => $now, 'userid' => $userid, 'otheruserid' => $otheruserid));
 
         // Now we need to trigger events for these. BAH - another SQL query.
         $sql = "SELECT id, useridfrom, useridto, subject, fullmessage, fullmessagehtml, fullmessageformat,
                        smallmessage, notification, timecreated, 0 as timeread
                   FROM {message} m
-                 WHERE (useridto = ? AND useridfrom = ? AND timeusertodeleted = ?)
-                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = ?)
+                 WHERE ((useridto = ? AND useridfrom = ? AND timeusertodeleted = ?)
+                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = ?))
+                   AND notification = 0
              UNION ALL
                 SELECT id, useridfrom, useridto, subject, fullmessage, fullmessagehtml, fullmessageformat,
                        smallmessage, notification, timecreated, timeread
                   FROM {message_read} mr
-                 WHERE (useridto = ? AND useridfrom = ? AND timeusertodeleted = ?)
-                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = ?)";
+                 WHERE ((useridto = ? AND useridfrom = ? AND timeusertodeleted = ?)
+                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = ?))
+                   AND notification = 0";
         $params = array($userid, $otheruserid, $now,
                         $otheruserid, $userid, $now,
                         $userid, $otheruserid, $now,

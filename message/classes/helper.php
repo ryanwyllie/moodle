@@ -50,14 +50,16 @@ class helper {
         $sql = "SELECT id, useridfrom, useridto, subject, fullmessage, fullmessagehtml, fullmessageformat,
                        smallmessage, notification, timecreated, 0 as timeread
                   FROM {message} m
-                 WHERE (useridto = ? AND useridfrom = ? AND timeusertodeleted = 0)
-                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = 0)
+                 WHERE ((useridto = ? AND useridfrom = ? AND timeusertodeleted = 0)
+                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = 0))
+                   AND notification = 0 
              UNION ALL
                 SELECT id, useridfrom, useridto, subject, fullmessage, fullmessagehtml, fullmessageformat,
                        smallmessage, notification, timecreated, timeread
                   FROM {message_read} mr
-                 WHERE (useridto = ? AND useridfrom = ? AND timeusertodeleted = 0)
-                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = 0)
+                 WHERE ((useridto = ? AND useridfrom = ? AND timeusertodeleted = 0)
+                    OR (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = 0))
+                   AND notification = 0 
               ORDER BY $sort";
         $params = array($userid, $otheruserid, $otheruserid, $userid,
                         $userid, $otheruserid, $otheruserid, $userid);
