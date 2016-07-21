@@ -77,7 +77,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
 
             // Show the profile.
             return promises[0].then(function(data) {
-                return templates.render('core_message/profile', data);
+                return templates.render('core_message/message_area_profile', data);
             }).then(function(html, js) {
                 templates.replaceNodeContents("[data-region='messages-area']", html, js);
             }).fail(notification.exception);
