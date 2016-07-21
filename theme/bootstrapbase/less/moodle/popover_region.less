@@ -1,8 +1,8 @@
-.mdl-popover {
+.popover-region {
     float: right;
     position: relative;
 
-    .mdl-popover-toggle {
+    .popover-region-toggle {
         cursor: pointer;
 
         .count-container {
@@ -18,7 +18,7 @@
         }
     }
 
-    .mdl-popover-container {
+    .popover-region-container {
         position: absolute;
         right: 0;
         top: 0;
@@ -31,7 +31,7 @@
         background-color: #fff;
         z-index: 10000;
 
-        .mdl-popover-header-container {
+        .popover-region-header-container {
             height: 25px;
             line-height: 24px;
             padding-left: 5px;
@@ -39,14 +39,14 @@
             border-bottom: 1px solid #ddd;
             box-sizing: border-box;
 
-            .mdl-popover-header-text {
+            .popover-region-header-text {
                 float: left;
                 margin: 0;
                 font-size: 14px;
                 line-height: 25px;
             }
 
-            .mdl-popover-header-actions {
+            .popover-region-header-actions {
                 float: right;
 
                 > * {
@@ -55,7 +55,7 @@
             }
         }
 
-        .mdl-popover-content-container {
+        .popover-region-content-container {
             height: ~"calc(100% - 25px)";
             width: 100%;
             overflow-y: auto;
@@ -97,7 +97,7 @@
     }
 
     &.collapsed {
-        .mdl-popover-container {
+        .popover-region-container {
             height: 0;
             overflow: hidden;
             opacity: 0;
@@ -108,10 +108,10 @@
 }
 
 .navbar {
-    .mdl-popover {
+    .popover-region {
         float: right;
 
-        .mdl-popover-toggle {
+        .popover-region-toggle {
             height: 42px;
             line-height: 42px;
             padding-left: 10px;
@@ -134,7 +134,7 @@
                 right: 0;
             }
         }
-        .mdl-popover-container {
+        .popover-region-container {
             top: 42px;
 
             &::before {
@@ -159,7 +159,7 @@
             }
         }
         &.collapsed {
-            .mdl-popover-container {
+            .popover-region-container {
                 height: 0;
                 overflow: hidden;
                 opacity: 0;
@@ -170,11 +170,11 @@
     }
 }
 
-.mdl-popover-notifications {
-    &.mdl-popover {
-        .mdl-popover-container {
-            .mdl-popover-header-container {
-                .mdl-popover-header-actions {
+.popover-region-notifications {
+    &.popover-region {
+        .popover-region-container {
+            .popover-region-header-container {
+                .popover-region-header-actions {
                     .fancy-toggle {
                         position: relative;
                         display: inline-block;
@@ -273,10 +273,10 @@
                 }
             }
         }
-        .mdl-popover-container {
-            .mdl-popover-content-container {
+        .popover-region-container {
+            .popover-region-content-container {
                 &.loading {
-                    .mdl-popover-content {
+                    .popover-region-content {
                         .unread-notifications, .all-notifications {
                             &:empty + .empty-message, & + .empty-message {
                                 display: none;
@@ -285,7 +285,7 @@
                     }
                 }
 
-                .mdl-popover-content {
+                .popover-region-content {
                     .unread-notifications {
                         opacity: 0;
                         visibility: hidden;
@@ -504,9 +504,9 @@
         }
 
         &.unread-only {
-            .mdl-popover-container {
-                .mdl-popover-content-container {
-                    .mdl-popover-content {
+            .popover-region-container {
+                .popover-region-content-container {
+                    .popover-region-content {
                         .all-notifications {
                             opacity: 0;
                             visibility: hidden;
@@ -530,7 +530,7 @@
                     }
 
                     &.loading {
-                        .mdl-popover-content {
+                        .popover-region-content {
                             .unread-notifications, .all-notifications {
                                 &:empty + .empty-message, & + .empty-message {
                                     display: none;
@@ -544,11 +544,11 @@
     }
 }
 
-.mdl-popover-messages {
-    &.mdl-popover {
-        .mdl-popover-container {
-            .mdl-popover-header-container {
-                .mdl-popover-header-actions {
+.popover-region-messages {
+    &.popover-region {
+        .popover-region-container {
+            .popover-region-header-container {
+                .popover-region-header-actions {
                     .mark-all-read-button {
                         .normal-icon {
                             display: inline-block;
@@ -570,8 +570,8 @@
                     }
                 }
             }
-            .mdl-popover-content-container {
-                .mdl-popover-content {
+            .popover-region-content-container {
+                .popover-region-content {
                     .messages {
                         &:empty + .empty-message {
                             display: block;
@@ -644,7 +644,7 @@
                     }
                 }
                 &.loading {
-                    .mdl-popover-content {
+                    .popover-region-content {
                         .messages {
                             &:empty + .empty-message {
                                 display: none;
@@ -658,22 +658,22 @@
 }
 
 .dir-rtl {
-    .mdl-popover {
-        .mdl-popover-container {
+    .popover-region {
+        .popover-region-container {
             left: 0;
             right: auto;
 
-            .mdl-popover-header-container {
-                .mdl-popover-header-text {
+            .popover-region-header-container {
+                .popover-region-header-text {
                     float: right;
                 }
-                .mdl-popover-header-actions {
+                .popover-region-header-actions {
                     float: left;
                 }
             }
 
-            .mdl-popover-content-container {
-                .mdl-popover-content {
+            .popover-region-content-container {
+                .popover-region-content {
                     .content-item-container {
                         .content-item {
                             .content-item-header {
@@ -694,10 +694,10 @@
         }
     }
     .navbar {
-        .mdl-popover {
+        .popover-region {
             float: left;
 
-            .mdl-popover-container {
+            .popover-region-container {
                 &::before {
                     right: auto;
                     left: 7px;
@@ -707,22 +707,22 @@
                     left: 8px;
                 }
 
-                .mdl-popover-header-container {
-                    .mdl-popover-header-text {
+                .popover-region-header-container {
+                    .popover-region-header-text {
                         float: right;
                     }
-                    .mdl-popover-header-actions {
+                    .popover-region-header-actions {
                         float: left;
                     }
                 }
             }
         }
     }
-    .mdl-popover-notifications {
-        .mdl-popover {
-            .mdl-popover-container {
-                .mdl-popover-header-container {
-                    .mdl-popover-header-actions {
+    .popover-region-notifications {
+        .popover-region {
+            .popover-region-container {
+                .popover-region-header-container {
+                    .popover-region-header-actions {
                         .fancy-toggle {
                             &.off {
                                 .slider-container {
@@ -745,8 +745,8 @@
                         }
                     }
                 }
-                .mdl-popover-content-container {
-                    .mdl-popover-content {
+                .popover-region-content-container {
+                    .popover-region-content {
                         .content-item-container {
                             .content-item {
                                 .content-item-header {
