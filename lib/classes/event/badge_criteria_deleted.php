@@ -105,7 +105,7 @@ class badge_criteria_deleted extends base {
      * @return bool
      */
     public static function get_other_mapping() {
-        return array('db' => 'badge', 'restore' => 'badge');
+        return array('badgeid' => array('db' => 'badge', 'restore' => 'badge'));
     }
 }
 
