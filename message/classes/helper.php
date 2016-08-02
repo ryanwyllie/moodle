@@ -72,7 +72,7 @@ class helper {
      *
      * @param int $userid
      * @param array $messages
-     * @return \core_message\output\message[]
+     * @return \core_message\output\messagearea\message[]
      */
     public static function create_messages($userid, $messages) {
         // Store the messages.
@@ -109,7 +109,7 @@ class helper {
             $msg->displayblocktime = $displayblocktime;
             $msg->timecreated = $message->timecreated;
             $msg->timeread = $message->timeread;
-            $arrmessages[] = new \core_message\output\message($msg);
+            $arrmessages[] = new \core_message\output\messagearea\message($msg);
         }
 
         return $arrmessages;
@@ -119,7 +119,7 @@ class helper {
      * Helper function for creating a contact renderable.
      *
      * @param \stdClass $contact
-     * @return \core_message\output\contact
+     * @return \core_message\output\messagearea\contact
      */
     public static function create_contact($contact) {
         global $CFG, $PAGE;
@@ -152,6 +152,6 @@ class helper {
         $data->isonline = $userfields->lastaccess >= $time;
         $data->isread = $contact->isread;
 
-        return new \core_message\output\contact($data);
+        return new \core_message\output\messagearea\contact($data);
     }
 }
