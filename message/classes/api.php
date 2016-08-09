@@ -140,7 +140,7 @@ class api {
                 'profileimageurl', 'profileimageurlsmall'));
             $data = new \stdClass();
             $data->userid = $userfields['id'];
-            $data->fullname = $userfields['ifullname'];
+            $data->fullname = $userfields['fullname'];
             $data->city = $userfields['city'];
             $data->country = $userfields['country'];
             $data->email = $userfields['email'];
