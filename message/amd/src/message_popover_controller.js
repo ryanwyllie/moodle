@@ -288,11 +288,11 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
         var blockstring = '';
         var unblockstring = '';
 
-        button.addClass('loading');
-
         if (button.hasClass('loading')) {
             return $.Deferred().resolve();
         }
+
+        button.addClass('loading');
 
         return Str.get_strings([
                 {
