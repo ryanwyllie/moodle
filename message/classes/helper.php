@@ -122,9 +122,10 @@ class helper {
      * Helper function for creating a contact renderable.
      *
      * @param \stdClass $contact
+     * @param string $prefix
      * @return \core_message\output\messagearea\contact
      */
-    public static function create_contact($contact) {
+    public static function create_contact($contact, $prefix = '') {
         global $CFG, $PAGE;
 
         // Variables to check if we consider this user online or not.
@@ -135,7 +136,7 @@ class helper {
         $time = time() - $timetoshowusers;
 
         // Create the data we are going to pass to the renderable.
-        $userfields = \user_picture::unalias($contact, array('lastaccess'));
+        $userfields = \user_picture::unalias($contact, array('lastaccess'), $prefix . 'id', $prefix);
         $data = new \stdClass();
         $data->userid = $userfields->id;
         $data->fullname = fullname($userfields);
@@ -148,8 +149,14 @@ class helper {
         // Store the message if we have it.
         if (isset($contact->smallmessage)) {
             $data->lastmessage = $contact->smallmessage;
+            if (isset($contact->searchmessageid)) {
+                $data->searchmessageid = $contact->searchmessageid;
+            } else {
+                $data->searchmessageid = null;
+            }
         } else {
             $data->lastmessage = null;
+            $data->searchmessageid = null;
         }
         // Check if the user is online.
         $data->isonline = $userfields->lastaccess >= $time;
