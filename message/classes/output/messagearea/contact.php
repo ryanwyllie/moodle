@@ -68,4 +68,11 @@ class contact implements templatable, renderable {
 
         return $contact;
     }
+
+    /**
+     * Get the user id for this contact.
+     */
+    public function get_user_id() {
+        return $this->contact->userid;
+    }
 }
