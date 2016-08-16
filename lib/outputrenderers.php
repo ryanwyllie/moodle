@@ -3316,7 +3316,6 @@ EOD;
         if (isloggedin()) {
             $context = [
                 'userid' => $USER->id,
-                'blocknoncontacts' => get_user_preferences('message_blocknoncontacts', '', $USER->id),
                 'urls' => [
                     'preferences' => (new moodle_url('/message/edit.php', ['id' => $USER->id]))->out(),
                 ],
