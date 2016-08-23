@@ -1,0 +1,100 @@
+body {
+    &.modal-open {
+        overflow: hidden;
+    }
+}
+
+.invisible {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 4050;
+    outline: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    &.fade {
+        &.visible {
+            .modal {
+                -webkit-transform: translate(0, 0);
+                -ms-transform: translate(0, 0);
+                transform: translate(0, 0);
+            }
+        }
+
+        &.invisible {
+            -webkit-transition: visibility .3s, opacity .3s;
+            -moz-transition: visibility .3s, opacity .3s;
+            transition: visibility .3s, opacity .3s;
+        }
+
+        .modal {
+            -webkit-transition: -webkit-transform .3s ease-out;
+            -moz-transition: -moz-transform .3s ease-out;
+            transition: transform .3s ease-out;
+        }
+    }
+
+    .modal {
+        position: relative;
+        margin: 50px auto 30px;
+        top: auto;
+        right: auto;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        max-width: 560px;
+
+        &.from-top {
+            -webkit-transform: translate(0, -25%);
+            -ms-transform: translate(0, -25%);
+            transform: translate(0, -25%);
+        }
+
+        .modal-header {
+            min-height: 30px;
+        }
+
+        .modal-body {
+            max-height: none;
+        }
+    }
+
+    &.large {
+        .modal {
+            max-width: 900px;
+        }
+    }
+}
+
+.modal-backdrop {
+    z-index: 4049;
+
+    &.fade {
+        -webkit-transition: visibility .15s;
+        -moz-transition: visibility .15s;
+        transition: visibility .15s;
+
+        &.with-slide {
+            -webkit-transition: visibility .3s, opacity .3s;
+            -moz-transition: visibility .3s, opacity .3s;
+            transition: visibility .3s, opacity .3s;
+        }
+    }
+
+    &.visible {
+        opacity: 0.8;
+    }
+}
