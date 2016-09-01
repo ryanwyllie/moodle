@@ -2020,7 +2020,7 @@ function message_togglecontact_requirejs() {
         return;
     }
 
-    $PAGE->requires->js_call_amd('core_message/toggle_contact_button', 'enhance', array('#toggle-contact-button'));
+    $PAGE->requires->js_call_amd('core_message/toggle_contact_button', 'enhance', array('[data-action="toggle-contact"]'));
     $done = true;
 }
 
@@ -2058,7 +2058,7 @@ function message_togglecontact_link_params($user, $iscontact = false) {
     $params = array(
         'data-userid' => $user->id,
         'data-is-contact' => $iscontact,
-        'id' => 'toggle-contact-button',
+        'data-action' => 'toggle-contact',
         'role' => 'button',
         'class' => 'ajax-contact-button',
     );
