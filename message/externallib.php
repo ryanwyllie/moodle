@@ -1592,6 +1592,7 @@ class core_message_external extends external_api {
                             'useridfrom' => new external_value(PARAM_INT, 'User from id'),
                             'useridto' => new external_value(PARAM_INT, 'User to id'),
                             'subject' => new external_value(PARAM_TEXT, 'The notification subject'),
+                            'shortenedsubject' => new external_value(PARAM_TEXT, 'The notification subject shortened with ellipsis'),
                             'text' => new external_value(PARAM_RAW, 'The message text formated'),
                             'fullmessage' => new external_value(PARAM_RAW, 'The message'),
                             'fullmessageformat' => new external_format_value('fullmessage'),
@@ -1610,15 +1611,6 @@ class core_message_external extends external_api {
                             'iconurl' => new external_value(PARAM_URL, 'URL for notification icon'),
                             'component' => new external_value(PARAM_TEXT, 'The component that generated the notification', VALUE_OPTIONAL),
                             'eventtype' => new external_value(PARAM_TEXT, 'The type of notification', VALUE_OPTIONAL),
-                            'preference' => new external_single_structure(
-                                array (
-                                    'key' => new external_value(PARAM_TEXT, 'The preference key'),
-                                    'loggedin' => new external_value(PARAM_TEXT, 'The logged in preference setting'),
-                                    'loggedoff' => new external_value(PARAM_TEXT, 'The logged off preference setting'),
-                                ),
-                                'The preference configuration',
-                                 VALUE_OPTIONAL
-                            ),
                         ), 'message'
                     )
                 ),
@@ -1943,7 +1935,7 @@ class core_message_external extends external_api {
         return new external_function_parameters(
             array(
                 'messageid' => new external_value(PARAM_INT, 'id of the message (in the message table)'),
-                'timeread' => new external_value(PARAM_INT, 'timestamp for when the message should be marked read')
+                'timeread' => new external_value(PARAM_INT, 'timestamp for when the message should be marked read', VALUE_DEFAULT, 0)
             )
         );
     }
@@ -1976,6 +1968,12 @@ class core_message_external extends external_api {
         );
         $params = self::validate_parameters(self::mark_message_read_parameters(), $params);
 
+        if (empty($params['timeread'])) {
+            $timeread = time();
+        } else {
+            $timeread = $params['timeread'];
+        }
+
         // Validate context.
         $context = context_system::instance();
         self::validate_context($context);
@@ -1986,7 +1984,7 @@ class core_message_external extends external_api {
             throw new invalid_parameter_exception('Invalid messageid, you don\'t have permissions to mark this message as read');
         }
 
-        $messageid = message_mark_message_read($message, $params['timeread']);
+        $messageid = message_mark_message_read($message, $timeread);
 
         $results = array(
             'messageid' => $messageid,
