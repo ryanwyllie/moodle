@@ -387,11 +387,17 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
 
         // Load more notifications if the user has scrolled to the end of content
         // item list.
-        this.getContentContainer().on(CustomEvents.events.scrollBottom, function() {
+        this.getContentContainer().on(CustomEvents.events.scrollBottom, function(e, data) {
             if (!this.isLoading && !this.hasLoadedAllContent()) {
                 this.loadMoreNotifications();
             }
         }.bind(this));
+
+        // Stop mouse scroll from propagating to the window element and
+        // scrolling the page.
+        CustomEvents.define(this.getContentContainer(), [
+            CustomEvents.events.scrollLock
+        ]);
     };
 
     return NotificationPopoverController;
