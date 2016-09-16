@@ -23,7 +23,6 @@
  * @package    message
  * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      3.2
  */
 define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates', 'core/str',
             'core/notification', 'core/custom_interaction_events', 'core/popover_region_controller',
@@ -43,8 +42,8 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * Constructor for the MessagePopoverController.
      * Extends PopoverRegionController.
      *
-     * @param element jQuery object root element of the popover
-     * @return object MessagePopoverController
+     * @param {object} element jQuery object root element of the popover
+     * @return {object} MessagePopoverController
      */
     var MessagePopoverController = function(element) {
         // Initialise base class.
@@ -78,7 +77,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * Get the element holding the messages.
      *
      * @method getContent
-     * @return jQuery element
+     * @return {object} jQuery element
      */
     MessagePopoverController.prototype.getContent = function() {
         return this.content;
@@ -162,9 +161,9 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * Render the message data with the appropriate template and add it to the DOM.
      *
      * @method renderMessages
-     * @param messages array message data
-     * @param container jQuery object the container to append the rendered messages
-     * @return jQuery promise that is resolved when all messages have been
+     * @param {array} messages Message data
+     * @param {object} container jQuery object the container to append the rendered messages
+     * @return {object} jQuery promise that is resolved when all messages have been
      *                rendered and added to the DOM
      */
     MessagePopoverController.prototype.renderMessages = function(messages, container) {
@@ -208,7 +207,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * loading some and haven't already loaded all of them.
      *
      * @method loadMoreMessages
-     * @return jQuery promise that is resolved when messages have been
+     * @return {object} jQuery promise that is resolved when messages have been
      *                        retrieved and added to the DOM
      */
     MessagePopoverController.prototype.loadMoreMessages = function() {

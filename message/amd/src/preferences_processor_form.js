@@ -21,15 +21,14 @@
  * @package    message
  * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      3.2
  */
 define(['jquery', 'core/ajax', 'core/notification', 'core/custom_interaction_events'],
-        function($, ajax, notification, CustomEvents) {
+        function($, Ajax, Notification, CustomEvents) {
     /**
      * Constructor for the ProcessorForm.
      *
-     * @param element jQuery object root element of the preference
-     * @return object ProcessorForm
+     * @param {object} element jQuery object root element of the preference
+     * @return {object} ProcessorForm
      */
     var ProcessorForm = function(element) {
         this.root = $(element);
@@ -75,7 +74,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/custom_interaction_eve
      * Check if this processor is loading.
      *
      * @method isLoading
-     * @return bool
+     * @return {bool}
      */
     ProcessorForm.prototype.isLoading = function() {
         return this.root.hasClass('loading');
@@ -85,7 +84,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/custom_interaction_eve
      * Persist the processor configuration.
      *
      * @method save
-     * @return promise
+     * @return {object} jQuery promise
      */
     ProcessorForm.prototype.save = function() {
         if (this.isLoading()) {
@@ -104,8 +103,8 @@ define(['jquery', 'core/ajax', 'core/notification', 'core/custom_interaction_eve
             }
         };
 
-        return ajax.call([request])[0]
-            .fail(notification.exception)
+        return Ajax.call([request])[0]
+            .fail(Notification.exception)
             .always(function() { this.stopLoading(); }.bind(this));
     };
 

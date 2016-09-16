@@ -23,7 +23,6 @@
  * @package    message
  * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      3.2
  */
 define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates', 'core/str',
             'core/notification', 'core/custom_interaction_events', 'core/popover_region_controller',
@@ -45,8 +44,8 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * Constructor for the NotificationPopoverController.
      * Extends PopoverRegionController.
      *
-     * @param element jQuery object root element of the popover
-     * @return object NotificationPopoverController
+     * @param {object} element jQuery object root element of the popover
+     * @return {object} NotificationPopoverController
      */
     var NotificationPopoverController = function(element) {
         // Initialise base class.
@@ -106,7 +105,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * depending on which is currently visible.
      *
      * @method getContent
-     * @return jQuery object currently visible content contianer
+     * @return {object} jQuery object currently visible content contianer
      */
     NotificationPopoverController.prototype.getContent = function() {
         return this.container;
@@ -117,7 +116,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * to sent to the backend to correctly paginate the notifications.
      *
      * @method getOffset
-     * @return int current offset
+     * @return {int} current offset
      */
     NotificationPopoverController.prototype.getOffset = function() {
         return this.offset;
@@ -137,7 +136,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * state of the popover.
      *
      * @method hasDoneInitialLoad
-     * @return bool true if first notification loaded, false otherwise
+     * @return {bool} true if first notification loaded, false otherwise
      */
     NotificationPopoverController.prototype.hasDoneInitialLoad = function() {
         return this.initialLoad;
@@ -148,7 +147,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * state.
      *
      * @method hasLoadedAllContent
-     * @return bool true if all notifications loaded, false otherwise
+     * @return {bool} true if all notifications loaded, false otherwise
      */
     NotificationPopoverController.prototype.hasLoadedAllContent = function() {
         return this.loadedAll;
@@ -159,7 +158,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * of the popover.
      *
      * @method setLoadedAllContent
-     * @param bool true if all content is loaded, false otherwise
+     * @param {bool} val True if all content is loaded, false otherwise
      */
     NotificationPopoverController.prototype.setLoadedAllContent = function(val) {
         this.loadedAll = val;
@@ -210,10 +209,10 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * Render the notification data with the appropriate template and add it to the DOM.
      *
      * @method renderNotifications
-     * @param notifications array notification data
-     * @param container jQuery object the container to append the rendered notifications
-     * @return jQuery promise that is resolved when all notifications have been
-     *                rendered and added to the DOM
+     * @param {array} notifications Notification data
+     * @param {object} container jQuery object the container to append the rendered notifications
+     * @return {object} jQuery promise that is resolved when all notifications have been
+     *                  rendered and added to the DOM
      */
     NotificationPopoverController.prototype.renderNotifications = function(notifications, container) {
         var promises = [];
@@ -253,7 +252,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
      * All notifications are marked as read by the server when they are returned.
      *
      * @method loadMoreNotifications
-     * @return jQuery promise that is resolved when notifications have been
+     * @return {object} jQuery promise that is resolved when notifications have been
      *                        retrieved and added to the DOM
      */
     NotificationPopoverController.prototype.loadMoreNotifications = function() {
