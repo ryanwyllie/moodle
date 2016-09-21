@@ -191,6 +191,10 @@ class event_form extends moodleform {
 
         }
 
+        if ($data['repeats'] <= 0) {
+            $errors['repeats'] = get_string('invalidrepeats', 'calendar');
+        }
+
         if ($data['duration'] == 1 && $data['timestart'] > $data['timedurationuntil']) {
             $errors['timedurationuntil'] = get_string('invalidtimedurationuntil', 'calendar');
         } else if ($data['duration'] == 2 && (trim($data['timedurationminutes']) == '' || $data['timedurationminutes'] < 1)) {

@@ -127,6 +127,7 @@ $string['importcalendarfrom'] = 'Import from';
 $string['importfromfile'] = 'Calendar file (.ics)';
 $string['importfromurl'] = 'Calendar URL';
 $string['importfrominstructions'] = 'Please provide either a URL to a remote calendar, or upload a file.';
+$string['invalidrepeats'] = 'The number of repeats you have entered is invalid. Please enter a number greater than 0.';
 $string['invalidtimedurationminutes'] = 'The duration in minutes you have entered is invalid. Please enter the duration in minutes greater than 0 or select no duration.';
 $string['invalidtimedurationuntil'] = 'The date and time you selected for duration until is before the start time of the event. Please correct this before proceeding.';
 $string['invalidtimerepeatend'] = 'The date and time you selected for the end of the repetition is before the start time of the event. Please correct this before proceeding.';
