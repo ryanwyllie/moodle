@@ -4170,7 +4170,7 @@ EOD;
                                 'sesskey' => sesskey())
                         ),
                         'image' => $contactimage,
-                        'linkattributes' => message_togglecontact_link_params($user, $iscontact),
+                        'linkattributes' => \core_message\helper::togglecontact_link_params($user, $iscontact),
                         'page' => $this->page
                     ),
                 );
@@ -4232,7 +4232,7 @@ EOD;
                 if (!isset($button->page)) {
                     // Include js for messaging.
                     if ($button['buttontype'] === 'togglecontact') {
-                        message_togglecontact_requirejs();
+                        \core_message\helper::togglecontact_requirejs();
                     }
                     $image = $this->pix_icon($button['formattedimage'], $button['title'], 'moodle', array(
                         'class' => 'iconsmall',
