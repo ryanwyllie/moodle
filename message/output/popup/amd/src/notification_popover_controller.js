@@ -16,17 +16,17 @@
 /**
  * Controls the notification popover in the nav bar.
  *
- * See template: message/notification_menu
+ * See template: message_popup/notification_popover
  *
- * @module     core_message/notification_popover_controller
+ * @module     message_popup/notification_popover_controller
  * @class      notification_popover_controller
- * @package    message
+ * @package    message_popup
  * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates', 'core/str',
             'core/notification', 'core/custom_interaction_events', 'core/popover_region_controller',
-            'core_message/notification_repository'],
+            'message_popup/notification_repository'],
         function($, Bootstrap, Ajax, Templates, Str, DebugNotification, CustomEvents,
             PopoverController, NotificationRepo) {
 
@@ -220,7 +220,7 @@ define(['jquery', 'theme_bootstrapbase/bootstrap', 'core/ajax', 'core/templates'
 
         if (notifications.length) {
             $.each(notifications, function(index, notification) {
-                var promise = Templates.render('message/notification_content_item', notification);
+                var promise = Templates.render('message_popup/notification_content_item', notification);
                 promises.push(promise);
 
                 promise.then(function(html, js) {
