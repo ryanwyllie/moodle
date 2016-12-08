@@ -31,8 +31,7 @@ class repository {
     public function create(todo $todo) {
         global $DB;
 
-        $record = $this->serialise_to_db($todo);
-        $id = $DB->insert_record('todo', $record);
+        $id = $DB->insert_record('todo', $todo->to_array());
 
         return $this->copy($todo, ['id' => $id]);
     }
@@ -43,7 +42,7 @@ class repository {
         $record = $DB->get_record('todo', ['uniqueid' => $uniqueid]);
 
         if ($record) {
-            return $this->serialise_from_db($record);
+            return $this->create_from_db($record);
         } else {
             return null;
         }
@@ -52,8 +51,7 @@ class repository {
     public function update(todo $todo) {
         global $DB;
 
-        $record = $this->serialise_for_db($todo);
-        $DB->update_record('todo', $record);
+        $DB->update_record('todo', $todo->to_array());
 
         return $todo;
     }
@@ -66,25 +64,15 @@ class repository {
         return $todo;
     }
 
-    private function serialise_to_db(todo $todo) {
-        $data = new \stdClass();
-        $data->id = $todo->get_id();
-        $data->uniqueid = $todo->get_unique_id();
-        $data->contextname = $todo->get_context_name();
-        $data->contexturl = $todo->get_context_url();
-        $data->courseid = $todo->get_course_id();
-        $data->iconurl = $todo->get_icon_url();
-        $data->startdate = $todo->get_start_date();
-        $data->enddate = $todo->get_end_date();
-        $data->itemcount = $todo->get_item_count();
-        $data->actionname = $todo->get_action_name();
-        $data->actionurl = $todo->get_action_url();
-        $data->actionstartdate = $todo->get_action_start_date();
+    public function query($limit, $offset) {
+        global $DB;
 
-        return $data;
+        $records = $DB->get_records('todo', null, '', '*', $offset, $limit);
+
+        return array_map([$this, 'create_from_db'], $records);
     }
 
-    private function serialise_from_db($data) {
+    private function create_from_db($data) {
         return new todo(
             $data->id,
             $data->uniqueid,

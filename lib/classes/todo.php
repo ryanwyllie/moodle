@@ -129,4 +129,21 @@ class todo {
                $this->actionurl == $object->actionurl &&
                $this->actionstartdate == $object->actionstartdate;
     }
+
+    public function to_array() {
+        return [
+            'id' => $this->id,
+            'uniqueid' => $this->uniqueid,
+            'contextname' => $this->contextname,
+            'contexturl' => $this->contexturl,
+            'courseid' => $this->courseid,
+            'iconurl' => $this->iconurl,
+            'startdate' => $this->startdate,
+            'enddate' => $this->enddate,
+            'itemcount' => $this->itemcount,
+            'actionname' => $this->actionname,
+            'actionurl' => $this->actionurl,
+            'actionstartdate' => $this->actionstartdate
+        ];
+    }
 }
