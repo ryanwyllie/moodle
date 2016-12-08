@@ -81,6 +81,7 @@ require_once($CFG->libdir . '/eventslib.php');
 require_once($CFG->libdir . '/portfolio/caller.php');
 
 use \mod_assign\output\grading_app;
+use core\todo\helper as todo_helper;
 
 /**
  * Standard base class for mod_assign (assignment types).
@@ -692,6 +693,8 @@ class assign {
         $update->id = $this->get_instance()->id;
         $update->nosubmissions = (!$this->is_any_submission_plugin_enabled()) ? 1: 0;
         $DB->update_record('assign', $update);
+
+        todo_helper::create_or_update('mod_assign', $this->get_instance());
 
         return $returnid;
     }

@@ -121,6 +121,8 @@ function book_update_instance($data, $mform) {
     $book = $DB->get_record('book', array('id'=>$data->id));
     $DB->set_field('book', 'revision', $book->revision+1, array('id'=>$book->id));
 
+    todo_helper::create_or_update('mod_book', $book);
+
     return true;
 }
 

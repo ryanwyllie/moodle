@@ -25,6 +25,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+use mod_assign\todo\builder as todo_builder;
+
 /**
  * Adds an assignment instance
  *
@@ -1714,4 +1716,8 @@ function assign_check_updates_since(cm_info $cm, $from, $filter = array()) {
     }
 
     return $updates;
+}
+
+function mod_assign_register_todo_builder() {
+        return new todo_builder();
 }

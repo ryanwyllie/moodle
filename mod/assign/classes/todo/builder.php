@@ -21,32 +21,32 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_book\todo;
+namespace mod_assign\todo;
 defined('MOODLE_INTERNAL') || die();
 
 use core\todo as todo;
 use core\todo\builder as todo_builder;
 
 class builder extends todo_builder {
-    public function build($book) {
+    public function build($assign) {
         global $OUTPUT;
 
-        $contexturl = new \moodle_url('/mod/book/view.php', ['id' => $book->id]);
-        $iconurl = $OUTPUT->pix_url('icon', 'mod_book');
+        $contexturl = new \moodle_url('/mod/assign/view.php', ['id' => $assign->id]);
+        $iconurl = $OUTPUT->pix_url('icon', 'mod_assign');
 
         return new todo(
             null,
-            $book->id,
-            $book->name,
+            $assign->id,
+            $assign->name,
             $contexturl->out(),
-            $book->course,
+            $assign->course,
             $iconurl->out(),
-            $book->timecreated,
+            $assign->timemodified,
             null,
             null,
-            'View book',
+            'View assign',
             $contexturl->out(),
-            $book->timecreated
+            $assign->timemodified
         );
     }
 }
