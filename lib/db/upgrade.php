@@ -2433,5 +2433,36 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2016112200.02);
     }
 
+    if ($oldversion < 2016120500.01) {
+
+        // Define table todo to be created.
+        $table = new xmldb_table('todo');
+
+        // Adding fields to table todo.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('uniqueid', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('contextname', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('contexturl', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '20', null, null, null, null);
+        $table->add_field('iconurl', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('startdate', XMLDB_TYPE_INTEGER, '20', null, null, null, null);
+        $table->add_field('enddate', XMLDB_TYPE_INTEGER, '20', null, null, null, null);
+        $table->add_field('itemcount', XMLDB_TYPE_INTEGER, '20', null, null, null, null);
+        $table->add_field('actionname', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('actionurl', XMLDB_TYPE_CHAR, '256', null, null, null, null);
+        $table->add_field('actionstartdate', XMLDB_TYPE_INTEGER, '20', null, null, null, null);
+
+        // Adding keys to table todo.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for todo.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2016120500.01);
+    }
+
     return true;
 }

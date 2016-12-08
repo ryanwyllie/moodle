@@ -28,21 +28,93 @@ use core\todo as todo;
 
 class repository {
 
-    private static $persistence = [];
-
     public function create(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
+        global $DB;
+
+        $record = $this->serialise_to_db($todo);
+        $id = $DB->insert_record('todo', $record);
+
+        return $this->copy($todo, ['id' => $id]);
     }
 
-    public function retrieve($id) {
-        return isset(self::$persistence[$id]) ? self::$persistence[$id] : null;
+    public function retrieve($uniqueid) {
+        global $DB;
+
+        $record = $DB->get_record('todo', ['uniqueid' => $uniqueid]);
+
+        if ($record) {
+            return $this->serialise_from_db($record);
+        } else {
+            return null;
+        }
     }
 
     public function update(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
+        global $DB;
+
+        $record = $this->serialise_for_db($todo);
+        $DB->update_record('todo', $record);
+
+        return $todo;
     }
 
     public function delete(todo $todo) {
-        unset(self::$persistence[$todo->get_unique_id()]);
+        global $DB;
+
+        $DB->delete_records('todo', ['uniqueid' => $uniqueid]);
+
+        return $todo;
+    }
+
+    private function serialise_to_db(todo $todo) {
+        $data = new \stdClass();
+        $data->id = $todo->get_id();
+        $data->uniqueid = $todo->get_unique_id();
+        $data->contextname = $todo->get_context_name();
+        $data->contexturl = $todo->get_context_url();
+        $data->courseid = $todo->get_course_id();
+        $data->iconurl = $todo->get_icon_url();
+        $data->startdate = $todo->get_start_date();
+        $data->enddate = $todo->get_end_date();
+        $data->itemcount = $todo->get_item_count();
+        $data->actionname = $todo->get_action_name();
+        $data->actionurl = $todo->get_action_url();
+        $data->actionstartdate = $todo->get_action_start_date();
+
+        return $data;
+    }
+
+    private function serialise_from_db($data) {
+        return new todo(
+            $data->id,
+            $data->uniqueid,
+            $data->contextname,
+            $data->contexturl,
+            $data->courseid,
+            $data->iconurl,
+            $data->startdate,
+            $data->enddate,
+            $data->itemcount,
+            $data->actionname,
+            $data->actionurl,
+            $data->actionstartdate
+        );
+    }
+
+    private function copy(todo $todo, $properties) {
+        return new todo(
+            isset($properties['id']) ? $properties['id'] : $todo->get_id(),
+            isset($properties['uniqueid']) ? $properties['uniqueid'] : $todo->get_unique_id(),
+            isset($properties['contextname']) ? $properties['contextname'] : $todo->get_context_name(),
+            isset($properties['contexturl']) ? $properties['contexturl'] : $todo->get_context_url(),
+            isset($properties['courseid']) ? $properties['courseid'] : $todo->get_course_id(),
+            isset($properties['iconurl']) ? $properties['iconurl'] : $todo->get_icon_url(),
+            isset($properties['startdate']) ? $properties['startdate'] : $todo->get_start_date(),
+            isset($properties['enddate']) ? $properties['enddate'] : $todo->get_end_date(),
+            isset($properties['itemcount']) ? $properties['itemcount'] : $todo->get_item_count(),
+            isset($properties['actionname']) ? $properties['actionname'] : $todo->get_action_name(),
+            isset($properties['actionurl']) ? $properties['actionurl'] : $todo->get_action_url(),
+            isset($properties['actionstartdate']) ? $properties['actionstartdate'] : $todo->get_action_start_date()
+        );
     }
 }

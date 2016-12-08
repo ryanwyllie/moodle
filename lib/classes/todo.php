@@ -64,8 +64,52 @@ class todo {
         $this->actionstartdate = $actionstartdate;
     }
 
+    public function get_id() {
+        return $this->id;
+    }
+
     public function get_unique_id() {
         return $this->uniqueid;
+    }
+
+    public function get_context_name() {
+        return $this->contextname;
+    }
+
+    public function get_context_url() {
+        return $this->contexturl;
+    }
+
+    public function get_course_id() {
+        return $this->courseid;
+    }
+
+    public function get_icon_url() {
+        return $this->iconurl;
+    }
+
+    public function get_start_date() {
+        return $this->startdate;
+    }
+
+    public function get_end_date() {
+        return $this->enddate;
+    }
+
+    public function get_item_count() {
+        return $this->itemcount;
+    }
+
+    public function get_action_name() {
+        return $this->actionname;
+    }
+
+    public function get_action_url() {
+        return $this->actionurl;
+    }
+
+    public function get_action_start_date() {
+        return $this->actionstartdate;
     }
 
     public function equals($object) {
