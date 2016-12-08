@@ -24,28 +24,25 @@
 namespace core\todo;
 defined('MOODLE_INTERNAL') || die();
 
-use todo\serialiser;
-use todo\default_serialiser;
+use core\todo as todo;
 
-class serialiser_registry {
+class repository {
 
-    private static $types = [];
+    private static $persistence = [];
 
-    public function __construct() {
-        if (empty(self::$types)) {
-            $this->load_types();
-        }
+    public function create(todo $todo) {
+        self::$persistence[$todo->id] = $todo;
     }
 
-    public function get($type) {
-        if (isset(self::$types[$type])) {
-            $class = self::$types[$type];
-            return new $class();
-        } else {
-            return new default_serialiser();
-        }
+    public function retrieve($id) {
+        return isset(self::$persistence[$id]) ? self::$persistence[$id] : null;
     }
 
-    private function load_types() {
+    public function update(todo $todo) {
+        self::$persistence[$todo->id] = $todo;
+    }
+
+    public function delete(todo $todo) {
+        unset(self::$persistence[$todo->id]);
     }
 }

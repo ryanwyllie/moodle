@@ -24,24 +24,28 @@
 namespace core;
 defined('MOODLE_INTERNAL') || die();
 
-class todo implements Comparable {
+class todo {
 
-    protected $id;
-    protected $name;
-    protected $startdate = null;
-    protected $enddate = null;
+    public $id;
+    public $name;
+    public $startdate = null;
+    public $enddate = null;
 
     public function __construct($id, $name, $startdate = null, $enddate = null) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->startdate = $startdate;
+        $this->enddate = $enddate;
     }
 
-    public function compareTo($value) {
-        if (!$value instanceof todo) {
-            throw new moodle_exception('You can only compart to other todos');
+    public function equals($object) {
+        if (!is_a($object, 'todo')) {
+            return false;
         }
 
-        return $this->id == $value->id &&
-               $this->name == $value->name &&
-               $this->startdate == $value->startdate &&
-               $this->enddate == $value->enddate;
+        return $this->id == $object->id &&
+               $this->name == $object->name &&
+               $this->startdate == $object->startdate &&
+               $this->enddate == $object->enddate;
     }
 }

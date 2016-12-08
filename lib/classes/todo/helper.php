@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Todo.
+ * Todo helper.
  *
  * @package    core
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,16 +24,30 @@
 namespace core\todo;
 defined('MOODLE_INTERNAL') || die();
 
-use todo;
-use todo\serialiser;
+class helper {
 
-class default_serialiser extends serialiser {
-    public function serialise($object) {
-        return new todo(
-            $object->id,
-            $object->name,
-            $object->startdate,
-            $object->enddate,
-        );
+    private static $factory = null;
+    private static $repository = null;
+
+    private static function init() {
+        if (empty(self::$factory)) {
+            self::$factory = new factory();
+            self::$repository = new repository();
+        }
+    }
+
+    public static function create_or_update($type, $object) {
+        self::init();
+
+        $newtodo = self::$factory->create($type, $object);
+        $existingtodo = self::$repository->retrieve($newtodo->id);
+
+        if (!$existingtodo) {
+            self::$repository->create($newtodo);
+        } else if ($newtodo->equals($existingtodo)) {
+            self::$repository->update($newtodo);
+        }
+
+        return $newtodo;
     }
 }

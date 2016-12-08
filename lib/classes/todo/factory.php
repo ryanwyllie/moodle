@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Todo factory.
+ * Todo.
  *
  * @package    core
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,30 +24,41 @@
 namespace core\todo;
 defined('MOODLE_INTERNAL') || die();
 
-use todo;
-use todo\serialiser_registry;
-use todo\dao;
-
 class factory {
 
-    private $serialiserregistry;
+    private static $types = [];
 
     public function __construct() {
-        $this->serialiserregistry = new serialiser_resgistry();
-        $this->dao = new dao();
+        if (empty(self::$types)) {
+            $this->load_types();
+        }
     }
 
-    public function create_or_update($type, $object) {
-        $serialiser = $this->serialiserregistry->get($type);
-        $newtodo = $serialiser->serialise($object);
-        $existingtodo = $this->dao->retrieve($newtodo->id);
-
-        if (!$existingtodo) {
-            $this->dao->create($newtodo);
-        } else if ($newtodo != $existingtodo) {
-            $this->dao->update($newtodo);
+    public function create($type, $object) {
+        if (isset(self::$types[$type])) {
+            $function = self::$types[$type];
+            return $function($object);
+        } else {
+            return $this->default_build($object);
         }
+    }
 
-        return $newtodo;
+    private function default_build($object) {
+        return new todo(
+            $object->id,
+            $object->name,
+            $object->startdate,
+            $object->enddate
+        );
+    }
+
+    private function load_types() {
+        if ($pluginsfunction = get_plugins_with_function('build_todo')) {
+            foreach ($pluginsfunction as $plugintype => $plugins) {
+                foreach ($plugins as $pluginname => $pluginfunction) {
+                    self::$types[$plugintype .'_' . $pluginname] = $pluginfunction;
+                }
+            }
+        }
     }
 }
