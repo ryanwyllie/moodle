@@ -21,28 +21,31 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core\todo;
+namespace mod_book\todo;
 defined('MOODLE_INTERNAL') || die();
 
 use core\todo as todo;
+use core\todo\builder as todo_builder;
 
-class repository {
+class builder extends todo_builder {
+    public function build($book) {
+        global $OUTPUT;
 
-    private static $persistence = [];
+        $contexturl = new \moodle_url('mod/book/view.php', ['id' => $book->id]);
+        $iconurl = $OUTPUT->pix_url('icon', 'mod_book');
 
-    public function create(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
-    }
-
-    public function retrieve($id) {
-        return isset(self::$persistence[$id]) ? self::$persistence[$id] : null;
-    }
-
-    public function update(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
-    }
-
-    public function delete(todo $todo) {
-        unset(self::$persistence[$todo->get_unique_id()]);
+        return new todo(
+            $book->id,
+            $book->name,
+            $contexturl->out(),
+            $book->course,
+            $iconurl->out(),
+            $book->timecreated,
+            null,
+            null,
+            'View book',
+            $contexturl->out(),
+            $book->timecreated
+        );
     }
 }

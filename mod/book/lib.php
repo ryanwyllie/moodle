@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-use core\todo;
 use core\todo\helper as todo_helper;
+use mod_book\todo\builder as todo_builder;
 
 /**
  * Returns list of available numbering types
@@ -680,12 +680,6 @@ function book_check_updates_since(cm_info $cm, $from, $filter = array()) {
     return $updates;
 }
 
-function mod_book_build_todo($object) {
-    $todo = new todo(
-        $object->id,
-        $object->name,
-        $object->timecreated
-    );
-
-    return $todo;
+function mod_book_register_todo_builder() {
+    return new todo_builder();
 }

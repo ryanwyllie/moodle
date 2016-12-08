@@ -26,16 +26,46 @@ defined('MOODLE_INTERNAL') || die();
 
 class todo {
 
-    public $id;
-    public $name;
-    public $startdate = null;
-    public $enddate = null;
+    protected $id;
+    protected $uniqueid;
+    protected $contextname;
+    protected $contexturl;
+    protected $courseid;
+    protected $iconurl;
+    protected $startdate = null;
+    protected $enddate = null;
+    protected $itemcount = null;
+    protected $actionname;
+    protected $actionurl;
+    protected $actionstartdate = null;
 
-    public function __construct($id, $name, $startdate = null, $enddate = null) {
-        $this->id = $id;
-        $this->name = $name;
+    public function __construct($uniqueid,
+                                $contextname,
+                                $contexturl,
+                                $courseid,
+                                $iconurl,
+                                $startdate = null,
+                                $enddate = null,
+                                $itemcount = null,
+                                $actionname,
+                                $actionurl,
+                                $actionstartdate = null) {
+
+        $this->uniqueid = $uniqueid;
+        $this->contextname = $contextname;
+        $this->contexturl = $contexturl;
+        $this->courseid = $courseid;
+        $this->iconurl = $iconurl;
         $this->startdate = $startdate;
         $this->enddate = $enddate;
+        $this->itemcount = $itemcount;
+        $this->actionname = $actionname;
+        $this->actionurl = $actionurl;
+        $this->actionstartdate = $actionstartdate;
+    }
+
+    public function get_unique_id() {
+        return $this->uniqueid;
     }
 
     public function equals($object) {
@@ -44,8 +74,15 @@ class todo {
         }
 
         return $this->id == $object->id &&
-               $this->name == $object->name &&
+               $this->contextname == $object->contextname &&
+               $this->contexturl == $object->contexturl &&
+               $this->courseid == $object->courseid &&
+               $this->iconurl == $object->iconurl &&
                $this->startdate == $object->startdate &&
-               $this->enddate == $object->enddate;
+               $this->enddate == $object->enddate &&
+               $this->itemcount == $object->itemcount &&
+               $this->actionname == $object->actionname &&
+               $this->actionurl == $object->actionurl &&
+               $this->actionstartdate == $object->actionstartdate;
     }
 }

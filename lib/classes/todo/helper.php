@@ -40,7 +40,7 @@ class helper {
         self::init();
 
         $newtodo = self::$factory->create($type, $object);
-        $existingtodo = self::$repository->retrieve($newtodo->id);
+        $existingtodo = self::$repository->retrieve($newtodo->get_unique_id());
 
         if (!$existingtodo) {
             self::$repository->create($newtodo);

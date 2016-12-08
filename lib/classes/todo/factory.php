@@ -24,39 +24,40 @@
 namespace core\todo;
 defined('MOODLE_INTERNAL') || die();
 
+use core\todo\builder as builder;
+use core\todo\builder\simple as simple_builder;
+
 class factory {
 
     private static $types = [];
 
     public function __construct() {
         if (empty(self::$types)) {
-            $this->load_types();
+            $this->register_types();
         }
     }
 
     public function create($type, $object) {
         if (isset(self::$types[$type])) {
-            $function = self::$types[$type];
-            return $function($object);
+            $builder = self::$types[$type];
         } else {
-            return $this->default_build($object);
+            $builder = new simple_builder();
         }
+
+        return $builder->build($object);
     }
 
-    private function default_build($object) {
-        return new todo(
-            $object->id,
-            $object->name,
-            $object->startdate,
-            $object->enddate
-        );
-    }
-
-    private function load_types() {
-        if ($pluginsfunction = get_plugins_with_function('build_todo')) {
+    private function register_types() {
+        if ($pluginsfunction = get_plugins_with_function('register_todo_builder')) {
             foreach ($pluginsfunction as $plugintype => $plugins) {
                 foreach ($plugins as $pluginname => $pluginfunction) {
-                    self::$types[$plugintype .'_' . $pluginname] = $pluginfunction;
+                    $builder = $pluginfunction();
+
+                    if ($builder instanceof builder) {
+                        self::$types[$plugintype .'_' . $pluginname] = $builder;
+                    } else {
+                        // Throw exception here?
+                    }
                 }
             }
         }

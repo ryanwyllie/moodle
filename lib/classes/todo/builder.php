@@ -26,23 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use core\todo as todo;
 
-class repository {
-
-    private static $persistence = [];
-
-    public function create(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
-    }
-
-    public function retrieve($id) {
-        return isset(self::$persistence[$id]) ? self::$persistence[$id] : null;
-    }
-
-    public function update(todo $todo) {
-        self::$persistence[$todo->get_unique_id()] = $todo;
-    }
-
-    public function delete(todo $todo) {
-        unset(self::$persistence[$todo->get_unique_id()]);
-    }
+abstract class builder {
+    abstract public function build($object);
 }
