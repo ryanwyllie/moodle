@@ -39,7 +39,8 @@ class todo {
     protected $actionurl;
     protected $actionstartdate = null;
 
-    public function __construct($uniqueid,
+    public function __construct($id,
+                                $uniqueid,
                                 $contextname,
                                 $contexturl,
                                 $courseid,
@@ -51,6 +52,7 @@ class todo {
                                 $actionurl,
                                 $actionstartdate = null) {
 
+        $this->id = $id;
         $this->uniqueid = $uniqueid;
         $this->contextname = $contextname;
         $this->contexturl = $contexturl;

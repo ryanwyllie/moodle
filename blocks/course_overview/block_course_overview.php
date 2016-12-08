@@ -48,51 +48,13 @@ class block_course_overview extends block_base {
      * @return stdClass contents of block
      */
     public function get_content() {
-        global $USER, $CFG, $DB;
-        require_once($CFG->dirroot.'/user/profile/lib.php');
-
         if($this->content !== NULL) {
             return $this->content;
         }
 
-        $config = get_config('block_course_overview');
-
         $this->content = new stdClass();
-        $this->content->text = '';
+        $this->content->text = $this->page->get_renderer('block_course_overview')->main_stuff();
         $this->content->footer = '';
-
-        $content = array();
-
-        $updatemynumber = optional_param('mynumber', -1, PARAM_INT);
-        if ($updatemynumber >= 0) {
-            block_course_overview_update_mynumber($updatemynumber);
-        }
-
-        profile_load_custom_fields($USER);
-
-        $showallcourses = ($updatemynumber === self::SHOW_ALL_COURSES);
-        list($sortedcourses, $sitecourses, $totalcourses) = block_course_overview_get_sorted_courses($showallcourses);
-        $overviews = block_course_overview_get_overviews($sitecourses);
-
-        $renderer = $this->page->get_renderer('block_course_overview');
-        if (!empty($config->showwelcomearea)) {
-            require_once($CFG->dirroot.'/message/lib.php');
-            $msgcount = message_count_unread_messages();
-            $this->content->text = $renderer->welcome_area($msgcount);
-        }
-
-        // Number of sites to display.
-        if ($this->page->user_is_editing() && empty($config->forcedefaultmaxcourses)) {
-            $this->content->text .= $renderer->editing_bar_head($totalcourses);
-        }
-
-        if (empty($sortedcourses)) {
-            $this->content->text .= get_string('nocourses','my');
-        } else {
-            // For each course, build category cache.
-            $this->content->text .= $renderer->course_overview($sortedcourses, $overviews);
-            $this->content->text .= $renderer->hidden_courses($totalcourses - count($sortedcourses));
-        }
 
         return $this->content;
     }

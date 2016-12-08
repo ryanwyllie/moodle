@@ -1860,7 +1860,15 @@ $functions = array(
         'description' => 'Return some site info / user info / list web service functions',
         'type' => 'read',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    )
+    ),
+
+    'core_todo_query_todos' => array(
+        'classname' => 'core\todo\external',
+        'methodname' => 'query_todos',
+        'description' => 'query todos',
+        'type' => 'read',
+        'ajax' => true,
+    ),
 );
 
 $services = array(

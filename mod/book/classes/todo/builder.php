@@ -35,6 +35,7 @@ class builder extends todo_builder {
         $iconurl = $OUTPUT->pix_url('icon', 'mod_book');
 
         return new todo(
+            null,
             $book->id,
             $book->name,
             $contexturl->out(),

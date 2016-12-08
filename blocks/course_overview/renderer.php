@@ -353,4 +353,8 @@ class block_course_overview_renderer extends plugin_renderer_base {
 
         return $output;
     }
+
+    public function main_stuff() {
+        return $this->render_from_template('block_course_overview/main', []);
+    }
 }

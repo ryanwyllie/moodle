@@ -69,7 +69,7 @@ class repository {
 
         $records = $DB->get_records('todo', null, '', '*', $offset, $limit);
 
-        return array_map([$this, 'create_from_db'], $records);
+        return array_map([$this, 'create_from_db'], array_values($records));
     }
 
     private function create_from_db($data) {
