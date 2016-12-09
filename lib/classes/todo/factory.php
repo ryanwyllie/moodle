@@ -37,8 +37,8 @@ class factory {
         }
     }
 
-    public function create($event, $user) {
-        $type = 'mod_' . $event->modulename;
+    public function create($events, $user) {
+        $type = 'mod_' . $events[0]->modulename;
 
         if (isset(self::$types[$type])) {
             $builder = self::$types[$type];
@@ -46,7 +46,7 @@ class factory {
             $builder = new simple_builder();
         }
 
-        return $builder->build($event, $user);
+        return $builder->build($events, $user);
     }
 
     private function register_types() {

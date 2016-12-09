@@ -49,9 +49,7 @@ class api {
         $todos = [];
 
         foreach ($events as $event) {
-            if ($todo = self::$factory->create($event, $user)) {
-                $todos[] = $todo;
-            }
+             $todos = array_merge($todos, self::$factory->create([$event], $user));
         }
 
         return $todos;

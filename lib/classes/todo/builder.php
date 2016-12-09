@@ -27,5 +27,5 @@ defined('MOODLE_INTERNAL') || die();
 use core\todo as todo;
 
 abstract class builder {
-    abstract public function build($event, $object);
+    abstract public function build($events, $object);
 }

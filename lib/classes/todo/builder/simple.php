@@ -28,7 +28,7 @@ use core\todo as todo;
 use core\todo\builder as builder;
 
 class simple extends builder {
-    public function build($object) {
+    public function build($events, $object) {
         return new todo(
             $object->id,
             $object->name,
