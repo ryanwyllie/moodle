@@ -1,5 +1,27 @@
-<ul>
+<h5>Next 7 days</h5>
+<ul class="list-group">
 {{#todos}}
-<li><img src="{{{iconurl}}}"><a href="{{{contexturl}}}">{{contextname}}</a><a href="{{{actionurl}}}">{{actionname}}</a></li>
+    <li class="list-group-item">
+        <div class="container">
+            <div class="row">
+                {{#itemcount}}
+                    <span class="tag tag-pill tag-default pull-xs-right">{{.}}</span>
+                {{/itemcount}}
+                <div class="d-inline-block pull-xs-right line-height-2"><a href="{{{actionurl}}}">{{actionname}}</a></div>
+                <div class="d-inline-block pull-xs-right line-height-2 m-r-2">Nov 4, 10:00AM</div>
+                <div class="d-inline-block line-height-2 align-top"><img src="{{{iconurl}}}"></div>
+                <div class="d-inline-block m-l-1">
+                    <div class="container">
+                        <div class="row">
+                            <a href="{{{contexturl}}}">{{contextname}}</a>
+                        </div>
+                        <div class="row">
+                            Course 1
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </li>
 {{/todos}}
 </ul>

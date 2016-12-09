@@ -1,5 +1,24 @@
-<h3>lol</h3>
-<div id="add-todos-here"></div>
+<div class="container">
+    <div class="row">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Timeline</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Courses</a>
+            </li>
+        </ul>
+    </div>
+    <div class="row text-xs-center">
+        <div class="btn-group m-y-2" role="group">
+            <button type="button" class="btn btn-secondary active">Sort by dates</button>
+            <button type="button" class="btn btn-secondary">Sort by courses</button>
+        </div>
+    </div>
+    <div class="row">
+        <div id="add-todos-here"></div>
+    </div>
+</div>
 {{#js}}
 require(['block_course_overview/main'], function(Main) {
     Main.init();

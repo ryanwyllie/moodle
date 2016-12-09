@@ -70,3 +70,11 @@ $blocks-plus-gutter: $blocks-column-width + $grid-gutter-width;
         width: 100%;
     }
 }
+
+.line-height-2 {
+    line-height: $line-height-base * 2;
+}
+
+.align-top {
+    vertical-align: top;
+}
