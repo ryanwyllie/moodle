@@ -72,6 +72,21 @@ class repository {
         return array_map([$this, 'create_from_db'], array_values($records));
     }
 
+    public function get_for_user($userid, $courseids = []) {
+        global $DB;
+
+        $sql = 'userid = ?';
+        $params = [$userid];
+
+        if (!empty($courseids)) {
+            list($coursesql, $courseparams) = $DB->get_in_or_equal($courseids);
+            $sql .= ' OR courseid ' . $coursesql;
+            $params = array_merge($params, $courseparams);
+        }
+
+        return array_values($DB->get_records_select('event', $sql, $params));
+    }
+
     private function create_from_db($data) {
         return new todo(
             $data->id,

@@ -15,38 +15,45 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Todo.
+ * Todo helper.
  *
  * @package    core
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_book\todo;
+namespace core\todo;
 defined('MOODLE_INTERNAL') || die();
 
-use core\todo as todo;
-use core\todo\builder as todo_builder;
+require_once($CFG->libdir . '/enrollib.php');
 
-class builder extends todo_builder {
-    public function build($book) {
-        global $OUTPUT;
+class api {
 
-        $contexturl = new \moodle_url('/mod/book/view.php', ['id' => $book->id]);
-        $iconurl = $OUTPUT->pix_url('icon', 'mod_book');
+    private static $factory = null;
+    private static $repository = null;
 
-        return new todo(
-            null,
-            $book->id,
-            $book->name,
-            $contexturl->out(),
-            $book->course,
-            $iconurl->out(),
-            $book->timecreated,
-            null,
-            null,
-            'View book',
-            $contexturl->out(),
-            $book->timecreated
-        );
+    private static function init() {
+        if (empty(self::$factory)) {
+            self::$factory = new factory();
+            self::$repository = new repository();
+        }
+    }
+
+    public static function get_for_user($user, $courses = []) {
+        self::init();
+
+        if (empty($courses)) {
+            $courses = enrol_get_users_courses($user->id);
+        }
+
+        $events = self::$repository->get_for_user($user->id, array_keys($courses));
+        $todos = [];
+
+        foreach ($events as $event) {
+            if ($todo = self::$factory->create($event, $user)) {
+                $todos[] = $todo;
+            }
+        }
+
+        return $todos;
     }
 }

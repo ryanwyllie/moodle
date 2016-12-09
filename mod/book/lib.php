@@ -24,9 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-use core\todo\helper as todo_helper;
-use mod_book\todo\builder as todo_builder;
-
 /**
  * Returns list of available numbering types
  * @return array
@@ -95,8 +92,6 @@ function book_add_instance($data, $mform) {
 
     $data->id = $id;
 
-    todo_helper::create_or_update('mod_book', $data);
-
     return $id;
 }
 
@@ -120,8 +115,6 @@ function book_update_instance($data, $mform) {
 
     $book = $DB->get_record('book', array('id'=>$data->id));
     $DB->set_field('book', 'revision', $book->revision+1, array('id'=>$book->id));
-
-    todo_helper::create_or_update('mod_book', $book);
 
     return true;
 }
@@ -682,6 +675,3 @@ function book_check_updates_since(cm_info $cm, $from, $filter = array()) {
     return $updates;
 }
 
-function mod_book_register_todo_builder() {
-    return new todo_builder();
-}

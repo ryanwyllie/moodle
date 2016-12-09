@@ -62,17 +62,17 @@ class external extends \external_api {
     }
 
     public static function query_todos($limit, $offset) {
-        global $PAGE;
+        global $USER;
 
         self::validate_parameters(self::query_todos_parameters(), [
             'limit' => $limit,
             'offset' => $offset,
         ]);
 
-        $repository = new repository();
+        self::validate_context(\context_system::instance());
 
         return array_map(function($todo) {
            return $todo->to_array();
-        }, $repository->query($limit, $offset));
+        }, api::get_for_user($USER));
     }
 }

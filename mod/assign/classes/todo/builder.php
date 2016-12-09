@@ -28,25 +28,26 @@ use core\todo as todo;
 use core\todo\builder as todo_builder;
 
 class builder extends todo_builder {
-    public function build($assign) {
+
+    public function build($event, $user) {
         global $OUTPUT;
 
-        $contexturl = new \moodle_url('/mod/assign/view.php', ['id' => $assign->id]);
+        $contexturl = new \moodle_url('/mod/assign/view.php', ['id' => $event->instance]);
         $iconurl = $OUTPUT->pix_url('icon', 'mod_assign');
 
         return new todo(
             null,
-            $assign->id,
-            $assign->name,
+            $event->id,
+            $event->name,
             $contexturl->out(),
-            $assign->course,
+            $event->courseid,
             $iconurl->out(),
-            $assign->timemodified,
+            $event->timestart,
             null,
             null,
             'View assign',
             $contexturl->out(),
-            $assign->timemodified
+            $event->timestart
         );
     }
 }
