@@ -18,6 +18,7 @@ information provided here is intended especially for developers.
 * The mcore YUI rollup which included various YUI modules such as moodle-core-notification is no longer included on every
   page. Missing YUI depdencies may be exposed by this change (e.g. missing a requirement on moodle-core-notification when
   using M.core.dialogue).
+* core_course_external::get_activities_overview has been deprecated. Please do not call this function any more.
 
 === 3.2 ===
 
