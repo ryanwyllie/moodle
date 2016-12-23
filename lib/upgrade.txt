@@ -19,6 +19,7 @@ information provided here is intended especially for developers.
   page. Missing YUI depdencies may be exposed by this change (e.g. missing a requirement on moodle-core-notification when
   using M.core.dialogue).
 * core_course_external::get_activities_overview has been deprecated. Please do not call this function any more.
+* Class 'calendar_event' has been renamed and is now deprecated. Please use 'core_calendar\event' instead.
 
 === 3.2 ===
 
