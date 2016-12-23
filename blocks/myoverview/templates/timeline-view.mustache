@@ -19,7 +19,7 @@
 
     This template renders the timeline view for the myoverview block.
 }}
-<div data-region="timeline-view">
+<div id="timeline-view-{{uniqid}}" data-region="timeline-view">
     <div class="row text-xs-center">
         <div class="btn-group m-y-2" role="group">
             <button type="button" class="btn btn-secondary active" data-action="sort-by-dates">
@@ -34,3 +34,9 @@
         {{> block_myoverview/timeline-view-dates }}
     </div>
 </div>
+{{#js}}
+require(['jquery', 'block_myoverview/timeline_view_controller'], function($, Controller) {
+    var container = $('#timeline-view-{{uniqid}}');
+    new Controller(container);
+});
+{{/js}}

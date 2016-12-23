@@ -15,24 +15,10 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_myoverview/event-list
+    @template block_myoverview/event-list-items
 
-    This template renders a list of events for the myoverview block.
+    This template renders a group of event list items for the myoverview block.
 }}
-<div id="event-list-{{$listid1}}{{/listid1}}-{{uniqid}}"
-    data-region="event-list-container"
-    data-start-day="{{$startday}}0{{/startday}}"
-    data-end-day="{{$endday}}7{{/endday}}">
-
-    <h5>{{$title}}{{/title}}</h5>
-    <ul class="list-group" data-region="event-list">
-        {{> block_myoverview/event-list-items }}
-    </ul>
-    {{> core/loading }}
-</div>
-{{#js}}
-require(['jquery', 'block_myoverview/event_list_controller'], function($, Controller) {
-    var container = $('#event-list-{{$listid2}}{{/listid2}}-{{uniqid}}');
-    new Controller(container);
-});
-{{/js}}
+{{#events}}
+    {{> block_myoverview/event-list-item }}
+{{/events}}

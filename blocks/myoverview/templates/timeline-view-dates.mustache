@@ -19,6 +19,12 @@
 
     This template renders the timeline view by dates for the myoverview block.
 }}
-<div data-region="timeline-view-dates">
+<div id="timeline-view-dates-{{uniqid}}" data-region="timeline-view-dates">
     {{> block_myoverview/view-dates }}
 </div>
+{{#js}}
+require(['jquery', 'block_myoverview/timeline_dates_view_controller'], function($, Controller) {
+    var container = $('#timeline-view-dates-{{uniqid}}');
+    new Controller(container);
+});
+{{/js}}

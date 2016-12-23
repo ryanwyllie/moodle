@@ -22,12 +22,23 @@
 <div data-region="view-dates">
     <div data-region="next-7-days">
         {{< block_myoverview/event-list }}
-        {{$title}}{{#str}} next7days, block_myoverview {{/str}}{{/title}}
+            {{$listid1}}1{{/listid1}}
+            {{$listid2}}1{{/listid2}}
+            {{$startday}}0{{/startday}}
+            {{$endday}}7{{/endday}}
+            {{$title}}{{#str}} next7days, block_myoverview {{/str}}{{/title}}
         {{/ block_myoverview/event-list }}
     </div>
     <div data-region="next-30-days">
         {{< block_myoverview/event-list }}
-        {{$title}}{{#str}} next30days, block_myoverview {{/str}}{{/title}}
+            {{$listid1}}2{{/listid1}}
+            {{$listid2}}2{{/listid2}}
+            {{$startday}}8{{/startday}}
+            {{$endday}}30{{/endday}}
+            {{$title}}{{#str}} next30days, block_myoverview {{/str}}{{/title}}
         {{/ block_myoverview/event-list }}
+    </div>
+    <div class="text-xs-center">
+        <button type="button" class="btn btn-secondary" data-action="view-more">{{#str}} viewmore {{/str}}</button>
     </div>
 </div>

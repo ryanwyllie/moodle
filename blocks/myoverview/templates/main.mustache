@@ -19,7 +19,7 @@
 
     This template renders the main content area for the myoverview block.
 }}
-<div class="container-fluid" data-region="myoverview">
+<div id="block-myoverview-{{uniqid}}" class="container-fluid" data-region="myoverview">
     <div class="row">
         <ul class="nav nav-tabs">
             <li class="nav-item">
@@ -32,3 +32,9 @@
     </div>
     {{> block_myoverview/timeline-view }}
 </div>
+{{#js}}
+require(['jquery', 'block_myoverview/main_controller'], function($, Controller) {
+    var container = $('#block-myoverview-{{uniqid}}');
+    new Controller(container);
+});
+{{/js}}
