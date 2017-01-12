@@ -29,6 +29,9 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
 
+use \core_calendar\external\events_exporter;
+use \core_calendar\external\events_related_objects_cache;
+
 /**
  * Calendar external functions
  *
@@ -308,6 +311,90 @@ class core_calendar_external extends external_api {
     /**
      * Returns description of method parameters.
      *
+     * @since Moodle 3.3
+     * @return external_function_parameters
+     */
+    public static function get_calendar_action_events_by_timesort_parameters() {
+        return new external_function_parameters(
+            array(
+                'userid' => new external_value(PARAM_INT, 'The user to get events for', VALUE_DEFAULT, 0),
+                'timesortfrom' => new external_value(PARAM_INT, 'Time sort from', VALUE_DEFAULT, 0),
+                'timesortto' => new external_value(PARAM_INT, 'Time sort to', VALUE_DEFAULT, null),
+                'aftereventid' => new external_value(PARAM_INT, 'The last seen event id', VALUE_DEFAULT, 0),
+                'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 0)
+            )
+        );
+    }
+
+    /**
+     * Get calendar action events based on the timesort value.
+     *
+     * @since Moodle 3.3
+     * @param null|int $userid Get events for this user (defaults to logged in user)
+     * @param null|int $timesortfrom Events after this time (inclusive)
+     * @param null|int $timesortto Events before this time (inclusive)
+     * @param null|int $aftereventid Get events with ids greater than this one
+     * @param int $limitnum Limit the number of results to this value
+     * @return array
+     */
+    public static function get_calendar_action_events_by_timesort($userid = 0, $timesortfrom = 0, $timesortto = null,
+                                                       $aftereventid = 0, $limitnum = 0) {
+        global $CFG, $PAGE, $USER;
+
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $user = null;
+        $params = self::validate_parameters(
+            self::get_calendar_action_events_by_timesort_parameters(),
+            [
+                'userid' => $userid,
+                'timesortfrom' => $timesortfrom,
+                'timesortto' => $timesortto,
+                'aftereventid' => $aftereventid,
+                'limitnum' => $limitnum,
+            ]
+        );
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        if (empty($params['userid'])) {
+            $user = $USER;
+        } else {
+            $user = \core_user::get_user($params['userid']);
+        }
+
+        if (empty($params['aftereventid'])) {
+            $params['aftereventid'] = null;
+        }
+
+        $renderer = $PAGE->get_renderer('core_calendar');
+        $events = calendar_get_action_events_by_timesort(
+            $user,
+            $params['timesortfrom'],
+            $params['timesortto'],
+            $params['aftereventid'],
+            $params['limitnum']
+        );
+
+        $exportercache = new events_related_objects_cache($events);
+        $exporter = new events_exporter($events, ['cache' => $exportercache]);
+
+        return $exporter->export($renderer);
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @since Moodle 3.3
+     * @return external_description
+     */
+    public static function get_calendar_action_events_by_timesort_returns() {
+        return events_exporter::get_read_structure();
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
      * @return external_function_parameters.
      * @since Moodle 2.5
      */
@@ -429,5 +516,57 @@ class core_calendar_external extends external_api {
                       'warnings' => new external_warnings()
                     )
             );
+    }
+
+    /**
+     * Return the structure of a calendar event.
+     *
+     * @return external_single_structure
+     */
+    private static function get_calendar_event_structure() {
+        return new external_single_structure(
+            [
+                'id' => new external_value(PARAM_INT, 'event id'),
+                'name' => new external_value(PARAM_TEXT, 'event name'),
+                'description' => new external_value(PARAM_RAW, 'Description', VALUE_OPTIONAL, null, NULL_ALLOWED),
+                'format' => new external_format_value('description'),
+                'groupid' => new external_value(PARAM_INT, 'group id'),
+                'userid' => new external_value(PARAM_INT, 'user id'),
+                'repeatid' => new external_value(PARAM_INT, 'repeat id'),
+                'modulename' => new external_value(PARAM_TEXT, 'module name', VALUE_OPTIONAL, null, NULL_ALLOWED),
+                'instance' => new external_value(PARAM_INT, 'instance id', VALUE_OPTIONAL, null, NULL_ALLOWED),
+                'eventtype' => new external_value(PARAM_TEXT, 'Event type'),
+                'timestart' => new external_value(PARAM_INT, 'timestart'),
+                'timeduration' => new external_value(PARAM_INT, 'time duration'),
+                'timesort' => new external_value(PARAM_INT, 'order time'),
+                'visible' => new external_value(PARAM_INT, 'visible'),
+                'timemodified' => new external_value(PARAM_INT, 'time modified'),
+                'url' => new external_value(PARAM_URL, 'event url'),
+                'enddate' => new external_value(PARAM_TEXT, 'human readable end date'),
+                'course' => new external_single_structure(
+                    [
+                        'id' => new external_value(PARAM_INT, 'course id'),
+                        'name' => new external_value(PARAM_TEXT, 'course name'),
+                    ]
+                ),
+                'action' => new external_single_structure(
+                    [
+                        'name' => new external_value(PARAM_TEXT, 'action name'),
+                        'url' => new external_value(PARAM_URL, 'action url'),
+                        'itemcount' => new external_value(PARAM_INT, 'how many items need actioning')
+                    ],
+                    'action data for the event',
+                    VALUE_OPTIONAL
+                ),
+                'icon' => new external_single_structure(
+                    [
+                        'key' => new external_value(PARAM_TEXT, 'icon key'),
+                        'component' => new external_value(PARAM_TEXT, 'icon component'),
+                        'alttext' => new external_value(PARAM_TEXT, 'icon alt text')
+                    ]
+                ),
+            ],
+            'event'
+        );
     }
 }
