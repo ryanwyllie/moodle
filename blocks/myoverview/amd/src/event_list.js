@@ -139,7 +139,7 @@ define(['jquery', 'core/notification', 'core/templates',
      * @return {int}
      */
     var timeUntilEvent = function(timestamp, event) {
-        var orderTime = event.orderTime || 0;
+        var orderTime = event.timesort || 0;
         return orderTime - timestamp;
     };
 
