@@ -139,7 +139,7 @@ define(['jquery', 'core/notification', 'core/templates',
      * @return {int}
      */
     var timeUntilEvent = function(timestamp, event) {
-        var orderTime = event.orderTime || 0;
+        var orderTime = event.timesort || 0;
         return orderTime - timestamp;
     };
 
@@ -229,7 +229,7 @@ define(['jquery', 'core/notification', 'core/templates',
     var load = function(root) {
         root = $(root);
         var limit = +root.attr('data-limit'),
-            offset = +root.attr('data-offset'),
+            lastId = root.attr('data-last-id') ? root.attr('data-last-id') : undefined,
             date = new Date(),
             todayTime = Math.floor(date.setHours(0, 0, 0, 0) / 1000);
 
@@ -241,16 +241,19 @@ define(['jquery', 'core/notification', 'core/templates',
         startLoading(root);
 
         // Request data from the server.
-        return CalendarEventsRepository.queryFromTime(todayTime, limit, offset).then(function(calendarEvents) {
+        return CalendarEventsRepository.queryFromTime(todayTime, limit, lastId).then(function(result) {
+            if (result.lastid) {
+                root.attr('data-last-id', result.lastid);
+            }
+
+            return result.events;
+        }).then(function(calendarEvents) {
             if (!calendarEvents.length || (calendarEvents.length < limit)) {
                 // We have no more events so mark the list as done.
                 setLoadedAll(root);
             }
 
             if (calendarEvents.length) {
-                // Increment the offset by the number of events returned.
-                root.attr('data-offset', offset + calendarEvents.length);
-
                 // Render the events.
                 return render(root, calendarEvents).then(function(renderCount) {
                     if (renderCount < calendarEvents.length) {
