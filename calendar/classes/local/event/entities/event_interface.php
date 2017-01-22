@@ -66,13 +66,10 @@ interface event_interface {
      */
     public function get_repeats();
 
-    /**
-     * @return integer
-     */
-    public function get_num_repeats();
+    public function get_subscription_id();
 
     /**
      * @return bool
      */
-    public function get_visibility();
+    public function is_visible();
 }

@@ -1727,3 +1727,10 @@ function assign_check_updates_since(cm_info $cm, $from, $filter = array()) {
 
     return $updates;
 }
+
+function mod_assign_transform_event(
+    \core_calendar\local\event\entities\event_interface $event,
+    \core_calendar\local\event\entities\action_event_factory_interface $factory
+) {
+    return $factory->create_instance($event, 'this was added by mod assign!');
+}

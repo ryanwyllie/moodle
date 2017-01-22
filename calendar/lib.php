@@ -120,6 +120,55 @@ define('CALENDAR_SUBSCRIPTION_UPDATE', 1);
  */
 define('CALENDAR_SUBSCRIPTION_REMOVE', 2);
 
+function calendar_get_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
+    global $DB;
+
+    $sql = "SELECT * FROM {event}";
+    $sql .= $timesortfrom ? ' AND timesort >= :timesortfrom' : ''
+          . $timesortto ? ' AND timesort <= :timesortto' : '';;
+    $params = [
+        'timesortfrom' => $timesortfrom,
+        'timesortto' => $timesortto
+    ];
+
+    // helper to get factories?
+    // same helper can store module facades to visit
+    // takes care of init junk too
+    $factory = new \core_calendar\local\event\entities\event_factory(
+        new \core_calendar\local\event\facades\moodle_facade(
+            new \core_calendar\local\event\facades\module_facade_factory()
+        ),
+        new \core_calendar\local\event\visitors\event_callback_visitor_immutable(
+            new \core_calendar\local\event\entities\action_event_factory()
+        )
+    );
+
+    return array_map(function($record) use ($factory) {
+        return $factory->create_instance(
+            $record->id,
+            $record->name,
+            $record->description, //descriptionvalue
+            $record->format, //descriptionformat
+            $record->courseid,
+            $record->groupid,
+            $record->userid,
+            $record->repeatid,
+            $record->modulename,
+            $record->instance, //moduleinstance
+            $record->eventtype, //type
+            $record->timestart,
+            $record->timeduration,
+            $record->timemodified,
+            $record->timesort,
+            $record->visible,
+            $record->subscriptionid
+        );
+    }, array_filter($DB->get_records_sql($sql, $params, $limitfrom, $limitnum), function($record) {
+        return true;
+        //return $record->timesort;
+    }));
+}
+
 /**
  * Return the days of the week
  *
