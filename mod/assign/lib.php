@@ -1728,9 +1728,46 @@ function assign_check_updates_since(cm_info $cm, $from, $filter = array()) {
     return $updates;
 }
 
+// TODO: Improve the implementation here.
 function mod_assign_transform_event(
     \core_calendar\local\event\entities\event_interface $event,
     \core_calendar\local\event\entities\action_event_factory_interface $factory
 ) {
-    return $factory->create_instance($event, 'this was added by mod assign!');
+    global $USER, $CFG;
+    require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+    $coursemodule = $event->get_course_module()->get_instance();
+    $context = context_module::instance($coursemodule->id);;
+
+    if (has_capability('mod/assign:submit', $context, $USER)) {
+        $name = get_string('addsubmission', 'mod_assign');
+        $url = new \moodle_url('/mod/assign/view.php', [
+            'id' => $coursemodule->id,
+            'action' => 'editsubmission'
+        ]);
+        $itemcount = 1;
+    } else if (has_capability('mod/assign:grade', $context, $USER)) {
+        $assign = new assign($context, $coursemodule, $event->get_course());
+        $name = get_string('grade');
+        $url = new \moodle_url('/mod/assign/view.php', [
+            'id' => $coursemodule->id,
+            'action' => 'grader'
+        ]);
+        $itemcount = $assign->count_submissions_need_grading();
+    } else {
+        $name = get_string('assign:view', 'mod_assign');
+        $url = new \moodle_url('/mod/assign/view.php', [
+            'id' => $coursemodule->id,
+        ]);
+        $itemcount = null;
+    }
+
+    return $factory->create_instance(
+        $event,
+        new \core_calendar\local\event\value_objects\action(
+            $name,
+            $url,
+            $itemcount
+        )
+    );
 }
