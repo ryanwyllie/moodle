@@ -29,6 +29,11 @@ final class std_proxy implements proxy_interface {
     // TODO: Maybe this should be in an abstract class instead of the interface
     // Not much point in it being public.
     public function get() {
-        return $this->class ? $this->class : $this->callback($this->id);
+        if ($this->class) {
+            return $this->class;
+        } else {
+            $callback = $this->callback;
+            return $callback($this->id);
+        }
     }
 }

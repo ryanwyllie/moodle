@@ -11,7 +11,7 @@ interface times_interface {
     /**
      * @return \DateTimeImmutable
      */
-    public function get_endttime();
+    public function get_endtime();
 
     /**
      * @return \DateInterval

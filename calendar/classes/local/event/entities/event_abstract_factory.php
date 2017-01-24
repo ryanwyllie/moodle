@@ -34,19 +34,20 @@ abstract class event_abstract_factory implements event_factory_interface {
         $visible,
         $subscriptionid
     ) {
-        global $DB;
         return $this->visit_moodle(new event(
             $id,
             $name,
             new event_description($descriptionvalue, $descriptionformat),
             new std_proxy($courseid, function($id) {
-                $DB->get_record('course', ['id' => $id]);
+                global $DB;
+                return $DB->get_record('course', ['id' => $id]);
             }),
             new std_proxy($groupid, function($id) {
-                groups_get_group($id, 'id,name,courseid');
+                return groups_get_group($id, 'id,name,courseid');
             }),
             new std_proxy($userid, function($id) {
-                $DB->get_record('user', ['id' => $id]);
+                global $DB;
+                return $DB->get_record('user', ['id' => $id]);
             }),
             new repeat_event_collection($id, $this),
             $moduleinstance && $modulename ? new event_course_module($moduleinstance, $modulename)
@@ -55,7 +56,8 @@ abstract class event_abstract_factory implements event_factory_interface {
             new event_times(
                 (new \DateTimeImmutable())->setTimestamp($timestart),
                 (new \DateTimeImmutable())->setTimestamp($timestart + $timeduration),
-                (new \DateTimeImmutable())->setTimestamp($timesort ? $timesort : $timestart)
+                (new \DateTimeImmutable())->setTimestamp($timesort ? $timesort : $timestart),
+                (new \DateTimeImmutable())->setTimestamp($timemodified)
             ),
             !empty($visible),
             $subscriptionid

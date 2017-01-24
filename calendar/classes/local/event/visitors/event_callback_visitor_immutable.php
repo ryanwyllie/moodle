@@ -17,7 +17,8 @@ final class event_callback_visitor_immutable implements moodle_visitor_interface
     public function visit_module(visitable_interface $module) {
         return new event_callback_visitor_immutable($this->factory,
             function($event) use ($module) {
-                return ($module->get_callback('transform_event'))($event, $this->factory);
+                $callback = $module->get_callback('transform_event');
+                return $callback($event, $this->factory);
             });
     }
 

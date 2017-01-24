@@ -98,7 +98,7 @@ final class event implements event_interface {
     }
 
     public function is_visible() {
-        return $this->visibility;
+        return $this->visible;
     }
 
     public function get_subscription_id() {

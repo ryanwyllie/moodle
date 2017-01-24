@@ -12,11 +12,13 @@ final class event_times implements times_interface {
     public function __construct(
         \DateTimeImmutable $start,
         \DateTimeImmutable $end,
-        \DateTimeImmutable $sort
+        \DateTimeImmutable $sort,
+        \DateTimeImmutable $modified
     ) {
         $this->start = $start;
         $this->end = $end;
         $this->sort = $sort;
+        $this->modified = $modified;
     }
 
     /**
@@ -29,7 +31,7 @@ final class event_times implements times_interface {
     /**
      * @return \DateTimeImmutable
      */
-    public function get_endttime() {
+    public function get_endtime() {
         return $this->end;
     }
 
@@ -38,6 +40,13 @@ final class event_times implements times_interface {
      */
     public function get_duration() {
         return $this->end->diff($this->start);
+    }
+
+    /**
+     * @return \DateTimeImmutable
+     */
+    public function get_modifiedtime() {
+        return $this->sort;
     }
 
     /**

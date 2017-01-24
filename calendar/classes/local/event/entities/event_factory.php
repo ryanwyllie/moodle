@@ -15,8 +15,15 @@ class event_factory extends event_abstract_factory {
     }
 
     protected function visit_moodle(event_interface $event) {
-        return !$event->get_course_module() ? $event :
-            ($this->moodlefacade->get_module(
-                $event->get_course_module())->accept($this->moodlevisitor)->get_callback())($event);
+        if (!$event->get_course_module()) {
+            return $event;
+        }
+
+        $callback = $this->moodlefacade
+                         ->get_module($event->get_course_module())
+                         ->accept($this->moodlevisitor)
+                         ->get_callback();
+
+        return $callback($event);
     }
 }

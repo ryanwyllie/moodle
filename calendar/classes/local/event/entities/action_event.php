@@ -58,7 +58,7 @@ final class action_event implements action_event_interface {
     }
 
     public function is_visible() {
-        return $this->is_visible();
+        return $this->event->is_visible();
     }
 
     public function get_action() {
