@@ -6,7 +6,7 @@ use core_calendar\local\event\entities\event_interface;
 
 interface action_event_interface extends event_interface {
     /**
-     * No interface for return type yet
+     * @return \core_calendar\local\event\value_objects\action_interface
      */
     public function get_action();
 }

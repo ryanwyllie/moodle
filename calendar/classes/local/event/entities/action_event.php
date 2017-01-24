@@ -3,12 +3,16 @@
 namespace core_calendar\local\event\entities;
 
 use core_calendar\local\event\entities\event_interface;
+use core_calendar\local\event\value_objects\action_interface;
 
 final class action_event implements action_event_interface {
     private $event;
     private $action;
 
-    public function __construct(event_interface $event, $action) {
+    public function __construct(
+        event_interface $event,
+        action_interface $action
+    ) {
         $this->event = $event;
         $this->action = $action;
     }
