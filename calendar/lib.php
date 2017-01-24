@@ -120,16 +120,34 @@ define('CALENDAR_SUBSCRIPTION_UPDATE', 1);
  */
 define('CALENDAR_SUBSCRIPTION_REMOVE', 2);
 
-function calendar_get_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
+/**
+ * CALENDAR_EVENT_TYPE_STANDARD - Standard events.
+ */
+define('CALENDAR_EVENT_TYPE_STANDARD', 0);
+
+/**
+ * CALENDAR_EVENT_TYPE_ACTION - Action events.
+ */
+define('CALENDAR_EVENT_TYPE_ACTION', 1);
+
+function calendar_get_action_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
     global $DB;
 
-    $sql = "SELECT * FROM {event}";
-    $sql .= $timesortfrom ? ' AND timesort >= :timesortfrom' : ''
-          . $timesortto ? ' AND timesort <= :timesortto' : '';;
-    $params = [
-        'timesortfrom' => $timesortfrom,
-        'timesortto' => $timesortto
-    ];
+    $params = ['type' => CALENDAR_EVENT_TYPE_ACTION];
+    $where = ['type = :type'];
+
+    if ($timesortfrom) {
+        $where[] = 'timesort >= :timesortfrom';
+        $params['timesortfrom'] = $timesortfrom;
+    }
+
+    if ($timesortto) {
+        $where[] = 'timesort <= :timesortto';
+        $params['timesortto'] = $timesortto;
+    }
+
+    $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC",
+                   implode(' AND ', $where));
 
     // helper to get factories?
     // same helper can store module facades to visit
@@ -163,10 +181,7 @@ function calendar_get_events_by_timesort($timesortfrom = '', $timesortto = '', $
             $record->visible,
             $record->subscriptionid
         );
-    }, array_filter($DB->get_records_sql($sql, $params, $limitfrom, $limitnum), function($record) {
-        return true;
-        //return $record->timesort;
-    }));
+    }, array_values($DB->get_records_sql($sql, $params, $limitfrom, $limitnum)));
 }
 
 /**
