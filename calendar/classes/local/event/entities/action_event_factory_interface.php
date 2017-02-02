@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Calendar action event interface
+ * Action event factory interface
  *
  * @package    core_calendar
  * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
@@ -25,18 +25,25 @@
 namespace core_calendar\local\event\entities;
 
 use core_calendar\local\event\entities\event_interface;
+use core_calendar\local\event\value_objects\action_interface;
 
 /**
- * Interface for an action event class
+ * Interface for an action event factory class
  *
  * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface action_event_interface extends event_interface {
+interface action_event_factory_interface {
     /**
-     * Get the action event's action
+     * Create an instance of an action event
      *
-     * @return \core_calendar\local\event\value_objects\action_interface
+     * @param event_interface  $event  The event the action event will be attached to
+     * @param action_interface $action The action tha the action event is attached to
+     *
+     * @return event_interface
      */
-    public function get_action();
+    public function create_instance(
+        event_interface $event,
+        action_interface $action
+    );
 }

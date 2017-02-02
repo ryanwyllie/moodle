@@ -14,29 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Calendar action event interface
- *
- * @package    core_calendar
- * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 namespace core_calendar\local\event\entities;
 
 use core_calendar\local\event\entities\event_interface;
+use core_calendar\local\event\entities\action_event_factory_interface;
+use core_calendar\local\event\entities\action_event;
+use core_calendar\local\event\value_objects\action_interface;
 
 /**
- * Interface for an action event class
+ * Action event factory class
  *
- * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright 2017 Cameron Ball <cameron@cameron1729.xyz>
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface action_event_interface extends event_interface {
-    /**
-     * Get the action event's action
-     *
-     * @return \core_calendar\local\event\value_objects\action_interface
-     */
-    public function get_action();
+final class action_event_factory implements action_event_factory_interface {
+    public function create_instance(
+        event_interface $event,
+        action_interface $action
+    ) {
+        return new action_event($event, $action);
+    }
 }
