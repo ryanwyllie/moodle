@@ -120,56 +120,31 @@ define('CALENDAR_SUBSCRIPTION_UPDATE', 1);
  */
 define('CALENDAR_SUBSCRIPTION_REMOVE', 2);
 
-/**
- * CALENDAR_EVENT_TYPE_STANDARD - Standard events.
- */
-define('CALENDAR_EVENT_TYPE_STANDARD', 0);
+function calendar_get_action_events_by_timesort(
+    $user = null,
+    $timesortfrom = null,
+    $timesortto = null,
+    $aftereventid = 0,
+    $limitnum = 0
+) {
+    global $USER;
 
-/**
- * CALENDAR_EVENT_TYPE_ACTION - Action events.
- */
-define('CALENDAR_EVENT_TYPE_ACTION', 1);
-
-function calendar_get_action_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
-    global $DB;
-
-    $params = ['type' => CALENDAR_EVENT_TYPE_ACTION];
-    $where = ['type = :type'];
-
-    if ($timesortfrom) {
-        $where[] = 'timesort >= :timesortfrom';
-        $params['timesortfrom'] = $timesortfrom;
+    if (is_null($timesortfrom) && is_null($timesortto)) {
+        throw new \moodle_exception("Must provide a timesort to and/or from value");
     }
 
-    if ($timesortto) {
-        $where[] = 'timesort <= :timesortto';
-        $params['timesortto'] = $timesortto;
+    if (is_null($user)) {
+        $user = $USER;
     }
 
-    $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC",
-                   implode(' AND ', $where));
+    $vault = \core_calendar\local\event\core_container::get_event_vault();
 
-    return array_map(function($record) {
-        return \core_calendar\local\event\core_container::get_event_factory()->create_instance(
-            $record->id,
-            $record->name,
-            $record->description, //descriptionvalue
-            $record->format, //descriptionformat
-            $record->courseid,
-            $record->groupid,
-            $record->userid,
-            $record->repeatid,
-            $record->modulename,
-            $record->instance, //moduleinstance
-            $record->eventtype, //type
-            $record->timestart,
-            $record->timeduration,
-            $record->timemodified,
-            $record->timesort,
-            $record->visible,
-            $record->subscriptionid
-        );
-    }, array_values($DB->get_records_sql($sql, $params, $limitfrom, $limitnum)));
+    $afterevent = null;
+    if ($aftereventid && $event = $vault->get_event_by_id($aftereventid)) {
+        $afterevent = $event;
+    }
+
+    return $vault->get_action_events_by_timesort($user, $timesortfrom, $timesortto, $afterevent, $limitnum);
 }
 
 /**
