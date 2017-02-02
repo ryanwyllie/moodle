@@ -32,6 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use core_calendar\local\event\factories\action_event_factory;
 use core_calendar\local\event\factories\event_factory;
+use core_calendar\local\event\factories\event_vault_factory;
 
 /**
  * Core container.
@@ -51,12 +52,22 @@ class core_container {
     private static $actioneventfactory;
 
     /**
+     * @var event_vault $eventvault Event vault.
+     */
+    private static $eventvault;
+
+    /**
      * Initialises the dependency graph if it hasn't yet been.
      */
     private static function init() {
         if (empty(self::$eventfactory)) {
             self::$actioneventfactory = new action_event_factory();
             self::$eventfactory = new event_factory(self::$actioneventfactory);
+        }
+
+        if (empty(self::$eventvault)) {
+            $vaultfactory = new event_vault_factory();
+            self::$eventvault = $vaultfactory->create_instance(self::$eventfactory);
         }
     }
 
@@ -68,5 +79,15 @@ class core_container {
     public static function get_event_factory() {
         self::init();
         return self::$eventfactory;
+    }
+
+    /**
+     * Return an event vault.
+     *
+     * @return event_vault
+     */
+    public static function get_event_vault() {
+        self::init();
+        return self::$eventvault;
     }
 }
