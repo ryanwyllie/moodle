@@ -121,6 +121,58 @@ define('CALENDAR_SUBSCRIPTION_UPDATE', 1);
 define('CALENDAR_SUBSCRIPTION_REMOVE', 2);
 
 /**
+ * CALENDAR_EVENT_TYPE_STANDARD - Standard events.
+ */
+define('CALENDAR_EVENT_TYPE_STANDARD', 0);
+
+/**
+ * CALENDAR_EVENT_TYPE_ACTION - Action events.
+ */
+define('CALENDAR_EVENT_TYPE_ACTION', 1);
+
+function calendar_get_action_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
+    global $DB;
+
+    $params = ['type' => CALENDAR_EVENT_TYPE_ACTION];
+    $where = ['type = :type'];
+
+    if ($timesortfrom) {
+        $where[] = 'timesort >= :timesortfrom';
+        $params['timesortfrom'] = $timesortfrom;
+    }
+
+    if ($timesortto) {
+        $where[] = 'timesort <= :timesortto';
+        $params['timesortto'] = $timesortto;
+    }
+
+    $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC",
+                   implode(' AND ', $where));
+
+    return array_map(function($record) {
+        return \core_calendar\local\event\core_container::get_event_factory()->create_instance(
+            $record->id,
+            $record->name,
+            $record->description,
+            $record->format,
+            $record->courseid,
+            $record->groupid,
+            $record->userid,
+            $record->repeatid,
+            $record->modulename,
+            $record->instance,
+            $record->eventtype,
+            $record->timestart,
+            $record->timeduration,
+            $record->timemodified,
+            $record->timesort,
+            $record->visible,
+            $record->subscriptionid
+        );
+    }, array_values($DB->get_records_sql($sql, $params, $limitfrom, $limitnum)));
+}
+
+/**
  * Return the days of the week
  *
  * @return array array of days
