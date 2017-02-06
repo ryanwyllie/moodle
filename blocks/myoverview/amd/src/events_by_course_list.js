@@ -21,18 +21,12 @@
  * @copyright  2016 Simey Lameze <simey@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/notification', 'core/templates',
-        'core/custom_interaction_events',
-        'block_myoverview/calendar_events_repository',
-        'block_myoverview/event_list'],
-        function($, Notification, Templates, CustomEvents, CalendarEventsRepository, EventList) {
+define(['jquery', 'core/custom_interaction_events', 'block_myoverview/event_list', 'block_myoverview/calendar_events_repository'],
+        function($, CustomEvents, EventList, CalendarEventsRepository) {
 
     var SELECTORS = {
         EVENTS_BY_COURSE_LIST: '[data-region="timeline-view-courses"]',
-        EVENTS_BY_COURSE_CONTAINER: '[data-region="course-events-container"]',
-        COURSE_INFO_CONTAINER: '[data-region="course-info-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        VIEW_MORE_BUTTON: '[data-action="view-more"]'
+        EVENTS_BY_COURSE_CONTAINER: '[data-region="course-events-container"]'
     };
 
     /**
@@ -48,18 +42,31 @@ define(['jquery', 'core/notification', 'core/templates',
 
         return $.when.apply($, $.map(root.find(SELECTORS.EVENTS_BY_COURSE_CONTAINER), function(container) {
             container = $(container);
-            var courseId = container.attr('data-course-id');
-            var root = $("#course-events-container-" + courseId).find('[data-region="event-list-container"]');
-            EventList.init(root);
-        })).then(function() {
-        });
+            var courseEventsContainer = container.find('[data-region="event-list-container"]'),
+                courseId = courseEventsContainer.attr('data-course-id'),
+                limit = courseEventsContainer.attr('data-limit'),
+                offset = courseEventsContainer.attr('data-offset'),
+                date = new Date(),
+                todayTime = Math.floor(date.setHours(0, 0, 0, 0) / 1000);
 
+            //EventList.registerEventListeners(courseEventsContainer);
+
+            //console.log('DEBUG: courseId:'+courseId+' limit:'+limit+' offset:'+offset+' date:'+todayTime);
+            CalendarEventsRepository.queryFromTimeByCourse(courseId, todayTime, limit, offset).then(function(calendarEvents) {
+                return EventList.render(courseEventsContainer, calendarEvents).then(function(renderCount) {
+                    if (renderCount < calendarEvents.length) {
+                        EventList.setLoadedAll(container);
+                    }
+                });
+            });
+        }));
     };
 
     return {
         init: function(root) {
             root = $(root);
             load(root);
+
         }
     };
 });
