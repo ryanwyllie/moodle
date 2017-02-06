@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use core_calendar\local\event\entities\event_collection_interface;
 use core_calendar\local\event\entities\event_factory_interface;
 use core_calendar\local\event\entities\event_interface;
+use core_calendar\local\event\exceptions\no_repeat_parent_exception;
 
 /**
  * Class representing a collection of repeat events.
@@ -72,6 +73,10 @@ final class repeat_event_collection implements event_collection_interface {
     public function __construct($parentid, event_factory_interface $factory) {
         $this->parentid = $parentid;
         $this->factory = $factory;
+
+        if (!$this->get_parent_record()) {
+            throw new no_repeat_parent_exception(sprintf('No record found for id %d', $parentid));
+        }
     }
 
     public function get_id() {
@@ -123,7 +128,7 @@ final class repeat_event_collection implements event_collection_interface {
         global $DB;
         return $this->parentrecord = isset($this->parentrecord)
                                          ? $this->parentrecord
-                                         : array_values($DB->get_records('event', ['id' => $this->parentid]))[0];
+                                         : $DB->get_record('event', ['id' => $this->parentid]);
     }
 
     /**
