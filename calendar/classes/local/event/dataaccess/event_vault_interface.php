@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core_calendar\local\event\entities;
+namespace core_calendar\local\event\dataaccess;
+
+use core_calendar\local\event\entities\event_interface;
 
 /**
  * Interface for an event vault class

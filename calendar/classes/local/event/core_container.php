@@ -2,8 +2,8 @@
 
 namespace core_calendar\local\event;
 
+use core_calendar\local\event\dataaccess\event_vault_factory;
 use core_calendar\local\event\entities\event_factory;
-use core_calendar\local\event\entities\event_vault_factory;
 use core_calendar\local\event\entities\action_event_factory;
 use core_calendar\local\event\facades\core_facade_visitable;
 use core_calendar\local\event\facades\module_facade_factory;

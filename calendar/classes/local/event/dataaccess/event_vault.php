@@ -22,9 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core_calendar\local\event\entities;
+namespace core_calendar\local\event\dataaccess;
 
-use core_calendar\local\event\core_container;
+use core_calendar\local\event\entities\event_interface;
+use core_calendar\local\event\entities\event_factory_interface;
 
 /**
  * CALENDAR_EVENT_TYPE_STANDARD - Standard events.

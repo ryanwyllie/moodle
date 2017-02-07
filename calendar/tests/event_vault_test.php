@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/calendar/tests/helpers.php');
 
-use core_calendar\local\event\entities\event_vault;
+use core_calendar\local\event\dataaccess\event_vault;
 
 /**
  * This file contains the class that handles testing of the calendar event vault.
