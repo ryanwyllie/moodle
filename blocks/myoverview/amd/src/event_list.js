@@ -291,9 +291,7 @@ define(['jquery', 'core/notification', 'core/templates',
     var registerEventListeners = function(root) {
         CustomEvents.define(root, [CustomEvents.events.activate]);
         root.one(CustomEvents.events.activate, SELECTORS.VIEW_MORE_BUTTON, function() {
-            debugger;
             load(root);
-
         });
     };
 

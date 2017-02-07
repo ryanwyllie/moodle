@@ -40,33 +40,17 @@ define(['jquery', 'core/custom_interaction_events', 'block_myoverview/event_list
      */
     var load = function(root) {
 
-        return $.when.apply($, $.map(root.find(SELECTORS.EVENTS_BY_COURSE_CONTAINER), function(container) {
+        root.find(SELECTORS.EVENTS_BY_COURSE_CONTAINER).each(function(index, container) {
             container = $(container);
-            var courseEventsContainer = container.find('[data-region="event-list-container"]'),
-                courseId = courseEventsContainer.attr('data-course-id'),
-                limit = courseEventsContainer.attr('data-limit'),
-                offset = courseEventsContainer.attr('data-offset'),
-                date = new Date(),
-                todayTime = Math.floor(date.setHours(0, 0, 0, 0) / 1000);
-
-            //EventList.registerEventListeners(courseEventsContainer);
-
-            //console.log('DEBUG: courseId:'+courseId+' limit:'+limit+' offset:'+offset+' date:'+todayTime);
-            CalendarEventsRepository.queryFromTimeByCourse(courseId, todayTime, limit, offset).then(function(calendarEvents) {
-                return EventList.render(courseEventsContainer, calendarEvents).then(function(renderCount) {
-                    if (renderCount < calendarEvents.length) {
-                        EventList.setLoadedAll(container);
-                    }
-                });
-            });
-        }));
+            var eventListContainer = container.find('[data-region="event-list-container"]');
+            EventList.load(eventListContainer);
+        });
     };
 
     return {
         init: function(root) {
             root = $(root);
             load(root);
-
         }
     };
 });

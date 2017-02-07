@@ -27,7 +27,7 @@
      data-limit="{{$limit}}20{{/limit}}"
      data-course-id="{{$courseid}}{{/courseid}}"
      data-offset="{{$offset}}0{{/offset}}"
-     id="event-list-container-{{uniqid}}">
+     id="event-list-container-{{$courseid}}{{/courseid}}">
 
     {{< block_myoverview/event-list-group }}
         {{$title}}{{#str}} today {{/str}}{{/title}}
@@ -61,7 +61,7 @@
 </div>
 {{#js}}
 require(['jquery', 'block_myoverview/event_list'], function($, EventList) {
-    var root = $("#event-list-container-{{uniqid}}");
+    var root = $("#event-list-container-{{$courseid}}{{/courseid}}");
 debugger;
     EventList.registerEventListeners(root);
 });
