@@ -132,10 +132,8 @@ define('CALENDAR_EVENT_TYPE_ACTION', 1);
 
 function calendar_get_action_events_by_timesort($timesortfrom = '', $timesortto = '', $limitfrom = 0, $limitnum = 0) {
     global $DB;
-
     $params = ['type' => CALENDAR_EVENT_TYPE_ACTION];
     $where = ['type = :type'];
-
     if ($timesortfrom) {
         $where[] = 'timesort >= :timesortfrom';
         $params['timesortfrom'] = $timesortfrom;
@@ -145,23 +143,21 @@ function calendar_get_action_events_by_timesort($timesortfrom = '', $timesortto 
         $where[] = 'timesort <= :timesortto';
         $params['timesortto'] = $timesortto;
     }
-
     $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC",
                    implode(' AND ', $where));
-
     return array_map(function($record) {
         return \core_calendar\local\event\core_container::get_event_factory()->create_instance(
             $record->id,
             $record->name,
-            $record->description,
-            $record->format,
+            $record->description, //descriptionvalue
+            $record->format, //descriptionformat
             $record->courseid,
             $record->groupid,
             $record->userid,
             $record->repeatid,
             $record->modulename,
-            $record->instance,
-            $record->eventtype,
+            $record->instance, //moduleinstance
+            $record->eventtype, //type
             $record->timestart,
             $record->timeduration,
             $record->timemodified,
