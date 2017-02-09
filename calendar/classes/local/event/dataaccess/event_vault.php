@@ -50,13 +50,19 @@ class event_vault implements event_vault_interface {
 
     private $factory;
 
+    private $cache;
+
     /**
      * Create an event vault.
      *
      * @param event_factory_interface $factory An event factory
      */
-    public function __construct(event_factory_interface $factory) {
+    public function __construct(
+        event_factory_interface $factory,
+        event_cache_interface $cache
+    ) {
         $this->factory = $factory;
+        $this->cache = $cache;
     }
 
     /**
@@ -68,8 +74,12 @@ class event_vault implements event_vault_interface {
     public function get_event_by_id(int $id) {
         global $DB;
 
-        if ($record = $DB->get_record('event', ['id' => $id])) {
-            return $this->transform_from_database_record($record);
+        if ($record = $this->cache->get_event($id)) {
+            return $record;
+        } else if ($record = $DB->get_record('event', ['id' => $id])) {
+            $event = $this->transform_from_database_record($record);
+            $this->cache->save_event($event);
+            return $event;
         } else {
             return false;
         }
@@ -96,6 +106,13 @@ class event_vault implements event_vault_interface {
 
         if (is_null($timesortfrom) && is_null($timesortto)) {
             throw new \moodle_exception("Must provide a timesort to and/or from value");
+        }
+
+        $cachedevents = $this->cache->get_action_events_by_timesort(
+            $user, $timesortfrom, $timesortto, $afterevent, $limitnum);
+
+        if (!is_bool($cachedevents)) {
+            return $cachedevents;
         }
 
         $params = ['type' => CALENDAR_EVENT_TYPE_ACTION];
@@ -139,6 +156,9 @@ class event_vault implements event_vault_interface {
             $offset += $limitnum;
         }
 
+        $this->cache->save_action_events_by_timesort(
+            $user, $timesortfrom, $timesortto, $afterevent, $limitnum, $events);
+
         return $events;
     }
 
@@ -148,7 +168,7 @@ class event_vault implements event_vault_interface {
      * @param \stdClass $record The database record
      * @return event_interface|false
      */
-    private function transform_from_database_record(\stdClass $record) {
+    protected function transform_from_database_record(\stdClass $record) {
         return $this->factory->create_instance(
             $record->id,
             $record->name,
@@ -176,7 +196,7 @@ class event_vault implements event_vault_interface {
      * @param array $records The database records
      * @return array
      */
-    private function transform_from_database_records(array $records) {
+    protected function transform_from_database_records(array $records) {
         $events = [];
         foreach ($records as $record) {
             if ($event = $this->transform_from_database_record($record)) {

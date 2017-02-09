@@ -30,13 +30,10 @@ use core_calendar\local\event\entities\event_interface;
 /**
  * Event cache class
  *
- * This is a repository. It's called a vault to reduce confusion because
- * Moodle has already taken the name repository. Vault is cooler anyway.
- *
  * @copyright 2017 Ryan Wyllie <ryan@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class event_cache {
+class event_cache implements event_cache_interface {
 
     private $loader;
 
@@ -49,7 +46,13 @@ class event_cache {
     }
 
     public function save_event(event_interface $event) {
+        $existing = $this->get_event($event);
+
         $this->loader->set($event->get_id(), $event);
+
+        if ($existing) {
+            $this->purge_affected_keys($existing, $event);
+        }
     }
 
     /**
@@ -124,7 +127,38 @@ class event_cache {
             $eventsvalues[$event->get_id()] = $event;
         }
 
+        $this->add_purge_list($events, 'action_events_by_timesort', $key);
         $this->loader->set($key, $thisvalues);
         $this->loader->set_many($eventsvalues);
+    }
+
+    protected function add_purge_list($events, $listidentifier, $cachekey) {
+        foreach ($events as $event) {
+            $purgelistkey = sprintf('%d_purge_list', $event->get_id());
+            $eventpurgelist = $this->loader->get(sprintf('%d_purge_list', $event->get_id()) || [];
+
+            if (isset($eventpurgelist[$listidentifier])) {
+                
+            } else {
+
+            }
+        }
+    }
+
+    protected function purge_affected_keys(event_interface $existing, event_interface $new) {
+        $eventpurgelist = $this->loader->get(sprintf('%d_purge_list', $existing->get_id());
+        $purgelist = [];
+
+        if (!$eventpurgelist) {
+            return;
+        }
+
+        if (isset($eventpurgelist['action_events_by_timesort'])) {
+            if ($new->get_sorttime()->getTimestamp() != $existing->get_sorttime()->getTimestamp()) {
+                $purgelist = array_merge($purgelist, $eventpurgelist['action_events_by_timesort']);
+            }
+        }
+
+        $this->loader->delete_many($purgelist);
     }
 }

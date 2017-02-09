@@ -39,7 +39,10 @@ class event_vault_factory implements event_vault_factory_interface {
      * @param event_factory_interface $eventfactory The event factory
      * @return event_vault_interface
      */
-    public function create_instance(event_factory_interface $eventfactory) {
-        return new event_vault($eventfactory);
+    public function create_instance(
+        event_factory_interface $eventfactory,
+        event_cache_interface $eventcache
+    ) {
+        return new event_vault($eventfactory, $eventcache);
     }
 }

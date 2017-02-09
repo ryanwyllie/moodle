@@ -24,8 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+use core_calendar\local\event\dataaccess\event_cache_interface;
 use core_calendar\local\event\entities\action_event;
 use core_calendar\local\event\entities\event;
+use core_calendar\local\event\entities\event_interface;
 use core_calendar\local\event\entities\event_factory_interface;
 use core_calendar\local\event\entities\event_vault;
 use core_calendar\local\event\entities\repeat_event_collection;
@@ -140,5 +142,39 @@ class action_event_test_factory implements event_factory_interface {
         } else {
             return $actionevent;
         }
+    }
+}
+
+/**
+ * A test factory that will create action events.
+ */
+class empty_event_cache implements event_cache_interface {
+    public function save_event(event_interface $event) {
+        return;
+    }
+
+    public function get_event(int $id) {
+        return false;
+    }
+
+    public function get_action_events_by_timesort(
+        \stdClass $user,
+        int $timesortfrom = null,
+        int $timesortto = null,
+        event_interface $afterevent = null,
+        int $limitnum = null
+    ) {
+        return false;
+    }
+
+    public function save_action_events_by_timesort(
+        \stdClass $user,
+        int $timesortfrom = null,
+        int $timesortto = null,
+        event_interface $afterevent = null,
+        int $limitnum = null,
+        array $events = []
+    ) {
+        return;
     }
 }

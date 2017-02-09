@@ -48,7 +48,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $factory = new action_event_test_factory();
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         for ($i = 1; $i < 6; $i++) {
             create_event([
@@ -87,7 +88,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $factory = new action_event_test_factory();
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         for ($i = 1; $i < 6; $i++) {
             create_event([
@@ -126,7 +128,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $factory = new action_event_test_factory();
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         for ($i = 1; $i < 6; $i++) {
             create_event([
@@ -162,7 +165,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $factory = new action_event_test_factory();
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         $records = [];
         for ($i = 1; $i < 21; $i++) {
@@ -201,7 +205,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
         $factory = new action_event_test_factory(function($actionevent) {
             return ($actionevent->get_id() % 2) ? false : true;
         });
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         for ($i = 1; $i < 41; $i++) {
             create_event([
@@ -255,7 +260,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
                 return true;
             }
         });
-        $vault = new event_vault($factory);
+        $cache = new empty_event_cache();
+        $vault = new event_vault($factory, $cache);
 
         for ($i = 1; $i < 21; $i++) {
             create_event([

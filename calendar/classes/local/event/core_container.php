@@ -3,6 +3,7 @@
 namespace core_calendar\local\event;
 
 use core_calendar\local\event\dataaccess\event_vault_factory;
+use core_calendar\local\event\dataaccess\event_cache;
 use core_calendar\local\event\entities\event_factory;
 use core_calendar\local\event\entities\action_event_factory;
 use core_calendar\local\event\facades\core_facade_visitable;
@@ -17,6 +18,7 @@ final class core_container {
     private static $core_component_visitor;
     private static $action_event_factory;
     private static $event_vault;
+    private static $event_cache;
 
     private static function init() {
         if (empty(self::$event_factory)) {
@@ -28,8 +30,11 @@ final class core_container {
         }
 
         if (empty(self::$event_vault)) {
+            $cacheloader = cache::make('core', 'calendar');
             $vaultfactory = new event_vault_factory();
-            self::$event_vault = $vaultfactory->create_instance(self::$event_factory);
+
+            self::$event_cache = new event_cache($cacheloader);
+            self::$event_vault = $vaultfactory->create_instance(self::$event_factory, self::$event_cache);
         }
     }
 
