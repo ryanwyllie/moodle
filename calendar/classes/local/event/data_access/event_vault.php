@@ -137,7 +137,11 @@ class event_vault implements event_vault_interface {
                 }
             }
 
-            $offset += $limitnum;
+            if (empty($limitnum)) {
+                break;
+            } else {
+                $offset += $limitnum;
+            }
         }
 
         return $events;
