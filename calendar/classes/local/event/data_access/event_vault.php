@@ -117,7 +117,7 @@ class event_vault implements event_vault_interface {
             $params['id'] = $afterevent->get_id();
         }
 
-        $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC",
+        $sql = sprintf("SELECT * FROM {event} WHERE %s ORDER BY timesort ASC, id ASC",
                        implode(' AND ', $where));
 
         $offset = 0;
