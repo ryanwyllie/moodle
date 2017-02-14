@@ -2589,7 +2589,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2017031300.04);
     }
 
-    if ($oldversion < 2017030900.05) {
+    if ($oldversion < 2017031300.05) {
 
         // If the 'Course overview' block is no longer present, remove it.
         // Note - we do not need to completely remove the block context etc because we
@@ -2604,7 +2604,7 @@ function xmldb_main_upgrade($oldversion) {
             unset_all_config_for_plugin('block_course_overview');
         }
 
-        upgrade_main_savepoint(true, 2017030900.05);
+        upgrade_main_savepoint(true, 2017031300.05);
     }
 
     if ($oldversion < 2017031300.06) {
