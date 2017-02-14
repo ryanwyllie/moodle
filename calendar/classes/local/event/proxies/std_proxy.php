@@ -50,6 +50,11 @@ class std_proxy implements proxy_interface {
     protected $class;
 
     /**
+     * @var \stdClass $base Existing properties for the proxy.
+     */
+    protected $base;
+
+    /**
      * @var callable $callback Callback to run which will load the class to proxy.
      */
     protected $callback;
@@ -59,13 +64,27 @@ class std_proxy implements proxy_interface {
      *
      * @param int      $id       The ID of the record in the database.
      * @param callable $callback Callback to load the class.
+     * @param stdClass $base     Existing known properties.
      */
-    public function __construct($id, callable $callback) {
+    public function __construct($id, callable $callback, \stdClass $base = null) {
         $this->id = $id;
         $this->callback = $callback;
+
+        if (!$base) {
+            $base = new \stdClass();
+        }
+
+        $base->id = $id;
+        $this->base = $base;
     }
 
     public function get($member) {
+        // If we haven't loaded from the DB yet and we're requesting a property
+        // that we already know about then just return that rather than hit the DB.
+        if (!$this->class && property_exists($this->base, $member)) {
+            return $this->base->{$member};
+        }
+
         if (!property_exists($this->get_proxied_instance(), $member)) {
             throw new member_does_not_exist_exception(sprintf('Member %s does not exist', $member));
         }
@@ -85,7 +104,10 @@ class std_proxy implements proxy_interface {
             return $this->class;
         } else {
             $callback = $this->callback;
-            return $callback($this->id);
+            $record = $callback($this->id);
+            $record = (object) array_merge((array) $this->base, (array) $record);
+
+            return $record;
         }
     }
 }

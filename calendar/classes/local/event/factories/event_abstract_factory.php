@@ -112,7 +112,7 @@ abstract class event_abstract_factory implements event_factory_interface {
         if ($moduleinstance && $modulename) {
             $module = new std_proxy($moduleinstance, function($id) use ($modulename) {
                 return get_coursemodule_from_instance($modulename, $id);
-            });
+            }, (object) ['modulename' => $modulename]);
         }
 
         return $this->apply_component_callbacks(new event(
