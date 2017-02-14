@@ -125,12 +125,16 @@ function calendar_get_action_events_by_timesort(
     $timesortfrom = null,
     $timesortto = null,
     $aftereventid = 0,
-    $limitnum = 0
+    $limitnum = 20
 ) {
     global $USER;
 
     if (is_null($timesortfrom) && is_null($timesortto)) {
         throw new \moodle_exception("Must provide a timesort to and/or from value");
+    }
+
+    if ($limitnum == 0 || $limitnum > 100) {
+        throw new \moodle_exception("You may not request that many action events in a single call");
     }
 
     if (is_null($user)) {
