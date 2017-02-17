@@ -1,0 +1,410 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/test_shorten_text
+
+    Example context (json):
+    {
+    }
+
+}}
+<style>
+#my-thing textarea {
+    border: none;
+    overflow: visible;
+    outline: none;
+    width: 100%;
+    height: 100px;
+    resize: none;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+</style>
+<table id="my-thing" class="table">
+    <thead>
+        <tr>
+            <th>Length</th>
+            <th>Original</th>
+            <th>Expected</th>
+            <th>Actual</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>short text already no tags</textarea>
+            </td>
+            <td>
+                <textarea>short text already no tags</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, short text already no tags {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea><p>short <b>text</b> already</p><p>with tags</p></textarea>
+            </td>
+            <td>
+                <textarea><p>short <b>text</b> already</p><p>with tags</p></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, <p>short <b>text</b> already</p><p>with tags</p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>long text without any tags blah de blah blah blah what</textarea>
+            </td>
+            <td>
+                <textarea>long text without any tags ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, long text without any tags blah de blah blah blah what</p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea><div class='frog'><p><blockquote>Long text with tags that will be chopped off but <b>should be added back again</b></blockquote></p></div></textarea>
+            </td>
+            <td>
+                <textarea><div class='frog'><p><blockquote>Long text with tags that ...</blockquote></p></div></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, <div class='frog'><p><blockquote>Long text with tags that will be chopped off but <b>should be added back again</b></blockquote></p></div></p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea><div class='frog'><p><blockquote><!--[if !IE]><!-->Long text with tags that will<!--<![endif]--> be chopped off but <b>should be added back again</b></blockquote></p></div></textarea>
+            </td>
+            <td>
+                <textarea><div class='frog'><p><blockquote><!--[if !IE]><!-->Long text with tags that ...<!--<![endif]--></blockquote></p></div></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, <div class='frog'><p><blockquote><!--[if !IE]><!-->Long text with tags that will<!--<![endif]--> be chopped off but <b>should be added back again</b></blockquote></p></div> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>31</td>
+            <td>
+                <textarea>some text which shouldn't &nbsp; break there</textarea>
+            </td>
+            <td>
+                <textarea>some text which shouldn't &nbsp; ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 31, some text which shouldn't &nbsp; break there {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>some text which shouldn't &nbsp; break there</textarea>
+            </td>
+            <td>
+                <textarea>some text which shouldn't &nbsp;...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, some text which shouldn't &nbsp; break there {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td>
+                <textarea>some text which shouldn't &nbsp; break there</textarea>
+            </td>
+            <td>
+                <textarea>some text which shouldn't ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 29, some text which shouldn't &nbsp; break there {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>41</td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several</textarea>
+            </td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in ...</h3></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 41, <h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>42</td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several</textarea>
+            </td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in TGs?...</h3></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 42, <h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>43</td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several</textarea>
+            </td>
+            <td>
+                <textarea><h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 43, <h3>standard 'break-out' sub groups in TGs?</h3>&nbsp;&lt;&lt;There are several {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>
+                <textarea><h1>123456789</h1></textarea>
+            </td>
+            <td>
+                <textarea><h1>12345...</h1></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 8, <h1>123456789</h1> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>Žluťoučký koníček přeskočil</textarea>
+            </td>
+            <td>
+                <textarea>Žluťoučký koníček přeskočil</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, Žluťoučký koníček přeskočil {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td>
+                <textarea>Žluťoučký koníček přeskočil</textarea>
+            </td>
+            <td>
+                <textarea>Žluťoučký ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 19, Žluťoučký koníček přeskočil {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td>
+                <textarea>Žluťoučký koníček přeskočil</textarea>
+            </td>
+            <td>
+                <textarea>Žluťoučký ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 17, Žluťoučký koníček přeskočil {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>60</td>
+            <td>
+                <textarea><p>Žluťoučký koníček <b>přeskočil</b> potůček</p></textarea>
+            </td>
+            <td>
+                <textarea><p>Žluťoučký koníček <b>přeskočil</b> potůček</p></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 60, <p>Žluťoučký koníček <b>přeskočil</b> potůček</p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td>
+                <textarea><p>Žluťoučký koníček <b>přeskočil</b> potůček</p></textarea>
+            </td>
+            <td>
+                <textarea><p>Žluťoučký ...</p></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 19, <p>Žluťoučký koníček <b>přeskočil</b> potůček</p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td>
+                <textarea><p>Žluťoučký koníček <b>přeskočil</b> potůček</p></textarea>
+            </td>
+            <td>
+                <textarea><p>Žluťoučký ...</p></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 17, <p>Žluťoučký koníček <b>přeskočil</b> potůček</p> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>言語設定言語設定abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>言語設定言語設定abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, 言語設定言語設定abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>
+                <textarea>言語設定言語設定abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>言語設定言語...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 9, 言語設定言語設定abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td>
+                <textarea>言語設定言語設定abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>言語設定言語設定...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 13, 言語設定言語設定abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>
+                <textarea>简体中文简体中文abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>简体中文简体中文abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 30, 简体中文简体中文abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>
+                <textarea>简体中文简体中文abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>简体中文简体...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 9, 简体中文简体中文abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td>
+                <textarea>简体中文简体中文abcdefghijkl</textarea>
+            </td>
+            <td>
+                <textarea>简体中文简体中文...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 13, 简体中文简体中文abcdefghijkl {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>
+                <textarea><span lang="en" class="multilang">A</span><span lang="fr" class="multilang">B</span></textarea>
+            </td>
+            <td>
+                <textarea><span lang="en" class="multilang">...</span></textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 1, <span lang="en" class="multilang">A</span><span lang="fr" class="multilang">B</span> {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟</textarea>
+            </td>
+            <td>
+                <textarea>𠮟𠮟𠮟...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 6, 𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟 {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟</textarea>
+            </td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 7, 𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟 {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟</textarea>
+            </td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 8, 𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟 {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟</textarea>
+            </td>
+            <td>
+                <textarea>𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 9, 𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟𠮟 {{/shortentext}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>
+                <textarea>😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂 </textarea>
+            </td>
+            <td>
+                <textarea>😂😂😂😂😂😂 ...</textarea>
+            </td>
+            <td>
+                <textarea>{{#shortentext}} 9, 😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂  {{/shortentext}}</textarea>
+            </td>
+        </tr>
+    </tbody>
+</table>
