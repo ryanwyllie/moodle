@@ -202,6 +202,60 @@ class core_external extends external_api {
             ));
     }
 
+    /**
+     * Returns description of get_user_dates parameters
+     *
+     * @return external_function_parameters
+     */
+    public static function get_user_dates_parameters() {
+        return new external_function_parameters(
+            [
+                'timestamps' => new external_multiple_structure (
+                    new external_single_structure (
+                        [
+                            'timestamp' => new external_value(PARAM_INT, 'unix timestamp'),
+                            'format' => new external_value(PARAM_TEXT, 'format string'),
+                        ]
+                    )
+                )
+            ]
+        );
+    }
+
+    /**
+     * Format an array of timestamps.
+     *
+     * @param array $dates Timestamps to format
+     * @return array
+     */
+    public static function get_user_dates($timestamps) {
+        $params = self::validate_parameters(
+            self::get_user_dates_parameters(),
+            ['timestamps' => $timestamps]
+        );
+
+        $formatteddates = array_map(function($timestamp) {
+            return userdate($timestamp['timestamp'], $timestamp['format']);
+        }, $params['timestamps']);
+
+        return ['dates' => $formatteddates];
+    }
+
+    /**
+     * Returns description of get_user_dates() result value
+     *
+     * @return array
+     */
+    public static function get_user_dates_returns() {
+        return new external_single_structure(
+            [
+                'dates' => new external_multiple_structure (
+                    new external_value(PARAM_TEXT, 'formatted dates strings')
+                )
+            ]
+        );
+    }
+
      /**
      * Returns description of get_component_strings parameters
      *
