@@ -1,0 +1,101 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/test_shorten_text
+
+    Example context (json):
+    {
+    }
+
+}}
+<style>
+#my-thing textarea {
+    border: none;
+    overflow: visible;
+    outline: none;
+    width: 100%;
+    height: 100px;
+    resize: none;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+</style>
+<table id="my-thing" class="table">
+    <thead>
+        <tr>
+            <th>Scenario</th>
+            <th>Context</th>
+            <th>Output</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                {{=<% %>=}}
+                {{#userdate}} 1293876000, %A, %d %B %Y, %I:%M %p {{/userdate}}
+                <%={{ }}=%>
+            </td>
+            <td>
+                <textarea>None</textarea>
+            </td>
+            <td>
+                <textarea>{{#userdate}} 1293876000, %A, %d %B %Y, %I:%M %p {{/userdate}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{=<% %>=}}
+                {{#userdate}} {{t1}}, %A, %d %B %Y, %I:%M %p {{/userdate}}
+                <%={{ }}=%>
+            </td>
+            <td>
+                <textarea>t1 = {{t1}}</textarea>
+            </td>
+            <td>
+                <textarea>{{#userdate}} {{t1}}, %A, %d %B %Y, %I:%M %p {{/userdate}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{=<% %>=}}
+                {{#userdate}} {{t2}}, {{f1}} {{/userdate}}
+                <%={{ }}=%>
+            </td>
+            <td>
+                <textarea>t1 = {{t2}}, f1 = {{f1}}</textarea>
+            </td>
+            <td>
+                <textarea>{{#userdate}} {{t2}}, {{f1}} {{/userdate}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{=<% %>=}}
+                {{#userdate}} {{t3}}, {{#str}} strftimedate {{/str}} {{/userdate}}
+                <%={{ }}=%>
+            </td>
+            <td>
+                <textarea>t3 = {{t3}}, strftimedate = {{#str}} strftimedate {{/str}}</textarea>
+            </td>
+            <td>
+                <textarea>{{#userdate}} {{t3}}, {{#str}} strftimedate {{/str}} {{/userdate}}</textarea>
+            </td>
+        </tr>
+    </tbody>
+</table>
