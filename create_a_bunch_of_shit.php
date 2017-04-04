@@ -22,9 +22,10 @@ set_config('enablecompletion', COMPLETION_ENABLED);
 $USER = get_admin();
 $ONEDAY = 60 * 60 * 24;
 $ONEMONTH = $ONEDAY * 30;
-$numberofteachers = 10;
-$numberofstudents = 100;
-$numberofcourses = 10;
+$seed = isset($argv[1]) ? $argv[1] : rand(1, 1000);
+$numberofteachers = 100;
+$numberofstudents = 1000;
+$numberofcourses = 100;
 $numberofassignments = 10;
 $numberofchats = 10;
 $numberofforums = 10;
@@ -42,8 +43,8 @@ for ($i = 0; $i < $numberofcourses; $i++) {
     printf("Creating %d of %d courses\n", $i + 1, $numberofcourses);
     $data = [
         'category' => $coursecategory->id,
-        'fullname' => sprintf('Course %d', $i),
-        'shortname' => sprintf('C%d', $i),
+        'fullname' => sprintf('Course %s %d', $seed, $i),
+        'shortname' => sprintf('C%s%d', $seed, $i),
         'enablecompletion' => COMPLETION_ENABLED,
     ];
 
@@ -62,7 +63,7 @@ for ($i = 0; $i < $numberofcourses; $i++) {
 for ($i = 1; $i <= $numberofstudents; $i++) {
     printf("Creating %d of %d students\n", $i, $numberofstudents);
     $record = [
-        'username' => sprintf('s%d', $i),
+        'username' => sprintf('s%s%d', $seed, $i),
         'password' => 'test'
     ];
 
@@ -72,7 +73,7 @@ for ($i = 1; $i <= $numberofstudents; $i++) {
 for ($i = 1; $i <= $numberofteachers; $i++) {
     printf("Creating %d of %d teachers\n", $i, $numberofteachers);
     $record = [
-        'username' => sprintf('t%d', $i),
+        'username' => sprintf('t%s%d', $seed, $i),
         'password' => 'test'
     ];
 
@@ -104,7 +105,7 @@ foreach ($courses as $course) {
 
 for ($i = 0; $i < ($numberofcourses / 4); $i++) {
     printf("Creating %d of %d groups\n", $i+1, ($numberofcourses / 4));
-    $groupname = sprintf('g%d', $i);
+    $groupname = sprintf('g%s%d', $seed, $i);
     $groupid = groups_create_group((object) [
         'courseid' => $courses[$i]->id,
         'name' => $groupname,
@@ -131,7 +132,7 @@ for ($i = 0; $i < $numberofcourses; $i++) {
     for ($j = 0; $j < $numberofassignments; $j++) {
         printf("Creating assignment %d of %d in course %s\n", $j+1, $numberofassignments, $course->shortname);
         $record = [
-            'name' => sprintf('Assignment %d %d', $course->id, $j),
+            'name' => sprintf('Assignment %s %d %d', $seed, $course->id, $j),
             'course' => $course,
             'assignsubmission_onlinetext_enabled' => 1,
         ];
@@ -230,7 +231,7 @@ foreach ($courses as $course) {
         }
 
         $chats[] = $chatgenerator->create_instance([
-            'name' => sprintf('Chat %d %d', $course->id, $j),
+            'name' => sprintf('Chat %s %d %d', $seed, $course->id, $j),
             'course' => $course,
             'chattime' => $chattime,
             'schedule' => 1,
@@ -255,7 +256,7 @@ foreach ($courses as $course) {
         }
 
         $forum = $forumgenerator->create_instance([
-            'name' => sprintf('Forum %d %d', $course->id, $j),
+            'name' => sprintf('Forum %s %d %d', $seed, $course->id, $j),
             'course' => $course,
             'completion' => 2,
             'completionview' => 1,
