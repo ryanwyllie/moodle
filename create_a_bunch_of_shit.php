@@ -24,11 +24,13 @@ $ONEDAY = 60 * 60 * 24;
 $ONEMONTH = $ONEDAY * 30;
 $seed = isset($argv[1]) ? $argv[1] : rand(1, 1000);
 $numberofteachers = 100;
-$numberofstudents = 1000;
-$numberofcourses = 100;
+$numberofstudents = 3000;
+$numberofcourses = 1000;
 $numberofassignments = 10;
 $numberofchats = 10;
 $numberofforums = 10;
+$numberofcoursesperstudent = 10;
+$studentsincourse = [];
 $groupids = [];
 $courses = [];
 $students = [];
@@ -83,24 +85,55 @@ for ($i = 1; $i <= $numberofteachers; $i++) {
 $enrolplugin = enrol_get_plugin('manual');
 $studentrole = $DB->get_record('role', array('shortname' => 'student'), '*', MUST_EXIST);
 $teacherrole = $DB->get_record('role', array('shortname' => 'teacher'), '*', MUST_EXIST);
-foreach ($courses as $course) {
-     $instances = enrol_get_instances($course->id, true);
+$courseindex = 0;
+$studentcoursecount = [];
+while (!empty($students)) {
+    $student = array_shift($students);
+    $course = $courses[$courseindex];
+    $instances = enrol_get_instances($course->id, true);
 
-     foreach ($instances as $instance) {
+    foreach ($instances as $instance) {
         if ($instance->enrol = 'manual') {
-            foreach ($students as $student) {
-                printf("Enrolling student %s in course %s\n", $student->username, $course->shortname);
-                $enrolplugin->enrol_user($instance, $student->id, $studentrole->id);
+            printf("Enrolling student %s in course %s\n", $student->username, $course->shortname);
+            $enrolplugin->enrol_user($instance, $student->id, $studentrole->id);
+            $studentsincourse[$course->id][] = $student;
+
+            if (isset($studentcoursecount[$student->id])) {
+                $studentcoursecount[$student->id] = $studentcoursecount[$student->id] + 1;
+            } else {
+                $studentcoursecount[$student->id] = 1;
             }
 
-            foreach ($teachers as $teacher) {
-                printf("Enrolling teacher %s in course %s\n", $teacher->username, $course->shortname);
-                $enrolplugin->enrol_user($instance, $teacher->id, $teacherrole->id);
-            }
+            printf("Student %s is now in %d courses\n", $student->username, $studentcoursecount[$student->id]);
 
             break;
         }
-     }
+    }
+
+    if ($courseindex >= $numberofcourses) {
+        $courseindex = 0;
+    } else {
+        $courseindex++;
+    }
+
+    if ($studentcoursecount[$student->id] < $numberofcoursesperstudent) {
+        printf("%d is less than %d adding student back to list\n", $studentcoursecount[$student->id], $numberofcoursesperstudent);
+        array_push($students, $student);
+    }
+}
+
+foreach ($teachers as $teacher) {
+    foreach ($courses as $course) {
+        $instances = enrol_get_instances($course->id, true);
+
+        foreach ($instances as $instance) {
+            if ($instance->enrol = 'manual') {
+                printf("Enrolling teacher %s in course %s\n", $teacher->username, $course->shortname);
+                $enrolplugin->enrol_user($instance, $teacher->id, $teacherrole->id);
+                break;
+            }
+        }
+    }
 }
 
 for ($i = 0; $i < ($numberofcourses / 4); $i++) {
@@ -111,6 +144,7 @@ for ($i = 0; $i < ($numberofcourses / 4); $i++) {
         'name' => $groupname,
     ]);
 
+    $students = $studentsincourse[$courses[$i]->id];
     if (count($students) > (($i * 3) + 3)) {
         for ($j = $i * 3; $j < (($i * 3) + 3); $j++) {
             $student = $students[$j];
@@ -128,6 +162,7 @@ for ($i = 0; $i < $numberofcourses; $i++) {
     $course = $courses[$i];
     $groupsoverridden = 0;
     $usersoverridden = 0;
+    $students = $studentsincourse[$course->id];
 
     for ($j = 0; $j < $numberofassignments; $j++) {
         printf("Creating assignment %d of %d in course %s\n", $j+1, $numberofassignments, $course->shortname);
@@ -198,7 +233,7 @@ for ($i = 0; $i < $numberofcourses; $i++) {
         $assignment->update_calendar($instance->cmid);
 
         $plugin = $assignment->get_submission_plugin_by_type('onlinetext');
-        for ($k = 0; $k < $numberofstudents; $k += 10) {
+        for ($k = 0; $k < count($students); $k += 10) {
             $student = $students[$k];
             printf("Creating submission for student %s\n", $student->username);
             $submission = $assignment->get_user_submission($student->id, true);
@@ -231,7 +266,7 @@ foreach ($courses as $course) {
         }
 
         $chats[] = $chatgenerator->create_instance([
-            'name' => sprintf('Chat %s %d %d', $seed, $course->id, $j),
+            'name' => sprintf('Chat %s %d %d', $seed, $course->id, $i),
             'course' => $course,
             'chattime' => $chattime,
             'schedule' => 1,
@@ -256,7 +291,7 @@ foreach ($courses as $course) {
         }
 
         $forum = $forumgenerator->create_instance([
-            'name' => sprintf('Forum %s %d %d', $seed, $course->id, $j),
+            'name' => sprintf('Forum %s %d %d', $seed, $course->id, $i),
             'course' => $course,
             'completion' => 2,
             'completionview' => 1,
