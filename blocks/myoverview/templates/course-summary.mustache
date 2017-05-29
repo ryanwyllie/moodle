@@ -26,7 +26,7 @@
         "summary": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
     }
 }}
-<div class="course-info-container" id="course-info-container-{{id}}">
+<div class="course-info-container" id="course-info-container-{{id}}" data-region="course-info-container">
     <div class="hidden-sm-up hidden-tablet hidden-phone">
         {{> block_myoverview/progress-chart}}
         <h4 class="h5"><a href="{{viewurl}}">{{{fullnamedisplay}}}</a></h4>
@@ -43,11 +43,11 @@
                 </div>
             </div>
             <div class="media-body">
-                <h4 class="h5"><a href="{{viewurl}}">{{{fullnamedisplay}}}</a></h4>
+                <h4 class="h5"><a href="{{viewurl}}" data-region="course-name">{{{fullnamedisplay}}}</a></h4>
             </div>
         </div>
     </div>
-    <p class="text-muted">
+    <p class="text-muted" data-region="course-description">
         {{#shortentext}} 140, {{{summary}}}{{/shortentext}}
     </p>
 </div>

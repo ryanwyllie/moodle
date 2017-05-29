@@ -26,6 +26,14 @@
     {{< block_myoverview/event-list }}
         {{$limit}}20{{/limit}}
     {{/ block_myoverview/event-list }}
+
+    <div class="hidden" data-region="search-results-container">
+        <ul class="list-group unstyled m-t-2" data-region="content">
+        </ul>
+        <div class="text-xs-center hidden" data-region="loading-icon-container">
+            {{> core/loading }}
+        </div>
+    </div>
 </div>
 {{#js}}
     require(['jquery', 'block_myoverview/event_list'], function($, EventList) {

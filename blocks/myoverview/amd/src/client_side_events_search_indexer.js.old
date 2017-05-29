@@ -1,0 +1,179 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * A module to index the overview block for the search engine.
+ *
+ * @module     block_myoverview/client_side_events_search_indexer
+ * @package    block_myoverview
+ * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+define(['jquery', 'core/notification', 'block_myoverview/event_list'],
+        function($, Notification, EventList) {
+
+    var SELECTORS = {
+        TIMELINE_TAB_DATES: '[data-region="timeline-view-dates"]',
+        TIMELINE_TAB_COURSES: '[data-region="timeline-view-courses"]',
+        EVENT: '[data-region="event-list-item"]',
+        EVENT_LIST_CONTAINER: '[data-region="event-list-container"]',
+        COURSE_NAME: '[data-region="course-name"]',
+        COURSE_DESCRIPTION: '[data-region="course-description"]',
+        EVENT_NAME: '[data-region="event-name"]',
+        EVENT_DATE: '[data-region="event-date"]',
+        COURSE_EVENTS_CONTAINER: '[data-region="course-events-container"]',
+        COURSE_INFO_CONTAINER: '[data-region="course-info-container"]',
+    };
+
+    var TYPES = {
+        TIMELINE_TAB_DATES: 'timeline-tab-sort-by-dates',
+        TIMELINE_TAB_COURSES: 'timeline-tab-sort-by-courses',
+    };
+
+    var guid = function() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+    };
+
+    var Indexer = function(searchIndex, root) {
+        this.searchIndex = searchIndex;
+        this.root = $(root);
+        this.guid = guid();
+        this.idCount = 0;
+
+        this.root.on(EventList.events.NEW_EVENTS_RENDERED, function(e, calendarEvents) {
+            var target = $(e.target);
+            var eventList = target.closest(SELECTORS.EVENT_LIST_CONTAINER);
+
+            this.indexEventList(eventList);
+        }.bind(this));
+    };
+
+    Indexer.prototype.getEventListType = function(eventList) {
+        eventList = $(eventList);
+
+        if (eventList.closest(SELECTORS.TIMELINE_TAB_DATES).length) {
+            return TYPES.TIMELINE_TAB_DATES;
+        } else {
+            return TYPES.TIMELINE_TAB_COURSES;
+        }
+    };
+
+    Indexer.prototype.getLastSeenEvent = function(eventList) {
+        eventList = $(eventList);
+        var lastSeenEventId = eventList.attr('data-last-seen-event');
+        if (typeof lastSeenEventId == 'undefined') {
+            return null;
+        }
+
+        return this.root.find('#' + lastSeenEventId);
+    };
+
+    Indexer.prototype.getUnseenEvents = function(eventList) {
+        eventList = $(eventList);
+        var lastSeenEvent = this.getLastSeenEvent(eventList);
+
+        if (lastSeenEvent && lastSeenEvent.length) {
+            return lastSeenEvent.nextAll(SELECTORS.EVENT);
+        } else {
+            return eventList.find(SELECTORS.EVENT);
+        }
+    };
+
+    Indexer.prototype.indexEventList = function(eventList) {
+        eventList = $(eventList);
+        this.setElementId(eventList);
+
+        var eventListType = this.getEventListType(eventList);
+        var events = this.getUnseenEvents(eventList);
+        var serialiseCourse = null;
+        var serialiseSelectors = null;
+
+        if (eventListType == TYPES.TIMELINE_TAB_DATES) {
+            serialiseCourse = this.serialiseCourse;
+            serialiseSelectors = function(element) {
+                return {
+                    id: '#' + element.attr('id'),
+                    container: SELECTORS.EVENT_LIST_CONTAINER,
+                    type: SELECTORS.TIMELINE_TAB_DATES,
+                };
+            };
+        } else {
+            var courseEventsContainer = eventList.closest(SELECTORS.COURSE_EVENTS_CONTAINER);
+            this.setElementId(courseEventsContainer);
+            var serialisedCourse = this.serialiseCourse(courseEventsContainer);
+
+            serialiseCourse = function(element) {
+                return serialisedCourse;
+            };
+
+            serialiseSelectors = function(element) {
+                return {
+                    id: '#' + element.attr('id'),
+                    container: '#' + courseEventsContainer.attr('id'),
+                    type: SELECTORS.TIMELINE_TAB_COURSES,
+                };
+            };
+        }
+
+        events.each(function(index, element) {
+            element = $(element);
+            this.setElementId(element);
+
+            var record = {
+                selectors: serialiseSelectors(element),
+                event: this.serialiseEvent(element),
+                course: serialiseCourse(element),
+            };
+
+            this.searchIndex.addRecord(record);
+            eventList.attr('data-last-seen-event', element.attr('id'));
+        }.bind(this));
+    };
+
+    Indexer.prototype.setElementId = function(element) {
+        element = $(element);
+        var id = element.attr('id');
+
+        if (typeof id == 'undefined') {
+            id = this.guid + '-' + this.idCount++;
+            element.attr('id', id);
+        }
+    };
+
+    Indexer.prototype.serialiseEvent = function(element) {
+        element = $(element);
+        return {
+            name: element.find(SELECTORS.EVENT_NAME).text().trim(),
+            date: element.find(SELECTORS.EVENT_DATE).text().trim(),
+        };
+    };
+
+    Indexer.prototype.serialiseCourse = function(element) {
+        element = $(element);
+        return {
+            name: element.find(SELECTORS.COURSE_NAME).text().trim(),
+            description: element.find(SELECTORS.COURSE_DESCRIPTION).text().trim(),
+        };
+    };
+
+    return Indexer;
+});

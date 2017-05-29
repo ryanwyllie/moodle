@@ -323,6 +323,82 @@ class core_calendar_external extends external_api {
      * @since Moodle 3.3
      * @return external_function_parameters
      */
+    public static function search_calendar_action_events_parameters() {
+        return new external_function_parameters(
+            array(
+                'name' => new external_value(PARAM_RAW, 'Time sort from', VALUE_DEFAULT, null),
+                'description' => new external_value(PARAM_RAW, 'Time sort to', VALUE_DEFAULT, null),
+                'ignoreEventIds' => new external_multiple_structure(
+                    new external_value(PARAM_INT, 'Event Id'), VALUE_DEFAULT, []
+                ),
+            )
+        );
+    }
+
+    /**
+     * Get calendar action events based on the timesort value.
+     *
+     * @since Moodle 3.3
+     * @param null|int $timesortfrom Events after this time (inclusive)
+     * @param null|int $timesortto Events before this time (inclusive)
+     * @param null|int $aftereventid Get events with ids greater than this one
+     * @param int $limitnum Limit the number of results to this value
+     * @return array
+     */
+    public static function search_calendar_action_events(
+        $name = null,
+        $description = null,
+        $ignoreEventIds = []
+    ) {
+        global $CFG, $PAGE, $USER;
+
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $user = null;
+        $params = self::validate_parameters(
+            self::search_calendar_action_events_parameters(),
+            [
+                'name' => $name,
+                'description' => $description,
+                'ignoreEventIds' => $ignoreEventIds
+            ]
+        );
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        $renderer = $PAGE->get_renderer('core_calendar');
+        $events = local_api::search_action_events(
+            $params['name'],
+            $params['description'],
+            $params['ignoreEventIds']
+        );
+
+        foreach ($events as $event) {
+            error_log(get_class($event));
+        }
+
+        $exportercache = new events_related_objects_cache($events);
+        $exporter = new events_exporter($events, ['cache' => $exportercache]);
+        $result = $exporter->export($renderer);
+        return $result;
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @since Moodle 3.3
+     * @return external_description
+     */
+    public static function search_calendar_action_events_returns() {
+        return events_exporter::get_read_structure();
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @since Moodle 3.3
+     * @return external_function_parameters
+     */
     public static function get_calendar_action_events_by_timesort_parameters() {
         return new external_function_parameters(
             array(

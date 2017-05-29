@@ -24,6 +24,9 @@
 }}
 
 <div id="block-myoverview-{{uniqid}}" class="block-myoverview" data-region="myoverview">
+    <form class="form-inline pull-right">
+        <input class="form-control" type="search" id="overview-search-{{uniqid}}" placeholder="Search">
+    </form>
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" href="#myoverview_timeline_view" role="tab" data-toggle="tab">
@@ -47,3 +50,58 @@
         </div>
     </div>
 </div>
+{{#js}}
+require([
+            'jquery',
+            'core/search_controller',
+            'core/search_index',
+            'core/search_engine',
+            'block_myoverview/server_side_events_search_engine',
+            'block_myoverview/client_side_events_search_indexer',
+            'block_myoverview/client_side_courses_search_indexer',
+            'block_myoverview/timeline_dates_search_renderer',
+            'block_myoverview/timeline_courses_search_renderer',
+            'block_myoverview/courses_search_renderer'
+        ],
+        function(
+            $,
+            SearchController,
+            SearchIndex,
+            SearchEngine,
+            ServerSideEventsSearchEngine,
+            ClientSideEventsSearchIndexer,
+            ClientSideCoursesSearchIndexer,
+            TimelineDatesSearchRenderer,
+            TimelineCoursesSearchRenderer,
+            CoursesSearchRenderer
+        ) {
+
+    var root = $('#block-myoverview-{{uniqid}}');
+    var searchInput = $('#overview-search-{{uniqid}}');
+    var eventsSearchIndex = new SearchIndex([
+            'name',
+            'modulename',
+            'course.fullnamedisplay',
+            'course.summary',
+    ]);
+    var clientSideEventsSearchIndexer = new ClientSideEventsSearchIndexer(eventsSearchIndex, root);
+    var clientSideEventsSearchEngine = new SearchEngine(eventsSearchIndex);
+    var serverSideEventsSearchEngine = new ServerSideEventsSearchEngine(eventsSearchIndex);
+    var timelineDatesSearchRenderer = new TimelineDatesSearchRenderer(root);
+    var timelineCoursesSearchRenderer = new TimelineCoursesSearchRenderer(root);
+    var eventsSearchController = new SearchController(
+        searchInput,
+        [clientSideEventsSearchEngine, serverSideEventsSearchEngine],
+        [timelineDatesSearchRenderer, timelineCoursesSearchRenderer]
+    );
+
+    var coursesSearchIndex = new SearchIndex([
+            'course.name',
+            'course.descrption',
+    ]);
+    var clientSideCoursesSearchIndexer = new ClientSideCoursesSearchIndexer(coursesSearchIndex, root);
+    var clientSideCoursesSearchEngine = new SearchEngine(coursesSearchIndex);
+    var coursesSearchRenderer = new CoursesSearchRenderer(root);
+    var coursesSearchController = new SearchController(searchInput, [clientSideCoursesSearchEngine], [coursesSearchRenderer]);
+});
+{{/js}}

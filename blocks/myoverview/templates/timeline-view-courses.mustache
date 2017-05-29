@@ -22,7 +22,7 @@
     Example context (json):
     {}
 }}
-<div id="sort-by-courses-view-{{uniqid}}">
+<div id="sort-by-courses-view-{{uniqid}}" data-region="timeline-view-courses">
     {{#coursesview}}
         {{#inprogress}}
             {{#haspages}}
@@ -60,6 +60,14 @@
             </div>
         {{/inprogress}}
     {{/coursesview}}
+
+    <div class="hidden" data-region="search-results-container">
+        <ul class="list-group unstyled m-t-2" data-region="content">
+        </ul>
+        <div class="text-xs-center hidden" data-region="loading-icon-container">
+            {{> core/loading }}
+        </div>
+    </div>
 </div>
 {{#js}}
     require(['jquery', 'core/custom_interaction_events', 'block_myoverview/event_list_by_course'],

@@ -160,9 +160,33 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return promise;
     };
 
+    var search = function(args) {
+        if (args.hasOwnProperty('starttime')) {
+            args.timesortfrom = args.starttime;
+            delete args.starttime;
+        }
+
+        if (args.hasOwnProperty('endtime')) {
+            args.timesortto = args.endtime;
+            delete args.endtime;
+        }
+
+        var request = {
+            methodname: 'core_calendar_search_action_events',
+            args: args,
+        };
+
+        var promise = Ajax.call([request])[0];
+
+        promise.fail(Notification.exception);
+
+        return promise;
+    };
+
     return {
         queryByTime: queryByTime,
         queryByCourse: queryByCourse,
         queryByCourses: queryByCourses,
+        search: search,
     };
 });

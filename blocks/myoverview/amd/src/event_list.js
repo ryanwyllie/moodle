@@ -44,6 +44,10 @@ define(['jquery', 'core/notification', 'core/templates',
         COURSE_EVENT_LIST_ITEMS: 'block_myoverview/course-event-list-items'
     };
 
+    var EVENTS = {
+        NEW_EVENTS_RENDERED: 'block_myoverview-new-events-rendered',
+    };
+
     /**
      * Set a flag on the element to indicate that it has completed
      * loading all event data.
@@ -374,6 +378,10 @@ define(['jquery', 'core/notification', 'core/templates',
                         // sending any more requests.
                         setLoadedAll(root);
                     }
+
+                    if (renderCount) {
+                        root.trigger(EVENTS.NEW_EVENTS_RENDERED, {events: calendarEvents});
+                    }
                 });
             } else {
                 updateContentVisibility(root, calendarEvents.length);
@@ -407,5 +415,6 @@ define(['jquery', 'core/notification', 'core/templates',
         registerEventListeners: registerEventListeners,
         load: load,
         rootSelector: SELECTORS.ROOT,
+        events: EVENTS,
     };
 });

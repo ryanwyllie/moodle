@@ -212,4 +212,34 @@ class api {
 
         return $return;
     }
+
+    /**
+     * Get a list of action events for the logged in user by the given
+     * course and timesort values.
+     *
+     * @param \stdClass $course The course the events must belong to
+     * @param int|null $timesortfrom The start timesort value (inclusive)
+     * @param int|null $timesortto The end timesort value (inclusive)
+     * @param int|null $aftereventid Only return events after this one
+     * @param int $limitnum Limit results to this amount (between 1 and 50)
+     * @return array A list of action_event_interface objects
+     * @throws limit_invalid_parameter_exception
+     */
+    public static function search_action_events(
+        $name = null,
+        $description = null,
+        $ignoreEventIds = []
+    ) {
+        global $USER;
+
+        if (is_null($name) && is_null($description)) {
+            throw new limit_invalid_parameter_exception(
+                "You must provide either a name or description");
+        }
+
+        $vault = \core_calendar\local\event\container::get_event_vault();
+
+        return $vault->search_action_events(
+            $USER, $name, $description, $ignoreEventIds);
+    }
 }

@@ -258,6 +258,57 @@ class event_vault implements event_vault_interface {
         );
     }
 
+    public function search_action_events(
+        \stdClass $user,
+        $name = null,
+        $description = null,
+        $ignoreEventIds = []
+    ) {
+        global $DB;
+
+        if (is_null($name) && is_null($description)) {
+            throw new limit_invalid_parameter_exception(
+                "You must provide either a name or description");
+        }
+
+        $wheres = ['type = ?'];
+        $params = [CALENDAR_EVENT_TYPE_ACTION];
+
+        if ($name) {
+            $wheres[] = 'name LIKE ?';
+            $params[] = '%' . $name . '%';
+        }
+
+        if ($description) {
+            $wheres[] = 'description LIKE ?';
+            $params[] = '%' . $description . '%';
+        }
+
+        if ($ignoreEventIds) {
+            list($sql, $ids) = $DB->get_in_or_equal($ignoreEventIds);
+            $where[] = $sql;
+            $params = $params + $ids;
+        }
+
+        $records = $DB->get_records_select('event', implode(' AND ', $wheres), $params);
+        $result = [];
+        foreach (array_values($records) as $record) {
+            $event = $this->transform_from_database_record($record);
+
+            if ($event instanceof action_event_interface) {
+                $result[] = $event;
+            }
+        }
+
+        return $result;
+
+        /*
+        return array_map(function($record) {
+            return $this->transform_from_database_record($record);
+        }, array_values($records));
+        */
+    }
+
     /**
      * Generates SQL subquery and parameters for 'from' pagination.
      *

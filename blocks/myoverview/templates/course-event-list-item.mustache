@@ -46,8 +46,8 @@
                 {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
             </div>
             <div class="d-inline-block event-name-container">
-                <a class="event-name text-truncate" href="{{{url}}}">{{{name}}}</a>
-                <p class="small text-muted text-truncate m-b-0">
+                <a class="event-name text-truncate" href="{{{url}}}" data-region="event-name">{{{name}}}</a>
+                <p class="small text-muted text-truncate m-b-0" data-region="event-date">
                     {{#userdate}} {{timesort}}, {{#str}} strftimerecent {{/str}} {{/userdate}}
                 </p>
             </div>
