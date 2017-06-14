@@ -52,15 +52,27 @@ if ($slashargument = min_get_slash_argument()) {
 
     list($themename, $rev, $type) = explode('/', $slashargument, 3);
     $themename = min_clean_param($themename, 'SAFEDIR');
-    $rev       = min_clean_param($rev, 'INT');
+    $rev       = min_clean_param($rev, 'RAW');
     $type      = min_clean_param($type, 'SAFEDIR');
 
 } else {
     $themename = min_optional_param('theme', 'standard', 'SAFEDIR');
-    $rev       = min_optional_param('rev', 0, 'INT');
+    $rev       = min_optional_param('rev', 0, 'RAW');
     $type      = min_optional_param('type', 'all', 'SAFEDIR');
     $chunk     = min_optional_param('chunk', null, 'INT');
     $usesvg    = (bool)min_optional_param('svg', '1', 'INT');
+}
+
+// Check if we received a theme sub revision which allows us
+// to handle local caching on a per theme basis.
+$values = explode('-', $rev);
+$rev = min_clean_param(array_shift($values), 'INT');
+$themesubrev = array_shift($values);
+
+if (is_null($themesubrev)) {
+    $themesubrev = -1;
+} else {
+    $themesubrev = min_clean_param($themesubrev, 'INT');
 }
 
 if ($type === 'editor') {
@@ -82,8 +94,8 @@ if (file_exists("$CFG->dirroot/theme/$themename/config.php")) {
 }
 
 $candidatedir = "$CFG->localcachedir/theme/$rev/$themename/css";
-$etag = "$rev/$themename/$type";
-$candidatename = $type;
+$etag = "$rev/$themename/$type/$themesubrev";
+$candidatename = ($themesubrev > 0) ? "{$type}_{$themesubrev}" : $type;
 if (!$usesvg) {
     // Add to the sheet name, one day we'll be able to just drop this.
     $candidatedir .= '/nosvg';
@@ -126,8 +138,8 @@ if ($themerev <= 0 or $themerev != $rev) {
     $cache = false;
 
     $candidatedir = "$CFG->localcachedir/theme/$rev/$themename/css";
-    $etag = "$rev/$themename/$type";
-    $candidatename = $type;
+    $etag = "$rev/$themename/$type/$themesubrev";
+    $candidatename = ($themesubrev > 0) ? "{$type}_{$themesubrev}" : $type;
     if (!$usesvg) {
         // Add to the sheet name, one day we'll be able to just drop this.
         $candidatedir .= '/nosvg';
@@ -185,7 +197,7 @@ if ($type === 'editor') {
         }
     }
 
-    css_store_css($theme, "$candidatedir/$type.css", $csscontent, true, $chunkurl);
+    css_store_css($theme, "$candidatedir/$candidatename.css", $csscontent, true, $chunkurl);
 
     // Release the lock.
     if ($lock) {
