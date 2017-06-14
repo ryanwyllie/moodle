@@ -262,6 +262,57 @@ function theme_build_css_for_themes($themeconfigs = [], $skipltr = false, $skipr
     return $themescss;
 }
 
+/**
+ * Save the given CSS in the shipped CSS directory.
+ *
+ * @param theme_config $themeconfig The theme_config for the generated CSS
+ * @param string       $ltrcss      The generated LTR CSS
+ * @param string       $rtlcss      The generated RTL CSS
+ */
+function theme_store_css_in_shipped_directory($themeconfig, $ltrcss = null, $rtlcss = null) {
+    global $CFG;
+
+    $themename = $themeconfig->name;
+    $directory = "{$CFG->dirroot}/shipped/{$themename}";
+
+    css_store_css_in_directory($themeconfig, $directory, $ltrcss, $rtlcss);
+}
+
+/**
+ * Generates and saves the shipped CSS files for the given theme configs. This
+ * is the CSS that comes pre-configured with the Moodle source code.
+ *
+ * This function will generate each theme with default values for all of the
+ * theme settings. The resulting CSS is then stored in the shipped CSS directory.
+ *
+ * @param theme_config[] $themeconfigs An array of theme_config instances.
+ * @param bool           $skipltr      Flag to skip generating the LTR CSS files.
+ * @param bool           $skiprtl      Flag to skip generating the RTL CSS files.
+ */
+function theme_build_shipped_css_for_themes($themeconfigs = [], $skipltr = false, $skiprtl = false) {
+    global $CFG;
+
+    $settings = [];
+    // Nuke the settings so that we build with the default values.
+    foreach ($themeconfigs as $themeconfig) {
+        $settings[] = $themeconfig->settings;
+        $themeconfig->settings = null;
+    }
+
+    $themescss = theme_build_css_for_themes($themeconfigs, $skipltr, $skiprtl, false);
+
+    for ($i = 0; $i < count($themeconfigs); $i++) {
+        $themeconfig = $themeconfigs[$i];
+        $themecss = $themescss[$i];
+
+        theme_store_css_in_shipped_directory($themeconfig, $themecss['ltr'], $themecss['rtl']);
+    }
+
+    // Restore the theme settings.
+    foreach ($themeconfigs as $themeconfig) {
+        $themeconfig->settings = array_shift($settings);
+    }
+}
 
 /**
  * Invalidate all server and client side caches.

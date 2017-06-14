@@ -33,6 +33,7 @@ require_once("$CFG->libdir/outputlib.php");
 $longparams = [
     'themes'    => null,
     'direction' => null,
+    'shipped'   => false,
     'help'      => false,
     'verbose'   => false
 ];
@@ -40,6 +41,7 @@ $longparams = [
 $shortmappings = [
     't' => 'themes',
     'd' => 'direction',
+    's' => 'shipped',
     'h' => 'help',
     'v' => 'verbose'
 ];
@@ -61,11 +63,12 @@ By default all themes will be recompiled unless otherwise specified.
 Options:
 -t, --themes    A comma separated list of themes to be compiled
 -d, --direction Only compile a single direction (either ltr or rtl)
+-s, --shipped   Generated the theme CSS to be shipped with Moodle
 -v, --verbose   Print info comments to stdout
 -h, --help      Print out this help
 
 Example:
-\$ sudo -u www-data /usr/bin/php admin/cli/compile_theme_css.php --themes=boost --direction=ltr
+\$ sudo -u www-data /usr/bin/php admin/cli/compile_theme_css.php --themes=boost --shipped
 ";
 
     die;
@@ -116,7 +119,13 @@ if (!is_null($options['direction'])) {
     $skiprtl = ($options['direction'] == 'ltr');
 }
 
-$trace->output('Building CSS for themes: ' . implode(', ', $themenames));
-theme_build_css_for_themes($themeconfigs, $skipltr, $skiprtl);
+
+if ($options['shipped']) {
+    $trace->output('Building shipped CSS for themes: ' . implode(', ', $themenames));
+    theme_build_shipped_css_for_themes($themeconfigs, $skipltr, $skiprtl);
+} else {
+    $trace->output('Building CSS for themes: ' . implode(', ', $themenames));
+    theme_build_css_for_themes($themeconfigs, $skipltr, $skiprtl);
+}
 
 exit(0);
