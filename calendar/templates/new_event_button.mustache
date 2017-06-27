@@ -37,17 +37,36 @@
 New Event
 </button>
 {{#js}}
-require(['jquery', 'core/fragment', 'core/modal_factory'], function($, Fragment, ModalFactory) {
+require(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, Templates) {
     var button = $('#{{uniqid}}');
     var promise = Fragment.loadFragment('calendar', 'event_form', button.attr('data-context-id'), {
         courseid: button.attr('data-course-id'),
         action: 'new',
         time: button.attr('data-current-time'),
     })
+    .done(function(html, js) {
+        var container = $('[role="main"]');
+        var calendar = container.find('.maincalendar');
+        var node = $(html);
+        node.prepend('<button class="btn btn-danger" id="thebackbutton">Back</button>');
+        Templates.appendNodeContents(container, node, js);
 
-    ModalFactory.create({
-        large: true,
-        body: promise,
-    }, button);
+        node.hide();
+        button.click(function(e) {
+            calendar.hide();
+            node.show();
+
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        node.find('#thebackbutton').click(function(e) {
+            calendar.show();
+            node.hide();
+
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    });
 });
 {{/js}}
