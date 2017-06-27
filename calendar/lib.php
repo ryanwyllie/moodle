@@ -3330,3 +3330,21 @@ function calendar_get_legacy_events($tstart, $tend, $users, $groups, $courses, $
         return $carry + [$event->get_id() => $mapper->from_event_to_stdclass($event)];
     }, []);
 }
+
+function calendar_output_fragment_event_form($args) {
+    global $CFG;
+    require_once($CFG->dirroot.'/calendar/event_form.php');
+
+    $event = new stdClass();
+    $event->action = $args['action'];
+    $event->course = $args['courseid'];
+    $event->courseid = $args['courseid'];
+    $event->timestart = $args['time'];
+
+    $event = new calendar_event($event);
+    $properties = $event->properties(true);
+    $mform = new event_form(null, []);
+    $mform->set_data($properties);
+
+    return $mform->render();
+}

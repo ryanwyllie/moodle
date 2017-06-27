@@ -129,6 +129,8 @@ class core_calendar_renderer extends plugin_renderer_base {
      * @return string
      */
     protected function add_event_button($courseid, $day = null, $month = null, $year = null, $time = null) {
+        global $PAGE;
+
         // If a day, month and year were passed then convert it to a timestamp. If these were passed
         // then we can assume the day, month and year are passed as Gregorian, as no where in core
         // should we be passing these values rather than the time. This is done for BC.
@@ -142,9 +144,12 @@ class core_calendar_renderer extends plugin_renderer_base {
             $time = time();
         }
 
+        $coursecontext = \context_course::instance($courseid);
+        /*
         $output = html_writer::start_tag('div', array('class'=>'buttons'));
         $output .= html_writer::start_tag('form', array('action' => CALENDAR_URL . 'event.php', 'method' => 'get'));
         $output .= html_writer::start_tag('div');
+        $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'contextid', 'value' => $context->id));
         $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'action', 'value' => 'new'));
         $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'course', 'value' => $courseid));
         $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'time', 'value' => $time));
@@ -154,6 +159,15 @@ class core_calendar_renderer extends plugin_renderer_base {
         $output .= html_writer::end_tag('form');
         $output .= html_writer::end_tag('div');
         return $output;
+        */
+
+        $renderer = $PAGE->get_renderer('core', 'calendar');
+        $templatecontext = [
+            'contextid' => $coursecontext->id,
+            'courseid' => $courseid,
+            'time' => $time,
+        ];
+        return $renderer->render_from_template('core_calendar/new_event_button', $templatecontext);
     }
 
     /**
