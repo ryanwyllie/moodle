@@ -1,0 +1,93 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template calendar/new_event_button
+
+    Displays link to calendar day in mini calendar, with hover tooltip.
+
+    Example context (json):
+    {
+        "day": "Today",
+        "url": "http://example.com/",
+        "title": "Monday 2nd January",
+        "content": "<img class='icon smallicon' alt='icon' src='../../../pix/i/siteevent.svg'>Test site event"
+    }
+}}
+<button id="{{uniqid}}"
+        type="button"
+        class="btn btn-secondary pull-xs-right">
+
+    {{#str}} newevent, calendar {{/str}}
+</button>
+{{#js}}
+require([
+            'jquery',
+            'core/url',
+            'core/custom_interaction_events',
+            'core/modal_factory',
+            'core_calendar/modal_quick_add_event'
+        ],
+        function(
+            $,
+            URL,
+            CustomEvents,
+            ModalFactory,
+            ModalQuickAddEvent
+        ) {
+
+    var button = $('#{{uniqid}}');
+    var types = '{{types}}'.split(',');
+    var modal;
+
+    CustomEvents.define(button, [CustomEvents.events.activate]);
+
+    button.on(CustomEvents.events.activate, function(e, data) {
+        if (typeof modal == 'undefined') {
+            var params = {
+                course: {{courseid}},
+                time: {{time}},
+                action: 'new'
+            };
+            var moreUrl = URL.relativeUrl('/calendar/event.php', params);
+            var templateContext = {
+                formattedtime: '{{formattedtime}}',
+                allowedtypes: types,
+                urls: {
+                    more: moreUrl
+                }
+            };
+
+            ModalFactory.create({
+                large: true,
+                type: ModalQuickAddEvent.TYPE,
+                templateContext: templateContext
+            }, button)
+            .done(function(newModal) {
+                modal = newModal;
+                modal.show();
+            });
+        } else {
+            modal.show();
+        }
+
+        e.stopPropagation();
+        e.preventDefault();
+        data.originalEvent.stopPropagation();
+        data.originalEvent.preventDefault();
+    });
+});
+{{/js}}

@@ -142,18 +142,41 @@ class core_calendar_renderer extends plugin_renderer_base {
             $time = time();
         }
 
-        $output = html_writer::start_tag('div', array('class'=>'buttons'));
-        $output .= html_writer::start_tag('form', array('action' => CALENDAR_URL . 'event.php', 'method' => 'get'));
-        $output .= html_writer::start_tag('div');
-        $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'action', 'value' => 'new'));
-        $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'course', 'value' => $courseid));
-        $output .= html_writer::empty_tag('input', array('type'=>'hidden', 'name' => 'time', 'value' => $time));
-        $attributes = array('type' => 'submit', 'value' => get_string('newevent', 'calendar'), 'class' => 'btn btn-secondary');
-        $output .= html_writer::empty_tag('input', $attributes);
-        $output .= html_writer::end_tag('div');
-        $output .= html_writer::end_tag('form');
-        $output .= html_writer::end_tag('div');
-        return $output;
+        $datetime = new DateTime();
+        $datetime->setTimestamp($time);
+        $minutes = $datetime->format('i');
+        $seconds = $datetime->format('s');
+
+        if ($minutes > 0 || $seconds > 0) {
+            $datetime->modify('+1 hour');
+            $datetime->modify("-{$minutes} minutes");
+            $datetime->modify("-{$seconds} seconds");
+        }
+
+        calendar_get_allowed_types($allowed, $courseid);
+        $types = [];
+
+        if (!empty($allowed->user)) {
+            $types['user'] = get_string('user');
+        }
+        if (!empty($allowed->groups) && is_array($allowed->groups)) {
+            $types['group'] = get_string('group');
+        }
+        if (!empty($allowed->courses)) {
+            $types['course'] = get_string('course');
+        }
+        if (!empty($allowed->site)) {
+            $types['site'] = get_string('site');
+        }
+
+        $context = [
+            'courseid' => $courseid,
+            'time' => $datetime->getTimestamp(),
+            'formattedtime' => userdate($datetime->getTimestamp(), get_string('strftimedaydatetime', 'langconfig')),
+            'types' => implode(',', $types),
+        ];
+
+        return $this->render_from_template('core_calendar/new_event_button', $context);
     }
 
     /**
