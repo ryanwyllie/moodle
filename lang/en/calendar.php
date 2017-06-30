@@ -93,6 +93,7 @@ $string['eventendtime'] = 'End time';
 $string['eventinstanttime'] = 'Time';
 $string['eventkind'] = 'Type of event';
 $string['eventname'] = 'Event title';
+$string['eventnameplaceholderexample'] = 'E.g. 11am Quiz';
 $string['eventnone'] = 'No events';
 $string['eventrepeat'] = 'Repeats';
 $string['eventsall'] = 'All events';
@@ -238,6 +239,7 @@ $string['wednesday'] = 'Wednesday';
 $string['weekly'] = 'Weekly';
 $string['weeknext'] = 'Next week';
 $string['weekthis'] = 'This week';
+$string['when'] = 'When';
 $string['yesterday'] = 'Yesterday';
 $string['youcandeleteallrepeats'] = 'This event is part of a repeating event series. You can delete this event only, or all {$a} events in the series at once.';
 

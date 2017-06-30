@@ -19,35 +19,43 @@
  * @module     calendar/modal_quick_add_event
  * @class      modal_quick_add_event
  * @package    core
- * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([
             'jquery',
             'core/notification',
+            'core/templates',
             'core/custom_interaction_events',
             'core/modal',
             'core/modal_registry',
             'core/html5_form_validator',
             'core/bootstrap_form_validation_styles',
+            'core_calendar/calendar_repository'
         ],
         function(
             $,
             Notification,
+            Templates,
             CustomEvents,
             Modal,
             ModalRegistry,
             HTML5FormValidator,
-            BootstrapFormValidationStyles
+            BootstrapFormValidationStyles,
+            Repository
         ) {
 
     var registered = false;
     var SELECTORS = {
         MORE_LINK: '[data-action="more"]',
         SAVE_BUTTON: '[data-action="save"]',
+        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         EVENT_NAME: '[data-event-name]',
-        EVENT_DATE_TIME: '[data-event-date-time]',
-        EVENT_TYPE: '[data-event-type]',
+        EVENT_TYPE: '[data-event-type]'
+    };
+    var ATTRIBUTES = {
+        EVENT_COURSE_ID: 'data-event-course-id',
+        EVENT_TIME: 'data-event-time'
     };
 
     /**
@@ -63,6 +71,60 @@ define([
     ModalQuickAddEvent.prototype = Object.create(Modal.prototype);
     ModalQuickAddEvent.prototype.constructor = ModalQuickAddEvent;
 
+    ModalQuickAddEvent.prototype.hide = function() {
+        // Reset the form when the user hides the modal.
+        this.getBody().find('form')[0].reset();
+        // Apply parent hide function;
+        Modal.prototype.hide.call(this);
+    };
+
+    ModalQuickAddEvent.prototype.getEventProperties = function() {
+        var nameElement = this.getBody().find(SELECTORS.EVENT_NAME);
+        var typeElement = this.getBody().find(SELECTORS.EVENT_TYPE);
+        var saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
+        var eventType = typeElement.val();
+        var properties = {
+            name: nameElement.val().trim(),
+            eventtype: typeElement.val(),
+            timestart: saveButton.attr(ATTRIBUTES.EVENT_TIME)
+        };
+
+        // Only include the course id if the event type isn't
+        // a user event.
+        if (eventType != 'user') {
+            properties.courseid = saveButton.attr(ATTRIBUTES.EVENT_COURSE_ID);
+        }
+
+        return properties;
+    };
+
+    ModalQuickAddEvent.prototype.saveEvent = function() {
+        var saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
+        var moreButton = this.getFooter().find(SELECTORS.MORE_BUTTON);
+        var loadingContainer = saveButton.find(SELECTORS.LOADING_ICON_CONTAINER);
+        var form = this.getBody().find('form');
+
+        if (HTML5FormValidator.isValid(form)) {
+            loadingContainer.removeClass('hidden');
+            saveButton.prop('disabled', true);
+            moreButton.prop('disabled', true);
+
+            // save event.
+            var eventProperties = this.getEventProperties();
+            Repository.createEvent(eventProperties)
+                .then(function() {
+                    this.hide();
+                    // Reload the page so that the new event shows up.
+                    window.location.reload();
+                }.bind(this))
+                .always(function() {
+                    loadingContainer.addClass('hidden');
+                    saveButton.prop('disabled', false);
+                    moreButton.prop('disabled', false);
+                });
+        }
+    };
+
     /**
      * Set up all of the event handling for the modal.
      *
@@ -74,22 +136,21 @@ define([
 
         var form = this.getBody().find('form');
 
+        // Validate the form as the user fills it out.
         HTML5FormValidator.validateOnBlur(form);
+        // Apply the appropriate Bootstrap classes for form validation
+        // based on the events triggered by the HTML5FormValidator.
         BootstrapFormValidationStyles.init(
             form,
-            HTML5FormValidator.events.INVALID, // The type of invalid event.
-            HTML5FormValidator.events.VALID, // The type of valid event.
+            HTML5FormValidator.events.INVALID, // The invalid event to listen for.
+            HTML5FormValidator.events.VALID, // The valid event to listen for.
             true // We want to show the success styling.
         );
 
+        // When the user clicks the save button.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
+            this.saveEvent();
             data.originalEvent.preventDefault();
-
-            var isValid = HTML5FormValidator.isValid(form);
-
-            if (isValid) {
-                // save event.
-            }
         }.bind(this));
     };
 

@@ -36,6 +36,8 @@
 {{#js}}
 require([
             'jquery',
+            'core/notification',
+            'core/str',
             'core/url',
             'core/custom_interaction_events',
             'core/modal_factory',
@@ -43,6 +45,8 @@ require([
         ],
         function(
             $,
+            Notification,
+            Str,
             URL,
             CustomEvents,
             ModalFactory,
@@ -57,28 +61,47 @@ require([
 
     button.on(CustomEvents.events.activate, function(e, data) {
         if (typeof modal == 'undefined') {
-            var params = {
-                course: {{courseid}},
-                time: {{time}},
-                action: 'new'
-            };
-            var moreUrl = URL.relativeUrl('/calendar/event.php', params);
-            var templateContext = {
-                formattedtime: '{{formattedtime}}',
-                allowedtypes: types,
-                urls: {
-                    more: moreUrl
-                }
-            };
-
-            ModalFactory.create({
-                type: ModalQuickAddEvent.TYPE,
-                templateContext: templateContext
-            }, button)
-            .done(function(newModal) {
-                modal = newModal;
-                modal.show();
+            var request = types.map(function(type) {
+                return {
+                    key: type,
+                    component: 'core'
+                };
             });
+
+            Str.get_strings(request).done(function(strings) {
+                var allowedTypes = [];
+                strings.forEach(function(string, i) {
+                    allowedTypes.push({
+                        name: string,
+                        value: types[i]
+                    });
+                });
+                var params = {
+                    course: {{courseid}},
+                    time: {{time}},
+                    action: 'new'
+                };
+                var moreUrl = URL.relativeUrl('/calendar/event.php', params);
+                var templateContext = {
+                    courseid: {{courseid}},
+                    time: {{time}},
+                    formattedtime: '{{formattedtime}}',
+                    allowedtypes: allowedTypes,
+                    urls: {
+                        more: moreUrl
+                    }
+                };
+
+                ModalFactory.create({
+                    type: ModalQuickAddEvent.TYPE,
+                    templateContext: templateContext
+                }, button)
+                .done(function(newModal) {
+                    modal = newModal;
+                    modal.show();
+                });
+            })
+            .fail(Notification.exception);
         } else {
             modal.show();
         }

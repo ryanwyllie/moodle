@@ -157,16 +157,16 @@ class core_calendar_renderer extends plugin_renderer_base {
         $types = [];
 
         if (!empty($allowed->user)) {
-            $types['user'] = get_string('user');
+            $types[] = 'user';
         }
         if (!empty($allowed->groups) && is_array($allowed->groups)) {
-            $types['group'] = get_string('group');
+            $types[] = 'group';
         }
         if (!empty($allowed->courses)) {
-            $types['course'] = get_string('course');
+            $types[] = 'course';
         }
         if (!empty($allowed->site)) {
-            $types['site'] = get_string('site');
+            $types[] = 'site';
         }
 
         $context = [

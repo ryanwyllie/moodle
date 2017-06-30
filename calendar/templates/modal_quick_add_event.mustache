@@ -43,24 +43,29 @@
     {{$body}}
         <form>
             <div class="form-group">
-                <label for="event-name-{{uniqid}}">Event name</label>
+                <label for="event-name-{{uniqid}}">{{#str}} eventname, calendar {{/str}}</label>
                 <input id="event-name-{{uniqid}}"
                        class="form-control"
                        type="text"
-                       placeholder="Event name"
+                       placeholder="{{#str}} eventnameplaceholderexample, calendar {{/str}}"
                        required
                        data-event-name
                        data-has-validation>
             </div>
             <div class="form-group">
-                <div>When</div>
+                <div>{{#str}} when, calendar {{/str}}</div>
                 <p data-event-date-time>{{formattedtime}}</p>
             </div>
             <div class="form-group">
-                <label for="event-type-{{uniqid}}">Type</label>
-                <select data-event-type data-has-validation class="form-control" id="event-type-{{uniqid}}" required>
+                <label for="event-type-{{uniqid}}">{{#str}} type {{/str}}</label>
+                <select id="event-type-{{uniqid}}"
+                        class="form-control"
+                        required
+                        data-event-type
+                        data-has-validation>
+
                     {{#allowedtypes}}
-                        <option>{{.}}</option>
+                        <option value="{{value}}">{{name}}</option>
                     {{/allowedtypes}}
                 </select>
             </div>
@@ -68,6 +73,16 @@
     {{/body}}
     {{$footer}}
         <a class="btn btn-secondary" data-action="more" href="{{{urls.more}}}">{{#str}} more, calendar {{/str}}</a>
-        <button type="button" class="btn btn-primary" data-action="save">{{#str}} save {{/str}}</button>
+        <button type="button"
+                class="btn btn-primary"
+                data-action="save"
+                data-event-course-id="{{courseid}}"
+                data-event-time="{{time}}">
+
+            {{#str}} save {{/str}}
+            <span class="hidden" data-region="loading-icon-container">
+                {{> core/loading }}
+            </span>
+        </button>
     {{/footer}}
 {{/ core/modal }}

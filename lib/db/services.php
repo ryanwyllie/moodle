@@ -58,6 +58,7 @@ $functions = array(
         'type' => 'write',
         'capabilities' => 'moodle/calendar:manageentries, moodle/calendar:manageownentries, moodle/calendar:managegroupentries',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true,
     ),
     'core_calendar_delete_calendar_events' => array(
         'classname' => 'core_calendar_external',
