@@ -55,6 +55,8 @@ require([
 
     var button = $('#{{uniqid}}');
     var types = '{{types}}'.split(',');
+    var courses = JSON.parse('{{{courses}}}');
+    var groups = JSON.parse('{{{groups}}}');
     var modal;
 
     CustomEvents.define(button, [CustomEvents.events.activate]);
@@ -87,6 +89,11 @@ require([
                     time: {{time}},
                     formattedtime: '{{formattedtime}}',
                     allowedtypes: allowedTypes,
+                    hasmultipletypes: {{hasmultipletypes}},
+                    hascourses: {{hascourses}},
+                    hasgroups: {{hasgroups}},
+                    courses: courses,
+                    groups: groups,
                     urls: {
                         more: moreUrl
                     }

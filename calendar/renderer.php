@@ -153,27 +153,18 @@ class core_calendar_renderer extends plugin_renderer_base {
             $datetime->modify("-{$seconds} seconds");
         }
 
-        calendar_get_allowed_types($allowed, $courseid);
-        $types = [];
-
-        if (!empty($allowed->user)) {
-            $types[] = 'user';
-        }
-        if (!empty($allowed->groups) && is_array($allowed->groups)) {
-            $types[] = 'group';
-        }
-        if (!empty($allowed->courses)) {
-            $types[] = 'course';
-        }
-        if (!empty($allowed->site)) {
-            $types[] = 'site';
-        }
+        $types = calendar_get_all_allowed_types();
 
         $context = [
             'courseid' => $courseid,
             'time' => $datetime->getTimestamp(),
             'formattedtime' => userdate($datetime->getTimestamp(), get_string('strftimedaydatetime', 'langconfig')),
-            'types' => implode(',', $types),
+            'hasmultipletypes' => (count(array_keys($types)) > 1),
+            'hascourses' => isset($types['course']),
+            'hasgroups' => isset($types['group']),
+            'types' => implode(',', array_keys($types)),
+            'courses' => isset($types['course']) ? json_encode($types['course']) : '',
+            'groups' => isset($types['group']) ? json_encode($types['group']) : '',
         ];
 
         return $this->render_from_template('core_calendar/new_event_button', $context);

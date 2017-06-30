@@ -51,10 +51,13 @@ define([
         SAVE_BUTTON: '[data-action="save"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         EVENT_NAME: '[data-event-name]',
-        EVENT_TYPE: '[data-event-type]'
+        EVENT_TYPE: '[data-event-type]',
+        EVENT_COURSE_ID: '[data-event-course-id]',
+        EVENT_GROUP_ID: '[data-event-group-id]',
+        EVENT_COURSE_SELECT: '[data-region="course-select"]',
+        EVENT_GROUP_SELECT: '[data-region="group-select"]',
     };
     var ATTRIBUTES = {
-        EVENT_COURSE_ID: 'data-event-course-id',
         EVENT_TIME: 'data-event-time'
     };
 
@@ -78,21 +81,45 @@ define([
         Modal.prototype.hide.call(this);
     };
 
+    ModalQuickAddEvent.prototype.showCourseSelector = function() {
+        var courseSelect = this.getBody().find(SELECTORS.EVENT_COURSE_SELECT).removeClass('hidden');
+        courseSelect.find(SELECTORS.EVENT_COURSE_ID).prop('disabled', false);
+    };
+
+    ModalQuickAddEvent.prototype.hideCourseSelector = function() {
+        var courseSelect = this.getBody().find(SELECTORS.EVENT_COURSE_SELECT).addClass('hidden');
+        courseSelect.find(SELECTORS.EVENT_COURSE_ID).prop('disabled', true);
+    };
+
+    ModalQuickAddEvent.prototype.showGroupSelector = function() {
+        var courseSelect = this.getBody().find(SELECTORS.EVENT_GROUP_SELECT).removeClass('hidden');
+        courseSelect.find(SELECTORS.EVENT_GROUP_ID).prop('disabled', false);
+    };
+
+    ModalQuickAddEvent.prototype.hideGroupSelector = function() {
+        var courseSelect = this.getBody().find(SELECTORS.EVENT_GROUP_SELECT).addClass('hidden');
+        courseSelect.find(SELECTORS.EVENT_GROUP_ID).prop('disabled', true);
+    };
+
     ModalQuickAddEvent.prototype.getEventProperties = function() {
         var nameElement = this.getBody().find(SELECTORS.EVENT_NAME);
         var typeElement = this.getBody().find(SELECTORS.EVENT_TYPE);
+        var courseElement = this.getBody().find(SELECTORS.EVENT_COURSE_ID);
+        var groupElement = this.getBody().find(SELECTORS.EVENT_GROUP_ID);
         var saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
-        var eventType = typeElement.val();
+        var eventType = typeElement.length ? typeElement.val() : 'user';
         var properties = {
             name: nameElement.val().trim(),
-            eventtype: typeElement.val(),
+            eventtype: eventType,
             timestart: saveButton.attr(ATTRIBUTES.EVENT_TIME)
         };
 
         // Only include the course id if the event type isn't
         // a user event.
-        if (eventType != 'user') {
-            properties.courseid = saveButton.attr(ATTRIBUTES.EVENT_COURSE_ID);
+        if (eventType == 'course') {
+            properties.courseid = courseElement.val();
+        } else if (eventType == 'group') {
+            properties.groupid = groupElement.val();
         }
 
         return properties;
@@ -146,6 +173,22 @@ define([
             HTML5FormValidator.events.VALID, // The valid event to listen for.
             true // We want to show the success styling.
         );
+
+        this.getBody().find(SELECTORS.EVENT_TYPE).on('change', function(e) {
+            var typeElement = $(e.target).closest(SELECTORS.EVENT_TYPE);
+            var type = typeElement.val();
+
+            if (type == 'course') {
+                this.showCourseSelector();
+                this.hideGroupSelector();
+            } else if (type == 'group') {
+                this.showGroupSelector();
+                this.hideCourseSelector();
+            } else {
+                this.hideCourseSelector();
+                this.hideGroupSelector();
+            }
+        }.bind(this));
 
         // When the user clicks the save button.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {

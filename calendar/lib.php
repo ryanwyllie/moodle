@@ -2718,6 +2718,45 @@ function calendar_get_allowed_types(&$allowed, $course = null) {
     }
 }
 
+
+function calendar_get_all_allowed_types() {
+    global $CFG, $USER;
+
+    require_once($CFG->libdir . '/enrollib.php');
+
+    $types = [];
+    $courses = enrol_get_users_courses($USER->id, true);
+    foreach ($courses as $course) {
+        calendar_get_allowed_types($allowed, $course);
+
+        if ($allowed->user) {
+            $types['user'] = true;
+        }
+
+        if ($allowed->site) {
+            $types['site'] = true;
+        }
+
+        if (!empty($allowed->courses)) {
+            if (!isset($types['course'])) {
+                $types['course'] = [$course];
+            } else {
+                $types['course'][] = $course;
+            }
+        }
+
+        if (!empty($allowed->groups)) {
+            if (!isset($types['group'])) {
+                $types['group'] = array_values($allowed->groups);
+            } else {
+                $types['group'] = $types['group'] + array_values($allowed->groups);
+            }
+        }
+    }
+
+    return $types;
+}
+
 /**
  * See if user can add calendar entries at all used to print the "New Event" button.
  *
