@@ -27,20 +27,25 @@ define([
             'core/notification',
             'core/custom_interaction_events',
             'core/modal',
-            'core/modal_registry'
+            'core/modal_registry',
+            'core/html5_form_validator',
+            'core/bootstrap_form_validation_styles',
         ],
         function(
             $,
             Notification,
             CustomEvents,
             Modal,
-            ModalRegistry
+            ModalRegistry,
+            HTML5FormValidator,
+            BootstrapFormValidationStyles
         ) {
 
     var registered = false;
     var SELECTORS = {
         MORE_LINK: '[data-action="more"]',
         SAVE_BUTTON: '[data-action="save"]',
+        EVENT_NAME: '[data-event-name]',
         EVENT_DATE_TIME: '[data-event-date-time]',
         EVENT_TYPE: '[data-event-type]',
     };
@@ -66,6 +71,26 @@ define([
     ModalQuickAddEvent.prototype.registerEventListeners = function() {
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
+
+        var form = this.getBody().find('form');
+
+        HTML5FormValidator.validateOnBlur(form);
+        BootstrapFormValidationStyles.init(
+            form,
+            HTML5FormValidator.events.INVALID, // The type of invalid event.
+            HTML5FormValidator.events.VALID, // The type of valid event.
+            true // We want to show the success styling.
+        );
+
+        this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
+            data.originalEvent.preventDefault();
+
+            var isValid = HTML5FormValidator.isValid(form);
+
+            if (isValid) {
+                // save event.
+            }
+        }.bind(this));
     };
 
     // Automatically register with the modal registry the first time this module is imported so that you can create modals
