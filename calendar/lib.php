@@ -2727,6 +2727,50 @@ function calendar_get_allowed_types(&$allowed, $course = null) {
     }
 }
 
+function calendar_get_all_allowed_types() {
+    global $CFG, $USER;
+
+    require_once($CFG->libdir . '/enrollib.php');
+
+    $types = [];
+    $courses = enrol_get_users_courses($USER->id, true);
+    foreach ($courses as $course) {
+        calendar_get_allowed_types($allowed, $course);
+
+        if ($allowed->user) {
+            $types['user'] = true;
+        }
+
+        if ($allowed->site) {
+            $types['site'] = true;
+        }
+
+        if (!empty($allowed->courses)) {
+            if (!isset($types['course'])) {
+                $types['course'] = [$course];
+            } else {
+                $types['course'][] = $course;
+            }
+        }
+
+        if (!empty($allowed->groups)) {
+            if (!isset($types['groupcourses'])) {
+                $types['groupcourses'] = [$course];
+            } else {
+                $types['groupcourses'][] = $course;
+            }
+
+            if (!isset($types['group'])) {
+                $types['group'] = array_values($allowed->groups);
+            } else {
+                $types['group'] = array_merge($types['group'], array_values($allowed->groups));
+            }
+        }
+    }
+
+    return $types;
+}
+
 /**
  * See if user can add calendar entries at all used to print the "New Event" button.
  *
@@ -3339,4 +3383,71 @@ function calendar_get_legacy_events($tstart, $tend, $users, $groups, $courses, $
     return array_reduce($events, function($carry, $event) use ($mapper) {
         return $carry + [$event->get_id() => $mapper->from_event_to_stdclass($event)];
     }, []);
+}
+
+function calendar_output_fragment_event_form($args) {
+    global $CFG, $OUTPUT;
+    require_once($CFG->dirroot.'/calendar/event_form.php');
+
+    $html = '';
+    $data = null;
+    $eventid = isset($args['eventid']) ? clean_param($args['eventid'], PARAM_INT) : null;
+    $event = null;
+    $hasformdata = isset($args['formdata']) && !empty($args['formdata']);
+    $formoptions = [];
+
+    if ($hasformdata) {
+        parse_str(clean_param($args['formdata'], PARAM_TEXT), $data);
+    }
+
+    if (isset($args['haserror'])) {
+        $formoptions['haserror'] = clean_param($args['haserror'], PARAM_BOOL);
+    }
+
+    if (is_null($eventid)) {
+        $mform = new \core_calendar\local\event\forms\create(
+            null,
+            $formoptions,
+            'post',
+            '',
+            null,
+            true,
+            $data
+        );
+    } else {
+        $event = calendar_event::load($eventid);
+        $event->count_repeats();
+        $formoptions['event'] = $event;
+        $mform = new \core_calendar\local\event\forms\update(
+            null,
+            $formoptions,
+            'post',
+            '',
+            null,
+            true,
+            $data
+        );
+    }
+
+    if ($hasformdata) {
+        $mform->is_validated();
+    } else if (!is_null($event)) {
+        $mapper = new \core_calendar\local\event\mappers\create_update_form_mapper();
+        $data = $mapper->from_legacy_event_to_data($event);
+        $mform->set_data($data);
+
+        // Check to see if this event is part of a subscription or import.
+        // If so display a warning on edit.
+        if (isset($event->subscriptionid) && ($event->subscriptionid != null)) {
+            $renderable = new \core\output\notification(
+                get_string('eventsubscriptioneditwarning', 'calendar'),
+                \core\output\notification::NOTIFY_INFO
+            );
+
+            $html .= $OUTPUT->render($renderable);
+        }
+    }
+
+    $html .= $mform->render();
+    return $html;
 }
