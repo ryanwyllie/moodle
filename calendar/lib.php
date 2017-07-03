@@ -2727,6 +2727,44 @@ function calendar_get_allowed_types(&$allowed, $course = null) {
     }
 }
 
+function calendar_get_all_allowed_types() {
+    global $CFG, $USER;
+
+    require_once($CFG->libdir . '/enrollib.php');
+
+    $types = [];
+    $courses = enrol_get_users_courses($USER->id, true);
+    foreach ($courses as $course) {
+        calendar_get_allowed_types($allowed, $course);
+
+        if ($allowed->user) {
+            $types['user'] = true;
+        }
+
+        if ($allowed->site) {
+            $types['site'] = true;
+        }
+
+        if (!empty($allowed->courses)) {
+            if (!isset($types['course'])) {
+                $types['course'] = [$course];
+            } else {
+                $types['course'][] = $course;
+            }
+        }
+
+        if (!empty($allowed->groups)) {
+            if (!isset($types['group'])) {
+                $types['group'] = array_values($allowed->groups);
+            } else {
+                $types['group'] = $types['group'] + array_values($allowed->groups);
+            }
+        }
+    }
+
+    return $types;
+}
+
 /**
  * See if user can add calendar entries at all used to print the "New Event" button.
  *
@@ -3339,4 +3377,22 @@ function calendar_get_legacy_events($tstart, $tend, $users, $groups, $courses, $
     return array_reduce($events, function($carry, $event) use ($mapper) {
         return $carry + [$event->get_id() => $mapper->from_event_to_stdclass($event)];
     }, []);
+}
+
+function calendar_output_fragment_event_form($args) {
+    global $CFG;
+    require_once($CFG->dirroot.'/calendar/new_event_form.php');
+
+    $event = new stdClass();
+    $event->action = 'new';
+    //$event->course = $args['courseid'];
+    //$event->courseid = $args['courseid'];
+    $event->timestart = time();
+
+    $event = new calendar_event($event);
+    $properties = $event->properties(true);
+    $mform = new new_event_form(null, []);
+    $mform->set_data($properties);
+
+    return $mform->render();
 }
