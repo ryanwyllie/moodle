@@ -120,6 +120,7 @@ define([
             properties.courseid = courseElement.val();
         } else if (eventType == 'group') {
             properties.groupid = groupElement.val();
+            properties.courseid = groupElement.val();
         }
 
         return properties;
