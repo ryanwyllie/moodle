@@ -110,6 +110,7 @@ define([
         ModalFactory.create(
             {
                 type: ModalEventForm.TYPE,
+                large: true,
                 templateContext: {
                     contextid: contextId
                 }

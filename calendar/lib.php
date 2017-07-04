@@ -2754,6 +2754,12 @@ function calendar_get_all_allowed_types() {
         }
 
         if (!empty($allowed->groups)) {
+            if (!isset($types['groupcourses'])) {
+                $types['groupcourses'] = [$course];
+            } else {
+                $types['groupcourses'][] = $course;
+            }
+
             if (!isset($types['group'])) {
                 $types['group'] = array_values($allowed->groups);
             } else {
@@ -3383,15 +3389,16 @@ function calendar_output_fragment_event_form($args) {
     global $CFG;
     require_once($CFG->dirroot.'/calendar/new_event_form.php');
 
+    $types = calendar_get_all_allowed_types();
     $event = new stdClass();
-    $event->action = 'new';
-    //$event->course = $args['courseid'];
-    //$event->courseid = $args['courseid'];
     $event->timestart = time();
 
     $event = new calendar_event($event);
     $properties = $event->properties(true);
-    $mform = new new_event_form(null, []);
+    $formoptions = [
+        'types' => $types
+    ];
+    $mform = new new_event_form(null, $formoptions);
     $mform->set_data($properties);
 
     return $mform->render();

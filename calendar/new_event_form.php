@@ -43,50 +43,23 @@ class new_event_form extends moodleform {
      * The form definition
      */
     function definition () {
-        global $CFG, $USER, $OUTPUT;
+        global $USER, $PAGE;
+
         $mform = $this->_form;
-        $newevent = (empty($this->_customdata->event) || empty($this->_customdata->event->id));
+        $newevent = (empty($this->_customdata['event']) || empty($this->_customdata['event']->id));
         $repeatedevents = (!empty($this->_customdata->event->eventrepeats) && $this->_customdata->event->eventrepeats>0);
         $hasduration = (!empty($this->_customdata->hasduration) && $this->_customdata->hasduration);
-        $mform->addElement('header', 'general', get_string('general'));
 
-        if ($newevent) {
-            $eventtypes = $this->_customdata->eventtypes;
-            $options = array();
-            if (!empty($eventtypes->user)) {
-                $options['user'] = get_string('user');
-            }
-            if (!empty($eventtypes->groups) && is_array($eventtypes->groups)) {
-                $options['group'] = get_string('group');
-            }
-            if (!empty($eventtypes->courses)) {
-                $options['course'] = get_string('course');
-            }
-            if (!empty($eventtypes->site)) {
-                $options['site'] = get_string('site');
-            }
+        $mform->setDisableShortforms();
+        $mform->disable_form_change_checker();
 
-            $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
-            $mform->addRule('eventtype', get_string('required'), 'required');
-
-            if (!empty($eventtypes->groups) && is_array($eventtypes->groups)) {
-                $groupoptions = array();
-                foreach ($eventtypes->groups as $group) {
-                    $groupoptions[$group->id] = format_string($group->name, true,
-                        array('context' => context_course::instance($group->courseid)));
-                }
-                $mform->addElement('select', 'groupid', get_string('typegroup', 'calendar'), $groupoptions);
-                $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
-            }
-        }
+        // Empty string so that the element doesn't get rendered.
+        $mform->addElement('header', 'general', '');
 
         // Add some hidden fields
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
         $mform->setDefault('id', 0);
-
-        $mform->addElement('hidden', 'courseid');
-        $mform->setType('courseid', PARAM_INT);
 
         $mform->addElement('hidden', 'userid');
         $mform->setType('userid', PARAM_INT);
@@ -108,13 +81,66 @@ class new_event_form extends moodleform {
         $mform->addRule('name', get_string('required'), 'required');
         $mform->setType('name', PARAM_TEXT);
 
-        $mform->addElement('editor', 'description', get_string('eventdescription','calendar'), null, $this->_customdata->event->editoroptions);
-        $mform->setType('description', PARAM_RAW);
-
         $mform->addElement('date_time_selector', 'timestart', get_string('date'));
         $mform->addRule('timestart', get_string('required'), 'required');
 
-        $mform->addElement('header', 'durationdetails', get_string('eventduration', 'calendar'));
+        if ($newevent) {
+            $eventtypes = $this->_customdata['types'];
+            $options = array();
+
+            if (isset($eventtypes['user'])) {
+                $options['user'] = get_string('user');
+            }
+            if (isset($eventtypes['group'])) {
+                $options['group'] = get_string('group');
+            }
+            if (isset($eventtypes['course'])) {
+                $options['course'] = get_string('course');
+            }
+            if (isset($eventtypes['site'])) {
+                $options['site'] = get_string('site');
+            }
+
+            $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
+            $mform->addRule('eventtype', get_string('required'), 'required');
+
+            if (isset($eventtypes['course'])) {
+                $courseoptions = array();
+                foreach ($eventtypes['course'] as $course) {
+                    $courseoptions[$course->id] = format_string($course->fullname, true,
+                        array('context' => context_course::instance($course->id)));
+                }
+
+                $mform->addElement('select', 'courseid', get_string('course'), $courseoptions);
+                $mform->disabledIf('courseid', 'eventtype', 'noteq', 'course');
+            }
+
+            if (isset($eventtypes['group'])) {
+                $courseoptions = array();
+                foreach ($eventtypes['groupcourses'] as $course) {
+                    $courseoptions[$course->id] = format_string($course->fullname, true,
+                        array('context' => context_course::instance($course->id)));
+                }
+
+                $mform->addElement('select', 'groupcourseid', get_string('course'), $courseoptions);
+                $mform->disabledIf('groupcourseid', 'eventtype', 'noteq', 'group');
+
+                $groupoptions = array();
+                foreach ($eventtypes['group'] as $group) {
+                    $groupoptions[$group->id] = format_string($group->name, true,
+                        array('context' => context_course::instance($group->courseid)));
+                }
+
+                $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
+                $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
+            }
+        }
+
+        $mform->addAdvancedStatusElement('general');
+
+        $mform->addElement('editor', 'description', get_string('eventdescription','calendar'), ['rows' => 3]);
+        $mform->setType('description', PARAM_RAW);
+        $mform->setAdvanced('description');
 
         $group = array();
         $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationnone', 'calendar'), 0);
@@ -123,7 +149,8 @@ class new_event_form extends moodleform {
         $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationminutes', 'calendar'), 2);
         $group[] =& $mform->createElement('text', 'timedurationminutes', get_string('durationminutes', 'calendar'));
 
-        $mform->addGroup($group, 'durationgroup', '', '<br />', false);
+        $mform->addGroup($group, 'durationgroup', get_string('eventduration', 'calendar'), '<br />', false);
+        $mform->setAdvanced('durationgroup');
 
         $mform->disabledIf('timedurationuntil',         'duration', 'noteq', 1);
         $mform->disabledIf('timedurationuntil[day]',    'duration', 'noteq', 1);
@@ -139,24 +166,24 @@ class new_event_form extends moodleform {
 
         if ($newevent) {
 
-            $mform->addElement('header', 'repeatevents', get_string('repeatedevents', 'calendar'));
             $mform->addElement('checkbox', 'repeat', get_string('repeatevent', 'calendar'), null);
             $mform->addElement('text', 'repeats', get_string('repeatweeksl', 'calendar'), 'maxlength="10" size="10"');
             $mform->setType('repeats', PARAM_INT);
             $mform->setDefault('repeats', 1);
             $mform->disabledIf('repeats','repeat','notchecked');
+            $mform->setAdvanced('repeat');
+            $mform->setAdvanced('repeats');
 
         } else if ($repeatedevents) {
 
             $mform->addElement('hidden', 'repeatid');
             $mform->setType('repeatid', PARAM_INT);
 
-            $mform->addElement('header', 'repeatedevents', get_string('repeatedevents', 'calendar'));
             $mform->addElement('radio', 'repeateditall', null, get_string('repeateditall', 'calendar', $this->_customdata->event->eventrepeats), 1);
             $mform->addElement('radio', 'repeateditall', null, get_string('repeateditthis', 'calendar'), 0);
 
             $mform->setDefault('repeateditall', 1);
-
+            $mform->setAdvanced('repeateditall');
         }
     }
 
