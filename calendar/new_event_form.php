@@ -127,13 +127,15 @@ class new_event_form extends moodleform {
 
                 $groupoptions = array();
                 foreach ($eventtypes['group'] as $group) {
-                    $groupoptions[$group->id] = format_string($group->name, true,
+                    $index = "{$group->courseid}-{$group->id}";
+                    $groupoptions[$index] = format_string($group->name, true,
                         array('context' => context_course::instance($group->courseid)));
                 }
 
                 $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
                 $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
             }
+
         }
 
         $mform->addAdvancedStatusElement('general');
@@ -185,6 +187,8 @@ class new_event_form extends moodleform {
             $mform->setDefault('repeateditall', 1);
             $mform->setAdvanced('repeateditall');
         }
+
+        $PAGE->requires->js_call_amd('core_calendar/event_form', 'init', [$mform->getAttribute('id')]);
     }
 
     /**

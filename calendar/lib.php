@@ -2763,7 +2763,7 @@ function calendar_get_all_allowed_types() {
             if (!isset($types['group'])) {
                 $types['group'] = array_values($allowed->groups);
             } else {
-                $types['group'] = $types['group'] + array_values($allowed->groups);
+                $types['group'] = array_merge($types['group'], array_values($allowed->groups));
             }
         }
     }
