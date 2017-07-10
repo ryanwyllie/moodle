@@ -131,6 +131,7 @@ define([
     };
 
     ModalEventForm.prototype.getFormData = function() {
+        return this.getBody().find('form').serialize();
     };
 
     ModalEventForm.prototype.save = function() {
@@ -141,6 +142,7 @@ define([
 
         // save event.
         var formData = this.getFormData();
+        debugger;
         Repository.saveEventForm(formData)
             .then(function() {
                 this.hide();
@@ -166,8 +168,13 @@ define([
 
         // When the user clicks the save button.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
-            this.save();
+            this.getBody().find('form').submit();
             data.originalEvent.preventDefault();
+        }.bind(this));
+        this.getModal().on('submit', 'form', function(e) {
+            // We don't want the default submit behaviour.
+            e.preventDefault();
+            this.save();
         }.bind(this));
     };
 

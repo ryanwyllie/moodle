@@ -73,16 +73,12 @@ class new_event_form extends moodleform {
         $mform->setType('instance', PARAM_INT);
         $mform->setDefault('instance', 0);
 
-        $mform->addElement('hidden', 'action');
-        $mform->setType('action', PARAM_INT);
-
         // Normal fields
         $mform->addElement('text', 'name', get_string('eventname','calendar'), 'size="50"');
-        $mform->addRule('name', get_string('required'), 'required');
+        $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->setType('name', PARAM_TEXT);
 
         $mform->addElement('date_time_selector', 'timestart', get_string('date'));
-        $mform->addRule('timestart', get_string('required'), 'required');
 
         if ($newevent) {
             $eventtypes = $this->_customdata['types'];
@@ -102,7 +98,6 @@ class new_event_form extends moodleform {
             }
 
             $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
-            $mform->addRule('eventtype', get_string('required'), 'required');
 
             if (isset($eventtypes['course'])) {
                 $courseoptions = array();

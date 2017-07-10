@@ -761,4 +761,49 @@ class core_calendar_external extends external_api {
             )
         );
     }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     */
+    public static function submit_event_form_parameters() {
+        return new external_function_parameters(
+            [
+                'formdata' => new external_value(PARAM_RAW, 'The data from the event form'),
+            ]
+        );
+    }
+
+    /**
+     * Handles the event form submission.
+     *
+     * @param string $formdata The event form data in a URI encoded param string
+     * @return array array of events created.
+     * @throws moodle_exception if user doesnt have the permission to create events.
+     */
+    public static function submit_event_form($formdata) {
+        global $CFG, $DB, $USER;
+        require_once($CFG->dirroot."/calendar/new_event_form.php");
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::submit_event_form_parameters(), ['formdata' => $formdata]);
+        $data = [];
+        parse_str($params['formdata'], $data);
+
+        $mform = new new_event_form(null, null, 'post', '', null, true, $data);
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     */
+    public static function  submit_event_form_returns() {
+        return new external_single_structure(
+                array(
+                  'warnings' => new external_warnings()
+                )
+        );
+    }
 }
