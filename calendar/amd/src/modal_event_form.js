@@ -24,6 +24,7 @@
  */
 define([
             'jquery',
+            'core/event',
             'core/str',
             'core/notification',
             'core/templates',
@@ -35,6 +36,7 @@ define([
         ],
         function(
             $,
+            Event,
             Str,
             Notification,
             Templates,
@@ -141,18 +143,29 @@ define([
         this.disableButtons();
 
         // save event.
+        var form = this.getBody().find('form');
         var formData = this.getFormData();
-        debugger;
-        Repository.saveEventForm(formData)
-            .then(function() {
-                this.hide();
-                // Reload the page so that the new event shows up.
-                window.location.reload();
+        Repository.submitEventForm(formData)
+            .then(function(response) {
+                if (response.validationerror) {
+                    response.errorelements.forEach(function(error) {
+                        var element = form.find('#id_' + error.name);
+
+                        if (element.length) {
+                            element.trigger(Event.Events.FORM_FIELD_VALIDATION, error.message);
+                        }
+                    });
+                } else {
+                    this.hide();
+                    // Reload the page so that the new event shows up.
+                    window.location.reload();
+                }
             }.bind(this))
             .always(function() {
                 loadingContainer.addClass('hidden');
                 this.enableButtons();
-            }.bind(this));
+            }.bind(this))
+            .fail(Notification.exception);
     };
 
     /**
@@ -164,17 +177,11 @@ define([
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
-        var form = this.getBody().find('form');
-
         // When the user clicks the save button.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
-            this.getBody().find('form').submit();
-            data.originalEvent.preventDefault();
-        }.bind(this));
-        this.getModal().on('submit', 'form', function(e) {
-            // We don't want the default submit behaviour.
-            e.preventDefault();
             this.save();
+            data.originalEvent.preventDefault();
+            e.stopPropagation();
         }.bind(this));
     };
 

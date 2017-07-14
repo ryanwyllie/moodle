@@ -23,12 +23,22 @@
  */
 define(['jquery', 'core/event'], function($, Event) {
     return {
-        enhance: function(elementid) {
+        enhance: function(elementid, feedbackElementId) {
             var element = document.getElementById(elementid);
+            var feedback = null;
+
+            if (typeof feedbackElementId != 'undefined') {
+                feedback = $('#' + feedbackElementId);
+            }
+
             $(element).on(Event.Events.FORM_FIELD_VALIDATION, function(event, msg) {
                 event.preventDefault();
                 var parent = $(element).closest('.form-group');
-                var feedback = parent.find('.form-control-feedback');
+
+                debugger;
+                if (!feedback) {
+                    feedback = parent.find('.form-control-feedback');
+                }
 
                 // Sometimes (atto) we have a hidden textarea backed by a real contenteditable div.
                 if (($(element).prop("tagName") == 'TEXTAREA') && parent.find('[contenteditable]')) {

@@ -22,44 +22,29 @@
  * @copyright  2017 Simey Lameze <lameze@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notification) {
-
+define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax) {
 
     /**
-     * Get a calendar event by id.
+     * Submit the form data for the event form.
      *
-     * Valid args are:
-     * int eventid     The event id to be retrieved.
-     *
-     * @method getEventById
-     * @param {object} args The request arguments
-     * @return {promise} Resolved with requested calendar event
+     * @method submitEventForm
+     * @param {string} formdata The URL encoded values from the form
+     * @return {promise} Resolved with the new or edited event
      */
-    var getEventById = function(args) {
-
-        // Switch to eventid once the webservice is done.
-        if (args.hasOwnProperty('id')) {
-            args.eventids = args.id;
-            delete args.id;
-        }
+    var submitEventForm = function(formdata) {
         var request = {
-            methodname: 'core_calendar_get_calendar_events',
+            methodname: 'core_calendar_submit_event_form',
             args: {
-                events: {
-                    eventids: [args.eventids]
-                }
+                formdata: formdata
             }
         };
 
         var promise = Ajax.call([request])[0];
 
-        promise.fail(Notification.exception);
-
         return promise;
     };
 
-
     return {
-        getEventById: getEventById
+        submitEventForm: submitEventForm
     };
 });

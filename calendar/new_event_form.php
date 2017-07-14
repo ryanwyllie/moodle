@@ -42,7 +42,7 @@ class new_event_form extends moodleform {
     /**
      * The form definition
      */
-    function definition () {
+    public function definition () {
         global $USER, $PAGE;
 
         $mform = $this->_form;
@@ -193,7 +193,7 @@ class new_event_form extends moodleform {
      * @param array $files An array of files
      * @return array
      */
-    function validation($data, $files) {
+    public function validation($data, $files) {
         global $DB, $CFG;
 
         $errors = parent::validation($data, $files);
@@ -218,4 +218,15 @@ class new_event_form extends moodleform {
         return $errors;
     }
 
+    /**
+     * Get the list of elements in the form that failed validation.
+     *
+     * The errors are returned in key/value pairs where the key is the
+     * name of the element and the value is the error message.
+     *
+     * @return array
+     */
+    public function get_validation_errors() {
+        return $this->_form->_errors;
+    }
 }

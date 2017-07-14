@@ -30,6 +30,8 @@ defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->libdir/externallib.php");
 
 use \core_calendar\local\api as local_api;
+use \core_calendar\local\event\container as event_container;
+use \core_calendar\external\event_exporter;
 use \core_calendar\external\events_exporter;
 use \core_calendar\external\events_grouped_by_course_exporter;
 use \core_calendar\external\events_related_objects_cache;
@@ -779,19 +781,52 @@ class core_calendar_external extends external_api {
      * Handles the event form submission.
      *
      * @param string $formdata The event form data in a URI encoded param string
-     * @return array array of events created.
-     * @throws moodle_exception if user doesnt have the permission to create events.
+     * @return array The created or modified event
+     * @throws moodle_exception
      */
     public static function submit_event_form($formdata) {
-        global $CFG, $DB, $USER;
+        global $CFG, $USER, $PAGE;
         require_once($CFG->dirroot."/calendar/new_event_form.php");
 
         // Parameter validation.
         $params = self::validate_parameters(self::submit_event_form_parameters(), ['formdata' => $formdata]);
+        $context = \context_user::instance($USER->id);
         $data = [];
+
+        self::validate_context($context);
         parse_str($params['formdata'], $data);
 
         $mform = new new_event_form(null, null, 'post', '', null, true, $data);
+        $validateddata = $mform->get_data();
+
+        if ($validateddata) {
+            $factory = event_container::get_event_factory();
+            $event = $factory->create_instance($validateddata);
+            $cache = new events_related_objects_cache([$event]);
+            $relatedobjects = [
+                'context' => $cache->get_context($event),
+                'course' => $cache->get_course($event),
+            ];
+            $exporter = new event_exporter($event, $relatedobjects);
+            $renderer = $PAGE->get_renderer('core_calendar');
+
+            return $exporter->export($renderer);
+        } else {
+            $errors = $mform->get_validation_errors();
+            $errorelements = [];
+
+            foreach ($errors as $name => $message) {
+                $errorelements[] = [
+                    'name' => $name,
+                    'message' => $message
+                ];
+            }
+
+            return [
+                'validationerror' => true,
+                'errorelements' => $errorelements,
+            ];
+        }
     }
 
     /**
@@ -800,10 +835,23 @@ class core_calendar_external extends external_api {
      * @return external_description.
      */
     public static function  submit_event_form_returns() {
+        $eventstructure = event_exporter::get_read_structure();
+        $eventstructure->required = VALUE_OPTIONAL;
+
         return new external_single_structure(
-                array(
-                  'warnings' => new external_warnings()
+            array(
+                'event' => $eventstructure,
+                'validationerror' => new external_value(PARAM_BOOL, 'Invalid form data', VALUE_DEFAULT, false),
+                'errorelements' => new external_multiple_structure(
+                    new external_single_structure([
+                        'name' => new external_value(PARAM_TEXT, 'form element name attribute'),
+                        'message' => new external_value(PARAM_TEXT, 'validation error message')
+                    ]),
+                    'The list of elements that failed validation',
+                    VALUE_DEFAULT,
+                    []
                 )
+            )
         );
     }
 }
