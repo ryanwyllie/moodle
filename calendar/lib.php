@@ -478,6 +478,8 @@ class calendar_event {
                 }
 
                 $editor = $this->properties->description;
+                error_log("EDITOR:");
+                error_log(print_r($editor, true));
                 $this->properties->format = $this->properties->description['format'];
                 $this->properties->description = $this->properties->description['text'];
             }

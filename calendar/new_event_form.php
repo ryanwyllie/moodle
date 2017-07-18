@@ -244,6 +244,10 @@ class new_event_form extends moodleform {
                 unset($data->groupcourseid);
             }
 
+            if (!isset($data->courseid)) {
+                $data->courseid = 0;
+            }
+
             if ($data->duration == 1) {
                 $data->timeduration = $data->timedurationuntil- $data->timestart;
             } else if ($data->duration == 2) {

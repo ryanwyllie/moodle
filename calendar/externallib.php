@@ -798,18 +798,14 @@ class core_calendar_external extends external_api {
         parse_str($params['formdata'], $data);
 
         $mform = new new_event_form(null, null, 'post', '', null, true, $data);
-        $validateddata = $mform->get_data();
 
-        if ($validateddata) {
+        if ($validateddata = $mform->get_data()) {
             if (isset($validateddate['eventid'])) {
                 $legacyevent = calendar_event::load($eventid);
+                $legacyevent->update($validateddata);
             } else {
-                $legacyevent = new calendar_event();
+                $legacyevent = calendar_event::create($validateddata);
             }
-
-            $legacyevent->properties(true);
-            $legacyevent->update($validateddata);
-            error_log(print_r($legacyevent->properties(), true));
 
             $mapper = event_container::get_event_mapper();
             $event = $mapper->from_legacy_event_to_event($legacyevent);

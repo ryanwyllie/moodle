@@ -404,6 +404,8 @@ class core_external extends external_api {
         self::validate_context($context);
         $arguments['context'] = $context;
 
+        // Also hack alert: Stop the annoying debug.
+        $PAGE->set_url('/');
         // Hack alert: Forcing bootstrap_renderer to initiate moodle page.
         $OUTPUT->header();
 
