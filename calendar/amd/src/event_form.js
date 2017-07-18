@@ -21,7 +21,7 @@
  * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function($) {
+define(['jquery', 'core/templates'], function($, Templates) {
 
     var SELECTORS = {
         EVENT_TYPE: '[name="eventtype"]',
@@ -29,7 +29,10 @@ define(['jquery'], function($) {
         EVENT_GROUP_COURSE_ID: '[name="groupcourseid"]',
         EVENT_GROUP_ID: '[name="groupid"]',
         FORM_GROUP: '.form-group',
-        SELECT_OPTION: 'option'
+        SELECT_OPTION: 'option',
+        ADVANCED_ELEMENT: '.fitem.advanced',
+        FIELDSET_ADVANCED_ELEMENTS: 'fieldset.containsadvancedelements',
+        MORELESS_TOGGLE: '.moreless-actions'
     };
 
     var EVENT_TYPES = {
@@ -37,6 +40,39 @@ define(['jquery'], function($) {
         SITE: 'site',
         COURSE: 'course',
         GROUP: 'group'
+    };
+
+    var EVENTS = {
+        SHOW_ADVANCED: 'event_form-show-advanced',
+        HIDE_ADVANCED: 'event_form-hide-advanced',
+        ADVANCED_SHOWN: 'event_form-advanced-shown',
+        ADVANCED_HIDDEN: 'event_form-advanced-hidden',
+    };
+
+    var destroyOldMoreLessToggle = function(formElement) {
+        formElement.find(SELECTORS.FIELDSET_ADVANCED_ELEMENTS).removeClass('containsadvancedelements');
+        var element = formElement.find(SELECTORS.MORELESS_TOGGLE);
+        Templates.replaceNode(element, '', '');
+    };
+
+    var showAdvancedElements = function(formElement) {
+        formElement.find(SELECTORS.ADVANCED_ELEMENT).removeClass('hidden');
+        formElement.trigger(EVENTS.ADVANCED_SHOWN);
+    };
+
+    var hideAdvancedElements = function(formElement) {
+        formElement.find(SELECTORS.ADVANCED_ELEMENT).addClass('hidden');
+        formElement.trigger(EVENTS.ADVANCED_HIDDEN);
+    };
+
+    var listenForShowHideEvents = function(formElement) {
+        formElement.on(EVENTS.SHOW_ADVANCED, function() {
+            showAdvancedElements(formElement);
+        });
+
+        formElement.on(EVENTS.HIDE_ADVANCED, function() {
+            hideAdvancedElements(formElement);
+        });
     };
 
     var parseGroupSelect = function(formElement) {
@@ -107,16 +143,25 @@ define(['jquery'], function($) {
         filterGroupSelectOptions();
     };
 
-    var init = function(formId) {
+    var init = function(formId, hasError) {
         var formElement = $('#' + formId);
 
+        listenForShowHideEvents(formElement);
+        destroyOldMoreLessToggle(formElement);
         hideTypeSubSelects(formElement);
         parseGroupSelect(formElement);
         addTypeSelectListeners(formElement);
         addCourseGroupSelectListeners(formElement);
+
+        if (hasError) {
+            showAdvancedElements(formElement);
+        } else {
+            hideAdvancedElements(formElement);
+        }
     };
 
     return {
-        init: init
+        init: init,
+        events: EVENTS,
     };
 });

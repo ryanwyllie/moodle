@@ -3386,20 +3386,55 @@ function calendar_get_legacy_events($tstart, $tend, $users, $groups, $courses, $
 }
 
 function calendar_output_fragment_event_form($args) {
-    global $CFG;
+    global $CFG, $OUTPUT;
     require_once($CFG->dirroot.'/calendar/new_event_form.php');
 
+    $html = '';
+    $data = null;
+    $eventid = isset($args['eventid']) ? $args['eventid'] : null;
+    $event = null;
+    $hasformdata = isset($args['formdata']) && !empty($args['formdata']);
     $types = calendar_get_all_allowed_types();
-    $event = new stdClass();
-    $event->timestart = time();
-
-    $event = new calendar_event($event);
-    $properties = $event->properties(true);
     $formoptions = [
         'types' => $types
     ];
-    $mform = new new_event_form(null, $formoptions);
-    $mform->set_data($properties);
 
-    return $mform->render();
+    if ($hasformdata) {
+        parse_str($args['formdata'], $data);
+    }
+
+    if (isset($args['haserror'])) {
+        $formoptions['haserror'] = $args['haserror'];
+    }
+
+    if (is_null($eventid)) {
+        $event = new calendar_event((object) ['timestart' => time()]);
+    } else {
+        $event = calendar_event::load($eventid);
+        $event->timedurationuntil = $event->timestart + $event->timeduration;
+        $event->count_repeats();
+
+        // Check to see if this event is part of a subscription or import.
+        // If so display a warning on edit.
+        if (isset($event->subscriptionid) && ($event->subscriptionid != null)) {
+            $renderable = new \core\output\notification(
+                get_string('eventsubscriptioneditwarning', 'calendar'),
+                \core\output\notification::NOTIFY_INFO
+            );
+
+            $html .= $OUTPUT->render($renderable);
+        }
+    }
+
+    $mform = new new_event_form(null, $formoptions, 'post', '', null, true, $data);
+
+    if ($hasformdata) {
+        $mform->is_validated();
+    } else {
+        $properties = $event->properties(true);
+        $mform->set_data($properties);
+    }
+
+    $html .= $mform->render();
+    return $html;
 }

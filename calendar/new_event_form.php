@@ -46,9 +46,18 @@ class new_event_form extends moodleform {
         global $USER, $PAGE;
 
         $mform = $this->_form;
-        $newevent = (empty($this->_customdata['event']) || empty($this->_customdata['event']->id));
-        $repeatedevents = (!empty($this->_customdata->event->eventrepeats) && $this->_customdata->event->eventrepeats>0);
-        $hasduration = (!empty($this->_customdata->hasduration) && $this->_customdata->hasduration);
+        $haserror = !empty($this->_customdata['haserror']);
+        $isnewevent = (empty($this->_customdata['event']) || empty($this->_customdata['event']->id));
+        $eventtypes = $this->_customdata['types'];
+
+        if ($isnewevent) {
+            $repeatedevents = false;
+            $hasduration = false;
+        } else {
+            $event = $this->_customdata['event'];
+            $repeatedevents = $event->eventrepeats > 0;
+            $hasduration = $event->timeduration > 0;
+        }
 
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
@@ -73,6 +82,13 @@ class new_event_form extends moodleform {
         $mform->setType('instance', PARAM_INT);
         $mform->setDefault('instance', 0);
 
+        if (!$isnewevent) {
+            $event = $this->_customdata['event'];
+            $mform->addElement('hidden', 'eventid');
+            $mform->setType('eventid', PARAM_INT);
+            $mform->setDefault('eventid', $event->id);
+        }
+
         // Normal fields
         $mform->addElement('text', 'name', get_string('eventname','calendar'), 'size="50"');
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
@@ -80,9 +96,8 @@ class new_event_form extends moodleform {
 
         $mform->addElement('date_time_selector', 'timestart', get_string('date'));
 
-        if ($newevent) {
-            $eventtypes = $this->_customdata['types'];
-            $options = array();
+        if ($isnewevent && $eventtypes) {
+            $options = [];
 
             if (isset($eventtypes['user'])) {
                 $options['user'] = get_string('user');
@@ -97,13 +112,19 @@ class new_event_form extends moodleform {
                 $options['site'] = get_string('site');
             }
 
-            $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
+            if (count(array_keys($eventtypes)) == 1 && isset($eventtypes['user'])) {
+                $mform->addElement('hidden', 'eventtype');
+                $mform->setType('eventtype', PARAM_TEXT);
+                $mform->setDefault('eventtype', 'user');
+            } else {
+                $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
+            }
 
             if (isset($eventtypes['course'])) {
-                $courseoptions = array();
+                $courseoptions = [];
                 foreach ($eventtypes['course'] as $course) {
                     $courseoptions[$course->id] = format_string($course->fullname, true,
-                        array('context' => context_course::instance($course->id)));
+                        ['context' => context_course::instance($course->id)]);
                 }
 
                 $mform->addElement('select', 'courseid', get_string('course'), $courseoptions);
@@ -111,35 +132,32 @@ class new_event_form extends moodleform {
             }
 
             if (isset($eventtypes['group'])) {
-                $courseoptions = array();
+                $courseoptions = [];
                 foreach ($eventtypes['groupcourses'] as $course) {
                     $courseoptions[$course->id] = format_string($course->fullname, true,
-                        array('context' => context_course::instance($course->id)));
+                        ['context' => context_course::instance($course->id)]);
                 }
 
                 $mform->addElement('select', 'groupcourseid', get_string('course'), $courseoptions);
                 $mform->disabledIf('groupcourseid', 'eventtype', 'noteq', 'group');
 
-                $groupoptions = array();
+                $groupoptions = [];
                 foreach ($eventtypes['group'] as $group) {
                     $index = "{$group->courseid}-{$group->id}";
                     $groupoptions[$index] = format_string($group->name, true,
-                        array('context' => context_course::instance($group->courseid)));
+                        ['context' => context_course::instance($group->courseid)]);
                 }
 
                 $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
                 $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
             }
-
         }
-
-        $mform->addAdvancedStatusElement('general');
 
         $mform->addElement('editor', 'description', get_string('eventdescription','calendar'), ['rows' => 3]);
         $mform->setType('description', PARAM_RAW);
         $mform->setAdvanced('description');
 
-        $group = array();
+        $group = [];
         $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationnone', 'calendar'), 0);
         $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationuntil', 'calendar'), 1);
         $group[] =& $mform->createElement('date_time_selector', 'timedurationuntil', '');
@@ -159,10 +177,9 @@ class new_event_form extends moodleform {
         $mform->setType('timedurationminutes', PARAM_INT);
         $mform->disabledIf('timedurationminutes','duration','noteq', 2);
 
-        $mform->setDefault('duration', ($hasduration)?1:0);
+        $mform->setDefault('duration', ($hasduration) ? 1 : 0);
 
-        if ($newevent) {
-
+        if ($isnewevent) {
             $mform->addElement('checkbox', 'repeat', get_string('repeatevent', 'calendar'), null);
             $mform->addElement('text', 'repeats', get_string('repeatweeksl', 'calendar'), 'maxlength="10" size="10"');
             $mform->setType('repeats', PARAM_INT);
@@ -170,9 +187,7 @@ class new_event_form extends moodleform {
             $mform->disabledIf('repeats','repeat','notchecked');
             $mform->setAdvanced('repeat');
             $mform->setAdvanced('repeats');
-
         } else if ($repeatedevents) {
-
             $mform->addElement('hidden', 'repeatid');
             $mform->setType('repeatid', PARAM_INT);
 
@@ -183,7 +198,7 @@ class new_event_form extends moodleform {
             $mform->setAdvanced('repeateditall');
         }
 
-        $PAGE->requires->js_call_amd('core_calendar/event_form', 'init', [$mform->getAttribute('id')]);
+        $PAGE->requires->js_call_amd('core_calendar/event_form', 'init', [$mform->getAttribute('id'), $haserror]);
     }
 
     /**
@@ -197,36 +212,47 @@ class new_event_form extends moodleform {
         global $DB, $CFG;
 
         $errors = parent::validation($data, $files);
+        $coursekey = isset($data['groupcourseid']) ? 'groupcourseid' : 'courseid';
 
-        if ($data['courseid'] > 0) {
-            if ($course = $DB->get_record('course', array('id'=>$data['courseid']))) {
+        if (isset($data[$coursekey]) && $data[$coursekey] > 0) {
+            if ($course = $DB->get_record('course', ['id' => $data[$coursekey]])) {
                 if ($data['timestart'] < $course->startdate) {
                     $errors['timestart'] = get_string('errorbeforecoursestart', 'calendar');
                 }
             } else {
-                $errors['courseid'] = get_string('invalidcourse', 'error');
+                $errors[$coursekey] = get_string('invalidcourse', 'error');
             }
-
         }
 
         if ($data['duration'] == 1 && $data['timestart'] > $data['timedurationuntil']) {
-            $errors['timedurationuntil'] = get_string('invalidtimedurationuntil', 'calendar');
+            $errors['durationgroup'] = get_string('invalidtimedurationuntil', 'calendar');
         } else if ($data['duration'] == 2 && (trim($data['timedurationminutes']) == '' || $data['timedurationminutes'] < 1)) {
-            $errors['timedurationminutes'] = get_string('invalidtimedurationminutes', 'calendar');
+            $errors['durationgroup'] = get_string('invalidtimedurationminutes', 'calendar');
         }
 
         return $errors;
     }
 
-    /**
-     * Get the list of elements in the form that failed validation.
-     *
-     * The errors are returned in key/value pairs where the key is the
-     * name of the element and the value is the error message.
-     *
-     * @return array
-     */
-    public function get_validation_errors() {
-        return $this->_form->_errors;
+    public function get_data() {
+        $data = parent::get_data();
+
+        if ($data) {
+            // Undo the form definition work around to allow us to have two different
+            // course selectors present depending on which event type the user selects.
+            if (isset($data->groupcourseid)) {
+                $data->courseid = $data->groupcourseid;
+                unset($data->groupcourseid);
+            }
+
+            if ($data->duration == 1) {
+                $data->timeduration = $data->timedurationuntil- $data->timestart;
+            } else if ($data->duration == 2) {
+                $data->timeduration = $data->timedurationminutes * MINSECS;
+            } else {
+                $data->timeduration = 0;
+            }
+        }
+
+        return $data;
     }
 }

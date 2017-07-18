@@ -32,7 +32,8 @@ define([
             'core/modal',
             'core/modal_registry',
             'core/fragment',
-            'core_calendar/repository'
+            'core_calendar/repository',
+            'core_calendar/event_form'
         ],
         function(
             $,
@@ -44,12 +45,13 @@ define([
             Modal,
             ModalRegistry,
             Fragment,
-            Repository
+            Repository,
+            EventForm
         ) {
 
     var registered = false;
     var SELECTORS = {
-        MORE_LINK: '[data-action="more"]',
+        MORELESS_BUTTON: '[data-action="more-less-toggle"]',
         SAVE_BUTTON: '[data-action="save"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
     };
@@ -62,9 +64,8 @@ define([
     var ModalEventForm = function(root) {
         Modal.call(this, root);
         this.eventId = null;
-        this.reloadBody = false;
         this.saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
-        this.moreButton = this.getFooter().find(SELECTORS.MORE_BUTTON);
+        this.moreLessButton = this.getFooter().find(SELECTORS.MORELESS_BUTTON);
     };
 
     ModalEventForm.TYPE = 'core_calendar-modal_event_form';
@@ -72,7 +73,6 @@ define([
     ModalEventForm.prototype.constructor = ModalEventForm;
 
     ModalEventForm.prototype.setEventId = function(id) {
-        this.reloadBody = true;
         this.eventId = id;
     };
 
@@ -84,56 +84,108 @@ define([
         return this.eventid === null;
     };
 
+    ModalEventForm.prototype.getForm = function() {
+        return this.getBody().find('form');
+    };
+
     ModalEventForm.prototype.disableButtons = function() {
         this.saveButton.prop('disabled', true);
-        this.moreButton.prop('disabled', true);
+        this.moreLessButton.prop('disabled', true);
     };
 
     ModalEventForm.prototype.enableButtons = function() {
         this.saveButton.prop('disabled', false);
-        this.moreButton.prop('disabled', false);
+        this.moreLessButton.prop('disabled', false);
+    };
+
+    ModalEventForm.prototype.setMoreButton = function() {
+        this.moreLessButton.attr('data-collapsed', 'true');
+        Str.get_string('more', 'calendar').then(function(string) {
+            this.moreLessButton.text(string);
+        }.bind(this));;
+    };
+
+    ModalEventForm.prototype.setLessButton = function() {
+        this.moreLessButton.attr('data-collapsed', 'false');
+        Str.get_string('less', 'calendar').then(function(string) {
+            this.moreLessButton.text(string);
+        }.bind(this));;
+    };
+
+    ModalEventForm.prototype.toggleMoreLessButton = function() {
+        var form = this.getForm();
+
+        if (this.moreLessButton.attr('data-collapsed') == 'true') {
+            form.trigger(EventForm.events.SHOW_ADVANCED);
+            this.setLessButton();
+        } else {
+            form.trigger(EventForm.events.HIDE_ADVANCED);
+            this.setMoreButton();
+        }
+    };
+
+    ModalEventForm.prototype.reloadTitleContent = function() {
+        var titlePromise;
+
+        if (this.hasEventId()) {
+            titlePromise = Str.get_string('editevent', 'calendar');
+        } else {
+            titlePromise = Str.get_string('newevent', 'calendar');
+        }
+
+        titlePromise.then(function(string) {
+            this.setTitle(string);
+            return string;
+        }.bind(this));
+
+        return titlePromise;
+    };
+
+    ModalEventForm.prototype.reloadBodyContent = function(formData, hasError) {
+        this.disableButtons();
+
+        var contextId = this.saveButton.attr('data-context-id');
+        var args = {};
+
+        if (this.hasEventId()) {
+            args.eventid = this.getEventId();
+        }
+
+        if (typeof formData !== 'undefined') {
+            args.formdata = formData;
+        }
+
+        args.haserror = (typeof hasError == 'undefined') ? false : hasError;
+
+        var promise = Fragment.loadFragment('calendar', 'event_form', contextId, args);
+        promise.fail(Notification.exception);
+
+        this.setBody(promise);
+
+        promise.done(function(html, js) {
+            this.enableButtons();
+        }.bind(this));
+
+        return promise;
+    };
+
+    ModalEventForm.prototype.reloadAllContent = function() {
+        return $.when(this.reloadTitleContent(), this.reloadBodyContent());
     };
 
     ModalEventForm.prototype.show = function() {
-        if (!this.isAttached || this.reloadBody) {
-            this.disableButtons();
-
-            var contextId = this.saveButton.attr('data-context-id');
-            var args = {};
-            var titlePromise;
-
-            if (this.hasEventId()) {
-                args.eventid = this.getEventId();
-                titlePromise = Str.get_string('editevent', 'calendar');
-            } else {
-                titlePromise = Str.get_string('newevent', 'calendar');
-            }
-
-            titlePromise.done(function(string) {
-                this.setTitle(string);
-            }.bind(this));
-
-            var promise = Fragment.loadFragment('calendar', 'event_form', contextId, args);
-            promise.fail(Notification.exception);
-            promise.done(function() {
-                this.enableButtons();
-            }.bind(this));
-
-            this.setBody(promise);
-        }
+        this.reloadAllContent();
 
         Modal.prototype.show.call(this);
     };
 
     ModalEventForm.prototype.hide = function() {
-        // Reset the form when the user hides the modal.
-        this.getBody().find('form')[0].reset();
-        // Apply parent hide function;
         Modal.prototype.hide.call(this);
+        this.setEventId(null);
     };
 
     ModalEventForm.prototype.getFormData = function() {
-        return this.getBody().find('form').serialize();
+        return this.getForm().serialize();
     };
 
     ModalEventForm.prototype.save = function() {
@@ -143,18 +195,11 @@ define([
         this.disableButtons();
 
         // save event.
-        var form = this.getBody().find('form');
         var formData = this.getFormData();
         Repository.submitEventForm(formData)
             .then(function(response) {
                 if (response.validationerror) {
-                    response.errorelements.forEach(function(error) {
-                        var element = form.find('#id_' + error.name);
-
-                        if (element.length) {
-                            element.trigger(Event.Events.FORM_FIELD_VALIDATION, error.message);
-                        }
-                    });
+                    return this.reloadBodyContent(formData, true);
                 } else {
                     this.hide();
                     // Reload the page so that the new event shows up.
@@ -177,11 +222,39 @@ define([
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
-        // When the user clicks the save button.
+        // When the user clicks the save button we trigger the form submission. We need to
+        // trigger an actual submission because there is some JS code in the form that is
+        // listening for this event and doing some stuff (e.g. saving draft areas etc).
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
-            this.save();
+            this.getForm().submit();
             data.originalEvent.preventDefault();
             e.stopPropagation();
+        }.bind(this));
+
+        // Catch the submit event before it is actually processed by the browser and
+        // prevent the submission. We'll take it from here.
+        this.getModal().on('submit', function(e) {
+            this.save();
+
+            // Stop the form from actually submitting and prevent it's
+            // propagation because we have already handled the event.
+            e.preventDefault();
+            e.stopPropagation();
+        }.bind(this));
+
+        this.getModal().on(CustomEvents.events.activate, SELECTORS.MORELESS_BUTTON, function(e, data) {
+            this.toggleMoreLessButton();
+
+            data.originalEvent.preventDefault();
+            e.stopPropagation();
+        }.bind(this));
+
+        this.getModal().on(EventForm.events.ADVANCED_SHOWN, function() {
+            this.setLessButton();
+        }.bind(this));
+
+        this.getModal().on(EventForm.events.ADVANCED_HIDDEN, function() {
+            this.setMoreButton();
         }.bind(this));
     };
 

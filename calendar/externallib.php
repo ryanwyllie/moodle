@@ -786,6 +786,7 @@ class core_calendar_external extends external_api {
      */
     public static function submit_event_form($formdata) {
         global $CFG, $USER, $PAGE;
+        require_once($CFG->dirroot."/calendar/lib.php");
         require_once($CFG->dirroot."/calendar/new_event_form.php");
 
         // Parameter validation.
@@ -800,8 +801,18 @@ class core_calendar_external extends external_api {
         $validateddata = $mform->get_data();
 
         if ($validateddata) {
-            $factory = event_container::get_event_factory();
-            $event = $factory->create_instance($validateddata);
+            if (isset($validateddate['eventid'])) {
+                $legacyevent = calendar_event::load($eventid);
+            } else {
+                $legacyevent = new calendar_event();
+            }
+
+            $legacyevent->properties(true);
+            $legacyevent->update($validateddata);
+            error_log(print_r($legacyevent->properties(), true));
+
+            $mapper = event_container::get_event_mapper();
+            $event = $mapper->from_legacy_event_to_event($legacyevent);
             $cache = new events_related_objects_cache([$event]);
             $relatedobjects = [
                 'context' => $cache->get_context($event),
@@ -812,19 +823,8 @@ class core_calendar_external extends external_api {
 
             return $exporter->export($renderer);
         } else {
-            $errors = $mform->get_validation_errors();
-            $errorelements = [];
-
-            foreach ($errors as $name => $message) {
-                $errorelements[] = [
-                    'name' => $name,
-                    'message' => $message
-                ];
-            }
-
             return [
                 'validationerror' => true,
-                'errorelements' => $errorelements,
             ];
         }
     }
@@ -842,15 +842,6 @@ class core_calendar_external extends external_api {
             array(
                 'event' => $eventstructure,
                 'validationerror' => new external_value(PARAM_BOOL, 'Invalid form data', VALUE_DEFAULT, false),
-                'errorelements' => new external_multiple_structure(
-                    new external_single_structure([
-                        'name' => new external_value(PARAM_TEXT, 'form element name attribute'),
-                        'message' => new external_value(PARAM_TEXT, 'validation error message')
-                    ]),
-                    'The list of elements that failed validation',
-                    VALUE_DEFAULT,
-                    []
-                )
             )
         );
     }
