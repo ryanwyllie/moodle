@@ -3396,10 +3396,7 @@ function calendar_output_fragment_event_form($args) {
     $eventid = isset($args['eventid']) ? $args['eventid'] : null;
     $event = null;
     $hasformdata = isset($args['formdata']) && !empty($args['formdata']);
-    $types = calendar_get_all_allowed_types();
-    $formoptions = [
-        'types' => $types
-    ];
+    $formoptions = [];
 
     if ($hasformdata) {
         parse_str($args['formdata'], $data);

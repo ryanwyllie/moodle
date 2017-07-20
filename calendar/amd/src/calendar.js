@@ -130,6 +130,22 @@ define([
         });
     };
 
+    var registerCalendarEventListeners = function(root) {
+        var body = $('body');
+
+        body.on(CalendarEvents.created, function() {
+            window.location.reload();
+        });
+
+        body.on(CalendarEvents.deleted, function() {
+            window.location.reload();
+        });
+
+        body.on(CalendarEvents.updated, function() {
+            window.location.reload();
+        });
+    };
+
     /**
      * Register event listeners for the module.
      *
@@ -154,6 +170,7 @@ define([
         });
 
         registerEventFormModal(root);
+        registerCalendarEventListeners(root);
     };
 
     return {

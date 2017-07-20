@@ -72,11 +72,7 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
     };
 
     ModalEventSummary.prototype.getEventId = function() {
-        if (typeof this.eventId == 'undefined') {
-            this.eventId = this.getBody().find(SELECTORS.ROOT).attr('data-event-id');
-        }
-
-        return this.eventId;
+        return this.getBody().find(SELECTORS.ROOT).attr('data-event-id');
     };
 
     /**
@@ -99,12 +95,12 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
                 .catch(Notification.exception);
 
             modal.getRoot().on(ModalEvents.yes, function() {
-                var eventId = this.eventId;
+                var eventId = this.getEventId();
 
                 CalendarRepository.deleteEvent(eventId)
                     .then(function() {
-                        modal.getRoot().trigger(CalendarEvents.deleted, eventId);
-                        window.location.reload();
+                        $('body').trigger(CalendarEvents.deleted, eventId);
+                        this.hide();
                     })
                     .catch(Notification.exception);
             }.bind(this));
@@ -119,9 +115,16 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
             });
         }.bind(this));
 
-        this.getRoot().on(CustomEvents.events.activate, SELECTORS.EDIT_EVENT, function(e, data) {
+        CustomEvents.define(this.getEditButton(), [
+            CustomEvents.events.activate
+        ]);
+
+        this.getEditButton().on(CustomEvents.events.activate, function(e, data) {
             $('body').trigger(CalendarEvents.editEvent, this.getEventId());
             this.hide();
+
+            e.stopPropagation();
+            data.originalEvent.preventDefault();
         }.bind(this));
     };
 

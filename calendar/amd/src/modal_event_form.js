@@ -32,6 +32,7 @@ define([
             'core/modal',
             'core/modal_registry',
             'core/fragment',
+            'core_calendar/calendar_events',
             'core_calendar/repository',
             'core_calendar/event_form'
         ],
@@ -45,6 +46,7 @@ define([
             Modal,
             ModalRegistry,
             Fragment,
+            CalendarEvents,
             Repository,
             EventForm
         ) {
@@ -72,32 +74,72 @@ define([
     ModalEventForm.prototype = Object.create(Modal.prototype);
     ModalEventForm.prototype.constructor = ModalEventForm;
 
+    /**
+     * Set the event id to the given value.
+     *
+     * @method setEventId
+     * @param {int} id The event id
+     */
     ModalEventForm.prototype.setEventId = function(id) {
         this.eventId = id;
     };
 
+    /**
+     * Retrieve the current event id, if any.
+     *
+     * @method getEventId
+     * @return {int|null} The event id
+     */
     ModalEventForm.prototype.getEventId = function() {
         return this.eventId;
     };
 
+    /**
+     * Check if the modal has an event id.
+     *
+     * @method hasEventId
+     * @return {bool}
+     */
     ModalEventForm.prototype.hasEventId = function() {
-        return this.eventid !== null;
+        return this.eventId !== null;
     };
 
+    /**
+     * Get the form element from the modal.
+     *
+     * @method getForm
+     * @return {object}
+     */
     ModalEventForm.prototype.getForm = function() {
         return this.getBody().find('form');
     };
 
+    /**
+     * Disable the buttons in the footer.
+     *
+     * @method disableButtons
+     */
     ModalEventForm.prototype.disableButtons = function() {
         this.saveButton.prop('disabled', true);
         this.moreLessButton.prop('disabled', true);
     };
 
+    /**
+     * Enable the buttons in the footer.
+     *
+     * @method enableButtons
+     */
     ModalEventForm.prototype.enableButtons = function() {
         this.saveButton.prop('disabled', false);
         this.moreLessButton.prop('disabled', false);
     };
 
+    /**
+     * Set the more/less button in the footer to the "more"
+     * state.
+     *
+     * @method setMoreButton
+     */
     ModalEventForm.prototype.setMoreButton = function() {
         this.moreLessButton.attr('data-collapsed', 'true');
         Str.get_string('more', 'calendar').then(function(string) {
@@ -105,6 +147,12 @@ define([
         }.bind(this));;
     };
 
+    /**
+     * Set the more/less button in the footer to the "less"
+     * state.
+     *
+     * @method setLessButton
+     */
     ModalEventForm.prototype.setLessButton = function() {
         this.moreLessButton.attr('data-collapsed', 'false');
         Str.get_string('less', 'calendar').then(function(string) {
@@ -112,6 +160,12 @@ define([
         }.bind(this));;
     };
 
+    /**
+     * Toggle the more/less button in the footer from the current
+     * state to it's opposite state.
+     *
+     * @method toggleMoreLessButton
+     */
     ModalEventForm.prototype.toggleMoreLessButton = function() {
         var form = this.getForm();
 
@@ -124,6 +178,14 @@ define([
         }
     };
 
+    /**
+     * Reload the title for the modal to the appropriate value
+     * depending on whether we are creating a new event or
+     * editing an existing event.
+     *
+     * @method reloadTitleContent
+     * @return {object} A promise resolved with the new title text
+     */
     ModalEventForm.prototype.reloadTitleContent = function() {
         var titlePromise;
 
@@ -141,6 +203,20 @@ define([
         return titlePromise;
     };
 
+    /**
+     * Send a request to the server to get the event_form in a fragment
+     * and render the result in the body of the modal.
+     *
+     * If serialised form data is provided then it will be sent in the
+     * request to the server to have the form rendered with the data. This
+     * is used when the form had a server side error and we need the server
+     * to re-render it for us to display the error to the user.
+     *
+     * @method reloadBodyContent
+     * @param {string} formData The serialised form data
+     * @param {bool} hasError True if we know the form data is erroneous
+     * @return {object} A promise resolved with the fragment html and js from
+     */
     ModalEventForm.prototype.reloadBodyContent = function(formData, hasError) {
         this.disableButtons();
 
@@ -162,55 +238,113 @@ define([
 
         this.setBody(promise);
 
-        promise.done(function(html, js) {
+        promise.then(function(html, js) {
             this.enableButtons();
+            return;
         }.bind(this));
 
         return promise;
     };
 
+    /**
+     * Reload both the title and body content.
+     *
+     * @method reloadAllContent
+     * @return {object} promise
+     */
     ModalEventForm.prototype.reloadAllContent = function() {
         return $.when(this.reloadTitleContent(), this.reloadBodyContent());
     };
 
+    /**
+     * Kick off a reload the modal content before showing it. This
+     * is to allow us to re-use the same modal for creating and
+     * editing different events within the page.
+     *
+     * We do the reload when showing the modal rather than hiding it
+     * to save a request to the server if the user closes the modal
+     * and never re-opens it.
+     *
+     * @method show
+     */
     ModalEventForm.prototype.show = function() {
         this.reloadAllContent();
 
         Modal.prototype.show.call(this);
     };
 
+    /**
+     * Clear the event id from the modal when it's closed so
+     * that it is loaded fresh next time it's displayed.
+     *
+     * The event id will be set by the calling code if it wants
+     * to edit a specific event.
+     *
+     * @method hide
+     */
     ModalEventForm.prototype.hide = function() {
         Modal.prototype.hide.call(this);
         this.setEventId(null);
     };
 
+    /**
+     * Get the serialised form data.
+     *
+     * @method getFormData
+     * @return {string} serialised form data
+     */
     ModalEventForm.prototype.getFormData = function() {
         return this.getForm().serialize();
     };
 
+    /**
+     * Send the form data to the server to create or update
+     * an event.
+     *
+     * If there is a server side validation error then we re-request the
+     * rendered form (with the data) from the server in order to get the
+     * server side errors to display.
+     *
+     * On success the modal is hidden and the page is reloaded so that the
+     * new event will display.
+     *
+     * @method save
+     * @return {object} A promise
+     */
     ModalEventForm.prototype.save = function() {
         var loadingContainer = this.saveButton.find(SELECTORS.LOADING_ICON_CONTAINER);
 
         loadingContainer.removeClass('hidden');
         this.disableButtons();
 
-        // save event.
-        var formData = this.getFormData();
-        Repository.submitEventForm(formData)
+        // Send the form data to the server for processing.
+        return Repository.submitEventForm(this.getFormData())
             .then(function(response) {
                 if (response.validationerror) {
+                    // If there was a server side validation error then
+                    // we need to re-request the rendered form from the server
+                    // in order to display the error for the user.
                     return this.reloadBodyContent(formData, true);
                 } else {
+                    // No problemo! Our work here is done.
                     this.hide();
-                    // Reload the page so that the new event shows up.
-                    window.location.reload();
+
+                    // Trigger the appropriate calendar event so that the view can
+                    // be updated.
+                    if (this.hasEventId()) {
+                        $('body').trigger(CalendarEvents.updated, response.event);
+                    } else {
+                        $('body').trigger(CalendarEvents.created, response.event);
+                    }
                 }
             }.bind(this))
             .always(function() {
+                // Regardless of success or error we should always stop
+                // the loading icon and re-enable the buttons.
                 loadingContainer.addClass('hidden');
                 this.enableButtons();
             }.bind(this))
-            .fail(Notification.exception);
+            .catch(Notification.exception);
     };
 
     /**
@@ -242,6 +376,7 @@ define([
             e.stopPropagation();
         }.bind(this));
 
+        // Toggle the state of the more/less button in the footer.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.MORELESS_BUTTON, function(e, data) {
             this.toggleMoreLessButton();
 
@@ -249,10 +384,16 @@ define([
             e.stopPropagation();
         }.bind(this));
 
+        // When the event form tells us that the advanced fields are shown
+        // then the more/less button should be set to less to allow the user
+        // to hide the advanced fields.
         this.getModal().on(EventForm.events.ADVANCED_SHOWN, function() {
             this.setLessButton();
         }.bind(this));
 
+        // When the event form tells us that the advanced fields are hidden
+        // then the more/less button should be set to more to allow the user
+        // to show the advanced fields.
         this.getModal().on(EventForm.events.ADVANCED_HIDDEN, function() {
             this.setMoreButton();
         }.bind(this));

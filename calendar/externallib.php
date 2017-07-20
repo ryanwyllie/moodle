@@ -797,10 +797,7 @@ class core_calendar_external extends external_api {
         self::validate_context($context);
         parse_str($params['formdata'], $data);
 
-        $formoptions = [
-            'types' => calendar_get_all_allowed_types()
-        ];
-        $mform = new event_form(null, $formoptions, 'post', '', null, true, $data);
+        $mform = new event_form(null, null, 'post', '', null, true, $data);
 
         if ($validateddata = $mform->get_data()) {
             if (isset($validateddate['eventid'])) {

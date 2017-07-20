@@ -90,9 +90,26 @@ define(['jquery', 'core/templates'], function($, Templates) {
     };
 
     var hideTypeSubSelects = function(formElement) {
-        formElement.find(SELECTORS.EVENT_COURSE_ID).closest(SELECTORS.FORM_GROUP).addClass('hidden');
-        formElement.find(SELECTORS.EVENT_GROUP_COURSE_ID).closest(SELECTORS.FORM_GROUP).addClass('hidden');
-        formElement.find(SELECTORS.EVENT_GROUP_ID).closest(SELECTORS.FORM_GROUP).addClass('hidden');
+        var typeSelect = formElement.find(SELECTORS.EVENT_TYPE);
+        var eventType = typeSelect.val();
+        var courseIdSelect = formElement.find(SELECTORS.EVENT_COURSE_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
+        var groupCourseIdSelect = formElement.find(SELECTORS.EVENT_GROUP_COURSE_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
+        var groupIdSelect = formElement.find(SELECTORS.EVENT_GROUP_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
+
+        // Hide the unreleated selectors for the given event type.
+        switch (eventType) {
+            case EVENT_TYPES.COURSE:
+                groupCourseIdSelect.addClass('hidden');
+                groupIdSelect.addClass('hidden');
+                break;
+            case EVENT_TYPES.GROUP:
+                courseIdSelect.addClass('hidden');
+                break;
+            default:
+                courseIdSelect.addClass('hidden');
+                groupCourseIdSelect.addClass('hidden');
+                groupIdSelect.addClass('hidden');
+        };
     };
 
     var addTypeSelectListeners = function(formElement) {
@@ -100,14 +117,6 @@ define(['jquery', 'core/templates'], function($, Templates) {
 
         typeSelect.on('change', function(e) {
             hideTypeSubSelects(formElement);
-            var type = typeSelect.val();
-
-            if (type == EVENT_TYPES.COURSE) {
-                formElement.find(SELECTORS.EVENT_COURSE_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
-            } else if (type == EVENT_TYPES.GROUP) {
-                formElement.find(SELECTORS.EVENT_GROUP_COURSE_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
-                formElement.find(SELECTORS.EVENT_GROUP_ID).closest(SELECTORS.FORM_GROUP).removeClass('hidden');
-            }
         });
     };
 

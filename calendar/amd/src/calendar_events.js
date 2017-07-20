@@ -24,7 +24,9 @@
  */
 define([], function() {
     return {
+        created: 'calendar-events:created',
         deleted: 'calendar-events:deleted',
+        updated: 'calendar-events:updated',
         editEvent: 'calendar-events:edit_event'
     };
 });

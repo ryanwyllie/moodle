@@ -48,7 +48,7 @@ class event_form extends moodleform {
         $mform = $this->_form;
         $haserror = !empty($this->_customdata['haserror']);
         $isnewevent = (empty($this->_customdata['event']) || empty($this->_customdata['event']->id));
-        $eventtypes = $this->_customdata['types'];
+        $eventtypes = calendar_get_all_allowed_types();
 
         if ($isnewevent) {
             $repeatedevents = false;
@@ -96,61 +96,59 @@ class event_form extends moodleform {
 
         $mform->addElement('date_time_selector', 'timestart', get_string('date'));
 
-        if ($isnewevent && $eventtypes) {
-            $options = [];
+        $options = [];
 
-            if (isset($eventtypes['user'])) {
-                $options['user'] = get_string('user');
-            }
-            if (isset($eventtypes['group'])) {
-                $options['group'] = get_string('group');
-            }
-            if (isset($eventtypes['course'])) {
-                $options['course'] = get_string('course');
-            }
-            if (isset($eventtypes['site'])) {
-                $options['site'] = get_string('site');
-            }
+        if (isset($eventtypes['user'])) {
+            $options['user'] = get_string('user');
+        }
+        if (isset($eventtypes['group'])) {
+            $options['group'] = get_string('group');
+        }
+        if (isset($eventtypes['course'])) {
+            $options['course'] = get_string('course');
+        }
+        if (isset($eventtypes['site'])) {
+            $options['site'] = get_string('site');
+        }
 
-            if (count(array_keys($eventtypes)) == 1 && isset($eventtypes['user'])) {
-                $mform->addElement('hidden', 'eventtype');
-                $mform->setType('eventtype', PARAM_TEXT);
-                $mform->setDefault('eventtype', 'user');
-            } else {
-                $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
-            }
+        if (count(array_keys($eventtypes)) == 1 && isset($eventtypes['user'])) {
+            $mform->addElement('hidden', 'eventtype');
+            $mform->setType('eventtype', PARAM_TEXT);
+            $mform->setDefault('eventtype', 'user');
+        } else {
+            $mform->addElement('select', 'eventtype', get_string('eventkind', 'calendar'), $options);
+        }
 
-            if (isset($eventtypes['course'])) {
-                $courseoptions = [];
-                foreach ($eventtypes['course'] as $course) {
-                    $courseoptions[$course->id] = format_string($course->fullname, true,
-                        ['context' => context_course::instance($course->id)]);
-                }
-
-                $mform->addElement('select', 'courseid', get_string('course'), $courseoptions);
-                $mform->disabledIf('courseid', 'eventtype', 'noteq', 'course');
+        if (isset($eventtypes['course'])) {
+            $courseoptions = [];
+            foreach ($eventtypes['course'] as $course) {
+                $courseoptions[$course->id] = format_string($course->fullname, true,
+                    ['context' => context_course::instance($course->id)]);
             }
 
-            if (isset($eventtypes['group'])) {
-                $courseoptions = [];
-                foreach ($eventtypes['groupcourses'] as $course) {
-                    $courseoptions[$course->id] = format_string($course->fullname, true,
-                        ['context' => context_course::instance($course->id)]);
-                }
+            $mform->addElement('select', 'courseid', get_string('course'), $courseoptions);
+            $mform->disabledIf('courseid', 'eventtype', 'noteq', 'course');
+        }
 
-                $mform->addElement('select', 'groupcourseid', get_string('course'), $courseoptions);
-                $mform->disabledIf('groupcourseid', 'eventtype', 'noteq', 'group');
-
-                $groupoptions = [];
-                foreach ($eventtypes['group'] as $group) {
-                    $index = "{$group->courseid}-{$group->id}";
-                    $groupoptions[$index] = format_string($group->name, true,
-                        ['context' => context_course::instance($group->courseid)]);
-                }
-
-                $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
-                $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
+        if (isset($eventtypes['group'])) {
+            $courseoptions = [];
+            foreach ($eventtypes['groupcourses'] as $course) {
+                $courseoptions[$course->id] = format_string($course->fullname, true,
+                    ['context' => context_course::instance($course->id)]);
             }
+
+            $mform->addElement('select', 'groupcourseid', get_string('course'), $courseoptions);
+            $mform->disabledIf('groupcourseid', 'eventtype', 'noteq', 'group');
+
+            $groupoptions = [];
+            foreach ($eventtypes['group'] as $group) {
+                $index = "{$group->courseid}-{$group->id}";
+                $groupoptions[$index] = format_string($group->name, true,
+                    ['context' => context_course::instance($group->courseid)]);
+            }
+
+            $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
+            $mform->disabledIf('groupid', 'eventtype', 'noteq', 'group');
         }
 
         $mform->addElement('editor', 'description', get_string('eventdescription','calendar'), ['rows' => 3]);
@@ -244,15 +242,19 @@ class event_form extends moodleform {
                 unset($data->groupcourseid);
             }
 
+            // Pull the group id back out of the value. The form saves the value
+            // as "<courseid>-<groupid>" to allow the javascript to work correctly.
             if (isset($data->groupid)) {
                 list($courseid, $groupid) = explode('-', $data->groupid);
                 $data->groupid = $groupid;
             }
 
+            // Default course id if none is set.
             if (!isset($data->courseid)) {
                 $data->courseid = 0;
             }
 
+            // Decode the form fields back into valid event property.
             if ($data->duration == 1) {
                 $data->timeduration = $data->timedurationuntil- $data->timestart;
             } else if ($data->duration == 2) {
@@ -263,5 +265,18 @@ class event_form extends moodleform {
         }
 
         return $data;
+    }
+
+    public function set_data($data) {
+        parent::set_data($data);
+
+        if (isset($data->eventtype) && $data->eventtype == 'group') {
+            // Set up the correct value for the to display on the form.
+            $groupid = "{$data->courseid}-{$data->groupid}";
+            parent::set_data([
+                'groupid' => $groupid,
+                'groupcourseid' => $data->courseid
+            ]);
+        }
     }
 }
