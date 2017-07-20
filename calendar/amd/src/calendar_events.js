@@ -24,6 +24,7 @@
  */
 define([], function() {
     return {
-        deleted: 'calendar-events:deleted'
+        deleted: 'calendar-events:deleted',
+        editEvent: 'calendar-events:edit_event'
     };
 });

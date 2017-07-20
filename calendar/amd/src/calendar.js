@@ -29,9 +29,10 @@ define([
             'core/notification',
             'core/custom_interaction_events',
             'core/modal_factory',
-            'core_calendar/summary_modal',
             'core_calendar/modal_event_form',
-            'core_calendar/repository'
+            'core_calendar/summary_modal',
+            'core_calendar/repository',
+            'core_calendar/calendar_events'
         ],
         function(
             $,
@@ -41,9 +42,10 @@ define([
             Notification,
             CustomEvents,
             ModalFactory,
-            SummaryModal,
             ModalEventForm,
-            CalendarRepository
+            SummaryModal,
+            CalendarRepository,
+            CalendarEvents
         ) {
 
     var SELECTORS = {
@@ -116,7 +118,16 @@ define([
                 }
             },
             newEventButton
-        );
+        ).then(function(modal) {
+            // When something within the calendar tells us the user wants
+            // to edit an event then show the event form modal.
+            $('body').on(CalendarEvents.editEvent, function(e, eventId) {
+                modal.setEventId(eventId);
+                modal.show();
+            });
+
+            return;
+        });
     };
 
     /**

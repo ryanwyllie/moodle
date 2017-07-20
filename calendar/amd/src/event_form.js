@@ -85,7 +85,6 @@ define(['jquery', 'core/templates'], function($, Templates) {
                 var courseId = splits[0];
                 var groupId = splits[1];
 
-                element.attr('value', groupId);
                 element.attr('data-course-id', courseId);
             });
     };

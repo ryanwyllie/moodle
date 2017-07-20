@@ -81,7 +81,7 @@ define([
     };
 
     ModalEventForm.prototype.hasEventId = function() {
-        return this.eventid === null;
+        return this.eventid !== null;
     };
 
     ModalEventForm.prototype.getForm = function() {

@@ -3389,7 +3389,7 @@ function calendar_get_legacy_events($tstart, $tend, $users, $groups, $courses, $
 
 function calendar_output_fragment_event_form($args) {
     global $CFG, $OUTPUT;
-    require_once($CFG->dirroot.'/calendar/new_event_form.php');
+    require_once($CFG->dirroot.'/calendar/event_form.php');
 
     $html = '';
     $data = null;
@@ -3428,7 +3428,7 @@ function calendar_output_fragment_event_form($args) {
         }
     }
 
-    $mform = new new_event_form(null, $formoptions, 'post', '', null, true, $data);
+    $mform = new event_form(null, $formoptions, 'post', '', null, true, $data);
 
     if ($hasformdata) {
         $mform->is_validated();

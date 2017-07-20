@@ -787,7 +787,7 @@ class core_calendar_external extends external_api {
     public static function submit_event_form($formdata) {
         global $CFG, $USER, $PAGE;
         require_once($CFG->dirroot."/calendar/lib.php");
-        require_once($CFG->dirroot."/calendar/new_event_form.php");
+        require_once($CFG->dirroot."/calendar/event_form.php");
 
         // Parameter validation.
         $params = self::validate_parameters(self::submit_event_form_parameters(), ['formdata' => $formdata]);
@@ -797,7 +797,10 @@ class core_calendar_external extends external_api {
         self::validate_context($context);
         parse_str($params['formdata'], $data);
 
-        $mform = new new_event_form(null, null, 'post', '', null, true, $data);
+        $formoptions = [
+            'types' => calendar_get_all_allowed_types()
+        ];
+        $mform = new event_form(null, $formoptions, 'post', '', null, true, $data);
 
         if ($validateddata = $mform->get_data()) {
             if (isset($validateddate['eventid'])) {

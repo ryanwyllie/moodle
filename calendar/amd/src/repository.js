@@ -22,7 +22,48 @@
  * @copyright  2017 Simey Lameze <lameze@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax) {
+define(['jquery', 'core/ajax'], function($, Ajax) {
+
+    /**
+     * Delete a calendar event.
+     *
+     * @method deleteEvent
+     * @param {int} eventId The event id.
+     * @return {promise} Resolved with requested calendar event
+     */
+    var deleteEvent = function(eventId) {
+
+        var request = {
+            methodname: 'core_calendar_delete_calendar_events',
+            args: {
+                events: [{
+                    eventid: eventId,
+                    repeat: 1
+                }]
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    /**
+     * Get a calendar event by id.
+     *
+     * @method getEventById
+     * @param {int} eventId The event id.
+     * @return {promise} Resolved with requested calendar event
+     */
+    var getEventById = function(eventId) {
+
+        var request = {
+            methodname: 'core_calendar_get_calendar_event_by_id',
+            args: {
+                eventid: eventId
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
 
     /**
      * Submit the form data for the event form.
@@ -39,12 +80,12 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax) {
             }
         };
 
-        var promise = Ajax.call([request])[0];
-
-        return promise;
+        return Ajax.call([request])[0];
     };
 
     return {
+        getEventById: getEventById,
+        deleteEvent: deleteEvent,
         submitEventForm: submitEventForm
     };
 });
