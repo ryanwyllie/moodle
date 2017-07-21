@@ -14,7 +14,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A javascript module to calendar events.
+ * This module is the highest level module for the calendar. It is
+ * responsible for initialising all of the components required for
+ * the calendar to run. It also coordinates the interaction between
+ * components by listening for and responding to different events
+ * triggered within the calendar UI.
  *
  * @module     core_calendar/calendar
  * @package    core_calendar
@@ -104,12 +108,19 @@ define([
         });
     };
 
-
+    /**
+     * Create the event form modal for creating new events and
+     * editing existing events.
+     *
+     * @method registerEventFormModal
+     * @param {object} root The calendar root element
+     * @return {object} The create modal promise
+     */
     var registerEventFormModal = function(root) {
         var newEventButton = root.find(SELECTORS.NEW_EVENT_BUTTON);
         var contextId = newEventButton.attr('data-context-id');
 
-        ModalFactory.create(
+        return ModalFactory.create(
             {
                 type: ModalEventForm.TYPE,
                 large: true,
@@ -118,31 +129,34 @@ define([
                 }
             },
             newEventButton
-        ).then(function(modal) {
+        );
+    };
+
+    /**
+     * Listen to and handle any calendar events fired by the calendar UI.
+     *
+     * @method registerCalendarEventListeners
+     * @param {object} root The calendar root element
+     * @param {object} eventFormModalPromise A promise reolved with the event form modal
+     */
+    var registerCalendarEventListeners = function(root, eventFormModalPromise) {
+        var body = $('body');
+
+        // TODO: Replace these with actual logic to update
+        // the UI without having to force a page reload.
+        body.on(CalendarEvents.created, window.location.reload);
+        body.on(CalendarEvents.deleted, window.location.reload);
+        body.on(CalendarEvents.updated, window.location.reload);
+
+        eventFormModalPromise.then(function(modal) {
             // When something within the calendar tells us the user wants
             // to edit an event then show the event form modal.
-            $('body').on(CalendarEvents.editEvent, function(e, eventId) {
+            body.on(CalendarEvents.editEvent, function(e, eventId) {
                 modal.setEventId(eventId);
                 modal.show();
             });
 
             return;
-        });
-    };
-
-    var registerCalendarEventListeners = function(root) {
-        var body = $('body');
-
-        body.on(CalendarEvents.created, function() {
-            window.location.reload();
-        });
-
-        body.on(CalendarEvents.deleted, function() {
-            window.location.reload();
-        });
-
-        body.on(CalendarEvents.updated, function() {
-            window.location.reload();
         });
     };
 
@@ -163,14 +177,14 @@ define([
                 var eventElement = $(e.target).closest(SELECTORS.EVENT_LINK);
                 var eventId = eventElement.attr('data-event-id');
 
-                renderEventSummaryModal(eventId).done(function() {
+                renderEventSummaryModal(eventId).then(function() {
                     loading = false;
                 });
             }
         });
 
-        registerEventFormModal(root);
-        registerCalendarEventListeners(root);
+        eventFormPromise = registerEventFormModal(root);
+        registerCalendarEventListeners(root, eventFormPromise);
     };
 
     return {

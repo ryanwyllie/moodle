@@ -800,7 +800,7 @@ class core_calendar_external extends external_api {
         $mform = new event_form(null, null, 'post', '', null, true, $data);
 
         if ($validateddata = $mform->get_data()) {
-            if (isset($validateddate['eventid'])) {
+            if (!empty($validateddate['id'])) {
                 $legacyevent = calendar_event::load($eventid);
                 $legacyevent->update($validateddata);
             } else {

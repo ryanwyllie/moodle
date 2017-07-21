@@ -82,13 +82,6 @@ class event_form extends moodleform {
         $mform->setType('instance', PARAM_INT);
         $mform->setDefault('instance', 0);
 
-        if (!$isnewevent) {
-            $event = $this->_customdata['event'];
-            $mform->addElement('hidden', 'eventid');
-            $mform->setType('eventid', PARAM_INT);
-            $mform->setDefault('eventid', $event->id);
-        }
-
         // Normal fields
         $mform->addElement('text', 'name', get_string('eventname','calendar'), 'size="50"');
         $mform->addRule('name', get_string('required'), 'required', null, 'client');

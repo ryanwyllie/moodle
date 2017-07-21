@@ -55,6 +55,13 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
     ModalEventSummary.prototype = Object.create(Modal.prototype);
     ModalEventSummary.prototype.constructor = ModalEventSummary;
 
+    /**
+     * Get the edit button element from the footer. The button is cached
+     * as it's not expected to change.
+     *
+     * @method getEditButton
+     * @return {object} button element
+     */
     ModalEventSummary.prototype.getEditButton = function() {
         if (typeof this.editButton == 'undefined') {
             this.editButton = this.getFooter().find(SELECTORS.EDIT_BUTTON);
@@ -63,6 +70,13 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
         return this.editButton;
     };
 
+    /**
+     * Get the delete button element from the footer. The button is cached
+     * as it's not expected to change.
+     *
+     * @method getDeleteButton
+     * @return {object} button element
+     */
     ModalEventSummary.prototype.getDeleteButton = function() {
         if (typeof this.deleteButton == 'undefined') {
             this.deleteButton = this.getFooter().find(SELECTORS.DELETE_BUTTON);
@@ -71,6 +85,14 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
         return this.deleteButton;
     };
 
+    /**
+     * Get the id for the event being shown in this modal. This value is
+     * not cached because it will change depending on which event is
+     * being displayed.
+     *
+     * @method getEventId
+     * @return {int}
+     */
     ModalEventSummary.prototype.getEventId = function() {
         return this.getBody().find(SELECTORS.ROOT).attr('data-event-id');
     };
@@ -88,12 +110,6 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
             { type: ModalFactory.types.CONFIRM },
             this.getDeleteButton()
         ).then(function(modal) {
-            Str.get_string('confirm')
-                .then(function(languagestring) {
-                    modal.setTitle(languagestring);
-                }.bind(this))
-                .catch(Notification.exception);
-
             modal.getRoot().on(ModalEvents.yes, function() {
                 var eventId = this.getEventId();
 
@@ -108,6 +124,8 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
             return modal;
         }.bind(this));
 
+        // We have to wait for the mody to finish rendering in order to ensure that
+        // the data-event-title property is available to use as the modal title.
         this.getRoot().on(ModalEvents.bodyRendered, function() {
             var eventTitle = this.getBody().find(SELECTORS.ROOT).attr('data-event-title');
             confirmPromise.then(function(modal) {
@@ -120,9 +138,13 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
         ]);
 
         this.getEditButton().on(CustomEvents.events.activate, function(e, data) {
+            // When the edit button is clicked we fire an event for the calendar UI to handle.
+            // We don't care how the UI chooses to handle it.
             $('body').trigger(CalendarEvents.editEvent, this.getEventId());
+            // There is nothing else for us to do so let's hide.
             this.hide();
 
+            // We've handled this event so no need to propagate it.
             e.stopPropagation();
             data.originalEvent.preventDefault();
         }.bind(this));
