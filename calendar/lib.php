@@ -3394,7 +3394,6 @@ function calendar_output_fragment_event_form($args) {
     $html = '';
     $data = null;
     $eventid = isset($args['eventid']) ? $args['eventid'] : null;
-    $event = null;
     $hasformdata = isset($args['formdata']) && !empty($args['formdata']);
     $formoptions = [];
 
@@ -3406,12 +3405,23 @@ function calendar_output_fragment_event_form($args) {
         $formoptions['haserror'] = $args['haserror'];
     }
 
-    if (is_null($eventid)) {
-        $event = new calendar_event((object) ['timestart' => time()]);
-    } else {
+    $mform = new \core_calendar\local\event\forms\create_update_form(
+        null,
+        $formoptions,
+        'post',
+        '',
+        null,
+        true,
+        $data
+    );
+
+    if ($hasformdata) {
+        $mform->is_validated();
+    } else if (!is_null($eventid)) {
+        $mapper = new \core_calendar\local\event\mappers\create_update_form_mapper();
         $event = calendar_event::load($eventid);
-        $event->timedurationuntil = $event->timestart + $event->timeduration;
-        $event->count_repeats();
+        $data = $mapper->from_legacy_event_to_data($event);
+        $mform->set_data($data);
 
         // Check to see if this event is part of a subscription or import.
         // If so display a warning on edit.
@@ -3423,15 +3433,6 @@ function calendar_output_fragment_event_form($args) {
 
             $html .= $OUTPUT->render($renderable);
         }
-    }
-
-    $mform = new event_form(null, $formoptions, 'post', '', null, true, $data);
-
-    if ($hasformdata) {
-        $mform->is_validated();
-    } else {
-        $properties = $event->properties(true);
-        $mform->set_data($properties);
     }
 
     $html .= $mform->render();

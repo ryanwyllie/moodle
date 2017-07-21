@@ -16,13 +16,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mform for creating and editing a calendar event. Based on the
+ * The mform for creating and updating a calendar event. Based on the
  * old event form.
  *
  * @copyright 2017 Ryan Wyllie <ryan@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @package calendar
  */
+namespace core_calendar\local\event\forms;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
 }
@@ -30,12 +32,12 @@ if (!defined('MOODLE_INTERNAL')) {
 require_once($CFG->dirroot.'/lib/formslib.php');
 
 /**
- * The mform class for creating and editing a calendar event.
+ * The mform class for creating and updating a calendar event.
  *
  * @copyright 2017 Ryan Wyllie <ryan@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class event_form extends moodleform {
+class create_update extends \moodleform {
     /**
      * The form definition
      */

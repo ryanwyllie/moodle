@@ -145,8 +145,10 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
             this.hide();
 
             // We've handled this event so no need to propagate it.
+            e.preventDefault();
             e.stopPropagation();
             data.originalEvent.preventDefault();
+            data.originalEvent.stopPropagation();
         }.bind(this));
     };
 

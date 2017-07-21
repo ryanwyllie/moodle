@@ -74,7 +74,7 @@ define(['jquery', 'core/ajax'], function($, Ajax) {
      */
     var submitEventForm = function(formdata) {
         var request = {
-            methodname: 'core_calendar_submit_event_form',
+            methodname: 'core_calendar_create_update_event_form',
             args: {
                 formdata: formdata
             }

@@ -66,6 +66,8 @@ define([
     var ModalEventForm = function(root) {
         Modal.call(this, root);
         this.eventId = null;
+        this.reloadingBody = false;
+        this.reloadingTitle = false;
         this.saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
         this.moreLessButton = this.getFooter().find(SELECTORS.MORELESS_BUTTON);
     };
@@ -187,20 +189,28 @@ define([
      * @return {object} A promise resolved with the new title text
      */
     ModalEventForm.prototype.reloadTitleContent = function() {
-        var titlePromise;
-
-        if (this.hasEventId()) {
-            titlePromise = Str.get_string('editevent', 'calendar');
-        } else {
-            titlePromise = Str.get_string('newevent', 'calendar');
+        if (this.reloadingTitle) {
+            return this.titlePromise;
         }
 
-        titlePromise.then(function(string) {
+        this.reloadingTitle = true;
+
+        if (this.hasEventId()) {
+            this.titlePromise = Str.get_string('editevent', 'calendar');
+        } else {
+            this.titlePromise = Str.get_string('newevent', 'calendar');
+        }
+
+        this.titlePromise.then(function(string) {
             this.setTitle(string);
             return string;
+        }.bind(this))
+        .always(function() {
+            this.reloadingTitle = false;
+            return;
         }.bind(this));
 
-        return titlePromise;
+        return this.titlePromise;
     };
 
     /**
@@ -218,6 +228,11 @@ define([
      * @return {object} A promise resolved with the fragment html and js from
      */
     ModalEventForm.prototype.reloadBodyContent = function(formData, hasError) {
+        if (this.reloadingBody) {
+            return this.bodyPromise;
+        }
+
+        this.reloadingBody = true;
         this.disableButtons();
 
         var contextId = this.saveButton.attr('data-context-id');
@@ -233,17 +248,21 @@ define([
 
         args.haserror = (typeof hasError == 'undefined') ? false : hasError;
 
-        var promise = Fragment.loadFragment('calendar', 'event_form', contextId, args);
-        promise.fail(Notification.exception);
+        this.bodyPromise = Fragment.loadFragment('calendar', 'event_form', contextId, args);
 
-        this.setBody(promise);
+        this.setBody(this.bodyPromise);
 
-        promise.then(function(html, js) {
+        this.bodyPromise.then(function(html, js) {
             this.enableButtons();
+            return;
+        }.bind(this))
+        .catch(Notification.exception)
+        .always(function() {
+            this.reloadingBody = false;
             return;
         }.bind(this));
 
-        return promise;
+        return this.bodyPromise;
     };
 
     /**

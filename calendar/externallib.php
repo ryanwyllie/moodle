@@ -31,6 +31,8 @@ require_once("$CFG->libdir/externallib.php");
 
 use \core_calendar\local\api as local_api;
 use \core_calendar\local\event\container as event_container;
+use \core_calendar\local\event\forms\create_update as create_update_form;
+use \core_calendar\local\event\mappers\create_update_form_mapper;
 use \core_calendar\external\event_exporter;
 use \core_calendar\external\events_exporter;
 use \core_calendar\external\events_grouped_by_course_exporter;
@@ -769,7 +771,7 @@ class core_calendar_external extends external_api {
      *
      * @return external_function_parameters.
      */
-    public static function submit_event_form_parameters() {
+    public static function submit_create_update_form_parameters() {
         return new external_function_parameters(
             [
                 'formdata' => new external_value(PARAM_RAW, 'The data from the event form'),
@@ -784,10 +786,9 @@ class core_calendar_external extends external_api {
      * @return array The created or modified event
      * @throws moodle_exception
      */
-    public static function submit_event_form($formdata) {
+    public static function submit_create_update_form($formdata) {
         global $CFG, $USER, $PAGE;
         require_once($CFG->dirroot."/calendar/lib.php");
-        require_once($CFG->dirroot."/calendar/event_form.php");
 
         // Parameter validation.
         $params = self::validate_parameters(self::submit_event_form_parameters(), ['formdata' => $formdata]);
@@ -797,18 +798,22 @@ class core_calendar_external extends external_api {
         self::validate_context($context);
         parse_str($params['formdata'], $data);
 
-        $mform = new event_form(null, null, 'post', '', null, true, $data);
+        $mform = new create_update_form(null, null, 'post', '', null, true, $data);
 
         if ($validateddata = $mform->get_data()) {
+            $formmapper = new create_update_form_mapper();
+            $properties = $formmapper->from_data_to_event_properties($validateddata);
+
             if (!empty($validateddate['id'])) {
                 $legacyevent = calendar_event::load($eventid);
-                $legacyevent->update($validateddata);
             } else {
-                $legacyevent = calendar_event::create($validateddata);
+                $legacyevent = new \calendar_event($properties);
             }
 
-            $mapper = event_container::get_event_mapper();
-            $event = $mapper->from_legacy_event_to_event($legacyevent);
+            $legacyevent->update($properties);
+
+            $eventmapper = event_container::get_event_mapper();
+            $event = $eventmapper->from_legacy_event_to_event($legacyevent);
             $cache = new events_related_objects_cache([$event]);
             $relatedobjects = [
                 'context' => $cache->get_context($event),
@@ -830,7 +835,7 @@ class core_calendar_external extends external_api {
      *
      * @return external_description.
      */
-    public static function  submit_event_form_returns() {
+    public static function  submit_create_update_form_returns() {
         $eventstructure = event_exporter::get_read_structure();
         $eventstructure->required = VALUE_OPTIONAL;
 

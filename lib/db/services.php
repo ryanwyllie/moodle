@@ -126,9 +126,9 @@ $functions = array(
         'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
-    'core_calendar_submit_event_form' => array(
+    'core_calendar_submit_create_update_form' => array(
         'classname' => 'core_calendar_external',
-        'methodname' => 'submit_event_form',
+        'methodname' => 'submit_create_update_form',
         'description' => 'Submit form data for event form',
         'classpath' => 'calendar/externallib.php',
         'type' => 'write',
