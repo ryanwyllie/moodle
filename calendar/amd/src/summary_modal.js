@@ -115,9 +115,10 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
 
                 CalendarRepository.deleteEvent(eventId)
                     .then(function() {
-                        $('body').trigger(CalendarEvents.deleted, eventId);
+                        var body = $('body');
+                        body.trigger(CalendarEvents.deleted, [eventId]);
                         this.hide();
-                    })
+                    }.bind(this))
                     .catch(Notification.exception);
             }.bind(this));
 
@@ -140,7 +141,7 @@ define(['jquery', 'core/str', 'core/notification', 'core/custom_interaction_even
         this.getEditButton().on(CustomEvents.events.activate, function(e, data) {
             // When the edit button is clicked we fire an event for the calendar UI to handle.
             // We don't care how the UI chooses to handle it.
-            $('body').trigger(CalendarEvents.editEvent, this.getEventId());
+            $('body').trigger(CalendarEvents.editEvent, [this.getEventId()]);
             // There is nothing else for us to do so let's hide.
             this.hide();
 

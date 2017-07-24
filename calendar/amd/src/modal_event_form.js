@@ -337,7 +337,7 @@ define([
         this.disableButtons();
 
         // Send the form data to the server for processing.
-        return Repository.submitEventForm(this.getFormData())
+        return Repository.submitCreateUpdateForm(this.getFormData())
             .then(function(response) {
                 if (response.validationerror) {
                     // If there was a server side validation error then
@@ -351,9 +351,9 @@ define([
                     // Trigger the appropriate calendar event so that the view can
                     // be updated.
                     if (this.hasEventId()) {
-                        $('body').trigger(CalendarEvents.updated, response.event);
+                        $('body').trigger(CalendarEvents.updated, [response.event]);
                     } else {
-                        $('body').trigger(CalendarEvents.created, response.event);
+                        $('body').trigger(CalendarEvents.created, [response.event]);
                     }
                 }
             }.bind(this))

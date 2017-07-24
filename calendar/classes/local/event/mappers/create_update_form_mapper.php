@@ -47,6 +47,7 @@ class create_update_form_mapper {
         $legacyevent->count_repeats();
         $data = $legacyevent->properties(true);
         $data->timedurationuntil = $legacyevent->timestart + $legacyevent->timeduration;
+        $data->duration = (empty($legacyevent->timeduration)) ? 0 : 1;
 
         if ($legacyevent->eventtype == 'group') {
             // Set up the correct value for the to display on the form.

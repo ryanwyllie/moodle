@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mform for creating and updating a calendar event. Based on the
+ * The mform for creating a calendar event. Based on the
  * old event form.
  *
  * @copyright 2017 Ryan Wyllie <ryan@moodle.com>
@@ -25,19 +25,17 @@
  */
 namespace core_calendar\local\event\forms;
 
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
-}
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
 /**
- * The mform class for creating and updating a calendar event.
+ * The mform class for creating a calendar event.
  *
  * @copyright 2017 Ryan Wyllie <ryan@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class create_update extends \moodleform {
+class create extends \moodleform {
     /**
      * The form definition
      */
@@ -46,17 +44,7 @@ class create_update extends \moodleform {
 
         $mform = $this->_form;
         $haserror = !empty($this->_customdata['haserror']);
-        $isnewevent = (empty($this->_customdata['event']) || empty($this->_customdata['event']->id));
         $eventtypes = calendar_get_all_allowed_types();
-
-        if ($isnewevent) {
-            $repeatedevents = false;
-            $hasduration = false;
-        } else {
-            $event = $this->_customdata['event'];
-            $repeatedevents = $event->eventrepeats > 0;
-            $hasduration = $event->timeduration > 0;
-        }
 
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
@@ -85,13 +73,10 @@ class create_update extends \moodleform {
         $mform->setAdvanced('description');
 
         // Add the variety of elements allowed for selecting event duration.
-        $this->add_event_duration_elements($mform, $hasduration);
+        $this->add_event_duration_elements($mform);
 
-        if ($isnewevent) {
-            $this->add_new_event_repeat_elements($mform);
-        } else if ($repeatedevents) {
-            $this->add_existing_event_repeat_elements($mform, $event);
-        }
+        // Add the form elements for repeating events.
+        $this->add_event_repeat_elements($mform);
 
         // Add the javascript required to enhance this mform. Including the show/hide of advanced elements
         // and the display of the correct select elements for chosen event types.
@@ -137,7 +122,7 @@ class create_update extends \moodleform {
      * @method add_default_hidden_elements
      * @param MoodleQuickForm $mform
      */
-    private function add_default_hidden_elements($mform) {
+    protected function add_default_hidden_elements($mform) {
         global $USER;
 
         // Add some hidden fields
@@ -156,6 +141,10 @@ class create_update extends \moodleform {
         $mform->addElement('hidden', 'instance');
         $mform->setType('instance', PARAM_INT);
         $mform->setDefault('instance', 0);
+
+        $mform->addElement('hidden', 'visible');
+        $mform->setType('visible', PARAM_INT);
+        $mform->setDefault('visible', 1);
     }
 
     /**
@@ -177,7 +166,7 @@ class create_update extends \moodleform {
      * @method add_default_hidden_elements
      * @param MoodleQuickForm $mform
      */
-    private function add_event_type_elements($mform, $eventtypes) {
+    protected function add_event_type_elements($mform, $eventtypes) {
         $options = [];
 
         if (isset($eventtypes['user'])) {
@@ -205,7 +194,7 @@ class create_update extends \moodleform {
             $courseoptions = [];
             foreach ($eventtypes['course'] as $course) {
                 $courseoptions[$course->id] = format_string($course->fullname, true,
-                    ['context' => context_course::instance($course->id)]);
+                    ['context' => \context_course::instance($course->id)]);
             }
 
             $mform->addElement('select', 'courseid', get_string('course'), $courseoptions);
@@ -216,7 +205,7 @@ class create_update extends \moodleform {
             $courseoptions = [];
             foreach ($eventtypes['groupcourses'] as $course) {
                 $courseoptions[$course->id] = format_string($course->fullname, true,
-                    ['context' => context_course::instance($course->id)]);
+                    ['context' => \context_course::instance($course->id)]);
             }
 
             $mform->addElement('select', 'groupcourseid', get_string('course'), $courseoptions);
@@ -228,7 +217,7 @@ class create_update extends \moodleform {
                 // the course and group ids so that it can enhance the form for the user.
                 $index = "{$group->courseid}-{$group->id}";
                 $groupoptions[$index] = format_string($group->name, true,
-                    ['context' => context_course::instance($group->courseid)]);
+                    ['context' => \context_course::instance($group->courseid)]);
             }
 
             $mform->addElement('select', 'groupid', get_string('group'), $groupoptions);
@@ -242,15 +231,14 @@ class create_update extends \moodleform {
      *
      * @method add_event_duration_elements
      * @param MoodleQuickForm $mform
-     * @param bool $hasduration If the form is rendering an event with duration
      */
-    private function add_event_duration_elements($mform, $hasduration) {
+    protected function add_event_duration_elements($mform) {
         $group = [];
-        $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationnone', 'calendar'), 0);
-        $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationuntil', 'calendar'), 1);
-        $group[] =& $mform->createElement('date_time_selector', 'timedurationuntil', '');
-        $group[] =& $mform->createElement('radio', 'duration', null, get_string('durationminutes', 'calendar'), 2);
-        $group[] =& $mform->createElement('text', 'timedurationminutes', get_string('durationminutes', 'calendar'));
+        $group[] = $mform->createElement('radio', 'duration', null, get_string('durationnone', 'calendar'), 0);
+        $group[] = $mform->createElement('radio', 'duration', null, get_string('durationuntil', 'calendar'), 1);
+        $group[] = $mform->createElement('date_time_selector', 'timedurationuntil', '');
+        $group[] = $mform->createElement('radio', 'duration', null, get_string('durationminutes', 'calendar'), 2);
+        $group[] = $mform->createElement('text', 'timedurationminutes', get_string('durationminutes', 'calendar'));
 
         $mform->addGroup($group, 'durationgroup', get_string('eventduration', 'calendar'), '<br />', false);
         $mform->setAdvanced('durationgroup');
@@ -265,16 +253,16 @@ class create_update extends \moodleform {
         $mform->setType('timedurationminutes', PARAM_INT);
         $mform->disabledIf('timedurationminutes','duration','noteq', 2);
 
-        $mform->setDefault('duration', ($hasduration) ? 1 : 0);
+        $mform->setDefault('duration', 0);
     }
 
     /**
      * Add the repeat elements for the form when creating a new event.
      *
-     * @method add_new_event_repeat_elements
+     * @method add_event_repeat_elements
      * @param MoodleQuickForm $mform
      */
-    private function add_new_event_repeat_elements($mform) {
+    protected function add_event_repeat_elements($mform) {
         $mform->addElement('checkbox', 'repeat', get_string('repeatevent', 'calendar'), null);
         $mform->addElement('text', 'repeats', get_string('repeatweeksl', 'calendar'), 'maxlength="10" size="10"');
         $mform->setType('repeats', PARAM_INT);
@@ -282,23 +270,5 @@ class create_update extends \moodleform {
         $mform->disabledIf('repeats','repeat','notchecked');
         $mform->setAdvanced('repeat');
         $mform->setAdvanced('repeats');
-    }
-
-    /**
-     * Add the repeat elements for the form when editing an existing event.
-     *
-     * @method add_existing_event_repeat_elements
-     * @param MoodleQuickForm $mform
-     * @param stdClass $event The event properties
-     */
-    private function add_existing_event_repeat_elements($mform, $event) {
-        $mform->addElement('hidden', 'repeatid');
-        $mform->setType('repeatid', PARAM_INT);
-
-        $mform->addElement('radio', 'repeateditall', null, get_string('repeateditall', 'calendar', $event->eventrepeats), 1);
-        $mform->addElement('radio', 'repeateditall', null, get_string('repeateditthis', 'calendar'), 0);
-
-        $mform->setDefault('repeateditall', 1);
-        $mform->setAdvanced('repeateditall');
     }
 }

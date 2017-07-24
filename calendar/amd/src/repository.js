@@ -68,13 +68,13 @@ define(['jquery', 'core/ajax'], function($, Ajax) {
     /**
      * Submit the form data for the event form.
      *
-     * @method submitEventForm
+     * @method submitCreateUpdateForm
      * @param {string} formdata The URL encoded values from the form
      * @return {promise} Resolved with the new or edited event
      */
-    var submitEventForm = function(formdata) {
+    var submitCreateUpdateForm = function(formdata) {
         var request = {
-            methodname: 'core_calendar_create_update_event_form',
+            methodname: 'core_calendar_submit_create_update_form',
             args: {
                 formdata: formdata
             }
@@ -86,6 +86,6 @@ define(['jquery', 'core/ajax'], function($, Ajax) {
     return {
         getEventById: getEventById,
         deleteEvent: deleteEvent,
-        submitEventForm: submitEventForm
+        submitCreateUpdateForm: submitCreateUpdateForm
     };
 });

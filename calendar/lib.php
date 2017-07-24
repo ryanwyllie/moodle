@@ -478,8 +478,6 @@ class calendar_event {
                 }
 
                 $editor = $this->properties->description;
-                error_log("EDITOR:");
-                error_log(print_r($editor, true));
                 $this->properties->format = $this->properties->description['format'];
                 $this->properties->description = $this->properties->description['text'];
             }
@@ -3393,33 +3391,48 @@ function calendar_output_fragment_event_form($args) {
 
     $html = '';
     $data = null;
-    $eventid = isset($args['eventid']) ? $args['eventid'] : null;
+    $eventid = isset($args['eventid']) ? clean_param($args['eventid'], PARAM_INT) : null;
+    $event = null;
     $hasformdata = isset($args['formdata']) && !empty($args['formdata']);
     $formoptions = [];
 
     if ($hasformdata) {
-        parse_str($args['formdata'], $data);
+        parse_str(clean_param($args['formdata'], PARAM_TEXT), $data);
     }
 
     if (isset($args['haserror'])) {
-        $formoptions['haserror'] = $args['haserror'];
+        $formoptions['haserror'] = clean_param($args['haserror'], PARAM_BOOL);
     }
 
-    $mform = new \core_calendar\local\event\forms\create_update_form(
-        null,
-        $formoptions,
-        'post',
-        '',
-        null,
-        true,
-        $data
-    );
+    if (is_null($eventid)) {
+        $mform = new \core_calendar\local\event\forms\create(
+            null,
+            $formoptions,
+            'post',
+            '',
+            null,
+            true,
+            $data
+        );
+    } else {
+        $event = calendar_event::load($eventid);
+        $event->count_repeats();
+        $formoptions['event'] = $event;
+        $mform = new \core_calendar\local\event\forms\update(
+            null,
+            $formoptions,
+            'post',
+            '',
+            null,
+            true,
+            $data
+        );
+    }
 
     if ($hasformdata) {
         $mform->is_validated();
-    } else if (!is_null($eventid)) {
+    } else if (!is_null($event)) {
         $mapper = new \core_calendar\local\event\mappers\create_update_form_mapper();
-        $event = calendar_event::load($eventid);
         $data = $mapper->from_legacy_event_to_data($event);
         $mform->set_data($data);
 

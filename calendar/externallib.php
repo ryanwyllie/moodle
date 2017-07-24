@@ -31,7 +31,8 @@ require_once("$CFG->libdir/externallib.php");
 
 use \core_calendar\local\api as local_api;
 use \core_calendar\local\event\container as event_container;
-use \core_calendar\local\event\forms\create_update as create_update_form;
+use \core_calendar\local\event\forms\create as create_event_form;
+use \core_calendar\local\event\forms\update as update_event_form;
 use \core_calendar\local\event\mappers\create_update_form_mapper;
 use \core_calendar\external\event_exporter;
 use \core_calendar\external\events_exporter;
@@ -791,22 +792,29 @@ class core_calendar_external extends external_api {
         require_once($CFG->dirroot."/calendar/lib.php");
 
         // Parameter validation.
-        $params = self::validate_parameters(self::submit_event_form_parameters(), ['formdata' => $formdata]);
+        $params = self::validate_parameters(self::submit_create_update_form_parameters(), ['formdata' => $formdata]);
         $context = \context_user::instance($USER->id);
         $data = [];
 
         self::validate_context($context);
         parse_str($params['formdata'], $data);
 
-        $mform = new create_update_form(null, null, 'post', '', null, true, $data);
+        if (!empty($data['id'])) {
+            $eventid = clean_param($data['id'], PARAM_INT);
+            $legacyevent = calendar_event::load($eventid);
+            $legacyevent->count_repeats();
+            $formoptions = ['event' => $legacyevent];
+            $mform = new update_event_form(null, $formoptions, 'post', '', null, true, $data);
+        } else {
+            $legacyevent = null;
+            $mform = new create_event_form(null, null, 'post', '', null, true, $data);
+        }
 
         if ($validateddata = $mform->get_data()) {
             $formmapper = new create_update_form_mapper();
             $properties = $formmapper->from_data_to_event_properties($validateddata);
 
-            if (!empty($validateddate['id'])) {
-                $legacyevent = calendar_event::load($eventid);
-            } else {
+            if (is_null($legacyevent)) {
                 $legacyevent = new \calendar_event($properties);
             }
 
@@ -822,11 +830,9 @@ class core_calendar_external extends external_api {
             $exporter = new event_exporter($event, $relatedobjects);
             $renderer = $PAGE->get_renderer('core_calendar');
 
-            return $exporter->export($renderer);
+            return [ 'event' => $exporter->export($renderer) ];
         } else {
-            return [
-                'validationerror' => true,
-            ];
+            return [ 'validationerror' => true ];
         }
     }
 
