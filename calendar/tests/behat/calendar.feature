@@ -1,4 +1,4 @@
-@core @core_calendar
+@core @core_calendar @javascript
 Feature: Perform basic calendar functionality
   In order to ensure the calendar works as expected
   As an admin
@@ -90,8 +90,12 @@ Feature: Perform basic calendar functionality
       | Type of event | user |
       | Event title | Really awesome event! |
       | Description | Come join this awesome event, sucka! |
-    And I click on "Delete event" "link" in the ".event div.commands" "css_element"
+    And I am on "Course 1" course homepage
+    And I follow "This month"
+    And I click on "Really awesome event!" "link"
     And I click on "Delete" "button"
+    And I click on "Yes" "button"
+    And I wait to be redirected
     And I should not see "Really awesome event!"
 
   Scenario: Edit an event
@@ -99,9 +103,12 @@ Feature: Perform basic calendar functionality
       | Type of event | user |
       | Event title | Really awesome event! |
       | Description | Come join this awesome event, sucka! |
-    And I click on "Edit event" "link" in the ".event div.commands" "css_element"
+    And I am on "Course 1" course homepage
+    And I follow "This month"
+    And I click on "Really awesome event!" "link"
+    And I click on "Edit" "button"
     And I set the following fields to these values:
       | Event title | Mediocre event :( |
       | Description | Wait, this event isn't that great. |
-    And I press "Save changes"
+    And I press "Save"
     And I should see "Mediocre event"
