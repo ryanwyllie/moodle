@@ -90,8 +90,14 @@ class create_update_form_mapper implements create_update_form_mapper_interface {
             $properties->groupid = $groupid;
         }
 
-        // Default course id if none is set.
-        if (!isset($data->courseid)) {
+        // Handle course id if none is set.
+        if (!isset($data->courseid) && $data->eventtype == 'site') {
+            $properties->courseid = SITEID;
+        } elseif (!isset($data->courseid) && $data->eventtype == 'user') {
+            $properties->courseid = 0;
+        } elseif (isset($data->courseid) && $data->eventtype == 'course') {
+            $properties->courseid = $data->courseid;
+        } else {
             $properties->courseid = 0;
         }
 
