@@ -1390,6 +1390,19 @@ abstract class moodleform {
             $_POST = $simulatedsubmitteddata;
         }
     }
+
+    public static function mock_generate_submit_keys($data = []) {
+        if (!defined('PHPUNIT_TEST') || !PHPUNIT_TEST) {
+            throw new \moodle_exception("This function can only be used for unit testing.");
+        }
+
+        $formidentifier = get_called_class();
+        $formidentifier = str_replace('\\', '_', $formidentifier); // See MDL-56233 for more information.
+        $data['sesskey'] = sesskey();
+        $data['_qf__' . $formidentifier] = 1;
+
+        return $data;
+    }
 }
 
 /**

@@ -44,6 +44,10 @@ class create extends \moodleform {
         $haserror = !empty($this->_customdata['haserror']);
         $eventtypes = calendar_get_all_allowed_types();
 
+        if (empty($eventtypes)) {
+            print_error('nopermissiontoupdatecalendar');
+        }
+
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
 
