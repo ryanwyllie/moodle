@@ -56,7 +56,11 @@
                             }}{{#isweekend}} weekend{{/isweekend}}{{!
                             }}{{#durationevents.0}} duration{{/durationevents.0}}{{!
                             }}{{#durationevents}} duration_{{.}}{{/durationevents}}{{!
-                        }}">
+                        }}"
+                        data-day-timestamp="{{timestamp}}"
+                        ondrop="calendarEventDropHandler(event);"
+                        ondragover="calendarEventDragOverHandler(event);"
+                        ondragleave="calendarEventDragLeaveHandler(event);">
                         <div class="hidden-sm-down text-xs-center">
                             {{#events.0}}
                                 <a href="{{viewdaylink}}" class="day" title="{{viewdaylinktitle}}">{{mday}}</a>
@@ -65,18 +69,26 @@
                                 {{mday}}
                             {{/events.0}}
                             {{#events.0}}
-                                <ul>
-                                    {{#events}}
+                                <div data-region="day-content">
+                                    <ul>
+                                        {{#events}}
                                         {{#underway}}
-                                            <li class="events-underway">[{{name}}]</li>
+                                        <li class="events-underway">[{{name}}]</li>
                                         {{/underway}}
                                         {{^underway}}
-                                            <li class="calendar_event_{{eventtype}}">
-                                                <a data-action="view-event" data-event-id="{{id}}" href="{{url}}">{{name}}</a>
-                                            </li>
+                                        <li class="calendar_event_{{eventtype}}"
+                                            {{#canedit}}
+                                                draggable="true"
+                                                data-drag-type="move"
+                                                ondragstart="calendarEventDragStartHandler(event);"
+                                            {{/canedit}}>
+
+                                            <a data-action="view-event" data-event-id="{{id}}" href="{{url}}">{{name}}</a>
+                                        </li>
                                         {{/underway}}
-                                    {{/events}}
-                                </ul>
+                                        {{/events}}
+                                    </ul>
+                                </div>
                             {{/events.0}}
                         </div>
                         <div class="hidden-md-up hidden-desktop">
@@ -84,7 +96,9 @@
                                 <a href="{{viewdaylink}}" class="day" title="{{viewdaylinktitle}}">{{mday}}</a>
                             {{/events.0}}
                             {{^events.0}}
-                                {{mday}}
+                                <div data-region="day-content">
+                                    {{mday}}
+                                </div>
                             {{/events.0}}
                         </div>
                     </td>

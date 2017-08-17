@@ -906,4 +906,58 @@ class core_calendar_external extends external_api {
     public static function get_calendar_monthly_view_returns() {
         return \core_calendar\external\month_exporter::get_read_structure();
     }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function update_event_start_day_parameters() {
+        return new external_function_parameters(
+            [
+                'eventId' => new external_value(PARAM_INT, 'Time to be viewed', VALUE_REQUIRED),
+                'dayTimestamp' => new external_value(PARAM_INT, 'Course being viewed', VALUE_REQUIRED),
+            ]
+        );
+    }
+
+    /**
+     * Get data for the monthly calendar view.
+     *
+     * @param   int     $time The time to be shown
+     * @param   int     $courseid The course to be included
+     * @return  array
+     */
+    public static function update_event_start_day($eventId, $dayTimestamp) {
+        global $CFG, $DB, $USER, $PAGE;
+        require_once($CFG->dirroot."/calendar/lib.php");
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::update_event_start_day_parameters(), [
+            'eventId' => $eventId,
+            'dayTimestamp' => $dayTimestamp,
+        ]);
+
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        $vault = event_container::get_event_vault();
+        $mapper = event_container::get_event_mapper();
+        $event = $vault->get_event_by_id($eventId);
+        $legacyevent = $mapper->from_event_to_legacy_event($event);
+        $newdate = usergetdate($dayTimestamp);
+        $starttime = $event->get_times()->get_start_time();
+        $starttime = $starttime->setDate($newdate['year'], $newdate['mon'], $newdate['mday']);
+
+        $legacyevent->update((object) ['timestart' => $starttime->getTimestamp()]);
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description
+     */
+    public static function update_event_start_day_returns() {
+        return null;
+    }
 }

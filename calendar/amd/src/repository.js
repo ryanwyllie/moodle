@@ -103,9 +103,22 @@ define(['jquery', 'core/ajax'], function($, Ajax) {
         return Ajax.call([request])[0];
     };
 
+    var updateEventStartDay = function(eventId, dayTimestamp) {
+        var request = {
+            methodname: 'core_calendar_update_event_start_day',
+            args: {
+                eventId: eventId,
+                dayTimestamp: dayTimestamp
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
     return {
         getEventById: getEventById,
         deleteEvent: deleteEvent,
+        updateEventStartDay: updateEventStartDay,
         submitCreateUpdateForm: submitCreateUpdateForm,
         getCalendarMonthData: getCalendarMonthData
     };

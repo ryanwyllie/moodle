@@ -38,7 +38,8 @@ define([
             'core_calendar/summary_modal',
             'core_calendar/repository',
             'core_calendar/events',
-            'core_calendar/view_manager'
+            'core_calendar/view_manager',
+            'core_calendar/drag_drop'
         ],
         function(
             $,
@@ -53,13 +54,16 @@ define([
             SummaryModal,
             CalendarRepository,
             CalendarEvents,
-            CalendarViewManager
+            CalendarViewManager,
+            DragDrop
         ) {
 
     var SELECTORS = {
         ROOT: "[data-region='calendar']",
         EVENT_LINK: "[data-action='view-event']",
-        NEW_EVENT_BUTTON: "[data-action='new-event-button']"
+        NEW_EVENT_BUTTON: "[data-action='new-event-button']",
+        DAY_CONTENT: "[data-region='day-content']",
+        LOADING_ICON: '.loading-icon',
     };
 
     /**
@@ -155,6 +159,42 @@ define([
         }).fail(Notification.exception);
     };
 
+    var handleMoveEvent = function(e, eventElement, originElement, destinationElement) {
+        var eventId = eventElement.attr('data-event-id');
+        var originTimestamp = originElement.attr('data-day-timestamp');
+        var destinationTimestamp = destinationElement.attr('data-day-timestamp');
+
+        // If the event has actually changed day.
+        if (originTimestamp != destinationTimestamp) {
+            Templates.render('core/loading', {})
+                .then(function(html, js) {
+                    originElement.find(SELECTORS.DAY_CONTENT).addClass('hidden');
+                    destinationElement.find(SELECTORS.DAY_CONTENT).addClass('hidden');
+                    Templates.appendNodeContents(originElement, html, js);
+                    Templates.appendNodeContents(destinationElement, html, js);
+                    return;
+                })
+                .then(function() {
+                    return CalendarRepository.updateEventStartDay(eventId, destinationTimestamp);
+                })
+                .then(function() {
+                    $('body').trigger(CalendarEvents.eventMoved, [eventId, originElement, destinationElement]);
+                    return;
+                })
+                .then(function() {
+                    originElement.find(SELECTORS.DAY_CONTENT).removeClass('hidden');
+                    destinationElement.find(SELECTORS.DAY_CONTENT).removeClass('hidden');
+                    originLoadingElement = originElement.find(SELECTORS.LOADING_ICON);
+                    destinationLoadingElement = destinationElement.find(SELECTORS.LOADING_ICON);
+
+                    Templates.replaceNode(originLoadingElement, '', '');
+                    Templates.replaceNode(destinationLoadingElement, '', '');
+                    return;
+                })
+                .fail(Notification.exception);
+        }
+    };
+
     /**
      * Create the event form modal for creating new events and
      * editing existing events.
@@ -204,6 +244,10 @@ define([
             // Action events needs to be edit directly on the course module.
             window.location.assign(url);
         });
+        body.on(CalendarEvents.moveEvent, handleMoveEvent);
+        body.on(CalendarEvents.eventMoved, function() {
+            window.location.reload();
+        });
 
         eventFormModalPromise.then(function(modal) {
             // When something within the calendar tells us the user wants
@@ -232,6 +276,8 @@ define([
 
         var eventFormPromise = registerEventFormModal(root);
         registerCalendarEventListeners(root, eventFormPromise);
+
+        DragDrop.init(root);
     };
 
     return {
