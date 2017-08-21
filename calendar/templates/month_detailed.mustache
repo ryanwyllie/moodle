@@ -51,15 +51,17 @@
                     <td class="dayblank">&nbsp;</td>
                 {{/prepadding}}
                 {{#days}}
-                    <td class="day text-sm-center text-md-left{{!
+                    <td class="clickable day text-sm-center text-md-left{{!
                             }}{{#istoday}} today{{/istoday}}{{!
                             }}{{#isweekend}} weekend{{/isweekend}}{{!
                             }}{{#durationevents.0}} duration{{/durationevents.0}}{{!
                             }}{{#durationevents}} duration_{{.}}{{/durationevents}}{{!
-                        }}">
+                        }}"
+                        data-region="day"
+                        data-new-event-timestamp="{{neweventtimestamp}}">
                         <div class="hidden-sm-down text-xs-center">
                             {{#events.0}}
-                                <a href="{{viewdaylink}}" class="day" title="{{viewdaylinktitle}}">{{mday}}</a>
+                                <a data-action="view-day-link" href="{{viewdaylink}}" class="day" title="{{viewdaylinktitle}}">{{mday}}</a>
                             {{/events.0}}
                             {{^events.0}}
                                 {{mday}}
@@ -71,7 +73,7 @@
                                             <li class="events-underway">[{{name}}]</li>
                                         {{/underway}}
                                         {{^underway}}
-                                            <li class="calendar_event_{{eventtype}}">
+                                            <li data-region="event-item" class="calendar_event_{{eventtype}}">
                                                 <a data-action="view-event" data-event-id="{{id}}" href="{{url}}">{{name}}</a>
                                             </li>
                                         {{/underway}}
