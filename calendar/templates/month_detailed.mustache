@@ -31,10 +31,10 @@
     {
     }
 }}
-<span id="month-detailed-{{uniqid}}" class="calendarwrapper" data-courseid="{{courseid}}" data-current-time="{{time}}">
+<span class="calendarwrapper" data-courseid="{{courseid}}" data-current-time="{{time}}">
     {{> core_calendar/month_header }}
     {{> core_calendar/month_navigation }}
-    <table class="calendarmonth calendartable card-deck m-b-0">
+    <table id="month-detailed-{{uniqid}}" class="calendarmonth calendartable card-deck m-b-0">
         <thead>
             <tr>
                 {{# daynames }}
@@ -58,7 +58,7 @@
                             }}{{#durationevents}} duration_{{.}}{{/durationevents}}{{!
                         }}"
                         data-day-timestamp="{{timestamp}}"
-                        data-drop-zone="true">
+                        data-drop-zone="month-view-day">
                         <div class="hidden-sm-down text-xs-center">
                             {{#events.0}}
                                 <a href="{{viewdaylink}}" class="day" title="{{viewdaylinktitle}}">{{mday}}</a>
@@ -78,6 +78,7 @@
                                                 {{#canedit}}
                                                     draggable="true"
                                                     data-drag-type="move"
+                                                    data-region="event"
                                                 {{/canedit}}>
 
                                                 <a data-action="view-event" data-event-id="{{id}}" href="{{url}}">{{name}}</a>
@@ -109,7 +110,7 @@
     </table>
 </span>
 {{#js}}
-require(['jquery', 'core_calendar/drag_drop'], function($, DragDrop) {
+require(['jquery', 'core_calendar/month_view_drag_drop'], function($, DragDrop) {
     var root = $('#month-detailed-{{uniqid}}');
     DragDrop.init(root);
 });
