@@ -423,6 +423,7 @@ class calendar_event {
 
         $this->properties->timemodified = time();
         $usingeditor = (!empty($this->properties->description) && is_array($this->properties->description));
+        $hascoursemodule = !empty($this->properties->modulename);
 
         // Prepare event data.
         $eventargs = array(
@@ -434,6 +435,17 @@ class calendar_event {
                 'name' => $this->properties->name
             )
         );
+
+        if ($hascoursemodule) {
+            // If this event is from an activity then we need to call
+            // the activity callback to let it validate that the changes
+            // to the event are correct.
+            component_callback(
+                'mod_' . $this->properties->modulename,
+                'core_calendar_validate_event',
+                [$this]
+            );
+        }
 
         if (empty($this->properties->id) || $this->properties->id < 1) {
 
@@ -544,8 +556,6 @@ class calendar_event {
                     $event->trigger();
                 }
             }
-
-            return true;
         } else {
 
             if ($checkcapability) {
@@ -614,9 +624,20 @@ class calendar_event {
                 $event->add_record_snapshot('event', $this->properties);
                 $event->trigger();
             }
-
-            return true;
         }
+
+        if ($hascoursemodule) {
+            // If this event is from an activity then we need to call
+            // the activity callback to let it know that the event it
+            // created has been modified so it needs to update accordingly.
+            component_callback(
+                'mod_' . $this->properties->modulename,
+                'core_calendar_event_updated',
+                [$this]
+            );
+        }
+
+        return true;
     }
 
     /**
@@ -2454,9 +2475,35 @@ function calendar_edit_event_allowed($event, $manualedit = false) {
     }
 
     if ($manualedit && !empty($event->modulename)) {
-        // A user isn't allowed to directly edit an event generated
-        // by a module.
-        return false;
+        $hascallback = component_callback_exists(
+            'mod_' . $event->modulename,
+            'core_calendar_event_updated'
+        );
+
+        if (!$hascallback) {
+            // If the activity hasn't implemented the correct callback
+            // to handle changes to it's events then don't allow any
+            // manual changes to them.
+            return false;
+        }
+
+        $coursemodules = get_fast_modinfo($event->courseid)->instances;
+        $hasmodule = isset($coursemodules[$event->modulename]);
+        $hasinstance = isset($coursemodules[$event->modulename][$event->instance]);
+
+        // If modinfo doesn't know about the module, return false to be safe.
+        if (!$hasmodule || !$hasinstance) {
+            return false;
+        }
+
+        $coursemodule = $coursemodules[$event->modulename][$event->instance];
+        $context = context_module::instance($coursemodule->id);
+        // This is the capability that allows a user to modify the activity
+        // settings. Since the activity generated this event we need to check
+        // that the current user has the same capability before allowing them
+        // to update the event because the changes to the event will be
+        // reflected within the activity.
+        return has_capability('moodle/course:manageactivities', $context);
     }
 
     // You cannot edit URL based calendar subscription events presently.

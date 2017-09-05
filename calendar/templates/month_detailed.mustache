@@ -77,7 +77,12 @@
                                             <li class="events-underway">[{{name}}]</li>
                                         {{/underway}}
                                         {{^underway}}
-                                            <li class="calendar_event_{{eventtype}}"
+                                        <li {{#modulename}}
+                                                class="calendar_event_course"
+                                            {{/modulename}}
+                                            {{^modulename}}
+                                                class="calendar_event_{{eventtype}}"
+                                            {{/modulename}}
                                                 data-region="event-item"
                                                 {{#canedit}}
                                                     draggable="true"
