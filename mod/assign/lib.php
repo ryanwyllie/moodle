@@ -1719,6 +1719,47 @@ function assign_pluginfile($course,
     }
     send_stored_file($file, 0, 0, $forcedownload, $options);
 }
+/**
+ * Check if the given calendar_event is either a user or groupd override
+ * event.
+ *
+ * @return bool
+ */
+function assign_is_override_calendar_event(\calendar_event $event) {
+    global $DB;
+
+    if (!isset($event->modulename)) {
+        return false;
+    }
+
+    if ($event->modulename != 'assign') {
+        return false;
+    }
+
+    if (!isset($event->instance)) {
+        return false;
+    }
+
+    if (!isset($event->userid) && !isset($event->groupid)) {
+        return false;
+    }
+
+    $overrideparams = [
+        'assignid' => $event->instance
+    ];
+
+    if (isset($event->groupid)) {
+        $overrideparams['groupid'] = $event->groupid;
+    } else if (isset($event->userid)) {
+        $overrideparams['userid'] = $event->userid;
+    }
+
+    if ($DB->get_record('assign_overrides', $overrideparams)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 /**
  * Serve the grading panel as a fragment.
@@ -1919,4 +1960,133 @@ function mod_assign_core_calendar_event_action_shows_item_count(calendar_event $
     ];
     // For mod_assign, item count should be shown if the event type is 'gradingdue' and there is one or more item count.
     return in_array($event->eventtype, $eventtypesshowingitemcount) && $itemcount > 0;
+}
+
+/**
+ * This function calculates the minimum and maximum cutoff values for the timestart of
+ * the given event.
+ *
+ * It will return an array with two values, the first being the minimum cutoff value and
+ * the second being the maximum cutoff value. Either or both values can be null, which
+ * indicates there is no minimum or maximum, respectively.
+ *
+ * If a cutoff is required then the function must return an array containing the cutoff
+ * timestamp and error string to display to the user if the cutoff value is violated.
+ *
+ * A minimum and maximum cutoff return value will look like:
+ * [
+ *     [1505704373, 'The due date must be after the sbumission start date'],
+ *     [1506741172, 'The due date must be before the cutoff date']
+ * ]
+ */
+function mod_assign_core_calendar_get_valid_event_timestart_range(\calendar_event $event) {
+    global $DB;
+
+    $instance = $DB->get_record('assign', ['id' => $event->instance]);
+    $submissionsfromdate = $instance->allowsubmissionsfromdate;
+    $cutoffdate = $instance->cutoffdate;
+    $duedate = $instance->duedate;
+    $mindate = null;
+    $maxdate = null;
+
+    if ($event->eventtype == ASSIGN_EVENT_TYPE_DUE) {
+        // This check is in here because due date events are currently
+        // the only events that can be overridden, so we can save a DB
+        // query if we don't bother checking other events.
+        if (assign_is_override_calendar_event($event)) {
+            // This is an override event so we should ignore it.
+            return [null, null];
+        }
+
+        if ($submissionsfromdate) {
+            $mindate = [
+                $submissionsfromdate,
+                get_string('duedatevalidation', 'assign'),
+            ];
+        }
+
+        if ($cutoffdate) {
+            $maxdate = [
+                $cutoffdate,
+                get_string('cutoffdatevalidation', 'assign'),
+            ];
+        }
+    } else if ($event->eventtype == ASSIGN_EVENT_TYPE_GRADINGDUE) {
+        if ($duedate) {
+            $mindate = [
+                $duedate,
+                get_string('gradingdueduedatevalidation', 'assign'),
+            ];
+        } else if ($submissionsfromdate) {
+            $mindate = [
+                $submissionsfromdate,
+                get_string('gradingduefromdatevalidation', 'assign'),
+            ];
+        }
+    }
+
+    return [$mindate, $maxdate];
+}
+
+/**
+ * This function will check that the given event is valid for it's
+ * corresponding assign module instance.
+ *
+ * An exception is thrown if the event fails validation.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ * @return bool
+ */
+function mod_assign_core_calendar_validate_event(\calendar_event $event) {
+    global $DB;
+
+    if (!isset($event->instance)) {
+        return;
+    }
+
+    // We need to read from the DB directly because course module may
+    // currently be getting created so it won't be in mod info yet.
+    $instance = $DB->get_record('assign', ['id' => $event->instance], '*', MUST_EXIST);
+    $timestart = $event->timestart;
+    list($min, $max) = mod_assign_core_calendar_get_valid_event_timestart_range($event);
+
+    if ($min && $timestart < $min[0]) {
+        throw new \moodle_exception($min[1]);
+    }
+
+    if ($max && $timestart > $max[0]) {
+        throw new \moodle_exception($max[1]);
+    }
+}
+
+/**
+ * This function will update the assign module according to the
+ * event that has been modified.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ */
+function mod_assign_core_calendar_event_updated(\calendar_event $event) {
+    global $DB;
+
+    if ($event->eventtype == ASSIGN_EVENT_TYPE_DUE) {
+        // This check is in here because due date events are currently
+        // the only events that can be overridden, so we can save a DB
+        // query if we don't bother checking other events.
+        if (assign_is_override_calendar_event($event)) {
+            // This is an override event so we should ignore it.
+            return;
+        }
+
+        // We need to read from the DB directly because course module may
+        // currently be getting created so it won't be in mod info yet.
+        $instance = $DB->get_record('assign', ['id' => $event->instance]);
+        $newduedate = $event->timestart;
+
+        if ($newduedate != $instance->duedate) {
+            $instance->duedate = $newduedate;
+            $DB->update_record('assign', $instance);
+        }
+    }
 }

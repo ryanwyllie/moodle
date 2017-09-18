@@ -626,7 +626,15 @@ class calendar_event {
             }
         }
 
-        if ($hascoursemodule) {
+        // Check that the user is allowed to manually edit calendar events before
+        // calling the event updated callback. The manual flag causes the code to
+        // check the user has the capabilities to modify the modules.
+        //
+        // We don't want to call the event update callback if the user isn't allowed
+        // to modify course modules because depending on the callback it can make
+        // some changes that would be considered security issues, such as updating the
+        // due date for and assignment.
+        if ($hascoursemodule && calendar_edit_event_allowed($this->properties, true)) {
             // If this event is from an activity then we need to call
             // the activity callback to let it know that the event it
             // created has been modified so it needs to update accordingly.
