@@ -26,6 +26,7 @@ namespace core_calendar\external;
 
 defined('MOODLE_INTERNAL') || die();
 
+use \core_calendar\local\event\container;
 use \core_course\external\course_summary_exporter;
 use \renderer_base;
 
@@ -47,6 +48,22 @@ class calendar_event_exporter extends event_exporter_base {
 
         $values = parent::define_other_properties();
         $values['url'] = ['type' => PARAM_URL];
+        $values['mindaytimestamp'] = [
+            'type' => PARAM_INT,
+            'optional' => true
+        ];
+        $values['mindayerror'] = [
+            'type' => PARAM_TEXT,
+            'optional' => true
+        ];
+        $values['maxdaytimestamp'] = [
+            'type' => PARAM_INT,
+            'optional' => true
+        ];
+        $values['maxdayerror'] = [
+            'type' => PARAM_TEXT,
+            'optional' => true
+        ];
 
         return $values;
     }
@@ -60,10 +77,78 @@ class calendar_event_exporter extends event_exporter_base {
     protected function get_other_values(renderer_base $output) {
         $values = parent::get_other_values($output);
 
+        $event = $this->event;
         $eventid = $this->event->get_id();
 
         $url = new \moodle_url($this->related['daylink'], [], "event_{$eventid}");
         $values['url'] = $url->out(false);
+
+        if ($event->get_course_module()) {
+            $mapper = container::get_event_mapper();
+            $starttime = $event->get_times()->get_start_time();
+
+            list($min, $max) = component_callback(
+                'mod_' . $event->get_course_module()->get('modname'),
+                'core_calendar_get_valid_event_timestart_range',
+                [$mapper->from_event_to_legacy_event($event)],
+                [null, null]
+            );
+
+            if ($min) {
+                // We need to check that the minimum valid time is earlier in the
+                // day than the current event time so that if the user drags and drops
+                // the event to this day (which changes the date but not the time) it
+                // will result in a valid time start for the event.
+                //
+                // For example:
+                // An event that starts on 2017-01-10 08:00 with a minimum cutoff
+                // of 2017-01-05 09:00 means that 2017-01-05 is not a valid start day
+                // for the drag and drop because it would result in the event start time
+                // being set to 2017-01-05 08:00, which is invalid. Instead the minimum
+                // valid start day would be 2017-01-06.
+                $timestamp = $min[0];
+                $errorstring = $min[1];
+                $mindate = (new \DateTimeImmutable())->setTimestamp($timestamp);
+                $minstart = $mindate->setTime(
+                    $starttime->format('H'),
+                    $starttime->format('i'),
+                    $starttime->format('s')
+                );
+
+                if ($mindate < $minstart) {
+                    $values['mindaytimestamp'] = usergetmidnight($timestamp);
+                } else {
+                    $values['mindaytimestamp'] = usergetmidnight($timestamp + DAYSECS);
+                }
+
+                // Get the human readable error message to display if the min day
+                // timestamp is violated.
+                $values['mindayerror'] = $errorstring;
+            }
+
+            if ($max) {
+                // We're doing a similar calculation here as we are for the minimum
+                // day timestamp. See the explanation above.
+                $timestamp = $max[0];
+                $errorstring = $max[1];
+                $maxdate = (new \DateTimeImmutable())->setTimestamp($timestamp);
+                $maxstart = $maxdate->setTime(
+                    $starttime->format('H'),
+                    $starttime->format('i'),
+                    $starttime->format('s')
+                );
+
+                if ($maxdate > $maxstart) {
+                    $values['maxdaytimestamp'] = usergetmidnight($timestamp);
+                } else {
+                    $values['maxdaytimestamp'] = usergetmidnight($timestamp - DAYSECS);
+                }
+
+                // Get the human readable error message to display if the max day
+                // timestamp is violated.
+                $values['maxdayerror'] = $errorstring;
+            }
+        }
 
         return $values;
     }
