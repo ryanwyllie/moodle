@@ -1480,3 +1480,30 @@ function mod_chat_core_calendar_provide_event_action(calendar_event $event,
         );
     }
 }
+
+/**
+ * This function will update the module according to the
+ * event that has been modified.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ */
+function mod_chat_core_calendar_event_timestart_updated(\calendar_event $event) {
+    global $DB;
+
+    if (empty($event->modulename) || $event->modulename != 'chat') {
+        return;
+    }
+
+    if ($event->eventtype == CHAT_EVENT_TYPE_CHATTIME) {
+        $instance = $DB->get_record('chat', ['id' => $event->instance], '*', MUST_EXIST);
+        $newchattime = $event->timestart;
+
+        if ($instance->chattime != $newchattime) {
+            $instance->chattime = $newchattime;
+            $instance->timemodified = time();
+
+            $DB->update_record('chat', $instance);
+        }
+    }
+}

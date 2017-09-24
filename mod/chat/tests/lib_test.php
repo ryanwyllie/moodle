@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+use \core_calendar\local\api as calendar_local_api;
+use \core_calendar\local\event\container as calendar_event_container;
+
 /**
  * Class containing unit tests for mod/chat/lib.php.
  *
@@ -141,6 +144,190 @@ class mod_chat_lib_testcase extends advanced_testcase {
         $this->assertInstanceOf('moodle_url', $actionevent->get_url());
         $this->assertEquals(1, $actionevent->get_item_count());
         $this->assertFalse($actionevent->is_actionable());
+    }
+
+    /**
+     * An event of unknown type should not update the chat time.
+     */
+    public function test_mod_chat_core_calendar_event_timestart_updated_unknown_event() {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $this->setAdminUser();
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a chat.
+        $now = time();
+        $chattime = $now;
+        $newchattime = $chattime + DAYSECS;
+        $chat = $this->getDataGenerator()->create_module('chat', [
+            'course' => $course->id,
+            'chattime' => $chattime,
+            'timemodified' => $now
+        ]);
+
+        $event = new \calendar_event((object) [
+            'modulename' => 'chat',
+            'instance' => $chat->id,
+            'eventtype' => 'SOME RANDOM EVENT',
+            'timestart' => $newchattime
+        ]);
+
+        mod_chat_core_calendar_event_timestart_updated($event);
+
+        $updatedchat = $DB->get_record('chat', ['id' => $chat->id]);
+        // The chat time should not have been updated.
+        $this->assertEquals($chattime, $updatedchat->chattime);
+        $this->assertEquals($now, $updatedchat->timemodified);
+    }
+
+    /**
+     * A CHAT_EVENT_TYPE_CHATTIME event should update the chat time
+     */
+    public function test_mod_chat_core_calendar_event_timestart_updated_update_chattime() {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $this->setAdminUser();
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a chat.
+        $timemodified = time() - 10;
+        $chattime = time();
+        $newchattime = $chattime + DAYSECS;
+        $chat = $this->getDataGenerator()->create_module('chat', [
+            'course' => $course->id,
+            'chattime' => $chattime,
+            'timemodified' => $timemodified
+        ]);
+
+        $event = new \calendar_event((object) [
+            'modulename' => 'chat',
+            'instance' => $chat->id,
+            'eventtype' => CHAT_EVENT_TYPE_CHATTIME,
+            'timestart' => $newchattime
+        ]);
+
+        mod_chat_core_calendar_event_timestart_updated($event);
+
+        $updatedchat = $DB->get_record('chat', ['id' => $chat->id]);
+        // The activity should have been updated.
+        $this->assertEquals($newchattime, $updatedchat->chattime);
+        $this->assertNotEquals($timemodified, $updatedchat->timemodified);
+    }
+
+    /**
+     * A student should not be able to update the chat time of the
+     * activity if they manage to find a way to update the event.
+     */
+    public function test_student_role_cant_update_chattime() {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $mapper = calendar_event_container::get_event_mapper();
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $roleid = $generator->create_role();
+        // Create a chat.
+        $now = time();
+        $chattime = new DateTime();
+        $newchattime = (new DateTime())->setTimestamp($chattime->getTimestamp() + DAYSECS);
+        $chat = $this->getDataGenerator()->create_module('chat', [
+            'course' => $course->id,
+            'chattime' => $chattime->getTimestamp(),
+            'tiemmodified' => $now
+        ]);
+
+        $generator->enrol_user($user->id, $course->id, 'student');
+        $generator->role_assign($roleid, $user->id, $context->id);
+
+        $event = \calendar_event::create([
+            'name' => 'test event',
+            'courseid' => $course->id,
+            'modulename' => 'chat',
+            'instance' => $chat->id,
+            'eventtype' => CHAT_EVENT_TYPE_CHATTIME,
+            'timestart' => $newchattime->getTimestamp()
+        ]);
+
+        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:manageactivities', CAP_PROHIBIT, $roleid, $context, true);
+
+        $this->setUser($user);
+
+        calendar_local_api::update_event_start_day(
+            $mapper->from_legacy_event_to_event($event),
+            $newchattime
+        );
+
+        $updatedchat = $DB->get_record('chat', ['id' => $chat->id]);
+        // The chat time should not have updated in the activity.
+        $this->assertEquals($chattime->getTimestamp(), $updatedchat->chattime);
+        $this->assertEquals($now, $updatedchat->timemodified);
+    }
+
+    /**
+     * A teacher should be able to update the chat time by modifying
+     * the chat time event.
+     */
+    public function test_teacher_role_cant_update_chattime() {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $mapper = calendar_event_container::get_event_mapper();
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $roleid = $generator->create_role();
+        // Create a chat.
+        $timemodified = time() - 10;
+        $chattime = new DateTime();
+        $newchattime = (new DateTime())->setTimestamp($chattime->getTimestamp() + DAYSECS);
+        $chat = $this->getDataGenerator()->create_module('chat', [
+            'course' => $course->id,
+            'chattime' => $chattime->getTimestamp(),
+            'timemodified' => $timemodified
+        ]);
+
+        $generator->enrol_user($user->id, $course->id, 'teacher');
+        $generator->role_assign($roleid, $user->id, $context->id);
+
+        $event = \calendar_event::create([
+            'name' => 'test event',
+            'courseid' => $course->id,
+            'modulename' => 'chat',
+            'instance' => $chat->id,
+            'eventtype' => CHAT_EVENT_TYPE_CHATTIME,
+            'timestart' => $newchattime->getTimestamp()
+        ]);
+
+        assign_capability('moodle/calendar:manageentries', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:manageactivities', CAP_ALLOW, $roleid, $context, true);
+
+        $this->setUser($user);
+
+        calendar_local_api::update_event_start_day(
+            $mapper->from_legacy_event_to_event($event),
+            $newchattime
+        );
+
+        $updatedchat = $DB->get_record('chat', ['id' => $chat->id]);
+        // The chat time should have updated in the activity.
+        $this->assertEquals($newchattime->getTimestamp(), $updatedchat->chattime);
+        $this->assertNotEquals($timemodified, $updatedchat->timemodified);
     }
 
     /**
