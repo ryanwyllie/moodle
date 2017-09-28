@@ -1241,6 +1241,55 @@ function mod_choice_core_calendar_provide_event_action(calendar_event $event,
 }
 
 /**
+ * This function calculates the minimum and maximum cutoff values for the timestart of
+ * the given event.
+ *
+ * It will return an array with two values, the first being the minimum cutoff value and
+ * the second being the maximum cutoff value. Either or both values can be null, which
+ * indicates there is no minimum or maximum, respectively.
+ *
+ * If a cutoff is required then the function must return an array containing the cutoff
+ * timestamp and error string to display to the user if the cutoff value is violated.
+ *
+ * A minimum and maximum cutoff return value will look like:
+ * [
+ *     [1505704373, 'The date must be after this date'],
+ *     [1506741172, 'The date must be before this date']
+ * ]
+ *
+ * @param calendar_event $event The calendar event to get the time range for
+ * @param stdClass|null $instance The module instance to get the range from
+ */
+function mod_choice_core_calendar_get_valid_event_timestart_range(\calendar_event $event, \stdClass $choice = null) {
+    global $DB;
+
+    if (!$choice) {
+        $choice = $DB->get_record('choice', ['id' => $event->instance]);
+    }
+
+    $mindate = null;
+    $maxdate = null;
+
+    if ($event->eventtype == CHOICE_EVENT_TYPE_OPEN) {
+        if (!empty($choice->timeclose)) {
+            $maxdate = [
+                $choice->timeclose,
+                get_string('openafterclose', 'choice')
+            ];
+        }
+    } else if ($event->eventtype == CHOICE_EVENT_TYPE_CLOSE) {
+        if (!empty($choice->timeopen)) {
+            $mindate = [
+                $choice->timeopen,
+                get_string('closebeforeopen', 'choice')
+            ];
+        }
+    }
+
+    return [$mindate, $maxdate];
+}
+
+/**
  * This function will check that the given event is valid for it's
  * corresponding choice module.
  *
@@ -1253,23 +1302,23 @@ function mod_choice_core_calendar_provide_event_action(calendar_event $event,
 function mod_choice_core_calendar_validate_event_timestart(\calendar_event $event) {
     global $DB;
 
-    $record = $DB->get_record('choice', ['id' => $event->instance], '*', MUST_EXIST);
-
-    if ($event->eventtype == CHOICE_EVENT_TYPE_OPEN) {
-        // The start time of the open event can't be equal to or after the
-        // close time of the choice activity.
-        if (!empty($record->timeclose) && $event->timestart > $record->timeclose) {
-            throw new \moodle_exception('openafterclose', 'choice');
-        }
-    } else if ($event->eventtype == CHOICE_EVENT_TYPE_CLOSE) {
-        // The start time of the close event can't be equal to or earlier than the
-        // open time of the choice activity.
-        if (!empty($record->timeopen) && $event->timestart < $record->timeopen) {
-            throw new \moodle_exception('closebeforeopen', 'choice');
-        }
+    if (!isset($event->instance)) {
+        return;
     }
 
-    return true;
+    // We need to read from the DB directly because course module may
+    // currently be getting created so it won't be in mod info yet.
+    $instance = $DB->get_record('choice', ['id' => $event->instance], '*', MUST_EXIST);
+    $timestart = $event->timestart;
+    list($min, $max) = mod_choice_core_calendar_get_valid_event_timestart_range($event, $instance);
+
+    if ($min && $timestart < $min[0]) {
+        throw new \moodle_exception($min[1]);
+    }
+
+    if ($max && $timestart > $max[0]) {
+        throw new \moodle_exception($max[1]);
+    }
 }
 
 /**
