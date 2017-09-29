@@ -21,13 +21,24 @@
  * @copyright  2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/templates', 'core/notification', 'core_calendar/repository', 'core_calendar/events'],
-    function($, Templates, Notification, CalendarRepository, CalendarEvents) {
+define([
+    'jquery',
+    'core/templates',
+    'core/notification',
+    'core_calendar/repository',
+    'core_calendar/events',
+    'core_calendar/selectors',
+], function(
+    $,
+    Templates,
+    Notification,
+    CalendarRepository,
+    CalendarEvents,
+    CalendarSelectors
+) {
 
         var SELECTORS = {
-            ROOT: "[data-region='calendar']",
             CALENDAR_NAV_LINK: ".calendarwrapper .arrow_link",
-            CALENDAR_MONTH_WRAPPER: ".calendarwrapper",
             LOADING_ICON_CONTAINER: '[data-region="overlay-icon-container"]'
         };
 
@@ -40,11 +51,19 @@ define(['jquery', 'core/templates', 'core/notification', 'core_calendar/reposito
             root = $(root);
 
             root.on('click', SELECTORS.CALENDAR_NAV_LINK, function(e) {
-                var courseId = $(root).find(SELECTORS.CALENDAR_MONTH_WRAPPER).data('courseid');
-                var link = $(e.currentTarget);
-                changeMonth(root, link.attr('href'), link.data('year'), link.data('month'), courseId);
+                var wrapper = root.find(CalendarSelectors.wrapper);
+                var view = wrapper.data('view'),
+                    courseId = wrapper.data('courseid'),
+                    link = $(e.currentTarget);
 
-                e.preventDefault();
+                if (view === 'month') {
+                    changeMonth(root, link.attr('href'), link.data('year'), link.data('month'), courseId);
+                    e.preventDefault();
+                } else if (view === 'day') {
+                    changeDay(root, link.attr('href'), link.data('year'), link.data('month'), link.data('day'), courseId);
+                    e.preventDefault();
+                }
+
             });
         };
 
@@ -61,7 +80,7 @@ define(['jquery', 'core/templates', 'core/notification', 'core_calendar/reposito
         var refreshMonthContent = function(root, year, month, courseid, target) {
             startLoading(root);
 
-            target = target || root.find(SELECTORS.CALENDAR_MONTH_WRAPPER);
+            target = target || root.find(CalendarSelectors.wrapper);
 
             M.util.js_pending([root.get('id'), year, month, courseid].join('-'));
             var includenavigation = root.data('includenavigation');
@@ -115,13 +134,93 @@ define(['jquery', 'core/templates', 'core/notification', 'core_calendar/reposito
          * @return {promise}
          */
         var reloadCurrentMonth = function(root, courseId) {
-            var year = root.find(SELECTORS.CALENDAR_MONTH_WRAPPER).data('year');
-            var month = root.find(SELECTORS.CALENDAR_MONTH_WRAPPER).data('month');
+            var year = root.find(CalendarSelectors.wrapper).data('year');
+            var month = root.find(CalendarSelectors.wrapper).data('month');
 
             if (!courseId) {
-                courseId = root.find(SELECTORS.CALENDAR_MONTH_WRAPPER).data('courseid');
+                courseId = root.find(CalendarSelectors.wrapper).data('courseid');
             }
             return refreshMonthContent(root, year, month, courseId);
+        };
+
+        /**
+         * Refresh the month content.
+         *
+         * @param {object} root The root element.
+         * @param {Number} year Year
+         * @param {Number} month Month
+         * @param {Number} day Day
+         * @param {Number} courseid The id of the course whose events are shown
+         * @param {object} target The element being replaced. If not specified, the calendarwrapper is used.
+         * @return {promise}
+         */
+        var refreshDayContent = function(root, year, month, day, courseid, target) {
+            startLoading(root);
+
+            target = target || root.find(CalendarSelectors.wrapper);
+
+            M.util.js_pending([root.get('id'), year, month, day, courseid].join('-'));
+            var includenavigation = root.data('includenavigation');
+            return CalendarRepository.getCalendarDayData(year, month, day, courseid, includenavigation)
+                .then(function(context) {
+                    return Templates.render(root.attr('data-template'), context);
+                })
+                .then(function(html, js) {
+                    return Templates.replaceNode(target, html, js);
+                })
+                .then(function() {
+                    $('body').trigger(CalendarEvents.viewUpdated);
+                    return;
+                })
+                .always(function() {
+                    M.util.js_complete([root.get('id'), year, month, day, courseid].join('-'));
+                    return stopLoading(root);
+                })
+                .fail(Notification.exception);
+        };
+
+        /**
+         * Reload the current day view data.
+         *
+         * @param {object} root The container element.
+         * @param {Number} courseId The course id.
+         * @return {promise}
+         */
+        var reloadCurrentDay = function(root, courseId) {
+            var wrapper = root.find(CalendarSelectors.wrapper);
+            var year = wrapper.data('year');
+            var month = wrapper.data('month');
+            var day = wrapper.data('day');
+
+            if (!courseId) {
+                courseId = root.find(CalendarSelectors.wrapper).data('courseid');
+            }
+            return refreshDayContent(root, year, month, day, courseId);
+        };
+
+        /**
+         * Handle changes to the current calendar view.
+         *
+         * @param {object} root The root element.
+         * @param {String} url The calendar url to be shown
+         * @param {Number} year Year
+         * @param {Number} month Month
+         * @param {Number} day Day
+         * @param {Number} courseid The id of the course whose events are shown
+         * @return {promise}
+         */
+        var changeDay = function(root, url, year, month, day, courseid) {
+            return refreshDayContent(root, year, month, day, courseid)
+                .then(function() {
+                    if (url.length && url !== '#') {
+                        window.history.pushState({}, '', url);
+                    }
+                    return arguments;
+                })
+                .then(function() {
+                    $('body').trigger(CalendarEvents.dayChanged, [year, month, day, courseid]);
+                    return arguments;
+                });
         };
 
         /**
@@ -148,12 +247,50 @@ define(['jquery', 'core/templates', 'core/notification', 'core_calendar/reposito
             loadingIconContainer.addClass('hidden');
         };
 
+        /**
+         * Reload the current month view data.
+         *
+         * @param {object} root The container element.
+         * @param {Number} courseId The course id.
+         * @return {promise}
+         */
+        var reloadCurrentUpcoming = function(root, courseId) {
+            startLoading(root);
+
+            var target = root.find(CalendarSelectors.wrapper);
+
+            if (!courseId) {
+                courseId = root.find(CalendarSelectors.wrapper).data('courseid');
+            }
+
+            return CalendarRepository.getCalendarUpcomingData(courseId)
+                .then(function(context) {
+                    return Templates.render(root.attr('data-template'), context);
+                })
+                .then(function(html, js) {
+                    window.history.replaceState(null, null, '?view=upcoming&course=' + courseId);
+                    return Templates.replaceNode(target, html, js);
+                })
+                .then(function() {
+                    $('body').trigger(CalendarEvents.viewUpdated);
+                    return;
+                })
+                .always(function() {
+                    return stopLoading(root);
+                })
+                .fail(Notification.exception);
+        };
+
         return {
             init: function(root) {
                 registerEventListeners(root);
             },
             reloadCurrentMonth: reloadCurrentMonth,
             changeMonth: changeMonth,
-            refreshMonthContent: refreshMonthContent
+            refreshMonthContent: refreshMonthContent,
+            reloadCurrentDay: reloadCurrentDay,
+            changeDay: changeDay,
+            refreshDayContent: refreshDayContent,
+            reloadCurrentUpcoming: reloadCurrentUpcoming
         };
     });
