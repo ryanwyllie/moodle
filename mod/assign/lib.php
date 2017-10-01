@@ -2094,5 +2094,15 @@ function mod_assign_core_calendar_event_timestart_updated(\calendar_event $event
             $instance->duedate = $newduedate;
             $DB->update_record('assign', $instance);
         }
+    } else if ($event->eventtype == ASSIGN_EVENT_TYPE_GRADINGDUE) {
+        // We need to read from the DB directly because course module may
+        // currently be getting created so it won't be in mod info yet.
+        $instance = $DB->get_record('assign', ['id' => $event->instance]);
+        $newduedate = $event->timestart;
+
+        if ($newduedate != $instance->gradingduedate) {
+            $instance->gradingduedate = $newduedate;
+            $DB->update_record('assign', $instance);
+        }
     }
 }
