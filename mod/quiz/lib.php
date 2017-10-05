@@ -2220,6 +2220,48 @@ function quiz_get_coursemodule_info($coursemodule) {
 }
 
 /**
+ * Check if the given calendar_event is either a user or group override
+ * event for quiz.
+ *
+ * @return bool
+ */
+function quiz_is_override_calendar_event(\calendar_event $event) {
+    global $DB;
+
+    if (!isset($event->modulename)) {
+        return false;
+    }
+
+    if ($event->modulename != 'quiz') {
+        return false;
+    }
+
+    if (!isset($event->instance)) {
+        return false;
+    }
+
+    if (!isset($event->userid) && !isset($event->groupid)) {
+        return false;
+    }
+
+    $overrideparams = [
+        'quiz' => $event->instance
+    ];
+
+    if (isset($event->groupid)) {
+        $overrideparams['groupid'] = $event->groupid;
+    } else if (isset($event->userid)) {
+        $overrideparams['userid'] = $event->userid;
+    }
+
+    if ($DB->get_record('quiz_overrides', $overrideparams)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
  * Callback which returns human-readable strings describing the active completion custom rules for the module instance.
  *
  * @param cm_info|stdClass $cm object with fields ->completion and ->customdata['customcompletionrules']
@@ -2252,4 +2294,152 @@ function mod_quiz_get_completion_active_rule_descriptions($cm) {
         }
     }
     return $descriptions;
+}
+
+/**
+ * This function calculates the minimum and maximum cutoff values for the timestart of
+ * the given event.
+ *
+ * It will return an array with two values, the first being the minimum cutoff value and
+ * the second being the maximum cutoff value. Either or both values can be null, which
+ * indicates there is no minimum or maximum, respectively.
+ *
+ * If a cutoff is required then the function must return an array containing the cutoff
+ * timestamp and error string to display to the user if the cutoff value is violated.
+ *
+ * A minimum and maximum cutoff return value will look like:
+ * [
+ *     [1505704373, 'The date must be after this date'],
+ *     [1506741172, 'The date must be before this date']
+ * ]
+ *
+ * @param calendar_event $event The calendar event to get the time range for
+ * @param stdClass|null $quiz The module instance to get the range from
+ */
+function mod_quiz_core_calendar_get_valid_event_timestart_range(\calendar_event $event, \stdClass $quiz = null) {
+    global $DB;
+
+    // No restrictions on override events.
+    if (quiz_is_override_calendar_event($event)) {
+        return [null, null];
+    }
+
+    if (!$quiz) {
+        $quiz = $DB->get_record('quiz', ['id' => $event->instance]);
+    }
+
+    $mindate = null;
+    $maxdate = null;
+
+    if ($event->eventtype == QUIZ_EVENT_TYPE_OPEN) {
+        if (!empty($quiz->timeclose)) {
+            $maxdate = [
+                $quiz->timeclose,
+                get_string('openafterclose', 'quiz')
+            ];
+        }
+    } else if ($event->eventtype == QUIZ_EVENT_TYPE_CLOSE) {
+        if (!empty($quiz->timeopen)) {
+            $mindate = [
+                $quiz->timeopen,
+                get_string('closebeforeopen', 'quiz')
+            ];
+        }
+    }
+
+    return [$mindate, $maxdate];
+}
+
+/**
+ * This function will check that the given event is valid for it's
+ * corresponding quiz module.
+ *
+ * An exception is thrown if the event fails validation.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ * @return bool
+ */
+function mod_quiz_core_calendar_validate_event_timestart(\calendar_event $event) {
+    global $DB;
+
+    if (!isset($event->instance)) {
+        return;
+    }
+
+    // We need to read from the DB directly because course module may
+    // currently be getting created so it won't be in mod info yet.
+    $instance = $DB->get_record('quiz', ['id' => $event->instance], '*', MUST_EXIST);
+    $timestart = $event->timestart;
+    list($min, $max) = mod_quiz_core_calendar_get_valid_event_timestart_range($event, $instance);
+
+    if ($min && $timestart < $min[0]) {
+        throw new \moodle_exception($min[1]);
+    }
+
+    if ($max && $timestart > $max[0]) {
+        throw new \moodle_exception($max[1]);
+    }
+}
+
+/**
+ * This function will update the quiz module according to the
+ * event that has been modified.
+ *
+ * It will set the timeopen or timeclose value of the quiz instance
+ * according to the type of event provided.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ */
+function mod_quiz_core_calendar_event_timestart_updated(\calendar_event $event) {
+    global $DB;
+
+    // We don't update the activity if it's an override event that has
+    // been modified.
+    if (quiz_is_override_calendar_event($event)) {
+        return;
+    }
+
+    $courseid = $event->courseid;
+    $modulename = $event->modulename;
+    $instanceid = $event->instance;
+
+    // Something weird going on. The event is for a different module so
+    // we should ignore it.
+    if ($modulename != 'quiz') {
+        return;
+    }
+
+    $coursemodule = get_fast_modinfo($courseid)->instances[$modulename][$instanceid];
+    $context = context_module::instance($coursemodule->id);
+
+    // The user does not have the capability to modify this activity.
+    if (!has_capability('moodle/course:manageactivities', $context)) {
+        return;
+    }
+
+    if ($event->eventtype == QUIZ_EVENT_TYPE_OPEN) {
+        // If the event is for the quiz activity opening then we should
+        // set the start time of the quiz activity to be the new start
+        // time of the event.
+        $record = $DB->get_record('quiz', ['id' => $instanceid], '*', MUST_EXIST);
+
+        if ($record->timeopen != $event->timestart) {
+            $record->timeopen = $event->timestart;
+            $record->timemodified = time();
+            $DB->update_record('quiz', $record);
+        }
+    } else if ($event->eventtype == QUIZ_EVENT_TYPE_CLOSE) {
+        // If the event is for the quiz activity closing then we should
+        // set the end time of the quiz activity to be the new start
+        // time of the event.
+        $record = $DB->get_record('quiz', ['id' => $instanceid], '*', MUST_EXIST);
+
+        if ($record->timeclose != $event->timestart) {
+            $record->timeclose = $event->timestart;
+            $record->timemodified = time();
+            $DB->update_record('quiz', $record);
+        }
+    }
 }
