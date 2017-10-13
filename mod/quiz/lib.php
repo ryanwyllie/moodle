@@ -2393,7 +2393,9 @@ function mod_quiz_core_calendar_validate_event_timestart(\calendar_event $event)
  * @param \calendar_event $event
  */
 function mod_quiz_core_calendar_event_timestart_updated(\calendar_event $event) {
-    global $DB;
+    global $CFG, $DB;
+    require_once($CFG->dirroot . "/mod/quiz/mod_form.php");
+    require_once($CFG->dirroot . "/course/modlib.php");
 
     // We don't update the activity if it's an override event that has
     // been modified.
@@ -2404,6 +2406,8 @@ function mod_quiz_core_calendar_event_timestart_updated(\calendar_event $event) 
     $courseid = $event->courseid;
     $modulename = $event->modulename;
     $instanceid = $event->instance;
+    $eventtype = $event->eventtype;
+    $modified = false;
 
     // Something weird going on. The event is for a different module so
     // we should ignore it.
@@ -2411,35 +2415,48 @@ function mod_quiz_core_calendar_event_timestart_updated(\calendar_event $event) 
         return;
     }
 
-    $coursemodule = get_fast_modinfo($courseid)->instances[$modulename][$instanceid];
-    $context = context_module::instance($coursemodule->id);
-
-    // The user does not have the capability to modify this activity.
-    if (!has_capability('moodle/course:manageactivities', $context)) {
+    if ($eventtype != QUIZ_EVENT_TYPE_OPEN && $eventtype != QUIZ_EVENT_TYPE_CLOSE) {
+        // We don't know about this event so we can just return now.
         return;
     }
 
-    if ($event->eventtype == QUIZ_EVENT_TYPE_OPEN) {
-        // If the event is for the quiz activity opening then we should
-        // set the start time of the quiz activity to be the new start
-        // time of the event.
-        $record = $DB->get_record('quiz', ['id' => $instanceid], '*', MUST_EXIST);
+    list($course, $coursemodule) = get_course_and_cm_from_instance($instanceid, 'quiz', $courseid);
 
-        if ($record->timeopen != $event->timestart) {
-            $record->timeopen = $event->timestart;
-            $record->timemodified = time();
-            $DB->update_record('quiz', $record);
+    if (!$coursemodule) {
+        // We haven't got a course module yet so there is nothing to update.
+        return;
+    }
+
+    // We need the stdClass because everything is expecting the equivalent to
+    // what is returned by get_coursemodule_from_id.
+    $coursemodule = $coursemodule->get_course_module_record(true);
+
+    // This function checks the moodle/course:manageactivities capability for us
+    // to make sure the user can change this module.
+    list($coursemodule, $context, $module, $instance, $cw) = get_moduleinfo_data($coursemodule, $course);
+
+    if ($event->eventtype == QUIZ_EVENT_TYPE_OPEN) {
+        if ($instance->timeopen != $event->timestart) {
+            $instance->timeopen = $event->timestart;
+            $modified = true;
         }
     } else if ($event->eventtype == QUIZ_EVENT_TYPE_CLOSE) {
-        // If the event is for the quiz activity closing then we should
-        // set the end time of the quiz activity to be the new start
-        // time of the event.
-        $record = $DB->get_record('quiz', ['id' => $instanceid], '*', MUST_EXIST);
-
-        if ($record->timeclose != $event->timestart) {
-            $record->timeclose = $event->timestart;
-            $record->timemodified = time();
-            $DB->update_record('quiz', $record);
+        if ($instance->timeclose != $event->timestart) {
+            $instance->timeclose = $event->timestart;
+            $modified = true;
         }
+    }
+
+    if ($modified) {
+        if (empty($instance->availabilityconditionsjson)) {
+            $instance->availabilityconditionsjson = '';
+        }
+
+        $mform = new mod_quiz_mod_form($instance, $cw->section, $coursemodule, $course);
+        $mform->set_submitted_ajax_data((array) $instance);
+        $mform->set_data($instance);
+        //$data = $mform->get_data();
+        $data = $mform->get_data();
+        update_moduleinfo($coursemodule, $data, $course, $mform);
     }
 }

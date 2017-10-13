@@ -475,6 +475,17 @@ abstract class moodleform {
         $this->_form->setDefaults($default_values);
     }
 
+    function set_submitted_ajax_data(array $ajaxformdata) {
+        $submissionkey = '_qf__'.$this->_formname;
+
+        if (!isset($ajaxformdata[$submissionkey])) {
+            $ajaxformdata[$submissionkey] = 1;
+        }
+
+        $this->_ajaxformdata = $ajaxformdata;
+        $this->_process_submission('post');
+    }
+
     /**
      * Check that form was submitted. Does not check validity of submitted data.
      *
