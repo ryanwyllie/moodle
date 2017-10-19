@@ -1,0 +1,232 @@
+<div class="container-fluid">
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-1" class="btn btn-default pull-xs-right pull-right">1. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 1 - Static content</h3>
+            <p>This test just sets the body to a plain string (nothing has changed here).</p>
+            <p>This should appear instantly with no loading icon and no animation because it isn't loading anything asynchronously.</p>
+        </div>
+    </div>
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-2" class="btn btn-default pull-xs-right pull-right">2. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 2 - Resolved promise before shown</h3>
+            <p>This test creates a resolved promise and provides it at part of the factory construction which means it's set on the modal before it's ever shown.</p>
+            <p>It should not show a loading icon and wont animate the height because the promise was resolved before creating the modal.</p>
+        </div>
+    </div>
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-3" class="btn btn-default pull-xs-right pull-right">3. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 3 - Resolved promise after shown</h3>
+            <p>This test creates a resolved promise and calls setBody after the modal is shown. The promise isn't provided as part of the factory construction.</p>
+            <p>It should not show a loading icon because the promise was resolved before showing the modal. However it should fade in the content and animate the height because the body content is being set using a promise after the modal is shown.<p>
+            <p>The element has a fixed height to illustrate the animation for larger content.</p>
+        </div>
+    </div>
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-4" class="btn btn-default pull-xs-right pull-right">4. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 4 - Pending promise before shown</h3>
+            <p>This test sets a pending promise as the body during the factory construction then the promise is resolved <strong>2 seconds</strong> after the modal is shown.</p>
+            <p>It should show a loading icon even though the promise is set on the body before the modal is shown because the promise is not resolved until 2 seconds has passed after the modal is shown. It should animate the height and fade the content in.</p>
+            <p>This element has a fixed height to illustrate the animation for larger content.</p>
+        </div>
+    </div>
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-5" class="btn btn-default pull-xs-right pull-right">5. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 5 - Pending promise after shown</h3>
+            <p>This test sets the body to a pending promise after the modal has been shown. The promise is then resolved 2 seconds later.</p>
+            <p>It should show a loading icon and should animate the height and fade the content in.</p>
+            <p>This element has a fixed height to illustrate the animation for larger content.</p>
+        </div>
+    </div>
+    <div class="row row-fluid p-y-1">
+        <div class="col-xs-2">
+            <button id="modal-6" class="btn btn-default pull-xs-right pull-right">6. Open</button>
+        </div>
+        <div class="col-xs-10">
+            <h3>Test 6 - Pending promise after shown and then content changed</h3>
+            <p>This test sets the body to a pending promise after the modal has been shown. That promise is resolved with content 2 seconds after that. 2 seconds after the first promise has been resolved the body will then be set to a second pending promise which itself takes 2 seconds to resolve with content.</p>
+            <p>It should show a loading icon each time the body is set to a pending promise. The height of the modal should be animated as it adjusts in size to fit the content. The content should fade in each time.</p>
+            <p>This elements each have a fixed height to illustrate the animation for larger content.</p>
+        </div>
+    </div>
+</div>
+
+{{#js}}
+require(
+[
+    'jquery',
+    'core/modal_events',
+    'core/modal_factory'
+],
+function($, ModalEvents, ModalFactory) {
+    var modal1Trigger = $('#modal-1');
+    var modal1 = ModalFactory.create({
+        title: 'Static content',
+        body: '<p>This should appear instantly with no loading icon and no animation because it isn\'t loading anything asynchronously</p>'
+    }, modal1Trigger);
+
+
+    var modal2Promise = $.Deferred().resolve(
+        '<p style="height: 400px">This should not show a loading icon and wont animate the height because the promise was resolved before creating the modal.</p>',
+        ''
+    );
+    var modal2Trigger = $('#modal-2');
+    var modal2 = ModalFactory.create({
+            title: 'Resolved promise before shown',
+            body: modal2Promise,
+        }, modal2Trigger);
+
+
+
+    var modal3Promise = $.Deferred().resolve(
+        '<p style="height: 400px">This should not show a loading icon because the promise was resolved before rendering the modal. It should fade the content in though and it should animate the height because the body content is being set after the modal is shown. This element has a fixed height to illustrate the animation for larger content.</p>',
+        ''
+    );
+    var modal3Trigger = $('#modal-3');
+    var modal3 = ModalFactory.create({
+            title: 'Resolved promise after shown',
+        }, modal3Trigger)
+        .then(function(modal) {
+            modal.getRoot().on(ModalEvents.shown, function() {
+                modal.setBody(modal3Promise);
+            });
+
+            modal.getRoot().on(ModalEvents.hidden, function() {
+                modal.setBody('');
+            });
+        });
+
+
+
+
+    var modal4Promise = $.Deferred();
+    var modal4Trigger = $('#modal-4');
+    var modal4 = ModalFactory.create({
+            title: 'Pending promise before shown',
+            body: modal4Promise,
+        }, modal4Trigger)
+        .then(function(modal) {
+            var timeout1 = null;
+
+            modal.getRoot().on(ModalEvents.shown, function() {
+                timeout1 = setTimeout(function() {
+                    modal4Promise.resolve(
+                        '<p style="height: 400px">This should show a loading icon even though the promise is set on the body before the modal is shown because the promise is not resolved until 2 seconds has passed after the modal is shown. It should animate the height and fade the content in. This element has a fixed height to illustrate the animation for larger content.</p>',
+                        ''
+                    );
+                }, 2000);
+            });
+
+            modal.getRoot().on(ModalEvents.hidden, function() {
+                modal4Promise = $.Deferred();
+                modal.setBody(modal4Promise);
+
+                if (timeout1) {
+                    clearTimeout(timeout1);
+                }
+            });
+        });
+
+
+
+
+
+    var modal5Promise = $.Deferred();
+    var modal5Trigger = $('#modal-5');
+    var modal5 = ModalFactory.create({
+            title: 'Pending promise after shown',
+        }, modal5Trigger)
+        .then(function(modal) {
+            var timeout1 = null;
+
+            modal.getRoot().on(ModalEvents.shown, function() {
+                modal.setBody(modal5Promise);
+
+                timeout1 = setTimeout(function() {
+                    modal5Promise.resolve(
+                        '<p style="height: 400px">This should show a loading icon. The promise isn\'t set on the body until after the modal is shown and then it isn\'t resolved for 2 seconds after that which causes the loading icon to show in the interum. It should animate the height and fade the content in. This element has a fixed height to illustrate the animation for larger content.</p>',
+                        ''
+                    );
+                }, 2000);
+            });
+
+            modal.getRoot().on(ModalEvents.hidden, function() {
+                modal5Promise = $.Deferred();
+                modal.setBody(modal5Promise);
+
+                if (timeout1) {
+                    clearTimeout(timeout1);
+                }
+            });
+        });
+
+
+
+
+
+    var modal6Promise = $.Deferred();
+    var modal6Trigger = $('#modal-6');
+    var modal6 = ModalFactory.create({
+            title: 'Pending promise after shown then new promise set',
+        }, modal6Trigger)
+        .then(function(modal) {
+            var timeout1 = null;
+            var timeout2 = null;
+            var timeout3 = null;
+
+            modal.getRoot().on(ModalEvents.shown, function() {
+                modal.setBody(modal6Promise);
+
+                timeout1 = setTimeout(function() {
+                    modal6Promise.resolve(
+                        '<p style="height: 400px">This should show a loading icon. The promise isn\'t set on the body until after the modal is shown and then it isn\'t resolved for 2 seconds after that which causes the loading icon to show in the interum. It should animate the height and fade the content in. This element has a fixed height to illustrate the animation for larger content.</p><p>This content will be replaced by some new content in 2 seconds. <strong>PLEASE DON\'T CLOSE THIS MODAL</strong></p>',
+                        ''
+                    );
+
+                    timeout2 = setTimeout(function() {
+                        modal6Promise = $.Deferred();
+                        modal.setBody(modal6Promise);
+
+                        timeout3 = setTimeout(function() {
+                            modal6Promise.resolve(
+                                '<p style="height: 600px">This is the second set of content loaded in this modal. The modal height should have been animated back to the loading icon and then expanded back out for this content to be displayed. <strong>This modal can now be closed.</strong></p>',
+                                ''
+                            );
+                        }, 2000);
+                    }, 2000);
+                }, 2000);
+            });
+
+            modal.getRoot().on(ModalEvents.hidden, function() {
+                modal6Promise = $.Deferred();
+                modal.setBody(modal6Promise);
+
+                if (timeout1) {
+                    clearTimeout(timeout1);
+                }
+
+                if (timeout2) {
+                    clearTimeout(timeout2);
+                }
+
+                if (timeout3) {
+                    clearTimeout(timeout3);
+                }
+            });
+        });
+});
+{{/js}}
