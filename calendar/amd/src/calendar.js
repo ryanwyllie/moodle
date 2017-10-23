@@ -87,18 +87,38 @@ define([
         });
     };
 
+    var getEventTypeClassFromType = function(eventType) {
+        switch(eventType) {
+            case 'user':
+                return 'calendar_event_user';
+            case 'site':
+                return 'calendar_event_site';
+            case 'group':
+                return 'calendar_event_group';
+            case 'category':
+                return 'calendar_event_category';
+            case 'course':
+                return 'calendar_event_course';
+            default:
+                return 'calendar_event_course';
+        }
+    };
+
     /**
      * Render the event summary modal.
      *
      * @param {Number} eventId The calendar event id.
      */
     var renderEventSummaryModal = function(eventId) {
+        var typeClass = '';
+
         // Calendar repository promise.
         CalendarRepository.getEventById(eventId).then(function(getEventResponse) {
             if (!getEventResponse.event) {
                 throw new Error('Error encountered while trying to fetch calendar event with ID: ' + eventId);
             }
             var eventData = getEventResponse.event;
+            typeClass = getEventTypeClassFromType(eventData.eventtype);
 
             return getEventType(eventData.eventtype).then(function(eventType) {
                 eventData.eventtype = eventType;
@@ -113,6 +133,7 @@ define([
                 templateContext: {
                     canedit: eventData.canedit,
                     candelete: eventData.candelete,
+                    headerclasses: typeClass,
                     isactionevent: eventData.isactionevent,
                     url: eventData.url
                 }
