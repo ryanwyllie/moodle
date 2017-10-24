@@ -77,7 +77,7 @@ function(
      */
     ModalEventSummary.prototype.getEditButton = function() {
         if (typeof this.editButton == 'undefined') {
-            this.editButton = this.getFooter().find(SELECTORS.EDIT_BUTTON);
+            this.editButton = this.getHeader().find(SELECTORS.EDIT_BUTTON);
         }
 
         return this.editButton;
@@ -92,7 +92,7 @@ function(
      */
     ModalEventSummary.prototype.getDeleteButton = function() {
         if (typeof this.deleteButton == 'undefined') {
-            this.deleteButton = this.getFooter().find(SELECTORS.DELETE_BUTTON);
+            this.deleteButton = this.getHeader().find(SELECTORS.DELETE_BUTTON);
         }
 
         return this.deleteButton;
