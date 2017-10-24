@@ -401,3 +401,66 @@ table.calendartable caption {
         display: block;
     }
 }
+
+@mixin summary-modal-header-button() {
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    margin-top: 0;
+    margin-right: 0.2rem;
+    position: relative;
+    opacity: 1;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.5);
+        opacity: 1;
+    }
+
+    .icon {
+        font-size: 1.3rem;
+        height: 1.3rem;
+        width: 1.3rem;
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        /* rtl:ignore */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+}
+
+.modal {
+    .event-summary-modal {
+        .modal-header {
+            .modal-title {
+                line-height: 2rem;
+                margin-bottom: 0;
+            }
+
+            .close {
+                @include summary-modal-header-button();
+                margin-right: 0;
+
+                span {
+                    position: absolute;
+                    top: 50%;
+                    /* rtl:ignore */
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    height: 1.3rem;
+                    width: 1.3rem;
+                    display: inline-block;
+                    line-height: 10px;
+                    font-size: 2.3rem;
+                }
+            }
+
+            .modal-header-buttons {
+                button {
+                    @include summary-modal-header-button();
+                }
+            }
+        }
+    }
+}
