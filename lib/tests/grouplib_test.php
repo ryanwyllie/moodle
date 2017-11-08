@@ -1711,4 +1711,50 @@ class core_grouplib_testcase extends advanced_testcase {
         $this->assertEquals($user1->id, $group2member1->userid);
         $this->assertEquals($user2->id, $group2member2->userid);
     }
+
+    /**
+     * Get the list of groups for a user in a list of courses.
+     */
+    function test_groups_get_user_groups_for_courses() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $generator = $this->getDataGenerator();
+        $course1 = $generator->create_course();
+        $course2 = $generator->create_course();
+        $course3 = $generator->create_course();
+
+        // Create users.
+        $user = $generator->create_user();
+
+        // Enrol users.
+        $generator->enrol_user($user->id, $course1->id, 'student');
+        $generator->enrol_user($user->id, $course2->id, 'student');
+        $generator->enrol_user($user->id, $course3->id, 'student');
+
+        // Create groups.
+        $course1group1 = $generator->create_group(['courseid' => $course1->id]);
+        $course1group2 = $generator->create_group(['courseid' => $course1->id]);
+        $course2group = $generator->create_group(['courseid' => $course2->id]);
+        $course3group = $generator->create_group(['courseid' => $course3->id]);
+
+        // Add members to groups.
+        $generator->create_group_member(['groupid' => $course1group1->id, 'userid' => $user->id]);
+        $generator->create_group_member(['groupid' => $course1group2->id, 'userid' => $user->id]);
+        $generator->create_group_member(['groupid' => $course2group->id, 'userid' => $user->id]);
+
+        $expected = [];
+        $expected[$course1->id] = [
+            $course1group2,
+            $course1group1
+        ];
+        $expected[$course2->id] = [
+            $course2group
+        ];
+
+        $this->setUser($user);
+        $result = groups_get_user_groups_for_courses([$course1, $course2, $course3]);
+
+        $this->assertEquals($expected, $result);
+    }
 }

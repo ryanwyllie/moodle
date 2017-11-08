@@ -523,6 +523,58 @@ function groups_get_user_groups($courseid, $userid=0) {
 }
 
 /**
+ * Returns info about user's groups in an array of courses.
+ *
+ * @category group
+ * @param stdClass[] $courses Array of course objects
+ * @param int $userid $USER if not specified
+ * @return array Array[courseid][groups]
+ */
+function groups_get_user_groups_for_courses(array $courses, $userid = 0) {
+    global $USER, $DB;
+
+    if (empty($userid)) {
+        $userid = $USER->id;
+    }
+
+    if (empty($courses)) {
+        return [];
+    }
+
+    $groups = [];
+    $params = [$userid];
+    $courseids = [];
+    foreach ($courses as $course) {
+        $courseids[] = $course->id;
+    }
+    list($insql, $inparams) = $DB->get_in_or_equal($courseids);
+    $params = array_merge($params, $inparams);
+    $sql = "SELECT g.*
+              FROM {groups} g
+                   JOIN {groups_members} gm   ON gm.groupid = g.id
+              LEFT JOIN {groupings_groups} gg ON gg.groupid = g.id
+             WHERE gm.userid = ? AND g.courseid $insql";
+
+    $rs = $DB->get_recordset_sql($sql, $params);
+
+    if (!$rs->valid()) {
+        $rs->close(); // Not going to iterate (but exit), close rs
+        return [];
+    }
+
+    foreach ($rs as $group) {
+        if (!isset($groups[$group->courseid])) {
+            $groups[$group->courseid] = [$group];
+        } else {
+            $groups[$group->courseid][] = $group;
+        }
+    }
+    $rs->close();
+
+    return $groups;
+}
+
+/**
  * Gets an array of all groupings in a specified course. This value is cached
  * for a single course (so you can call it repeatedly for the same course
  * without a performance penalty).
