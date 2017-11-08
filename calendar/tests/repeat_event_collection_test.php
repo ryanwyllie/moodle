@@ -44,15 +44,31 @@ use core_calendar\local\event\factories\event_factory_interface;
  */
 class core_calendar_repeat_event_collection_testcase extends advanced_testcase {
     /**
-     * Test that creating a repeat collection for a parent that doesn't
-     * exist throws an exception.
+     * Test that the collection id is set to the parent id if the repeat id
+     * is falsey.
      */
-    public function test_no_parent_collection() {
+    public function test_parent_id_no_repeat_id() {
         $this->resetAfterTest(true);
         $parentid = 123122131;
+        $repeatid = null;
         $factory = new core_calendar_repeat_event_collection_event_test_factory();
-        $this->expectException('\core_calendar\local\event\exceptions\no_repeat_parent_exception');
-        $collection = new repeat_event_collection($parentid, null, $factory);
+        $collection = new repeat_event_collection($parentid, $repeatid, $factory);
+
+        $this->assertEquals($parentid, $collection->get_id());
+    }
+
+    /**
+     * Test that the repeat id is set to the parent id if the repeat id
+     * is not falsey (even if the parent id is provided).
+     */
+    public function test_parent_id_and_repeat_id() {
+        $this->resetAfterTest(true);
+        $parentid = 123122131;
+        $repeatid = 5647839;
+        $factory = new core_calendar_repeat_event_collection_event_test_factory();
+        $collection = new repeat_event_collection($parentid, $repeatid, $factory);
+
+        $this->assertEquals($repeatid, $collection->get_id());
     }
 
     /**
