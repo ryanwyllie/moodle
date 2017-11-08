@@ -728,4 +728,64 @@ class core_calendar_lib_testcase extends advanced_testcase {
         $this->assertCount(1, $courses);
 
     }
+
+    /**
+     * calendar_set_filters should return groups that the user is a part of
+     * given that the course has the correct group modes set.
+     */
+    function test_calendar_set_filters_returns_groups_for_courses() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $generator = $this->getDataGenerator();
+        $groupmodenogroupscourse = $generator->create_course();
+        $groupmodeforcecourse = $generator->create_course();
+        $course1 = $generator->create_course();
+        $course2 = $generator->create_course();
+        $course3 = $generator->create_course();
+
+        // Create users.
+        $user = $generator->create_user();
+
+        // Enrol users.
+        $generator->enrol_user($user->id, $groupmodenogroupscourse->id, 'student');
+        $generator->enrol_user($user->id, $groupmodeforcecourse->id, 'student');
+        $generator->enrol_user($user->id, $course1->id, 'student');
+        $generator->enrol_user($user->id, $course2->id, 'student');
+        $generator->enrol_user($user->id, $course3->id, 'student');
+
+        // Create groups.
+        $course1group = $generator->create_group(['courseid' => $course1->id]);
+        $course2group = $generator->create_group(['courseid' => $course2->id]);
+        $course3group = $generator->create_group(['courseid' => $course3->id]);
+
+        // Add members to groups.
+        $generator->create_group_member(['groupid' => $course2group->id, 'userid' => $user->id]);
+        $generator->create_group_member(['groupid' => $course3group->id, 'userid' => $user->id]);
+
+        // Group mode no groups should filter this course out.
+        $groupmodenogroupscourse->groupmode = NOGROUPS;
+        // Forcing off group mode should filter this course out.
+        $groupmodeforcecourse ->groupmodeforce = false;
+
+        // Only the groups from course 2 and 3 should be included in the
+        // results as they are the only courses configured correctly in which
+        // the user is a member of a group.
+        $expectedgroups = [
+            $course2group->id,
+            $course3group->id
+        ];
+        $allcourses = [
+            $groupmodenogroupscourse,
+            $groupmodeforcecourse,
+            $course1,
+            $course2,
+            $course3
+        ];
+
+        $this->setUser($user);
+        list($courses, $groupids, $user) = calendar_set_filters($allcourses);
+
+        $this->assertEquals($expectedgroups, $groupids);
+    }
 }

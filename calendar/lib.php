@@ -2088,7 +2088,8 @@ function calendar_set_filters(array $courseeventsfrom, $ignorefilters = false) {
             if (!empty($CFG->calendar_adminseesall) && has_any_capability($allgroupscaps, \context_system::instance())) {
                 $group = true;
             } else if ($isloggedin) {
-                $groupids = array();
+                $groupids = [];
+                $coursestocheck = [];
                 foreach ($courseeventsfrom as $courseid => $course) {
                     // If the user is an editing teacher in there.
                     if (!empty($USER->groupmember[$course->id])) {
@@ -2096,10 +2097,19 @@ function calendar_set_filters(array $courseeventsfrom, $ignorefilters = false) {
                         $groupids = array_merge($groupids, $USER->groupmember[$course->id]);
                     } else if ($course->groupmode != NOGROUPS || !$course->groupmodeforce) {
                         // If this course has groups, show events from all of those related to the current user.
-                        $coursegroups = groups_get_user_groups($course->id, $USER->id);
-                        $groupids = array_merge($groupids, $coursegroups['0']);
+                        $coursestocheck[] = $course;
                     }
                 }
+                $groupsbycourse = groups_get_user_groups_for_courses($coursestocheck, $USER->id);
+
+                foreach ($coursestocheck as $course) {
+                    if (!empty($groupsbycourse[$course->id])) {
+                        $coursegroups = $groupsbycourse[$course->id];
+                        $coursegroupids = array_map(function($g) { return $g->id; }, $coursegroups);
+                        $groupids = array_merge($groupids, $coursegroupids);
+                    }
+                }
+
                 if (!empty($groupids)) {
                     $group = $groupids;
                 }
