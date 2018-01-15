@@ -1114,6 +1114,14 @@ $functions = array(
         'capabilities'  => 'moodle/question:flag',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
+    'core_question_search_by_tags' => array(
+        'classname'     => 'core_question_external',
+        'methodname'    => 'search_by_tags',
+        'description'   => 'Search by tags',
+        'type'          => 'read',
+        'ajax'          => true,
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+    ),
     'core_rating_get_item_ratings' => array(
         'classname' => 'core_rating_external',
         'methodname' => 'get_item_ratings',

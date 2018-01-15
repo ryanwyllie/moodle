@@ -15,11 +15,11 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/overlay_loading
+    @template core_calendar/event_delete_modal
 
-    Moodle overlay loading template.
+    Moodle modal template with save and cancel buttons.
 
-    The purpose of this template is to render a loading animation using a overlay effect.
+    The purpose of this template is to render a modal.
 
     Classes required for JS:
     * none
@@ -28,11 +28,16 @@
     * none
 
     Context variables required for this template:
-    *
+    * title A cleaned string (use clean_text()) to display.
+    * body HTML content for the boday
 
     Example context (json):
-    {}
+    {
+    }
 }}
-<span class="overlay-icon-container {{$hiddenclass}}{{^visible}}hidden{{/visible}}{{/hiddenclass}}" data-region="overlay-icon-container">
-    {{> core/loading }}
-</span>
+
+{{< core/modal }}
+    {{$title}}{{#str}} addquestionfrombankatend, mod_quiz {{/str}}{{/title}}
+    {{$footer}}
+    {{/footer}}
+{{/ core/modal }}
