@@ -29,6 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . '/question/engine/lib.php');
 
+use core_question\bank\searcher as question_searcher;
+
 /**
  * Question external functions
  *
@@ -112,6 +114,63 @@ class core_question_external extends external_api {
                 'status' => new external_value(PARAM_BOOL, 'status: true if success'),
                 'warnings' => new external_warnings()
             )
+        );
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     */
+    public static function search_by_tags_parameters() {
+        return new external_function_parameters(
+            [
+                'tags' => new external_multiple_structure(
+                    new external_value(PARAM_ALPHA, 'tags')
+                ),
+                'contextids' => new external_multiple_structure(
+                    new external_value(PARAM_INT, 'ids')
+                ),
+            ]
+        );
+    }
+
+    /**
+     *
+     */
+    public static function search_by_tags($tags, $contextids) {
+        global $CFG, $DB;
+
+        $params = self::validate_parameters(self::search_by_tags_parameters(),
+            [
+                'tags' => $tags,
+                'contextids' => $contextids
+            ]
+        );
+
+        self::validate_context(context_system::instance());
+
+        $searcher = new question_searcher($DB);
+        $contexts = array_map(function($contextid) {
+            return \context::instance_by_id($contextid);
+        }, $contextids);
+
+        $questions = $searcher->search_by_tag_names_in_contexts($tags, $contexts);
+        $result = [];
+        $result['data'] = json_encode(array_values($questions));
+        return $result;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     */
+    public static function search_by_tags_returns() {
+        return new external_single_structure(
+            [
+                'data' => new external_value(PARAM_RAW),
+            ]
         );
     }
 }

@@ -1604,4 +1604,50 @@ class core_tag_tag {
         // Finally delete all tags that we combined into the current one.
         self::delete_tags($ids);
     }
+
+    public static function get_tag_instances_by_names_in_contexts(array $names, array $contexts, array $items = []) {
+        global $DB;
+
+        list($namessql, $params) = $DB->get_in_or_equal($names);
+
+        $contextids = array_map(function($context) {
+            return $context->id;
+        }, $contexts);
+        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextids);
+        $params = array_merge($params, $contextparams);
+
+        $sql = "SELECT ti.*
+                FROM {tag_instance} ti
+                LEFT JOIN {tag} t ON t.id = ti.tagid
+                WHERE t.name {$namessql} AND ti.contextid {$contextsql}";
+
+        if (!empty($items)) {
+            $sqlchunks = [];
+            foreach ($items as $item) {
+                $props = [];
+
+                if (isset($item['component'])) {
+                    $props[] = 'ti.component = ?';
+                    $params[] = $item['component'];
+                }
+
+                if (isset($item['itemtype'])) {
+                    $props[] = 'ti.itemtype = ?';
+                    $params[] = $item['itemtype'];
+                }
+
+                if (isset($item['itemid'])) {
+                    $props[] = 'ti.itemid = ?';
+                    $params[] = $item['itemid'];
+                }
+
+                $sqlchunks[] = '(' . implode(' AND ', $props) . ')';
+            }
+
+            $itemssql = implode(' OR ', $sqlchunks);
+            $sql .= " AND {$itemssql}";
+        }
+
+        return $DB->get_records_sql($sql, $params);
+    }
 }
