@@ -368,6 +368,8 @@ function question_edit_setup($edittab, $baseurl, $requirecmid = false, $unused =
         $thispageurl->param('cpage', $pagevars['cpage']);
     }
 
+    //$pargsvars['tags'] = optional_param('tags', [], 
+
     return array($thispageurl, $contexts, $cmid, $cm, $module, $pagevars);
 }
 

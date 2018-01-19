@@ -15,19 +15,29 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    Tag condition.
+    @template core_calendar/event_delete_modal
+
+    Moodle modal template with save and cancel buttons.
+
+    The purpose of this template is to render a modal.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * title A cleaned string (use clean_text()) to display.
+    * body HTML content for the boday
+
+    Example context (json):
+    {
+    }
 }}
-<div data-region="tag-condition-container-{{uniqid}}">
-    <div class="form-group">
-        <select multiple name="tagids[]" class="form-control" data-region="tag-select">
-            {{#tagoption}}
-            <option {{#selected}}selected{{/selected}} value="{{id}}">{{name}}</option>
-            {{/tagoption}}
-        </select>
-    </div>
-</div>
-{{#js}}
-require(['jquery', 'core_question/tag_condition'], function($, TagCondition) {
-    TagCondition.init($('[data-region="tag-condition-container-{{uniqid}}"]'));
-});
-{{/js}}
+
+{{< core/modal }}
+    {{$title}}{{#str}} addquestionfrombankatend, mod_quiz {{/str}}{{/title}}
+    {{$footer}}
+    {{/footer}}
+{{/ core/modal }}

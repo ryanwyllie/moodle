@@ -35,18 +35,41 @@ class tag_condition extends condition {
     protected $where;
     /** @var string SQL fragment to add to the where clause. */
     protected $contexts;
+    protected $tags;
+    protected $selectedtagids;
 
     /**
      * Constructor.
      * @param context[] $contexts List of contexts
      */
-    public function __construct(array $contexts) {
-        $this->where = '';
+    public function __construct(array $contexts, array $selectedtagids = []) {
+        global $DB;
+
         $this->contexts = $contexts;
+        $this->tags = \core_tag_tag::get_tags_by_area_in_contexts('core_question', 'question', $contexts);
+
+        if ($selectedtagids) {
+            list($tagsql, $tagparams) = $DB->get_in_or_equal($selectedtagids, SQL_PARAMS_NAMED);
+            $this->selectedtagids = $selectedtagids;
+            $this->params = $tagparams;
+            $this->where = "q.id IN (SELECT ti.itemid
+                                     FROM {tag_instance} ti
+                                     WHERE ti.tagid {$tagsql}
+                                     GROUP BY ti.itemid)";
+
+        } else {
+            $this->selectedtagids = [];
+            $this->params = [];
+            $this->where = '';
+        }
     }
 
     public function where() {
         return $this->where;
+    }
+
+    public function params() {
+        return $this->params;
     }
 
     /**
@@ -62,13 +85,18 @@ class tag_condition extends condition {
         }
         $contextids = array_unique($contextids);
         */
-        $contextids = array_map(function($context) {
-            return $context->id;
-        }, $this->contexts);
+        $tagoptions = array_map(function($tag) {
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'selected' => in_array($tag->id, $this->selectedtagids)
+            ];
+        }, array_values($this->tags));
+        $context = [
+            'tagoption' => $tagoptions
+        ];
 
-        $stuff = $OUTPUT->render_from_template('core_question/tag_condition', [
-            'contextids' => json_encode($contextids)
-        ]);
+        $stuff = $OUTPUT->render_from_template('core_question/tag_condition', $context);
 
         echo $stuff;
     }

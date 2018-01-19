@@ -2402,3 +2402,36 @@ function mod_quiz_core_calendar_event_timestart_updated(\calendar_event $event, 
         $event->trigger();
     }
 }
+
+function mod_quiz_output_fragment_quiz_question_bank($args) {
+    global $CFG, $DB, $PAGE;
+    require_once($CFG->dirroot . '/config.php');
+    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+    require_once($CFG->dirroot . '/question/editlib.php');
+
+    $querystring = preg_replace('/^\?/', '', $args['querystring']);
+    $params = [];
+    parse_str($querystring, $params);
+    $tagids = isset($params['tagids']) ? $params['tagids'] : [];
+    unset($params['tagids']);
+
+    foreach ($params as $key => $value) {
+        $_POST[$key] = $value;
+    }
+
+    list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
+            question_edit_setup('editq', '/mod/quiz/edit.php', true);
+    $pagevars['tagids'] = $tagids;
+
+    // Get the course object and related bits.
+    $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
+    require_capability('mod/quiz:manage', $contexts->lowest());
+
+    // Create quiz question bank view.
+    $questionbank = new mod_quiz\question\bank\custom_view($contexts, $thispageurl, $course, $cm, $quiz);
+    $questionbank->set_quiz_has_attempts(quiz_has_attempts($quiz->id));
+
+    // Output.
+    $output = $PAGE->get_renderer('mod_quiz', 'edit');
+    return $output->question_bank_contents($questionbank, $pagevars);
+}

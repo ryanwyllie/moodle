@@ -15,29 +15,38 @@
 
 /**
  *
+ * @module    mod_quiz/quizquestionbank
+ * @package   mod_quiz
+ * @copyright 2018 Ryan Wyllie <ryan@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(
     [
         'jquery',
-        'core/ajax',
-        'core/templates',
-        'core/notification',
-        'core/form-autocomplete',
+        'core/modal_factory',
+        'mod_quiz/modal_quiz_question_bank'
     ],
     function(
         $,
-        Ajax,
-        Templates,
-        Notification,
-        AutoComplete
+        ModalFactory,
+        ModalQuizQuestionBank
     ) {
 
-    var init = function(root) {
-        var selectElement = root.find('[data-region="tag-select"]');
-        AutoComplete.enhance(selectElement, false, false, 'Filter by tags...', false, true);
+    var SELECTORS = {
+        ADDQUESTIONLINKS:   '.menu [data-action="questionbank"]',
     };
 
     return {
-        init: init
+        init: function(contextId, courseModuleId) {
+            ModalFactory.create(
+                {
+                    type: ModalQuizQuestionBank.TYPE,
+                    large: true
+                },
+                $(SELECTORS.ADDQUESTIONLINKS)
+            ).then(function(modal) {
+                modal.setContextId(contextId);
+            });
+        }
     };
 });

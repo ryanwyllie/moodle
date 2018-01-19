@@ -1650,4 +1650,29 @@ class core_tag_tag {
 
         return $DB->get_records_sql($sql, $params);
     }
+
+    public static function get_tags_by_area_in_contexts($component, $itemtype, array $contexts) {
+        global $DB;
+
+        $params = [$component, $itemtype];
+        $contextids = array_map(function($context) {
+            return $context->id;
+        }, $contexts);
+        list($contextsql, $contextsqlparams) = $DB->get_in_or_equal($contextids);
+        $params = array_merge($params, $contextsqlparams);
+
+        $subsql = "SELECT tagid
+                   FROM {tag_instance}
+                   WHERE component = ?
+                   AND itemtype = ?
+                   AND contextid {$contextsql}
+                   GROUP BY tagid";
+        $sql = "SELECT *
+                FROM {tag}
+                WHERE id IN ({$subsql})";
+
+        return array_map(function($record) {
+            return new core_tag_tag($record);
+        }, $DB->get_records_sql($sql, $params));
+    }
 }

@@ -462,7 +462,7 @@ class view {
      * displayoptions Sets display options
      */
     public function display($tabname, $page, $perpage, $cat,
-            $recurse, $showhidden, $showquestiontext) {
+            $recurse, $showhidden, $showquestiontext, array $tagids = []) {
         global $PAGE, $OUTPUT;
 
         if ($this->process_actions_needing_ui()) {
@@ -470,8 +470,8 @@ class view {
         }
         $editcontexts = $this->contexts->having_one_edit_tab_cap($tabname);
         // Category selection form.
-        echo $OUTPUT->heading(get_string('questionbank', 'question'), 2);
-        array_unshift($this->searchconditions, new \core_question\bank\search\tag_condition($editcontexts));
+        //echo $OUTPUT->heading(get_string('questionbank', 'question'), 2);
+        array_unshift($this->searchconditions, new \core_question\bank\search\tag_condition($editcontexts, $tagids));
         array_unshift($this->searchconditions, new \core_question\bank\search\hidden_condition(!$showhidden));
         array_unshift($this->searchconditions, new \core_question\bank\search\category_condition(
                 $cat, $recurse, $editcontexts, $this->baseurl, $this->course));

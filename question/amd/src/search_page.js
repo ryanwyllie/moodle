@@ -22,19 +22,40 @@ define(
         'core/ajax',
         'core/templates',
         'core/notification',
-        'core/form-autocomplete',
+        'core/custom_interaction_events'
     ],
     function(
         $,
         Ajax,
         Templates,
         Notification,
-        AutoComplete
+        CustomEvents
     ) {
 
     var init = function(root) {
-        var selectElement = root.find('[data-region="tag-select"]');
-        AutoComplete.enhance(selectElement, false, false, 'Filter by tags...', false, true);
+        var contextids = JSON.parse(root.attr('data-context-ids'));
+        var resultsContainer = root.find('[data-region="search-results"]');
+
+        root.find('[data-action="search"]').click(function(e) {
+            resultsContainer.empty();
+
+            var tags = root.find('[data-region="search-input"]').val();
+            var request = {
+                methodname: 'core_question_search_by_tags',
+                args: {
+                    tags: tags.split(' '),
+                    contextids: contextids
+                }
+            };
+
+            Ajax.call([request])[0].then(function(results) {
+                var questions = JSON.parse(results.data);
+
+                questions.forEach(function(question) {
+                    resultsContainer.append(question.questiontext);
+                });
+            });
+        });
     };
 
     return {
