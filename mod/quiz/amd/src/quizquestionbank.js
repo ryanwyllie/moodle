@@ -23,11 +23,13 @@
 define(
     [
         'jquery',
+        'core/custom_interaction_events',
         'core/modal_factory',
         'mod_quiz/modal_quiz_question_bank'
     ],
     function(
         $,
+        CustomEvents,
         ModalFactory,
         ModalQuizQuestionBank
     ) {
@@ -38,14 +40,25 @@ define(
 
     return {
         init: function(contextId, courseModuleId) {
+            var body = $('body');
+
             ModalFactory.create(
                 {
                     type: ModalQuizQuestionBank.TYPE,
                     large: true
                 },
-                $(SELECTORS.ADDQUESTIONLINKS)
+                [body, SELECTORS.ADDQUESTIONLINKS]
             ).then(function(modal) {
                 modal.setContextId(contextId);
+
+                body.on(CustomEvents.events.activate, SELECTORS.ADDQUESTIONLINKS, function(e) {
+                    // We need to listen for activations on the trigger elements because there are
+                    // several on the page and we need to know which one was activated in order to
+                    // set some relevant data on the modal.
+                    var triggerElement = $(e.target).closest(SELECTORS.ADDQUESTIONLINKS);
+                    modal.setAddOnPageId(triggerElement.attr('data-addonpage'));
+                    modal.setTitle(triggerElement.attr('data-header'));
+                });
             });
         }
     };

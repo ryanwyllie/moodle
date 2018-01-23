@@ -25,34 +25,24 @@
 define([
     'jquery',
     'core/notification',
-    'core/custom_interaction_events',
     'core/modal',
-    'core/modal_events',
     'core/modal_registry',
-    'core/yui',
     'core/fragment'
 ],
 function(
     $,
     Notification,
-    CustomEvents,
     Modal,
-    ModalEvents,
     ModalRegistry,
-    Y,
     Fragment
 ) {
 
     var registered = false;
-    var CSS = {
-        QBANKLOADING:       'div.questionbankloading',
-        ADDQUESTIONLINKS:   '.menu [data-action="questionbank"]',
-        ADDTOQUIZCONTAINER: 'td.addtoquizaction',
-        PREVIEWCONTAINER:   'td.previewaction',
-        SEARCHOPTIONS:      '#advancedsearch'
-    };
     var SELECTORS = {
-        TAG: '[data-tags]'
+        ADD_TO_QUIZ_CONTAINER: 'td.addtoquizaction',
+        PREVIEW_CONTAINER:   'td.previewaction',
+        SEARCH_OPTIONS:      '#advancedsearch',
+        DISPLAY_OPTIONS: '#displayoptions',
     };
 
     /**
@@ -62,8 +52,6 @@ function(
      */
     var ModalQuizQuestionBank = function(root) {
         Modal.call(this, root);
-        this.initialLoad = false;
-        this.tags = {};
     };
 
     ModalQuizQuestionBank.TYPE = 'mod_quiz-quiz-question-bank';
@@ -78,34 +66,18 @@ function(
         return this.contextId;
     };
 
-    ModalQuizQuestionBank.prototype.show = function() {
-        if (!this.initialLoad) {
-            this.reloadBodyContent(window.location.search);
-            this.initialLoad = true;
-        }
+    ModalQuizQuestionBank.prototype.setAddOnPageId = function(id) {
+        this.addOnPageId = id;
+    };
 
+    ModalQuizQuestionBank.prototype.getAddOnPageId = function() {
+        return this.addOnPageId;
+    };
+
+    ModalQuizQuestionBank.prototype.show = function() {
+        this.reloadBodyContent(window.location.search);
         Modal.prototype.show.call(this);
     };
-
-/*
-    ModalQuizQuestionBank.prototype.indexTags = function() {
-        this.tags = {};
-
-        var body = this.getBody();
-        var tagElements = body.find(SELECTORS.TAG);
-        tagElements.each(function(index, element) {
-            element = $(element);
-            var tagString = element.attr('data-tags');
-            tagString.split(',').forEach(function(tag) {
-                if (this.tags.hasOwnProperty(tag)) {
-                    this.tags[tag].push(element);
-                } else {
-                    this.tags[tag] = [element];
-                }
-            }.bind(this));
-        }.bind(this));
-    };
-*/
 
     ModalQuizQuestionBank.prototype.reloadBodyContent = function(queryString) {
         var promise = Fragment.loadFragment(
@@ -113,18 +85,64 @@ function(
             'quiz_question_bank',
             this.getContextId(),
             { querystring: queryString }
-        );
+        ).fail(Notification.exception);
 
         this.setBody(promise);
-        /*
-        promise.then(function() {
-            M.question.qbankmanager.init();
+    };
 
-            //this.initialiseSearchRegion();
-            M.util.init_collapsible_region(Y, "advancedsearch", "question_bank_advanced_search",
-                M.util.get_string('clicktohideshow', 'moodle'));
+    ModalQuizQuestionBank.prototype.registerDisplayOptionListeners = function() {
+        // Listen for changes to the display options form.
+        this.getModal().on('change', SELECTORS.DISPLAY_OPTIONS, function(e) {
+            // Stop propagation to prevent other wild event handlers
+            // from submitting the form on change.
+            e.stopPropagation();
+            e.preventDefault();
+
+            // Get the element that was changed.
+            var modifiedElement = $(e.target);
+            if (modifiedElement.attr('aria-autocomplete')) {
+                // If the element that was change is the autocomplete
+                // input then we should ignore it because that is for
+                // display purposes only.
+                return;
+            }
+
+            var form = $(e.target).closest(SELECTORS.DISPLAY_OPTIONS);
+            var queryString = '?' + form.serialize();
+            this.reloadBodyContent(queryString);
+        }.bind(this));
+    };
+
+    ModalQuizQuestionBank.prototype.handleAddToQuizEvent = function(e, anchorElement) {
+        // If the user clicks the plus icon to add the question to the page
+        // directly then we need to intercept the click in order to adjust the
+        // href and include the correct add on page id before the page is
+        // redirected.
+        var href = anchorElement.attr('href') + '&addonpage=' + this.getAddOnPageId();
+        anchorElement.attr('href', href);
+    };
+
+    ModalQuizQuestionBank.prototype.handlePreviewContainerEvent = function(e, anchorElement) {
+        var popupOptions = [
+            'height=600',
+            'width=800',
+            'top=0',
+            'left=0',
+            'menubar=0',
+            'location=0',
+            'scrollbars',
+            'resizable',
+            'toolbar',
+            'status',
+            'directories=0',
+            'fullscreen=0',
+            'dependent'
+        ];
+        window.openpopup(e, {
+            url: anchorElement.attr('href'),
+            name: 'questionpreview',
+            options: popupOptions.join(',')
         });
-        */
     };
 
     /**
@@ -136,57 +154,33 @@ function(
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
+        this.registerDisplayOptionListeners();
+
         this.getModal().on('click', 'a[href]', function(e) {
-            var target = $(e.currentTarget);
+            var anchorElement = $(e.currentTarget);
 
             // Add question to quiz. mofify the URL, then let it work as normal.
-            if (e.currentTarget.ancestor(CSS.ADDTOQUIZCONTAINER)) {
-                e.currentTarget.set('href', e.currentTarget.get('href') + '&addonpage=' + this.addonpage);
+            if (anchorElement.closest(SELECTORS.ADD_TO_QUIZ_CONTAINER).length) {
+                this.handleAddToQuizEvent(e, anchorElement);
                 return;
             }
 
             // Question preview. Needs to open in a pop-up.
-            if (e.currentTarget.ancestor(CSS.PREVIEWCONTAINER)) {
-                window.openpopup(e, {
-                    url: e.currentTarget.get('href'),
-                    name: 'questionpreview',
-                    options: 'height=600,width=800,top=0,left=0,menubar=0,location=0,scrollbars,' +
-                    'resizable,toolbar,status,directories=0,fullscreen=0,dependent'
-                });
+            if (anchorElement.closest(SELECTORS.PREVIEW_CONTAINER).length) {
+                this.handlePreviewContainerEvent(e, anchorElement);
                 return;
             }
 
             // Click on expand/collaspse search-options. Has its own handler.
             // We should not interfere.
-            if (e.currentTarget.ancestor(CSS.SEARCHOPTIONS)) {
+            if (anchorElement.closest(SELECTORS.SEARCH_OPTIONS).length) {
                 return;
             }
 
             // Anything else means reload the pop-up contents.
             e.preventDefault();
-            this.reloadBodyContent(e.currentTarget.get('search'));
+            this.reloadBodyContent(anchorElement.prop('search'));
         }.bind(this));
-
-        this.getBody().on('change', '.form-autocomplete-selection input', function(e) {
-            e.stopPropagation();
-            debugger;
-        });
-
-        this.getModal().on('change', 'form', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var modifiedElement = $(e.target);
-            if (modifiedElement.attr('aria-autocomplete')) {
-                return;
-            }
-
-            var form = $(e.currentTarget);
-            var queryString = '?' + form.serialize();
-            this.reloadBodyContent(queryString);
-        }.bind(this));
-
-        //this.getRoot().on(ModalEvents.bodyRendered, this.indexTags.bind(this));
     };
 
     // Automatically register with the modal registry the first time this module is
@@ -195,7 +189,7 @@ function(
         ModalRegistry.register(
             ModalQuizQuestionBank.TYPE,
             ModalQuizQuestionBank,
-            'mod_quiz/modal_quiz_question_bank'
+            'core/modal'
         );
 
         registered = true;

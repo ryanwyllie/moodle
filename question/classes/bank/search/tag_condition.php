@@ -35,7 +35,6 @@ class tag_condition extends condition {
     protected $where;
     /** @var string SQL fragment to add to the where clause. */
     protected $contexts;
-    protected $tags;
     protected $selectedtagids;
 
     /**
@@ -46,7 +45,6 @@ class tag_condition extends condition {
         global $DB;
 
         $this->contexts = $contexts;
-        $this->tags = \core_tag_tag::get_tags_by_area_in_contexts('core_question', 'question', $contexts);
 
         if ($selectedtagids) {
             list($tagsql, $tagparams) = $DB->get_in_or_equal($selectedtagids, SQL_PARAMS_NAMED);
@@ -78,20 +76,14 @@ class tag_condition extends condition {
     public function display_options() {
         global $OUTPUT;
 
-        /*
-        $contextids = [];
-        foreach ($contexts as $context) {
-            $contextids = array_merge($contextids, $context->get_parent_context_ids(true));
-        }
-        $contextids = array_unique($contextids);
-        */
+        $tags = \core_tag_tag::get_tags_by_area_in_contexts('core_question', 'question', $this->contexts);
         $tagoptions = array_map(function($tag) {
             return [
                 'id' => $tag->id,
                 'name' => $tag->name,
                 'selected' => in_array($tag->id, $this->selectedtagids)
             ];
-        }, array_values($this->tags));
+        }, array_values($tags));
         $context = [
             'tagoption' => $tagoptions
         ];
