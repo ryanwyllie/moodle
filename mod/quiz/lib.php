@@ -2412,8 +2412,9 @@ function mod_quiz_output_fragment_quiz_question_bank($args) {
     $querystring = preg_replace('/^\?/', '', $args['querystring']);
     $params = [];
     parse_str($querystring, $params);
-    $tagids = isset($params['tagids']) ? $params['tagids'] : [];
-    unset($params['tagids']);
+    /*
+    $tagids = isset($params['qtagids']) ? $params['qtagids'] : [];
+    unset($params['qtagids']);
 
     foreach ($params as $key => $value) {
         $_POST[$key] = $value;
@@ -2421,7 +2422,11 @@ function mod_quiz_output_fragment_quiz_question_bank($args) {
 
     list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
             question_edit_setup('editq', '/mod/quiz/edit.php', true);
-    $pagevars['tagids'] = $tagids;
+    $pagevars['qtagids'] = $tagids;
+    */
+
+    list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
+            question_build_edit_resources('editq', '/mod/quiz/edit.php', $params);
 
     // Get the course object and related bits.
     $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);

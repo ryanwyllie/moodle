@@ -1255,7 +1255,7 @@ class edit_renderer extends \plugin_renderer_base {
 
         $qbank = $questionbank->render('editq', $pagevars['qpage'], $pagevars['qperpage'],
                 $pagevars['cat'], $pagevars['recurse'], $pagevars['showhidden'], $pagevars['qbshowtext'],
-                $pagevars['tagids']);
+                $pagevars['qtagids']);
         return html_writer::div(html_writer::div($qbank, 'bd'), 'questionbankformforpopup');
     }
 }
