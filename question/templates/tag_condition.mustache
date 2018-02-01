@@ -17,17 +17,49 @@
 {{!
     Tag condition.
 }}
-<div data-region="tag-condition-container-{{uniqid}}">
+<div class="tag-condition-container" data-region="tag-condition-container-{{uniqid}}">
     <div class="form-group">
-        <select multiple name="qtagids[]" class="form-control" data-region="tag-select">
+        <select multiple name="qtagids[]" class="form-control" size="3" data-region="tag-select">
             {{#tagoption}}
-            <option {{#selected}}selected{{/selected}} value="{{id}}">{{name}}</option>
+                <option {{#selected}}selected{{/selected}} value="{{id}}">{{name}}</option>
             {{/tagoption}}
         </select>
+        {{< core/overlay_loading }}
+            {{$hiddenclass}}{{/hiddenclass}}
+        {{/ core/overlay_loading }}
     </div>
 </div>
 {{#js}}
-require(['jquery', 'core_question/tag_condition'], function($, TagCondition) {
-    TagCondition.init($('[data-region="tag-condition-container-{{uniqid}}"]'));
+require(
+[
+    'jquery',
+    'core/form-autocomplete'
+],
+function(
+    $,
+    AutoComplete
+) {
+    var root = $('[data-region="tag-condition-container-{{uniqid}}"]');
+    var selectElement = root.find('[data-region="tag-select"]');
+    var loadingContainer = root.find('[data-region="overlay-icon-container"]');
+    var placeholderText = '{{#str}} filterbytags, core_question {{/str}}';
+
+    AutoComplete.enhance(
+        selectElement,   // Element to enhance.
+        false,           // Don't allow support for creating new tags.
+        false,           // Don't allow AMD module to handle loading new tags.
+        placeholderText, // Placeholder text.
+        false,           // Make search case insensitive.
+        true             // Show suggestions for tags.
+    ).always(function() {
+        // Hide the loading icon once the autocomplete has initialised.
+        loadingContainer.addClass('hidden');
+    });;
+
+    // We need to trigger a form submission because of how the question bank
+    // page handles reloading the questions when an option changes.
+    selectElement.on('change', function() {
+        selectElement.closest('form').submit();
+    });
 });
 {{/js}}

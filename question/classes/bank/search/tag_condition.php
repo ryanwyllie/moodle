@@ -48,12 +48,14 @@ class tag_condition extends condition {
 
         if ($selectedtagids) {
             list($tagsql, $tagparams) = $DB->get_in_or_equal($selectedtagids, SQL_PARAMS_NAMED);
+            $tagparams['tagcount'] = count($selectedtagids);
             $this->selectedtagids = $selectedtagids;
             $this->params = $tagparams;
             $this->where = "q.id IN (SELECT ti.itemid
                                      FROM {tag_instance} ti
                                      WHERE ti.tagid {$tagsql}
-                                     GROUP BY ti.itemid)";
+                                     GROUP BY ti.itemid
+                                     HAVING COUNT(itemid) = :tagcount)";
 
         } else {
             $this->selectedtagids = [];

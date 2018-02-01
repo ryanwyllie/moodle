@@ -24,6 +24,7 @@
  */
 define([
     'jquery',
+    'core/yui',
     'core/notification',
     'core/modal',
     'core/modal_registry',
@@ -31,6 +32,7 @@ define([
 ],
 function(
     $,
+    Y,
     Notification,
     Modal,
     ModalRegistry,
@@ -88,16 +90,28 @@ function(
         ).fail(Notification.exception);
 
         this.setBody(promise);
+
+        promise.then(function() {
+            Y.use('moodle-core-formchangechecker', function() {
+                M.core_formchangechecker.reset_form_dirty_state();
+            });
+        });
     };
 
     ModalQuizQuestionBank.prototype.registerDisplayOptionListeners = function() {
-        // Listen for changes to the display options form.
-        this.getModal().on('change', SELECTORS.DISPLAY_OPTIONS, function(e) {
+        var handleFormEvent = function(e) {
             // Stop propagation to prevent other wild event handlers
             // from submitting the form on change.
             e.stopPropagation();
             e.preventDefault();
 
+            var form = $(e.target).closest(SELECTORS.DISPLAY_OPTIONS);
+            var queryString = '?' + form.serialize();
+            this.reloadBodyContent(queryString);
+        }.bind(this);
+
+        // Listen for changes to the display options form.
+        this.getModal().on('change', SELECTORS.DISPLAY_OPTIONS, function(e) {
             // Get the element that was changed.
             var modifiedElement = $(e.target);
             if (modifiedElement.attr('aria-autocomplete')) {
@@ -107,10 +121,11 @@ function(
                 return;
             }
 
-            var form = $(e.target).closest(SELECTORS.DISPLAY_OPTIONS);
-            var queryString = '?' + form.serialize();
-            this.reloadBodyContent(queryString);
+            handleFormEvent(e);
         }.bind(this));
+
+        // Listen for the display options form submission.
+        this.getModal().on('submit', SELECTORS.DISPLAY_OPTIONS, handleFormEvent.bind(this));
     };
 
     ModalQuizQuestionBank.prototype.handleAddToQuizEvent = function(e, anchorElement) {

@@ -18,17 +18,9 @@
  */
 define(
     [
-        'jquery',
-        'core/ajax',
-        'core/templates',
-        'core/notification',
         'core/form-autocomplete',
     ],
     function(
-        $,
-        Ajax,
-        Templates,
-        Notification,
         AutoComplete
     ) {
 

@@ -157,6 +157,7 @@ $string['fileformat'] = 'File format';
 $string['filesareacourse'] = 'the course files area';
 $string['filesareasite'] = 'the site files area';
 $string['filestomove'] = 'Move / copy files to {$a}?';
+$string['filterbytags'] = 'Filter by tags...';
 $string['firsttry'] = 'First try';
 $string['flagged'] = 'Flagged';
 $string['flagthisquestion'] = 'Flag this question';

@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/questionlib.php');
 
-define('DEFAULT_QUESTIONS_PER_PAGE', 1);
+define('DEFAULT_QUESTIONS_PER_PAGE', 20);
 define('MAXIMUM_QUESTIONS_PER_PAGE', 1000);
 
 function get_module_from_cmid($cmid) {
@@ -264,127 +264,96 @@ class_alias('core_question\bank\view', 'question_bank_view', true);
  * @return array $thispageurl, $contexts, $cmid, $cm, $module, $pagevars
  */
 function question_edit_setup($edittab, $baseurl, $requirecmid = false, $unused = null) {
-    global $DB, $PAGE, $CFG;
+    global $PAGE;
 
     if ($unused !== null) {
         debugging('Deprecated argument passed to question_edit_setup()', DEBUG_DEVELOPER);
     }
 
-    $thispageurl = new moodle_url($baseurl);
-    $thispageurl->remove_all_params(); // We are going to explicity add back everything important - this avoids unwanted params from being retained.
+    $params = [];
 
-    if ($requirecmid){
-        $cmid =required_param('cmid', PARAM_INT);
+    if ($requirecmid) {
+        $params['cmid'] = required_param('cmid', PARAM_INT);
     } else {
-        $cmid = optional_param('cmid', 0, PARAM_INT);
-    }
-    if ($cmid){
-        list($module, $cm) = get_module_from_cmid($cmid);
-        $courseid = $cm->course;
-        $thispageurl->params(compact('cmid'));
-        require_login($courseid, false, $cm);
-        $thiscontext = context_module::instance($cmid);
-    } else {
-        $module = null;
-        $cm = null;
-        $courseid  = required_param('courseid', PARAM_INT);
-        $thispageurl->params(compact('courseid'));
-        require_login($courseid, false);
-        $thiscontext = context_course::instance($courseid);
+        $params['cmid'] = optional_param('cmid', null, PARAM_INT);
     }
 
-    if ($thiscontext){
-        $contexts = new question_edit_contexts($thiscontext);
-        $contexts->require_one_edit_tab_cap($edittab);
-
-    } else {
-        $contexts = null;
+    if (!$params['cmid']) {
+        $params['courseid'] = required_param('courseid', PARAM_INT);
     }
 
-    $PAGE->set_pagelayout('admin');
-
-    $pagevars['qpage'] = optional_param('qpage', -1, PARAM_INT);
+    $params['qpage'] = optional_param('qpage', null, PARAM_INT);
 
     //pass 'cat' from page to page and when 'category' comes from a drop down menu
     //then we also reset the qpage so we go to page 1 of
     //a new cat.
-    $pagevars['cat'] = optional_param('cat', 0, PARAM_SEQUENCE); // if empty will be set up later
-    if ($category = optional_param('category', 0, PARAM_SEQUENCE)) {
-        if ($pagevars['cat'] != $category) { // is this a move to a new category?
-            $pagevars['cat'] = $category;
-            $pagevars['qpage'] = 0;
-        }
-    }
-    if ($pagevars['cat']){
-        $thispageurl->param('cat', $pagevars['cat']);
-    }
-    if (strpos($baseurl, '/question/') === 0) {
-        navigation_node::override_active_url($thispageurl);
-    }
+    $params['cat'] = optional_param('cat', null, PARAM_SEQUENCE); // if empty will be set up later
+    $params['category'] = optional_param('category', null, PARAM_SEQUENCE);
+    $params['qperpage'] = optional_param('qperpage', null, PARAM_INT);
 
-    if ($pagevars['qpage'] > -1) {
-        $thispageurl->param('qpage', $pagevars['qpage']);
-    } else {
-        $pagevars['qpage'] = 0;
-    }
-
-    $pagevars['qperpage'] = question_get_display_preference(
-            'qperpage', DEFAULT_QUESTIONS_PER_PAGE, PARAM_INT, $thispageurl);
-
+    // Question table sorting options.
     for ($i = 1; $i <= question_bank_view::MAX_SORTS; $i++) {
         $param = 'qbs' . $i;
-        if (!$sort = optional_param($param, '', PARAM_TEXT)) {
+        if ($sort = optional_param($param, '', PARAM_TEXT)) {
+            $params[$param] = $sort;
+        } else {
             break;
         }
-        $thispageurl->param($param, $sort);
     }
 
-    $defaultcategory = question_make_default_categories($contexts->all());
-
-    $contextlistarr = array();
-    foreach ($contexts->having_one_edit_tab_cap($edittab) as $context){
-        $contextlistarr[] = "'{$context->id}'";
-    }
-    $contextlist = join($contextlistarr, ' ,');
-    if (!empty($pagevars['cat'])){
-        $catparts = explode(',', $pagevars['cat']);
-        if (!$catparts[0] || (false !== array_search($catparts[1], $contextlistarr)) ||
-                !$DB->count_records_select("question_categories", "id = ? AND contextid = ?", array($catparts[0], $catparts[1]))) {
-            print_error('invalidcategory', 'question');
-        }
-    } else {
-        $category = $defaultcategory;
-        $pagevars['cat'] = "{$category->id},{$category->contextid}";
-    }
 
     // Display options.
-    $pagevars['recurse']    = question_get_display_preference('recurse',    1, PARAM_BOOL, $thispageurl);
-    $pagevars['showhidden'] = question_get_display_preference('showhidden', 0, PARAM_BOOL, $thispageurl);
-    $pagevars['qbshowtext'] = question_get_display_preference('qbshowtext', 0, PARAM_BOOL, $thispageurl);
-
+    $params['recurse'] = optional_param('recurse',    null, PARAM_BOOL);
+    $params['showhidden'] = optional_param('showhidden', null, PARAM_BOOL);
+    $params['qbshowtext'] = optional_param('qbshowtext', null, PARAM_BOOL);
     // Category list page.
-    $pagevars['cpage'] = optional_param('cpage', 1, PARAM_INT);
-    if ($pagevars['cpage'] != 1){
-        $thispageurl->param('cpage', $pagevars['cpage']);
-    }
+    $params['cpage'] = optional_param('cpage', null, PARAM_INT);
+    $params['cpage'] = optional_param('cpage', null, PARAM_INT);
+    $params['qtagids'] = optional_param_array('qtagids', null, PARAM_INT);
 
-    return array($thispageurl, $contexts, $cmid, $cm, $module, $pagevars);
+    $PAGE->set_pagelayout('admin');
+
+    return question_build_edit_resources($edittab, $baseurl, $params);
 }
 
 /**
  * Common function for building the generic resources required by the
  * editing questions pages.
  *
- * @param string $baseurl the name of the script calling this funciton. For examle 'qusetion/edit.php'.
- * @param string $edittab code for this edit tab
- * @param bool $requirecmid require cmid? default false
- * @param bool $unused no longer used, do no pass
+ * Either a cmid or a course id must be provided as keys in $params or
+ * an exception will be thrown. All other params are optional and will have
+ * sane default applied if not provided.
+ *
+ * The acceptable keys for $params are:
+ * [
+ *      'cmid' => PARAM_INT,
+ *      'courseid' => PARAM_INT,
+ *      'qpage' => PARAM_INT,
+ *      'cat' => PARAM_SEQUENCE,
+ *      'category' => PARAM_SEQUENCE,
+ *      'qperpage' => PARAM_INT,
+ *      'recurse' => PARAM_INT,
+ *      'showhidden' => PARAM_INT,
+ *      'qbshowtext' => PARAM_INT,
+ *      'cpage' => PARAM_INT,
+ *      'recurse' => PARAM_BOOL,
+ *      'showhidden' => PARAM_BOOL,
+ *      'qbshowtext' => PARAM_BOOL,
+ *      'qtagids' => [PARAM_INT], (array of integers)
+ *      'qbs1' => PARAM_TEXT,
+ *      'qbs2' => PARAM_TEXT,
+ *      'qbs3' => PARAM_TEXT,
+ *      ... and more qbs keys up to question_bank_view::MAX_SORTS ...
+ *  ];
+ *
+ * @param string $edittab Code for this edit tab
+ * @param string $baseurl The name of the script calling this funciton. For examle 'qusetion/edit.php'.
+ * @param array $params The provided parameters to construct the resources with.
  * @return array $thispageurl, $contexts, $cmid, $cm, $module, $pagevars
  */
 function question_build_edit_resources($edittab, $baseurl, $params) {
     global $DB, $PAGE, $CFG;
 
-    $PAGE->set_pagelayout('admin');
     $thispageurl = new moodle_url($baseurl);
     $thispageurl->remove_all_params(); // We are going to explicity add back everything important - this avoids unwanted params from being retained.
 
@@ -565,16 +534,20 @@ function question_get_display_preference($param, $default, $type, $thispageurl) 
 }
 
 /**
- * Get a particular question preference that is also stored as a user preference.
- * If the the value is given in the GET/POST request, then that value is used,
- * and the user preference is updated to that value. Otherwise, the last set
- * value of the user preference is used, or if it has never been set the default
- * passed to this function.
+ * Get a user preference by name or set the user preference to a given value.
  *
- * @param string $param the param name. The URL parameter set, and the GET/POST
- *      parameter read. The user_preference name is 'question_bank_' . $param.
+ * If $value is null then the function will only attempt to retrieve the
+ * user preference requested by $name. If no user preference is found then the
+ * $default value will be returned. In this case the user preferences are not
+ * modified and nor are the params on $thispageurl.
+ *
+ * If $value is anything other than null then the function will set the user
+ * preference $name to the provided $value and will also set it as a param
+ * on $thispageurl.
+ *
+ * @param string $name The user_preference name is 'question_bank_' . $name.
+ * @param mixed $value The preference value.
  * @param mixed $default The default value to use, if not otherwise set.
- * @param int $type one of the PARAM_... constants.
  * @param moodle_url $thispageurl if the value has been explicitly set, we add
  *      it to this URL.
  * @return mixed the parameter value to use.
