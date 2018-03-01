@@ -186,6 +186,9 @@ define([
                     modal.getRoot().find(QuestionSelectors.actions.save).hide();
                 }
 
+                modal.getBody().attr('data-questionid', questionId);
+                modal.getBody().attr('data-contextid', contextId);
+
                 return modal;
             }).fail(Notification.exception);
 
@@ -207,9 +210,11 @@ define([
         startLoading(root);
 
         var formData = getFormData(modal);
+        var questionId = modal.getBody().attr('data-questionid');
+        var contextId = modal.getBody().attr('data-contextid');
 
         // Send the form data to the server for processing.
-        return Repository.submitTagCreateUpdateForm(formData)
+        return Repository.submitTagCreateUpdateForm(questionId, contextId, formData)
             .always(function() {
                 // Regardless of success or error we should always stop
                 // the loading icon and re-enable the buttons.
