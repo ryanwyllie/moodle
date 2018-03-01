@@ -179,8 +179,11 @@ class core_question_external extends external_api {
                 core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
                     $questioncontext, $tags);
 
-                core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
-                    $editingcontext->get_course_context(false), $coursetags);
+                if (isset($validateddata->coursetags)) {
+                    $coursetags = is_array($validateddata->coursetags) ? $validateddata->coursetags : [];
+                    core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
+                        $editingcontext->get_course_context(false), $coursetags);
+                }
 
                 $result['status'] = true;
             }
