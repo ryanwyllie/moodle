@@ -173,21 +173,24 @@ class core_question_external extends external_api {
 
         if ($validateddata = $mform->get_data()) {
             if ($cantag) {
-                // Due to a mform bug, if there's no tags set on the tag element, it submits the name as the value.
-                // The only way to discover is checking if the tag element is an array.
-                $tags = is_array($validateddata->tags) ? $validateddata->tags : [];
-                $coursetags = is_array($validateddata->coursetags) ? $validateddata->coursetags : [];
+                if (isset($validateddata->tags)) {
+                    // Due to a mform bug, if there's no tags set on the tag element, it submits the name as the value.
+                    // The only way to discover is checking if the tag element is an array.
+                    $tags = is_array($validateddata->tags) ? $validateddata->tags : [];
 
-                core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
-                    $questioncontext, $tags);
+                    core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
+                        $questioncontext, $tags);
+
+                    $result['status'] = true;
+                }
 
                 if (isset($validateddata->coursetags)) {
                     $coursetags = is_array($validateddata->coursetags) ? $validateddata->coursetags : [];
                     core_tag_tag::set_item_tags('core_question', 'question', $validateddata->id,
                         $editingcontext->get_course_context(false), $coursetags);
-                }
 
-                $result['status'] = true;
+                    $result['status'] = true;
+                }
             }
         }
 
