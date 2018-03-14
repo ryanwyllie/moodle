@@ -98,17 +98,14 @@ class edit_renderer extends \plugin_renderer_base {
 
         // Include the contents of any other popups required.
         if ($structure->can_be_edited()) {
-            $popups = '';
-
+            $thiscontext = $contexts->lowest();
             $this->page->requires->js_call_amd('mod_quiz/quizquestionbank', 'init', [
-                $contexts->lowest()->id
+                $thiscontext->id
             ]);
 
-            $popups .= $this->random_question_form($pageurl, $contexts, $pagevars);
-            $this->page->requires->yui_module('moodle-mod_quiz-randomquestion',
-                    'M.mod_quiz.randomquestion.init');
-
-            $output .= html_writer::div($popups, 'mod_quiz_edit_forms');
+            $this->page->requires->js_call_amd('mod_quiz/add_random_question', 'init', [
+                $thiscontext->id
+            ]);
 
             // Include the question chooser.
             $output .= $this->question_chooser();

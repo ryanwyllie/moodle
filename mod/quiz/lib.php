@@ -2443,3 +2443,15 @@ function mod_quiz_output_fragment_quiz_question_bank($args) {
     $renderer = $PAGE->get_renderer('mod_quiz', 'edit');
     return $renderer->question_bank_contents($questionbank, $pagevars);
 }
+
+function mod_quiz_output_fragment_add_random_question_form($args) {
+    $existingcategory = isset($args['existingcategory']) ? $args['existingcategory'] : true;
+
+    if ($existingcategory) {
+        $form = new mod_quiz\form\add_random_question_existing_category_form();
+    } else {
+        $form = new mod_quiz\form\add_random_question_new_category_form();
+    }
+
+    return $form->render();
+}

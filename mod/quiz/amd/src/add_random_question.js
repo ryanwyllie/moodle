@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Initialise the question bank modal on the quiz page.
+ * Initialise the add random question modal on the quiz page.
  *
- * @module    mod_quiz/quizquestionbank
+ * @module    mod_quiz/add_random_question
  * @package   mod_quiz
  * @copyright 2018 Ryan Wyllie <ryan@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,22 +24,18 @@
 define(
     [
         'mod_quiz/add_question_modal_launcher',
-        'mod_quiz/modal_quiz_question_bank'
+        'mod_quiz/modal_add_random_question'
     ],
     function(
         AddQuestionModalLauncher,
-        ModalQuizQuestionBank
+        ModalAddRandomQuestion
     ) {
-
-    var SELECTORS = {
-        ADD_QUESTION_LINKS:   '.menu [data-action="questionbank"]',
-    };
 
     return {
         init: function(contextId) {
             AddQuestionModalLauncher.init(
-                ModalQuizQuestionBank.TYPE,
-                '.menu [data-action="questionbank"]',
+                ModalAddRandomQuestion.TYPE,
+                '.menu [data-action="addarandomquestion"]',
                 contextId
             );
         }
