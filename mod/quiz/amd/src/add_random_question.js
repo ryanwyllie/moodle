@@ -32,11 +32,17 @@ define(
     ) {
 
     return {
-        init: function(contextId) {
+        init: function(contextId, category, returnUrl, cmid) {
             AddQuestionModalLauncher.init(
                 ModalAddRandomQuestion.TYPE,
                 '.menu [data-action="addarandomquestion"]',
-                contextId
+                contextId,
+                // Additional values that should be set before the modal is shown.
+                function(triggerElement, modal) {
+                    modal.setCategory(category);
+                    modal.setReturnUrl(returnUrl);
+                    modal.setCMID(cmid);
+                }
             );
         }
     };

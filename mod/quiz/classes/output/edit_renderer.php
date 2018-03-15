@@ -104,7 +104,10 @@ class edit_renderer extends \plugin_renderer_base {
             ]);
 
             $this->page->requires->js_call_amd('mod_quiz/add_random_question', 'init', [
-                $thiscontext->id
+                $thiscontext->id,
+                $pagevars['cat'],
+                $pageurl->out_as_local_url(true),
+                $pageurl->param('cmid')
             ]);
 
             // Include the question chooser.

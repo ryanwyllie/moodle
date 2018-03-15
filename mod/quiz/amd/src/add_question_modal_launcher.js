@@ -25,18 +25,16 @@ define(
     [
         'jquery',
         'core/notification',
-        'core/custom_interaction_events',
         'core/modal_factory',
     ],
     function(
         $,
         Notification,
-        CustomEvents,
         ModalFactory,
     ) {
 
     return {
-        init: function(modalType, selector, contextId) {
+        init: function(modalType, selector, contextId, preShowCallback) {
             var body = $('body');
 
             // Create a question bank modal using the factory.
@@ -44,29 +42,27 @@ define(
             // links that match "selector" on the page. The content
             // of the modal will be changed depending on which link is
             // clicked.
-            ModalFactory.create(
+            return ModalFactory.create(
                 {
                     type: modalType,
-                    large: true
+                    large: true,
+                    // This callback executes before the modal is shown when the
+                    // trigger element is clicked.
+                    preShowCallback: function(triggerElement, modal) {
+                        triggerElement = $(triggerElement);
+                        modal.setContextId(contextId);
+                        modal.setAddOnPageId(triggerElement.attr('data-addonpage'));
+                        modal.setTitle(triggerElement.attr('data-header'));
+
+                        if (preShowCallback) {
+                            preShowCallback(triggerElement, modal);
+                        }
+                    }
                 },
                 // Created a deligated listener rather than a single
                 // trigger element.
                 [body, selector]
-            ).then(function(modal) {
-                // Save the Moodle context id that the modal is being rendered in.
-                modal.setContextId(contextId);
-
-                body.on(CustomEvents.events.activate, selector, function(e) {
-                    // We need to listen for activations on the trigger elements because there are
-                    // several on the page and we need to know which one was activated in order to
-                    // set some relevant data on the modal.
-                    var triggerElement = $(e.target).closest(selector);
-                    modal.setAddOnPageId(triggerElement.attr('data-addonpage'));
-                    modal.setTitle(triggerElement.attr('data-header'));
-                });
-
-                return modal;
-            }).fail(Notification.exception);
+            ).fail(Notification.exception);
         }
     };
 });

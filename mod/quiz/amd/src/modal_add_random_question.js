@@ -46,6 +46,10 @@ function(
     var SELECTORS = {
         EXISTING_CATEGORY_CONTAINER: '[data-region="existing-category-container"]',
         NEW_CATEGORY_CONTAINER: '[data-region="new-category-container"]',
+        TAB_CONTENT: '[data-region="tab-content"]',
+        ADD_ON_PAGE_FORM_ELEMENT: '[name="addonpage"]',
+        SUBMIT_BUTTON_ELEMENT: 'input[type="submit"]',
+        CANCEL_BUTTON_ELEMENT: 'input[type="submit"][name="cancel"]',
     };
 
     /**
@@ -57,7 +61,10 @@ function(
         Modal.call(this, root);
         this.contextId = null;
         this.addOnPageId = null;
-        this.initialised = false;
+        this.category = null;
+        this.returnUrl = null;
+        this.cmid = null;
+        this.loadedForm = false;
     };
 
     ModalAddRandomQuestion.TYPE = 'mod_quiz-quiz-add-random-question';
@@ -94,6 +101,7 @@ function(
      */
     ModalAddRandomQuestion.prototype.setAddOnPageId = function(id) {
         this.addOnPageId = id;
+        this.getBody().find(SELECTORS.ADD_ON_PAGE_FORM_ELEMENT).val(id);
     };
 
     /**
@@ -106,82 +114,143 @@ function(
         return this.addOnPageId;
     };
 
-    ModalAddRandomQuestion.prototype.show = function() {
-        Modal.prototype.show.call(this);
-        var existingCategoryContainer = this.getBody().find(SELECTORS.EXISTING_CATEGORY_CONTAINER);
-        var newCategoryContainer = this.getBody().find(SELECTORS.NEW_CATEGORY_CONTAINER);
+    /**
+     * Set the category for this form. The category is a comma separated
+     * category id and category context id.
+     *
+     * @method setCategory
+     * @param {string} category
+     */
+    ModalAddRandomQuestion.prototype.setCategory = function(category) {
+        this.category = category;
+    };
 
-        Fragment.loadFragment(
+    /**
+     * Returns the saved category.
+     *
+     * @method getCategory
+     * @return {string}
+     */
+    ModalAddRandomQuestion.prototype.getCategory = function() {
+        return this.category;
+    };
+
+    /**
+     * Set the return URL for the form.
+     *
+     * @method setReturnUrl
+     * @param {string} url
+     */
+    ModalAddRandomQuestion.prototype.setReturnUrl = function(url) {
+        this.returnUrl = url;
+    };
+
+    /**
+     * Returns the return URL for the form.
+     *
+     * @method getReturnUrl
+     * @return {string}
+     */
+    ModalAddRandomQuestion.prototype.getReturnUrl = function() {
+        return this.returnUrl;
+    };
+
+    /**
+     * Set the course module id for the form.
+     *
+     * @method setCMID
+     * @param {int} id
+     */
+    ModalAddRandomQuestion.prototype.setCMID = function(id) {
+        this.cmid = id;
+    };
+
+    /**
+     * Returns the course module id for the form.
+     *
+     * @method getCMID
+     * @return {int}
+     */
+    ModalAddRandomQuestion.prototype.getCMID = function() {
+        return this.cmid;
+    };
+
+    ModalAddRandomQuestion.prototype.moveFormElementIntoTab = function(formElement, tabElement) {
+        var submitButtons = formElement.find(SELECTORS.SUBMIT_BUTTON_ELEMENT);
+        var footer = $('<div class="modal-footer m-t-1" data-region="footer"></div>');
+        // Hide the header because the tabs show us which part of the form we're
+        // looking at.
+        formElement.find('legend').addClass('hidden');
+        // Move the element inside a tab.
+        formElement.wrap(tabElement);
+        // Remove the buttons container element.
+        submitButtons.closest('.fitem').remove();
+        // Put the button inside a footer.
+        submitButtons.appendTo(footer);
+        // Add the footer to the end of the category form element.
+        footer.appendTo(formElement);
+    };
+
+    ModalAddRandomQuestion.prototype.moveTabsIntoTabContent = function(form) {
+        // Empty it to remove the loading icon.
+        var tabContent = this.getBody().find(SELECTORS.TAB_CONTENT).empty();
+        // Make sure all tabs are inside the tab content element.
+        form.find('[role="tabpanel"]').wrapAll(tabContent);
+    };
+
+    ModalAddRandomQuestion.prototype.moveCancelButtonToTabs = function(form) {
+        var cancelButton = form.find(SELECTORS.CANCEL_BUTTON_ELEMENT).addClass('m-r-1');
+        var tabFooters = form.find('[data-region="footer"]');
+        // Remove the buttons container element.
+        cancelButton.closest('.fitem').remove();
+        cancelButton.clone().prependTo(tabFooters);
+    }
+
+    ModalAddRandomQuestion.prototype.loadForm = function() {
+        return Fragment.loadFragment(
             'mod_quiz',
             'add_random_question_form',
             this.getContextId(),
             {
-                existingcategory: true
+                addonpage: this.getAddOnPageId(),
+                cat: this.getCategory(),
+                returnurl: this.getReturnUrl(),
+                cmid: this.getCMID()
             }
         )
         .then(function(html, js) {
-            Templates.replaceNodeContents(existingCategoryContainer, html, js)
+            var form = $(html);
+            var existingCategoryFormElement = form.find("#id_existingcategoryheader");
+            var existingCategoryTab = this.getBody().find(SELECTORS.EXISTING_CATEGORY_CONTAINER);
+            var newCategoryFormElement = form.find("#id_newcategoryheader");
+            var newCategoryTab = this.getBody().find(SELECTORS.NEW_CATEGORY_CONTAINER);
+
+            this.moveFormElementIntoTab(existingCategoryFormElement, existingCategoryTab)
+            this.moveFormElementIntoTab(newCategoryFormElement, newCategoryTab)
+            this.moveTabsIntoTabContent(form);
+            this.moveCancelButtonToTabs(form);
+
+            Templates.replaceNode(this.getBody().find(SELECTORS.TAB_CONTENT), form, js);
             return;
-        })
-        .fail(Notification.exception);
-
-        Fragment.loadFragment(
-            'mod_quiz',
-            'add_random_question_form',
-            this.getContextId(),
-            {
-                existingcategory: false
-            }
-        )
-        .then(function(html, js) {
-            Templates.replaceNodeContents(existingCategoryContainer, html, js)
-            return;
-        })
-        .fail(Notification.exception);
-    };
-
-    /**
-     * Replaces the current body contents with a new version of the question
-     * bank.
-     *
-     * The contents of the question bank are generated using the provided
-     * query string.
-     *
-     * @method reloadBodyContent
-     * @param {string} queryString URL encoded string.
-     */
-    ModalAddRandomQuestion.prototype.reloadBodyContent = function(queryString) {
-        // Load the question bank fragment to be displayed in the modal.
-        var promise = Fragment.loadFragment(
-            'mod_quiz',
-            'quiz_question_bank',
-            this.getContextId(),
-            {
-                querystring: queryString
-            }
-        ).fail(Notification.exception);
-
-        this.setBody(promise);
-    };
-
-    /**
-     * Set up all of the event handling for the modal.
-     *
-     * @method registerEventListeners
-     */
-    ModalAddRandomQuestion.prototype.registerEventListeners = function() {
-        // Apply parent event listeners.
-        Modal.prototype.registerEventListeners.call(this);
-
-        // Disable the form change checker when the body is rendered.
-        this.getRoot().on(ModalEvents.bodyRendered, function() {
+        }.bind(this))
+        .then(function() {
             // Make sure the form change checker is disabled otherwise it'll
             // stop the user from navigating away from the page once the modal
             // is hidden.
             Y.use('moodle-core-formchangechecker', function() {
                 M.core_formchangechecker.reset_form_dirty_state();
             });
-        });
+        })
+        .fail(Notification.exception);
+    };
+
+    ModalAddRandomQuestion.prototype.show = function() {
+        Modal.prototype.show.call(this);
+
+        if (!this.loadedForm) {
+            this.loadForm();
+            this.loadedForm = true;
+        }
     };
 
     // Automatically register with the modal registry the first time this module is

@@ -31,10 +31,6 @@ define(
         ModalQuizQuestionBank
     ) {
 
-    var SELECTORS = {
-        ADD_QUESTION_LINKS:   '.menu [data-action="questionbank"]',
-    };
-
     return {
         init: function(contextId) {
             AddQuestionModalLauncher.init(

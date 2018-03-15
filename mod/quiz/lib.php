@@ -2445,13 +2445,30 @@ function mod_quiz_output_fragment_quiz_question_bank($args) {
 }
 
 function mod_quiz_output_fragment_add_random_question_form($args) {
-    $existingcategory = isset($args['existingcategory']) ? $args['existingcategory'] : true;
+    global $CFG;
+    require_once($CFG->dirroot . '/mod/quiz/addrandomform.php');
 
-    if ($existingcategory) {
-        $form = new mod_quiz\form\add_random_question_existing_category_form();
-    } else {
-        $form = new mod_quiz\form\add_random_question_new_category_form();
-    }
+    $contexts = new \question_edit_contexts($args['context']);
+    $formoptions = [
+        'contexts' => $contexts
+    ];
+    $formdata = [
+        'category' => $args['cat'],
+        'addonpage' => $args['addonpage'],
+        'returnurl' => $args['returnurl'],
+        'cmid' => $args['cmid']
+    ];
+
+    $form = new quiz_add_random_form(
+        new \moodle_url('/mod/quiz/addrandom.php'),
+        $formoptions,
+        'post',
+        '',
+        null,
+        true,
+        $formdata
+    );
+    $form->set_data($formdata);
 
     return $form->render();
 }
