@@ -47,6 +47,9 @@ class question_exporter extends \core\external\exporter {
             'parent' => [
                 'type' => PARAM_INT,
             ],
+            'name' => [
+                'type' => PARAM_TEXT,
+            ],
             'questiontext' => [
                 'type' => PARAM_TEXT,
             ],

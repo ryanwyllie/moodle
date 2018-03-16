@@ -36,11 +36,10 @@
         "body": "Some example content for the body"
     }
 }}
-<div data-region="random-question-preview-container">
+<div class="m-t-2" data-region="random-question-preview-container">
     <h4>Question set preview</h4>
     <div class="p-y-1" data-region="content-container" style="position:relative">
-        {{< core/overlay_loading }}{{$hiddenclass}}{{/hiddenclass}}{{/ core/overlay_loading }}
-
         <div data-region="question-list-container"></div>
+        {{< core/overlay_loading }}{{$hiddenclass}}{{/hiddenclass}}{{/ core/overlay_loading }}
     </div>
 </div>

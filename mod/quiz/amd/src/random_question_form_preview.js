@@ -36,6 +36,27 @@ define(
         Templates
     ) {
 
+    var TEMPLATE_NAME = 'mod_quiz/random_question_form_preview_question_list';
+    var SELECTORS = {
+        LOADING_ICON_CONTAINER: '[data-region="overlay-icon-container"]',
+        QUESTION_LIST_CONTAINER: '[data-region="question-list-container"]'
+    };
+
+    var showLoadingIcon = function(root) {
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    };
+
+    var hideLoadingIcon = function(root) {
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    };
+
+    var buildTemplateContext = function(questions) {
+        return {
+            hasquestions: questions.length > 0,
+            questions: questions
+        };
+    };
+
     var reload = function(root, categoryId, includeSubcategories, tagIds, contextId) {
         var request = {
             methodname: 'core_question_get_random_questions',
@@ -47,14 +68,25 @@ define(
             }
         };
 
+        showLoadingIcon(root);
         return Ajax.call([request])[0]
             .then(function(questions) {
-                debugger;
+                return Templates.render(TEMPLATE_NAME, buildTemplateContext(questions));
+            })
+            .then(function(html, js) {
+                var container = root.find(SELECTORS.QUESTION_LIST_CONTAINER);
+                Templates.replaceNodeContents(container, html, js);
+                return;
+            })
+            .always(function() {
+                hideLoadingIcon(root);
             })
             .fail(Notification.exception);
     };
 
     return {
-        reload: reload
+        reload: reload,
+        showLoadingIcon: showLoadingIcon,
+        hideLoadingIcon: hideLoadingIcon
     };
 });

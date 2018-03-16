@@ -31,6 +31,9 @@ define(
         RandomQuestionFormPreview
     ) {
 
+    // Wait 2 seconds before reloading the question set just in case
+    // the user is still changing the criteria.
+    var RELOAD_DELAY = 2000;
     var SELECTORS = {
         PREVIEW_CONTAINER: '[data-region="random-question-preview-container"]',
         CATEGORY_FORM_ELEMENT: '[name="category"]',
@@ -73,10 +76,55 @@ define(
         );
     };
 
+    var isInterestingElement = function(element) {
+        if (element.closest(SELECTORS.CATEGORY_FORM_ELEMENT).length > 0) {
+            return true;
+        }
+
+        if (element.closest(SELECTORS.SUBCATEGORY_FORM_ELEMENT).length > 0) {
+            return true;
+        }
+
+        if (element.closest(SELECTORS.TAG_IDS_FORM_ELEMENT).length > 0) {
+            return true;
+        }
+
+        return false;
+    };
+
+    var addEventListeners = function(form, contextId) {
+        var reloadTimerId = null;
+
+        form.on('change', function(e) {
+            // Only reload the preview when elements that will change the result
+            // are modified.
+            if (!isInterestingElement($(e.target))) {
+                return;
+            }
+
+            // Show the loading icon to let the user know that the preview
+            // will be updated after their actions.
+            RandomQuestionFormPreview.showLoadingIcon(form);
+
+            if (reloadTimerId) {
+                // Reset the timer each time the form is modified.
+                clearTimeout(reloadTimerId);
+            }
+
+            // Don't immediately reload the question preview section just
+            // in case the user is still modifying the form. We don't want to
+            // spam reload requests.
+            reloadTimerId = setTimeout(function() {
+                reloadQuestionPreview(form, contextId);
+            }, RELOAD_DELAY);
+        });
+    };
+
     var init = function(formId, contextId) {
         var form = $('#' + formId);
 
         reloadQuestionPreview(form, contextId);
+        addEventListeners(form, contextId);
     };
 
     return {
