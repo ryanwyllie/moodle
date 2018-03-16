@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->dirroot . '/question/engine/datalib.php');
 
 /**
  * Question external functions
@@ -188,5 +189,76 @@ class core_question_external extends external_api {
         return new external_single_structure([
                 'status' => new external_value(PARAM_BOOL, 'status: true if success')
         ]);
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     */
+    public static function get_random_questions_parameters() {
+        return new external_function_parameters([
+                'categoryid' => new external_value(PARAM_INT, 'Category id to find random questions'),
+                'includesubcategories' => new external_value(PARAM_BOOL, 'Include the subcategories in the search'),
+                'tagids' => new external_multiple_structure(
+                    new external_value(PARAM_INT, 'Tag id')
+                ),
+                'contextid' => new external_value(PARAM_INT, 'Category id to find random questions', VALUE_DEFAULT, null, NULL_ALLOWED)
+        ]);
+    }
+
+    /**
+     * Gets the list of random questions for the given criteria.
+     *
+     * @param int $categoryid Category id to find random questions
+     * @param bool $includesubcategories Include the subcategories in the search
+     * @param int[] $tagids Only include questions with these tags
+     * @param int|null $contextid The context id where the questions will be rendered
+     * @return array The list of questions
+     */
+    public static function get_random_questions($categoryid, $includesubcategories, $tagids, $contextid) {
+        global $USER, $PAGE;
+
+        // Parameter validation.
+        $params = self::validate_parameters(
+            self::get_random_questions_parameters(),
+            [
+                'categoryid' => $categoryid,
+                'includesubcategories' => $includesubcategories,
+                'tagids' => $tagids,
+                'contextid' => $contextid
+            ]
+        );
+        $categoryid = $params['categoryid'];
+        $includesubcategories = $params['includesubcategories'];
+        $tagids = $params['tagids'];
+        $contextid = $params['contextid'];
+
+        if ($contextid) {
+            $context = \context::instance_by_id($contextid);
+        } else {
+            $context = \context_user::instance($USER->id);
+        }
+        self::validate_context($context);
+
+        $loader = new \core_question\bank\random_question_loader(new qubaid_list([]));
+        $questions = $loader->get_questions($categoryid, $includesubcategories, $tagids);
+        $renderer = $PAGE->get_renderer('core');
+
+        $values = array_map(function($question) use ($context, $renderer) {
+            $exporter = new \core_question\external\question_exporter($question, ['context' => $context]);
+            return $exporter->export($renderer);
+        }, $questions);
+
+        return $values;
+    }
+
+    /**
+     * Returns description of method result value.
+     */
+    public static function  get_random_questions_returns() {
+        return new external_multiple_structure(
+            \core_question\external\question_exporter::get_read_structure()
+        );
     }
 }

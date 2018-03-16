@@ -2450,7 +2450,8 @@ function mod_quiz_output_fragment_add_random_question_form($args) {
 
     $contexts = new \question_edit_contexts($args['context']);
     $formoptions = [
-        'contexts' => $contexts
+        'contexts' => $contexts,
+        'cat' => $args['cat']
     ];
     $formdata = [
         'category' => $args['cat'],

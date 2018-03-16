@@ -235,4 +235,33 @@ class random_question_loader {
 
         return false;
     }
+
+    /**
+     * Get the list of available questions for the given criteria.
+     *
+     * @param int $categoryid The id of a category in the question bank.
+     * @param bool $includesubcategories Whether to pick a question from exactly
+     *      that category, or that category and subcategories.
+     * @param array $tagids An array of tag ids. If an array is provided, then
+     *      only the questions that are tagged with ALL the provided tagids will be loaded.
+     * @return \stdClass[] The list of question records
+     */
+    public function get_questions($categoryid, $includesubcategories, $tagids = []) {
+        global $DB;
+
+        $this->ensure_questions_for_category_loaded($categoryid, $includesubcategories, $tagids);
+        $categorykey = $this->get_category_key($categoryid, $includesubcategories, $tagids);
+        $cachedvalues = $this->availablequestionscache[$categorykey];
+        $questionids = [];
+
+        foreach($cachedvalues as $usecount => $ids) {
+            $questionids = array_merge($questionids, array_keys($ids));
+        }
+
+        if (empty($questionids)) {
+            return [];
+        }
+
+        return $DB->get_records_list('question', 'id', $questionids);
+    }
 }
