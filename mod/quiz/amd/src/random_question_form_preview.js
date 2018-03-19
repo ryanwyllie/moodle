@@ -38,7 +38,7 @@ define(
         PagedContentFactory
     ) {
 
-    var ITEMS_PER_PAGE = 1;
+    var ITEMS_PER_PAGE = 5;
     var TEMPLATE_NAME = 'mod_quiz/random_question_form_preview_question_list';
     var SELECTORS = {
         LOADING_ICON_CONTAINER: '[data-region="overlay-icon-container"]',

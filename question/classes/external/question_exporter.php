@@ -24,6 +24,8 @@
 namespace core_question\external;
 defined('MOODLE_INTERNAL') || die();
 
+use \renderer_base;
+
 /**
  * Class for exporting a question from an stdClass.
  *
@@ -31,6 +33,22 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_exporter extends \core\external\exporter {
+
+    /**
+     * @var \stdClass $question
+     */
+    protected $question;
+
+    /**
+     * Constructor.
+     *
+     * @param \stdClass $question
+     * @param array $related The related data.
+     */
+    public function __construct(\stdClass $question, $related = []) {
+        $this->question = $question;
+        return parent::__construct($question, $related);
+    }
 
     protected static function define_related() {
         return ['context' => '\\context'];
@@ -97,6 +115,22 @@ class question_exporter extends \core\external\exporter {
                 'type' => PARAM_INT,
                 'null' => NULL_ALLOWED
             ]
+        ];
+    }
+
+    protected static function define_other_properties() {
+        return [
+            'icon' => [
+                'type' => question_icon_exporter::read_properties_definition(),
+            ]
+        ];
+    }
+
+    protected function get_other_values(\renderer_base $output) {
+        $iconexporter = new question_icon_exporter($this->question, $this->related);
+
+        return [
+            'icon' => $iconexporter->export($output),
         ];
     }
 }

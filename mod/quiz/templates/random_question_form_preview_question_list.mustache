@@ -44,7 +44,10 @@
 {{#hasquestions}}
 <ul class="list-group" data-region="question-list">
     {{#questions}}
-        <li class="list-group-item">{{name}}</li>
+        <li class="list-group-item text-truncate">
+            {{#icon}}{{#pix}} {{key}}, {{component}}, {{{alttext}}} {{/pix}}{{/icon}}
+            {{name}}
+        </li>
     {{/questions}}
 </ul>
 {{/hasquestions}}
