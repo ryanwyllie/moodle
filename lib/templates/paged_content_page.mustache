@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/paging_content_item
+    @template core/paged_content_page
 
     This template renders the content of a page. It is to be used with
     the paging bar to toggle visibility of the content items.
@@ -27,7 +27,7 @@
         "content": "<p>Some page content</p>"
     }
 }}
-<div data-region="paging-content-item"
+<div data-region="paged-content-page"
      data-page="{{page}}"
      class="{{^active}}hidden{{/active}} {{$classes}}{{/classes}}">
     {{$content}}

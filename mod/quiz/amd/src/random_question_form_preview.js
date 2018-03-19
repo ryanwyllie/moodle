@@ -27,15 +27,18 @@ define(
         'jquery',
         'core/ajax',
         'core/notification',
-        'core/templates'
+        'core/templates',
+        'core/paged_content_factory'
     ],
     function(
         $,
         Ajax,
         Notification,
-        Templates
+        Templates,
+        PagedContentFactory
     ) {
 
+    var ITEMS_PER_PAGE = 1;
     var TEMPLATE_NAME = 'mod_quiz/random_question_form_preview_question_list';
     var SELECTORS = {
         LOADING_ICON_CONTAINER: '[data-region="overlay-icon-container"]',
@@ -71,7 +74,9 @@ define(
         showLoadingIcon(root);
         return Ajax.call([request])[0]
             .then(function(questions) {
-                return Templates.render(TEMPLATE_NAME, buildTemplateContext(questions));
+                return PagedContentFactory.createFromStaticList(questions, ITEMS_PER_PAGE, function(pageQuestions) {
+                    return Templates.render(TEMPLATE_NAME, buildTemplateContext(pageQuestions));
+                });
             })
             .then(function(html, js) {
                 var container = root.find(SELECTORS.QUESTION_LIST_CONTAINER);

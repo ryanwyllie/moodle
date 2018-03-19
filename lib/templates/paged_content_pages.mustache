@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/paging_content
+    @template core/paged_content_page_container
 
     This template renders each of the content regions for a paginated
     content section.
@@ -35,10 +35,10 @@
         ]
     }
 }}
-<div id="{{$pagingcontentid}}paging-content-{{uniqid}}{{/pagingcontentid}}" data-region="paging-content">
+<div id="{{$pagingcontentid}}page-container-{{uniqid}}{{/pagingcontentid}}" data-region="page-container">
     {{#pages}}
-        {{$paging-content-item}}
-            {{> block_myoverview/paging-content-item }}
-        {{/paging-content-item}}
+        {{$paged-content-page}}
+            {{> core/paged_content_page }}
+        {{/paged-content-page}}
     {{/pages}}
 </div>
