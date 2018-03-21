@@ -36,12 +36,6 @@
         "body": "Some example content for the body"
     }
 }}
-{{^hasquestions}}
-<div data-region="empty-message">
-    <p>There are no questions matching this criteria.</p>
-</div>
-{{/hasquestions}}
-{{#hasquestions}}
 <ul class="list-group" data-region="question-list">
     {{#questions}}
         <li class="list-group-item text-truncate">
@@ -50,4 +44,3 @@
         </li>
     {{/questions}}
 </ul>
-{{/hasquestions}}

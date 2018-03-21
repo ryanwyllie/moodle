@@ -26,6 +26,7 @@ define(
     [
         'jquery',
         'core/ajax',
+        'core/str',
         'core/notification',
         'core/templates',
         'core/paged_content_factory'
@@ -33,6 +34,7 @@ define(
     function(
         $,
         Ajax,
+        Str,
         Notification,
         Templates,
         PagedContentFactory
@@ -42,6 +44,7 @@ define(
     var TEMPLATE_NAME = 'mod_quiz/random_question_form_preview_question_list';
     var SELECTORS = {
         LOADING_ICON_CONTAINER: '[data-region="overlay-icon-container"]',
+        QUESTION_COUNT_CONTAINER: '[data-region="question-count-container"]',
         QUESTION_LIST_CONTAINER: '[data-region="question-list-container"]'
     };
 
@@ -53,11 +56,34 @@ define(
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
-    var buildTemplateContext = function(questions) {
-        return {
-            hasquestions: questions.length > 0,
-            questions: questions
-        };
+    var renderQuestionCount = function(root, questions) {
+        var questionCount = questions.length;
+        var key = '';
+        var param = null;
+
+        switch(questionCount) {
+            case 0:
+                key = 'noquestionsmatchfilter';
+                break;
+
+            case 1:
+                key = 'onequestionmatchfilter';
+                break;
+
+            default:
+                key = 'multiplequestionsmatchfilter';
+                param = questionCount;
+                break;
+        }
+
+        Str.get_string(key, 'mod_quiz', param)
+            .then(function(string) {
+                root.find(SELECTORS.QUESTION_COUNT_CONTAINER).html(string);
+            });
+    };
+
+    var renderQuestionsPage = function(questions) {
+        return Templates.render(TEMPLATE_NAME, {questions: questions});
     };
 
     var reload = function(root, categoryId, includeSubcategories, tagIds, contextId) {
@@ -74,9 +100,15 @@ define(
         showLoadingIcon(root);
         return Ajax.call([request])[0]
             .then(function(questions) {
-                return PagedContentFactory.createFromStaticList(questions, ITEMS_PER_PAGE, function(pageQuestions) {
-                    return Templates.render(TEMPLATE_NAME, buildTemplateContext(pageQuestions));
-                });
+                renderQuestionCount(root, questions);
+                return questions;
+            })
+            .then(function(questions) {
+                if (questions.length) {
+                    return PagedContentFactory.createFromStaticList(questions, ITEMS_PER_PAGE, renderQuestionsPage);
+                } else {
+                    return $.Deferred().resolve('', '');
+                }
             })
             .then(function(html, js) {
                 var container = root.find(SELECTORS.QUESTION_LIST_CONTAINER);
