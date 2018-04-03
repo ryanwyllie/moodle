@@ -1,0 +1,14 @@
+<div class="row">
+    <h2>Server render paging bar</h2>
+    <p>These pages are rendered on the server so the HTML is already in the page
+    and is just shown/hidden with the JavaScript.</p>
+    <div class="col-sm-6 span6">
+        {{#serverpagingbar}}
+            {{> core/paged_content}}
+        {{/serverpagingbar}}
+    </div>
+    <div class="col-sm-6 span5">
+        <h3>Template context:</h3>
+        <pre class="pre-scrollable"><code>{{serverpagingbarcontext}}</code></pre>
+    </div>
+</div>

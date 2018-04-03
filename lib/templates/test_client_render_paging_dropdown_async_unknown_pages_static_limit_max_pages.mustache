@@ -1,0 +1,88 @@
+<div class="row">
+    <h2>Client render paging dropdown async unknown pages variable static limit with max pages</h2>
+    <p>This simulates a paging content section with an unknown number of pages. It is loading with a fixed limit of 5 items per page and shows a maximum of 5 page options.</p>
+    <div class="col-sm-6 span6" id="paging-dropdown-async-container-unknown-static-limit-max-pages">
+    </div>
+    <div class="col-sm-6 span5" id="paging-dropdown-async-button-container-unknown-static-limit-max-pages">
+        <h3>Click the button below to resolve the async request</h3>
+        <button type="button" class="btn btn-primary">Resolve request</button>
+    </div>
+</div>
+{{#js}}
+require(
+[
+    'jquery',
+    'core/templates',
+    'core/paged_content_factory'
+],
+function(
+    $,
+    Templates,
+    PagedContentFactory
+) {
+    var container = $('#paging-dropdown-async-container-unknown-static-limit-max-pages');
+    var buttonContainer = $('#paging-dropdown-async-button-container-unknown-static-limit-max-pages');
+    var button = buttonContainer.find('button');
+    var contentItems = [];
+    for (var i = 1; i <= 30; i++) {
+        contentItems.push(`Async list item ${i}`);
+    }
+    var userPromise = null;
+
+    PagedContentFactory.createWithLimit(
+        5,
+        function(pagesData, actions) {
+            buttonContainer.removeClass('hidden');
+            userPromise = $.Deferred();
+
+            var contentToRender = [];
+            pagesData.forEach(function(pageData) {
+                var begin = pageData.offset;
+                var end = pageData.limit ? begin + pageData.limit + 1 : contentItems.length;
+                var items = contentItems.slice(begin, end);
+
+                if (items.length <= pageData.limit) {
+                    actions.allItemsLoaded(pageData.pageNumber);
+                } else {
+                    items.pop();
+                }
+                contentToRender.push(items);
+            });
+
+            var promises = [];
+
+            contentToRender.forEach(function(itemSet) {
+                var card = $('<div><div class="card"><div class="card-body"></div></div></div>');
+                var cardBody = card.find('.card-body');
+                itemSet.forEach(function(item) {
+                    cardBody.append(`<p>${item}</p>`);
+                });
+                var promise = $.Deferred();
+                promises.push(promise);
+
+                userPromise.then(function() {
+                    promise.resolve(card.html(), '');
+                });
+            });
+
+            return promises;
+        },
+        {
+            dropdown: true,
+            maxPages: 5
+        }
+    )
+    .then(function(html, js) {
+        Templates.replaceNodeContents(container, html, js);
+    })
+
+    button.click(function() {
+        if (userPromise) {
+            userPromise.resolve();
+        }
+
+        buttonContainer.addClass('hidden');
+    });
+}
+);
+{{/js}}

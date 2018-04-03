@@ -1,0 +1,50 @@
+<div class="row">
+    <h2>Client render paging bar static list</h2>
+    <p>These pages are rendered using data already loaded in the client so the
+        pages should show immediately when clicked.</p>
+    <div class="col-sm-6 span6" id="paging-bar-static-container">
+    </div>
+</div>
+{{#js}}
+require(
+[
+    'jquery',
+    'core/templates',
+    'core/paged_content_factory'
+],
+function(
+    $,
+    Templates,
+    PagedContentFactory
+) {
+    var container = $('#paging-bar-static-container');
+    var items = [];
+    for (var i = 1; i <= 30; i++) {
+        items.push(`Static list item ${i}`);
+    }
+
+    PagedContentFactory.createFromStaticList(
+        items,
+        10,
+        function(itemSets) {
+            var promises = [];
+
+            itemSets.forEach(function(itemSet) {
+                var card = $('<div><div class="card"><div class="card-body"></div></div></div>');
+                var cardBody = card.find('.card-body');
+                itemSet.forEach(function(item) {
+                    cardBody.append(`<p>${item}</p>`);
+                });
+
+                promises.push($.Deferred().resolve(card.html(), ''));
+            });
+
+            return promises;
+        }
+    )
+    .then(function(html, js) {
+        Templates.replaceNodeContents(container, html, js);
+    })
+}
+);
+{{/js}}
