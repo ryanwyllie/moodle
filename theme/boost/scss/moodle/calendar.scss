@@ -262,11 +262,16 @@ $calendarEventUserColor: #dce7ec !default; // Pale blue.
         th,
         td {
             padding: 2px;
-            font-size: 0.8em;
             text-align: center;
         }
 
+        th {
+            font-size: 0.72rem;
+        }
+
         td {
+            font-size: 0.8rem;
+
             &.weekend {
                 @extend .text-muted;
             }
