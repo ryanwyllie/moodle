@@ -1323,6 +1323,14 @@ class page_requirements_manager {
 
         $requirejsconfig = file_get_contents($CFG->dirroot . '/lib/requirejs/moodle-config.js');
 
+        // The polyfill needs to load before the other JavaScript in order to make sure
+        // that we have access to the functions it provides.
+        if ($CFG->debugdeveloper) {
+            $output .= html_writer::script('', $this->js_fix_url('/lib/babel-polyfill/polyfill.js'));
+        } else {
+            $output .= html_writer::script('', $this->js_fix_url('/lib/babel-polyfill/polyfill.min.js'));
+        }
+
         // No extension required unless slash args is disabled.
         $jsextension = '.js';
         if (!empty($CFG->slasharguments)) {
