@@ -146,8 +146,8 @@ function SCORMapi1_2(def, cmiobj, cmiint, cmistring256, cmistring4096, scormdebu
         // Navigation Object
         nav = new Object();
 
-        for (element in datamodel[scoid]) {
-            if (element.match(/\.n\./) == null) {
+        for (var element in datamodel[scoid]) {
+            if (element.match(/\.n\./) == null && element.match(/_[0-9]+\./) == null) {
                 if (typeof datamodel[scoid][element].defaultvalue != 'undefined') {
                     eval(element + ' = datamodel["' + scoid + '"]["' + element + '"].defaultvalue;');
                 } else {
