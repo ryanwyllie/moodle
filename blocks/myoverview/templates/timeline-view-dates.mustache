@@ -24,12 +24,6 @@
 }}
 <div data-region="timeline-view-dates" id="timeline-view-dates-{{uniqid}}">
     {{< block_myoverview/event-list }}
-        {{$limit}}20{{/limit}}
+        {{$dayslimit}}30{{/dayslimit}}
     {{/ block_myoverview/event-list }}
 </div>
-{{#js}}
-    require(['jquery', 'block_myoverview/event_list'], function($, EventList) {
-    var root = $("#timeline-view-dates-{{uniqid}}").find('[data-region="event-list-container"]');
-    EventList.load(root);
-    });
-{{/js}}

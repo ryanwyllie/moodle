@@ -133,9 +133,11 @@ class api {
             throw new \moodle_exception("Must provide a timesort to and/or from value");
         }
 
+        /*
         if ($limitnum < 1 || $limitnum > 50) {
             throw new \moodle_exception("Limit must be between 1 and 50 (inclusive)");
         }
+        */
 
         $vault = \core_calendar\local\event\container::get_event_vault();
 
