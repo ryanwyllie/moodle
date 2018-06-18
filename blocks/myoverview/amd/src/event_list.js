@@ -183,9 +183,9 @@ function(
         root = $(root);
         var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT),
             courseId =  root.attr('data-course-id'),
-            lastId = root.attr('data-last-id'),
             daysOffset = root.attr('data-days-offset'),
-            daysLimit = root.attr('data-days-limit');
+            daysLimit = root.attr('data-days-limit'),
+            lastIds = { 1: 0 };
 
         PagedContentFactory.createFromAjax(
             function(pagesData, actions) {   
@@ -194,17 +194,31 @@ function(
                 pagesData.forEach(function(pageData) {
                     var pageNumber = pageData.pageNumber;
                     var limit = pageData.limit;
+                    var lastPageNumber = pageNumber;
+                    
+                    // This is here to protect us if, for some reason, the pages
+                    // are loaded out of order somehow and we don't have a reference
+                    // to the previous page. In that case, scan back to find the most
+                    // recent page we've seen.
+                    while (!lastIds.hasOwnProperty(lastPageNumber)) {
+                        lastPageNumber--;
+                    }
+                    // Use the last id of the most recent page.
+                    var lastId = lastIds[lastPageNumber];
+
                     promises.push(
                         load(root, limit, daysOffset, daysLimit, lastId, courseId)
                             .then(function(result) {
                                 if (!result.events.length) {
-                                    actions.adllItemsLoaded(pageNumber);
+                                    actions.allItemsLoaded(pageNumber);
                                     return;
                                 }
 
                                 var calendarEvents = result.events;
                                 // Remember the last id we've seen.
-                                lastId = calendarEvents[calendarEvents.length - 1].id;
+                                var lastEventId = calendarEvents[calendarEvents.length - 1].id;
+                                // Record the id that the next page will need to start from.
+                                lastIds[pageNumber + 1] = lastEventId;
                                 // Show the empty event message, if necessary.
                                 updateContentVisibility(root, calendarEvents.length);
                                 // Tell the pagination that everything is loaded.
