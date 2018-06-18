@@ -188,15 +188,17 @@ function(
             daysLimit = root.attr('data-days-limit');
 
         PagedContentFactory.createFromAjax(
-            function(pagesData) {   
+            function(pagesData, actions) {   
                 var promises = [];
 
                 pagesData.forEach(function(pageData) {
+                    var pageNumber = pageData.pageNumber;
                     var limit = pageData.limit;
                     promises.push(
                         load(root, limit, daysOffset, daysLimit, lastId, courseId)
                             .then(function(result) {
                                 if (!result.events.length) {
+                                    actions.adllItemsLoaded(pageNumber);
                                     return;
                                 }
 
@@ -205,7 +207,11 @@ function(
                                 lastId = calendarEvents[calendarEvents.length - 1].id;
                                 // Show the empty event message, if necessary.
                                 updateContentVisibility(root, calendarEvents.length);
-                                // Get the HTML and JS for these calendar events.
+                                // Tell the pagination that everything is loaded.
+                                if (calendarEvents.length < limit) {
+                                    actions.allItemsLoaded(pageNumber);
+                                }
+                                // Get the HTML and JS for these calendar events.                                
                                 return render(root, calendarEvents);
                             })
                             .catch(Notification.exception)
@@ -215,7 +221,7 @@ function(
                 return promises;
             },
             {
-                disableControlWhileLoading: true,
+                ignoreControlWhileLoading: true,
                 controlPlacementBottom: true
             }
         )
