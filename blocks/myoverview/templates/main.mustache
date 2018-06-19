@@ -158,11 +158,15 @@ require(['jquery', 'core/templates', 'block_myoverview/tab_preferences'], functi
         var daysLimit = option.attr('data-to');
         var context = {
             midnight: midnight,
-            daysoffset: daysOffset
+            daysoffset: daysOffset,
+            hasdaysoffset: true
         };
         
-        if (daysLimit != undefined) {
+        if (daysLimit == undefined) {
+            context.nodayslimit = true;
+        } else {
             context.dayslimit = daysLimit;
+            context.hasdayslimit = true;
         }
 
         timelineDaySelector.html(option.text());

@@ -157,17 +157,20 @@ function(
     var load = function(root, limit, daysOffset, daysLimit, lastId, courseId) {
         root = $(root);
         var midnight = parseInt(root.attr('data-midnight'),10),
-            startTime = midnight - (daysOffset * SECONDS_IN_DAY);
-            endTime = midnight + (daysLimit * SECONDS_IN_DAY);
+            startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+            endTime = daysLimit != undefined ? midnight + (daysLimit * SECONDS_IN_DAY) : false;
 
         var args = {
             starttime: startTime,
-            endtime: endTime,
             limit: limit,
         };
 
         if (lastId) {
             args.aftereventid = lastId;
+        }
+
+        if (endTime) {
+            args.endtime = endTime;
         }
 
         // If we have a course id then we only want events from that course.
@@ -187,8 +190,14 @@ function(
             loadingPlaceholder = root.find(SELECTORS.EVENT_LIST_LOADING_PLACEHOLDER),
             courseId =  root.attr('data-course-id'),
             daysOffset = parseInt(root.attr('data-days-offset'), 10),
-            daysLimit = parseInt(root.attr('data-days-limit'), 10),
+            daysLimit = root.attr('data-days-limit'),
             lastIds = { 1: 0 };
+
+        loadingPlaceholder.removeClass('hidden')
+
+        if (daysLimit != undefined) {
+            daysLimit = parseInt(daysLimit, 10);
+        }
 
         PagedContentFactory.createFromAjax(
             function(pagesData, actions) {   
@@ -210,7 +219,9 @@ function(
                     var lastId = lastIds[lastPageNumber];
 
                     promises.push(
-                        load(root, limit, daysOffset, daysLimit, lastId, courseId)
+                        // Load one more than the given limit so that we can tell if there
+                        // is more content to load after this.
+                        load(root, limit + 1, daysOffset, daysLimit, lastId, courseId)
                             .then(function(result) {
                                 if (!result.events.length) {
                                     actions.allItemsLoaded(pageNumber);
@@ -218,6 +229,14 @@ function(
                                 }
 
                                 var calendarEvents = result.events;
+                                var loadedAll = calendarEvents.length <= limit;
+
+                                if (!loadedAll) {
+                                    // Remove the last element from the array because it isn't
+                                    // needed in this result set.
+                                    calendarEvents.pop();
+                                }
+
                                 // Remember the last id we've seen.
                                 var lastEventId = calendarEvents[calendarEvents.length - 1].id;
                                 // Record the id that the next page will need to start from.
@@ -225,7 +244,7 @@ function(
                                 // Show the empty event message, if necessary.
                                 updateContentVisibility(root, calendarEvents.length);
                                 // Tell the pagination that everything is loaded.
-                                if (calendarEvents.length < limit) {
+                                if (loadedAll) {
                                     actions.allItemsLoaded(pageNumber);
                                 }
                                 // Get the HTML and JS for these calendar events.                                
@@ -253,9 +272,10 @@ function(
 
             firstLoad.then(function() {
                 html.removeClass('hidden');
-                loadingPlaceholder.empty();
+                loadingPlaceholder.addClass('hidden');
             });
-        });
+        })
+        .catch(Notification.exception);
     };
 
     return {

@@ -24,8 +24,8 @@
     }
 }}
 <div data-region="event-list-container"
-     data-days-offset="{{$daysoffset}}{{#daysoffset}}{{.}}{{/daysoffset}}{{^daysoffset}}0{{/daysoffset}}{{/daysoffset}}"
-     data-days-limit="{{$dayslimit}}{{#dayslimit}}{{.}}{{/dayslimit}}{{^dayslimit}}30{{/dayslimit}}{{/dayslimit}}"
+     data-days-offset="{{$daysoffset}}{{#hasdaysoffset}}{{daysoffset}}{{/hasdaysoffset}}{{^hasdaysoffset}}0{{/hasdaysoffset}}{{/daysoffset}}"
+     {{^nodayslimit}}data-days-limit="{{$dayslimit}}{{#hasdayslimit}}{{dayslimit}}{{/hasdayslimit}}{{^hasdayslimit}}30{{/hasdayslimit}}{{/dayslimit}}"{{/nodayslimit}}
      data-course-id="{{$courseid}}{{/courseid}}"
      data-midnight="{{midnight}}"
      id="event-list-container-{{$courseid}}{{/courseid}}">
