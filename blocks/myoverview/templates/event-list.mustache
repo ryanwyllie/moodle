@@ -24,13 +24,26 @@
     }
 }}
 <div data-region="event-list-container"
-     data-days-offset="{{$daysoffset}}0{{/daysoffset}}"
-     data-days-limit="{{$dayslimit}}30{{/dayslimit}}"
+     data-days-offset="{{$daysoffset}}{{#daysoffset}}{{.}}{{/daysoffset}}{{^daysoffset}}0{{/daysoffset}}{{/daysoffset}}"
+     data-days-limit="{{$dayslimit}}{{#dayslimit}}{{.}}{{/dayslimit}}{{^dayslimit}}30{{/dayslimit}}{{/dayslimit}}"
      data-course-id="{{$courseid}}{{/courseid}}"
-     data-last-id="{{$lastid}}{{/lastid}}"
      data-midnight="{{midnight}}"
      id="event-list-container-{{$courseid}}{{/courseid}}">
 
+    <div data-region="event-list-loading-placeholder">
+        <ul class="pl-0">
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+        </ul>
+    </div>
     <div data-region="event-list-content"></div>
     <div class="hidden text-xs-center text-center m-t-3" data-region="empty-message">
         <img class="empty-placeholder-image-lg"

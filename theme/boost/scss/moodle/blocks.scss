@@ -197,6 +197,12 @@ $doughnut-fill-colour: $brand-warning;
     .empty-placeholder-image-lg {
         height: 125px;
     }
+
+    .page-link {
+        .icon {
+            margin-right: 0;
+        }
+    }
 }
 
 .card-deck {

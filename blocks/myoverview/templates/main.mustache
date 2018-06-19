@@ -27,23 +27,23 @@
     <div class="container p-0 m-b-1">
         <div class="row no-gutters">
             <div class="col-sm d-flex justify-content-start">
-                <div class="btn-group {{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <div id="timeline-day-selector-{{uniqid}}" class="btn-group {{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{#pix}} i/duration {{/pix}} Next 30 days
                     </button>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">All</a>
-                        <a class="dropdown-item" href="#">Overdue</a>
+                        <a class="dropdown-item" href="#" data-from="-14">All</a>
+                        <a class="dropdown-item" href="#" data-from="-14" data-to="0">Overdue</a>
                         <div class="dropdown-divider"></div>
                         <h6 class="dropdown-header">Due date</h6>
-                        <a class="dropdown-item" href="#">Next 7 days</a>
-                        <a class="dropdown-item" href="#">Next 30 days</a>
-                        <a class="dropdown-item" href="#">Next 3 months</a>
-                        <a class="dropdown-item" href="#">Next 6 months</a>
+                        <a class="dropdown-item" href="#" data-from="0" data-to="7">Next 7 days</a>
+                        <a class="dropdown-item" href="#" data-from="0" data-to="30">Next 30 days</a>
+                        <a class="dropdown-item" href="#" data-from="0" data-to="90">Next 3 months</a>
+                        <a class="dropdown-item" href="#" data-from="0" data-to="180">Next 6 months</a>
                     </div>
                 </div>
                 <div class="btn-group {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         All
                     </button>
                     <div class="dropdown-menu">
@@ -73,7 +73,7 @@
             </div>
             <div class="col-sm d-flex justify-content-end">
                 <div class="btn-group {{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{#pix}} i/filter {{/pix}} Sort
                     </button>
                     <div class="dropdown-menu list-group hidden">
@@ -86,7 +86,7 @@
                     </div>
                 </div>
                 <div class="btn-group mr-2 {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{#pix}} i/filter {{/pix}} Sort
                     </button>
                     <div class="dropdown-menu">
@@ -105,7 +105,7 @@
                     </div>
                 </div>
                 <div class="btn-group {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{#pix}} t/viewdetails {{/pix}}
                     </button>
                     <div class="dropdown-menu">
@@ -135,15 +135,43 @@
     </div>
 </div>
 {{#js}}
-require(['jquery', 'block_myoverview/tab_preferences'], function($, TabPreferences) {
+require(['jquery', 'core/templates', 'block_myoverview/tab_preferences'], function($, Templates, TabPreferences) {
     var root = $('#block-myoverview-{{uniqid}}');
     var tabChoiceRoot = $('#block-myoverview-view-choices-{{uniqid}}');
+    var midnight = {{midnight}};
+    var timelineViewContainer = $('#myoverview_timeline_view');
+    var timelineDaySelectorContainer = $('#timeline-day-selector-{{uniqid}}');
+    var timelineDaySelector = timelineDaySelectorContainer.find('[data-toggle]');
+    var timelineDaySelectorIcon = timelineDaySelector.find('.icon');
+
     TabPreferences.registerEventListeners(tabChoiceRoot);
 
     tabChoiceRoot.on('shown.bs.tab', function(e) {
         var targetTab = $(e.target).attr('data-tabname');
         root.find('[data-tab-content]').addClass('d-none');
         root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none');
+    });
+
+    timelineDaySelectorContainer.on('click', '[data-from]', function(e) {
+        var option = $(e.target);
+        var daysOffset = option.attr('data-from');
+        var daysLimit = option.attr('data-to');
+        var context = {
+            midnight: midnight,
+            daysoffset: daysOffset
+        };
+        
+        if (daysLimit != undefined) {
+            context.dayslimit = daysLimit;
+        }
+
+        timelineDaySelector.html(option.text());
+        timelineDaySelector.prepend(timelineDaySelectorIcon);
+
+        Templates.render('block_myoverview/timeline-view', context)
+            .then(function(html, js) {
+                return Templates.replaceNodeContents(timelineViewContainer, html, js);
+            });
     });
 });
 {{/js}}

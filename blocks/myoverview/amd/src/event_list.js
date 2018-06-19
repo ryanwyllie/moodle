@@ -47,6 +47,7 @@ function(
         ROOT: '[data-region="event-list-container"]',
         EVENT_LIST: '[data-region="event-list"]',
         EVENT_LIST_CONTENT: '[data-region="event-list-content"]',
+        EVENT_LIST_LOADING_PLACEHOLDER: '[data-region="event-list-loading-placeholder"]',
         EVENT_LIST_GROUP_CONTAINER: '[data-region="event-list-group-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         VIEW_MORE_BUTTON: '[data-action="view-more"]'
@@ -155,7 +156,7 @@ function(
      */
     var load = function(root, limit, daysOffset, daysLimit, lastId, courseId) {
         root = $(root);
-        var midnight = root.attr('data-midnight'),
+        var midnight = parseInt(root.attr('data-midnight'),10),
             startTime = midnight - (daysOffset * SECONDS_IN_DAY);
             endTime = midnight + (daysLimit * SECONDS_IN_DAY);
 
@@ -180,11 +181,13 @@ function(
     };
 
     var init = function(root) {
+        var firstLoad = $.Deferred();
         root = $(root);
         var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT),
+            loadingPlaceholder = root.find(SELECTORS.EVENT_LIST_LOADING_PLACEHOLDER),
             courseId =  root.attr('data-course-id'),
-            daysOffset = root.attr('data-days-offset'),
-            daysLimit = root.attr('data-days-limit'),
+            daysOffset = parseInt(root.attr('data-days-offset'), 10),
+            daysLimit = parseInt(root.attr('data-days-limit'), 10),
             lastIds = { 1: 0 };
 
         PagedContentFactory.createFromAjax(
@@ -232,6 +235,10 @@ function(
                     );
                 });
     
+                $.when.apply($, promises).then(function() {
+                    firstLoad.resolve();
+                });
+
                 return promises;
             },
             {
@@ -240,7 +247,14 @@ function(
             }
         )
         .then(function(html, js) {
+            html = $(html);
+            html.addClass('hidden');
             Templates.replaceNodeContents(eventListContent, html, js);
+
+            firstLoad.then(function() {
+                html.removeClass('hidden');
+                loadingPlaceholder.empty();
+            });
         });
     };
 
