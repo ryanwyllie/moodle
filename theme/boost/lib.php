@@ -96,14 +96,29 @@ function theme_boost_get_main_scss_content($theme) {
 
     $context = context_system::instance();
     if ($filename == 'default.scss') {
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
+        $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
     } else if ($filename == 'plain.scss') {
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/plain.scss');
+        $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/plain.scss');
     } else if ($filename && ($presetfile = $fs->get_file($context->id, 'theme_boost', 'preset', 0, '/', $filename))) {
-        $scss .= $presetfile->get_content();
+        $validpreset = true;
+        // Run a test run on the preset.
+        $compiler = new core_scss();
+        $compiler->prepend_raw_scss($presetfile->get_content());
+        try {
+            $compiled = $compiler->to_css();
+        } catch (Exception $e) {
+            $validpreset = false;
+            debugging('Loading preset failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+        // If the preset is validated we return the preset Sass, if not the default is served.
+        if ($validpreset) {
+            $scss = $presetfile->get_content();
+        } else {
+            $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
+        }
     } else {
         // Safety fallback - maybe new installs etc.
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
+        $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
     }
 
     return $scss;
