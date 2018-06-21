@@ -100,12 +100,20 @@ function theme_boost_get_main_scss_content($theme) {
     } else if ($filename == 'plain.scss') {
         $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/plain.scss');
     } else if ($filename && ($presetfile = $fs->get_file($context->id, 'theme_boost', 'preset', 0, '/', $filename))) {
+        // We might need more memory/time to do this, so let's play safe.
+        raise_memory_limit(MEMORY_EXTRA);
+        core_php_time_limit::raise(300);
+
         $validpreset = true;
         // Run a test run on the preset.
         $compiler = new core_scss();
-        $compiler->prepend_raw_scss($presetfile->get_content());
+        $compiler->prepend_raw_scss(call_user_func($theme->prescsscallback, $theme));
+        $compiler->append_raw_scss($presetfile->get_content());
+        $compiler->setImportPaths(["{$theme->dir}/scss"]);
+        $compiler->append_raw_scss(call_user_func($theme->extrascsscallback, $theme));
+
         try {
-            $compiled = $compiler->to_css();
+            $compiler->to_css();
         } catch (Exception $e) {
             $validpreset = false;
             debugging('Loading preset failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
@@ -116,6 +124,10 @@ function theme_boost_get_main_scss_content($theme) {
         } else {
             $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
         }
+
+        // Try to save memory.
+        $compiler = null;
+        unset($compiler);
     } else {
         // Safety fallback - maybe new installs etc.
         $scss = file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
