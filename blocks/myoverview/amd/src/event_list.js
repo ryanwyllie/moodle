@@ -183,7 +183,7 @@ function(
         }
     };
 
-    var init = function(root) {
+    var init = function(root, pageLimit, preloadedPages) {
         var firstLoad = $.Deferred();
         root = $(root);
         var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT),
@@ -200,6 +200,7 @@ function(
         }
 
         PagedContentFactory.createFromAjax(
+            pageLimit,
             function(pagesData, actions) {   
                 var promises = [];
 
@@ -217,12 +218,18 @@ function(
                     }
                     // Use the last id of the most recent page.
                     var lastId = lastIds[lastPageNumber];
+                    var eventsPromise = null;
 
-                    promises.push(
+                    if (preloadedPages && preloadedPages.hasOwnProperty(pageNumber)) {
+                        eventsPromise = preloadedPages[pageNumber];
+                    } else {
                         // Load one more than the given limit so that we can tell if there
                         // is more content to load after this.
-                        load(root, limit + 1, daysOffset, daysLimit, lastId, courseId)
-                            .then(function(result) {
+                        eventsPromise = load(root, limit + 1, daysOffset, daysLimit, lastId, courseId);
+                    }
+
+                    promises.push(
+                        eventsPromise.then(function(result) {
                                 if (!result.events.length) {
                                     actions.allItemsLoaded(pageNumber);
                                     return;

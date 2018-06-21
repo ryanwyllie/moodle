@@ -135,7 +135,21 @@
     </div>
 </div>
 {{#js}}
-require(['jquery', 'core/templates', 'block_myoverview/tab_preferences'], function($, Templates, TabPreferences) {
+require(
+[
+    'jquery',
+    'core/templates',
+    'block_myoverview/tab_preferences',
+    'block_myoverview/event_list',
+    'block_myoverview/event_list_by_course',
+],
+function(
+    $,
+    Templates,
+    TabPreferences,
+    EventList,
+    EventListByCourse
+) {
     var root = $('#block-myoverview-{{uniqid}}');
     var tabChoiceRoot = $('#block-myoverview-view-choices-{{uniqid}}');
     var midnight = {{midnight}};
@@ -172,10 +186,26 @@ require(['jquery', 'core/templates', 'block_myoverview/tab_preferences'], functi
         timelineDaySelector.html(option.text());
         timelineDaySelector.prepend(timelineDaySelectorIcon);
 
-        Templates.render('block_myoverview/timeline-view', context)
-            .then(function(html, js) {
-                return Templates.replaceNodeContents(timelineViewContainer, html, js);
-            });
+        var listContainers = root.find('[data-region="event-list-container"]');
+        listContainers.attr('data-days-offset');
+
+        if (daysLimit != undefined) {
+            listContainers.attr('data-days-limit', daysLimit);
+        } else {
+            listContainers.removeAttr('data-days-limit');
+        }
+
+        var viewDatesEventList = timelineViewContainer.find('[data-region="timeline-view-dates"]').find(EventList.rootSelector);
+        EventList.init(viewDatesEventList, [25, 50]);
+
+        var viewCoursesBlocks = timelineViewContainer.find('#myoverview_timeline_courses').find('[data-region="course-block"]');
+        viewCoursesBlocks.each(function(index, block) {
+            block = $(block);
+
+            if (!block.hasClass('hidden')) {
+                EventListByCourse.init(block);
+            }
+        });
     });
 });
 {{/js}}

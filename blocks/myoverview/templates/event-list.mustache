@@ -53,9 +53,11 @@
         <p class="text-muted m-t-1">{{#str}} noevents, block_myoverview {{/str}}</p>
     </div>
 </div>
+{{$js}}
 {{#js}}
 require(['jquery', 'block_myoverview/event_list'], function($, EventList) {
     var root = $("#event-list-container-{{$courseid}}{{/courseid}}");
-    EventList.init(root);
+    EventList.init(root, [25, 50]);
 });
+{{/js}}
 {{/js}}

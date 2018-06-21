@@ -33,11 +33,10 @@
             {{> block_myoverview/course-summary }}
         </div>
         <div class="col-lg-9">
-            {{< block_myoverview/course-event-list }}
-                {{$limit}}10{{/limit}}
-                {{$offset}}0{{/offset}}
+            {{< block_myoverview/event-list }}
                 {{$courseid}}{{id}}{{/courseid}}
-            {{/ block_myoverview/course-event-list }}
+                {{$js}}{{/js}}
+            {{/ block_myoverview/event-list }}
         </div>
     </div>
 </div>

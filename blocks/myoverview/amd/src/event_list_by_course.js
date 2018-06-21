@@ -50,9 +50,14 @@ function($, EventList, EventsRepository) {
         }
 
         var eventList = courseBlocks.find(SELECTORS.EVENT_LIST_CONTAINER).first();
-        var midnight = eventList.attr('data-midnight');
-        var startTime = midnight - (14 * SECONDS_IN_DAY);
-        var limit = eventList.attr('data-limit');
+        var midnight = parseInt(eventList.attr('data-midnight'),10);
+        var daysOffset = parseInt(eventList.attr('data-days-offset'), 10);
+        var daysLimit = eventList.attr('data-days-limit');
+        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+        var endTime = daysLimit != undefined ? midnight + (parseInt(daysLimit, 10) * SECONDS_IN_DAY) : false;
+        // Hard limit all of the course event lists to avoid loading a huge amount
+        // of events.
+        var limit = 10;
         var courseIds = courseBlocks.map(function() {
             return $(this).attr('data-course-id');
         }).get();
@@ -63,7 +68,10 @@ function($, EventList, EventsRepository) {
         var coursesPromise = EventsRepository.queryByCourses({
             courseids: courseIds,
             starttime: startTime,
-            limit: limit
+            endtime: endTime,
+            // Load one more than the limit so that we can determine if there are
+            // any more events to load after this.
+            limit: limit + 1
         });
 
         // Load the events into each course block.
@@ -95,7 +103,7 @@ function($, EventList, EventsRepository) {
 
             // Provide the event list with a promise that will be resolved
             // when we have received the events from the server.
-            EventList.load(eventListContainer, promise);
+            EventList.init(eventListContainer, 10, { 1: promise });
         });
     };
 
