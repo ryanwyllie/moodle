@@ -28,7 +28,6 @@ define(
     'core/notification',
     'core/templates',
     'core/paged_content_factory',
-    'core/custom_interaction_events',
     'block_myoverview/calendar_events_repository'
 ],
 function(
@@ -36,7 +35,6 @@ function(
     Notification,
     Templates,
     PagedContentFactory,
-    CustomEvents,
     CalendarEventsRepository
 ) {
 
@@ -45,12 +43,8 @@ function(
     var SELECTORS = {
         EMPTY_MESSAGE: '[data-region="empty-message"]',
         ROOT: '[data-region="event-list-container"]',
-        EVENT_LIST: '[data-region="event-list"]',
         EVENT_LIST_CONTENT: '[data-region="event-list-content"]',
         EVENT_LIST_LOADING_PLACEHOLDER: '[data-region="event-list-loading-placeholder"]',
-        EVENT_LIST_GROUP_CONTAINER: '[data-region="event-list-group-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        VIEW_MORE_BUTTON: '[data-action="view-more"]'
     };
 
     var TEMPLATES = {
@@ -58,50 +52,9 @@ function(
         COURSE_EVENT_LIST_ITEMS: 'block_myoverview/course-event-list-items'
     };
 
-    /**
-     * Flag the root element to remember that it contains events.
-     *
-     * @method setHasContent
-     * @private
-     * @param {object} root The container element
-     */
-    var setHasContent = function(root) {
-        root.attr('data-has-events', true);
-    };
-
-    /**
-     * Check if the root element has had events loaded.
-     *
-     * @method hasContent
-     * @private
-     * @param {object} root The container element
-     * @return {bool}
-     */
-    var hasContent = function(root) {
-        return root.attr('data-has-events') ? true : false;
-    };
-
-    /**
-     * Update the visibility of the content area. The content area
-     * is hidden if we have no events.
-     *
-     * @method updateContentVisibility
-     * @private
-     * @param {object} root The container element
-     * @param {int} eventCount A count of the events we just received.
-     */
-    var updateContentVisibility = function(root, eventCount) {
-        if (eventCount) {
-            // We've rendered some events, let's remember that.
-            setHasContent(root);
-        } else {
-            // If this is the first time trying to load events and
-            // we don't have any then there isn't any so let's show
-            // the empty message.
-            if (!hasContent(root)) {
-                hideContent(root);
-            }
-        }
+    var DEFAULT_PAGED_CONTENT_CONFIG = {
+        ignoreControlWhileLoading: true,
+        controlPlacementBottom: true
     };
 
     /**
@@ -117,6 +70,18 @@ function(
     };
 
     /**
+     * Show the content area and hide the empty content message.
+     *
+     * @method hideContent
+     * @private
+     * @param {object} root The container element
+     */
+    var showContent = function(root) {
+        root.find(SELECTORS.EVENT_LIST_CONTENT).removeClass('hidden');
+        root.find(SELECTORS.EMPTY_MESSAGE).addClass('hidden');
+    };
+
+    /**
      * Render the given calendar events in the container element. The container
      * elements must have a day range defined using data attributes that will be
      * used to group the calendar events according to their order time.
@@ -127,10 +92,10 @@ function(
      * @param {array}   calendarEvents  A list of calendar events
      * @return {promise} Resolved with a count of the number of rendered events
      */
-    var render = function(root, calendarEvents) {
+    var render = function(courseId, calendarEvents) {
         var templateName = TEMPLATES.EVENT_LIST_ITEMS;
 
-        if (root.attr('data-course-id')) {
+        if (courseId) {
             templateName = TEMPLATES.COURSE_EVENT_LIST_ITEMS;
         }
 
@@ -154,11 +119,9 @@ function(
      * @param {object} root The root element of the event list
      * @return {promise} A jquery promise
      */
-    var load = function(root, limit, daysOffset, daysLimit, lastId, courseId) {
-        root = $(root);
-        var midnight = parseInt(root.attr('data-midnight'),10),
-            startTime = midnight + (daysOffset * SECONDS_IN_DAY);
-            endTime = daysLimit != undefined ? midnight + (daysLimit * SECONDS_IN_DAY) : false;
+    var load = function(midnight, limit, daysOffset, daysLimit, lastId, courseId) {
+        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+        var endTime = daysLimit != undefined ? midnight + (daysLimit * SECONDS_IN_DAY) : false;
 
         var args = {
             starttime: startTime,
@@ -183,106 +146,150 @@ function(
         }
     };
 
-    var init = function(root, pageLimit, preloadedPages) {
-        var firstLoad = $.Deferred();
-        root = $(root);
-        var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT),
-            loadingPlaceholder = root.find(SELECTORS.EVENT_LIST_LOADING_PLACEHOLDER),
-            courseId =  root.attr('data-course-id'),
-            daysOffset = parseInt(root.attr('data-days-offset'), 10),
-            daysLimit = root.attr('data-days-limit'),
-            lastIds = { 1: 0 };
+    var loadEventsFromPageData = function(pageData, actions, midnight, lastIds, preloadedPages, courseId, daysOffset, daysLimit) {
+        var pageNumber = pageData.pageNumber;
+        var limit = pageData.limit;
+        var lastPageNumber = pageNumber;
+        
+        // This is here to protect us if, for some reason, the pages
+        // are loaded out of order somehow and we don't have a reference
+        // to the previous page. In that case, scan back to find the most
+        // recent page we've seen.
+        while (!lastIds.hasOwnProperty(lastPageNumber)) {
+            lastPageNumber--;
+        }
+        // Use the last id of the most recent page.
+        var lastId = lastIds[lastPageNumber];
+        var eventsPromise = null;
 
-        loadingPlaceholder.removeClass('hidden')
-
-        if (daysLimit != undefined) {
-            daysLimit = parseInt(daysLimit, 10);
+        if (preloadedPages && preloadedPages.hasOwnProperty(pageNumber)) {
+            eventsPromise = preloadedPages[pageNumber];
+        } else {
+            // Load one more than the given limit so that we can tell if there
+            // is more content to load after this.
+            eventsPromise = load(midnight, limit + 1, daysOffset, daysLimit, lastId, courseId);
         }
 
-        PagedContentFactory.createFromAjax(
+        return eventsPromise.then(function(result) {
+            if (!result.events.length) {
+                actions.allItemsLoaded(pageNumber);
+                return;
+            }
+
+            var calendarEvents = result.events;
+            var loadedAll = calendarEvents.length <= limit;
+            
+            if (loadedAll) {
+                // Tell the pagination that everything is loaded.
+                actions.allItemsLoaded(pageNumber);
+            } else {
+                // Remove the last element from the array because it isn't
+                // needed in this result set.
+                calendarEvents.pop();
+            }
+
+            return calendarEvents;
+        });
+    };
+
+    var createPagedContent = function(
+        pageLimit,
+        preloadedPages,
+        midnight,
+        firstLoad,
+        courseId,
+        daysOffset,
+        daysLimit
+    ) {      
+        // Remember the last event id we loaded on each page because we can't
+        // use the offset value since the backend can skip events if the user doesn't
+        // have the capability to see them. Instead we load the next page of events
+        // based on the last seen event id.
+        var lastIds = { 1: 0 };
+        var hasContent = false;
+
+        return PagedContentFactory.createFromAjax(
             pageLimit,
             function(pagesData, actions) {   
                 var promises = [];
 
                 pagesData.forEach(function(pageData) {
                     var pageNumber = pageData.pageNumber;
-                    var limit = pageData.limit;
-                    var lastPageNumber = pageNumber;
-                    
-                    // This is here to protect us if, for some reason, the pages
-                    // are loaded out of order somehow and we don't have a reference
-                    // to the previous page. In that case, scan back to find the most
-                    // recent page we've seen.
-                    while (!lastIds.hasOwnProperty(lastPageNumber)) {
-                        lastPageNumber--;
-                    }
-                    // Use the last id of the most recent page.
-                    var lastId = lastIds[lastPageNumber];
-                    var eventsPromise = null;
+                    // Load the page data.
+                    var pagePromise = loadEventsFromPageData(
+                        pageData,
+                        actions,
+                        midnight,
+                        lastIds,
+                        preloadedPages,
+                        courseId,
+                        daysOffset,
+                        daysLimit
+                    ).then(function(calendarEvents) {
+                        if (calendarEvents) {
+                            // Remember that we've loaded content.
+                            hasContent = true;
+                            // Remember the last id we've seen.
+                            var lastEventId = calendarEvents[calendarEvents.length - 1].id;
+                            // Record the id that the next page will need to start from.
+                            lastIds[pageNumber + 1] = lastEventId;
+                            // Get the HTML and JS for these calendar events.
+                            return render(courseId, calendarEvents);
+                        } else {
+                            return;
+                        }
+                    })
+                    .catch(Notification.exception);
 
-                    if (preloadedPages && preloadedPages.hasOwnProperty(pageNumber)) {
-                        eventsPromise = preloadedPages[pageNumber];
-                    } else {
-                        // Load one more than the given limit so that we can tell if there
-                        // is more content to load after this.
-                        eventsPromise = load(root, limit + 1, daysOffset, daysLimit, lastId, courseId);
-                    }
-
-                    promises.push(
-                        eventsPromise.then(function(result) {
-                                if (!result.events.length) {
-                                    actions.allItemsLoaded(pageNumber);
-                                    return;
-                                }
-
-                                var calendarEvents = result.events;
-                                var loadedAll = calendarEvents.length <= limit;
-
-                                if (!loadedAll) {
-                                    // Remove the last element from the array because it isn't
-                                    // needed in this result set.
-                                    calendarEvents.pop();
-                                }
-
-                                // Remember the last id we've seen.
-                                var lastEventId = calendarEvents[calendarEvents.length - 1].id;
-                                // Record the id that the next page will need to start from.
-                                lastIds[pageNumber + 1] = lastEventId;
-                                // Show the empty event message, if necessary.
-                                updateContentVisibility(root, calendarEvents.length);
-                                // Tell the pagination that everything is loaded.
-                                if (loadedAll) {
-                                    actions.allItemsLoaded(pageNumber);
-                                }
-                                // Get the HTML and JS for these calendar events.                                
-                                return render(root, calendarEvents);
-                            })
-                            .catch(Notification.exception)
-                    );
+                    promises.push(pagePromise);
                 });
     
                 $.when.apply($, promises).then(function() {
-                    firstLoad.resolve();
+                    // Tell the calling code that the first page has been loaded
+                    // and whether it contains any content.
+                    firstLoad.resolve(hasContent);
                 });
 
                 return promises;
             },
-            {
-                ignoreControlWhileLoading: true,
-                controlPlacementBottom: true
-            }
-        )
-        .then(function(html, js) {
-            html = $(html);
-            html.addClass('hidden');
-            Templates.replaceNodeContents(eventListContent, html, js);
+            DEFAULT_PAGED_CONTENT_CONFIG
+        );
+    };
 
-            firstLoad.then(function() {
-                html.removeClass('hidden');
-                loadingPlaceholder.addClass('hidden');
-            });
-        })
-        .catch(Notification.exception);
+    var init = function(root, pageLimit, preloadedPages) {
+        root = $(root);
+        
+        var firstLoad = $.Deferred();
+        var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT);
+        var loadingPlaceholder = root.find(SELECTORS.EVENT_LIST_LOADING_PLACEHOLDER);
+        var courseId =  root.attr('data-course-id');
+        var daysOffset = parseInt(root.attr('data-days-offset'), 10);
+        var daysLimit = root.attr('data-days-limit');
+        var midnight = parseInt(root.attr('data-midnight'),10)
+
+        showContent(root);
+        loadingPlaceholder.removeClass('hidden')
+
+        if (daysLimit != undefined) {
+            daysLimit = parseInt(daysLimit, 10);
+        }
+
+        createPagedContent(pageLimit, preloadedPages, midnight, firstLoad, courseId, daysOffset, daysLimit)
+            .then(function(html, js) {
+                html = $(html);
+                html.addClass('hidden');
+                Templates.replaceNodeContents(eventListContent, html, js);
+
+                firstLoad.then(function(hasContent) {
+                    html.removeClass('hidden');
+                    loadingPlaceholder.addClass('hidden');
+
+                    if (!hasContent) {
+                        hideContent(root);
+                    }
+                });
+            })
+            .catch(Notification.exception);
     };
 
     return {

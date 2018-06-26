@@ -27,38 +27,15 @@
     <div class="container p-0 m-b-1">
         <div class="row no-gutters">
             <div class="col-sm d-flex justify-content-start">
-                <div id="timeline-day-selector-{{uniqid}}" class="btn-group {{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {{#pix}} i/duration {{/pix}} Next 30 days
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#" data-from="-14">All</a>
-                        <a class="dropdown-item" href="#" data-from="-14" data-to="0">Overdue</a>
-                        <div class="dropdown-divider"></div>
-                        <h6 class="dropdown-header">Due date</h6>
-                        <a class="dropdown-item" href="#" data-from="0" data-to="7">Next 7 days</a>
-                        <a class="dropdown-item" href="#" data-from="0" data-to="30">Next 30 days</a>
-                        <a class="dropdown-item" href="#" data-from="0" data-to="90">Next 3 months</a>
-                        <a class="dropdown-item" href="#" data-from="0" data-to="180">Next 6 months</a>
-                    </div>
+                <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
+                    {{> block_myoverview/timeline-view-nav-day-filter }}
                 </div>
-                <div class="btn-group {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        All
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">All</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">In progress</a>
-                        <a class="dropdown-item" href="#">Future</a>
-                        <a class="dropdown-item" href="#">Past</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Starred</a>
-                    </div>
+                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
+                    {{> block_myoverview/courses-view-nav-grouping-display-filter }}
                 </div>
             </div>
             <div class="col-sm d-flex justify-content-center">
-                <ul id="block-myoverview-view-choices-{{uniqid}}" class="nav nav-pills ml-auto mr-auto" role="tablist">
+                <ul data-region="block-myoverview-view-choices" class="nav nav-pills ml-auto mr-auto" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link {{#viewingtimeline}}active{{/viewingtimeline}}" href="#myoverview_timeline_view" role="tab" data-toggle="tab" data-tabname="timeline">
                             {{#str}} timeline, block_myoverview {{/str}}
@@ -72,53 +49,14 @@
                 </ul>
             </div>
             <div class="col-sm d-flex justify-content-end">
-                <div class="btn-group {{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {{#pix}} i/filter {{/pix}} Sort
-                    </button>
-                    <div class="dropdown-menu list-group hidden">
-                        <a class="dropdown-item active" href="#myoverview_timeline_dates" data-toggle="tab">
-                            {{#str}} sortbydates, block_myoverview {{/str}}
-                        </a>
-                        <a class="dropdown-item" href="#myoverview_timeline_courses" data-toggle="tab">
-                            {{#str}} sortbycourses, block_myoverview {{/str}}
-                        </a>
-                    </div>
+                <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
+                    {{> block_myoverview/timeline-view-nav-view-selector }}
                 </div>
-                <div class="btn-group mr-2 {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {{#pix}} i/filter {{/pix}} Sort
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">
-                            Category
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            Last accessed
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            Title
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            Custom
-                        </a>
-                    </div>
+                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}} mr-2" data-tab-content="courses">
+                    {{> block_myoverview/courses-view-nav-sort-button }}
                 </div>
-                <div class="btn-group {{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {{#pix}} t/viewdetails {{/pix}}
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">
-                            Card
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            List
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            Summary
-                        </a>
-                    </div>
+                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
+                    {{> block_myoverview/courses-view-nav-display-selector }}
                 </div>
             </div>
         </div>
@@ -138,74 +76,13 @@
 require(
 [
     'jquery',
-    'core/templates',
-    'block_myoverview/tab_preferences',
-    'block_myoverview/event_list',
-    'block_myoverview/event_list_by_course',
+    'block_myoverview/main',
 ],
 function(
     $,
-    Templates,
-    TabPreferences,
-    EventList,
-    EventListByCourse
+    Main
 ) {
     var root = $('#block-myoverview-{{uniqid}}');
-    var tabChoiceRoot = $('#block-myoverview-view-choices-{{uniqid}}');
-    var midnight = {{midnight}};
-    var timelineViewContainer = $('#myoverview_timeline_view');
-    var timelineDaySelectorContainer = $('#timeline-day-selector-{{uniqid}}');
-    var timelineDaySelector = timelineDaySelectorContainer.find('[data-toggle]');
-    var timelineDaySelectorIcon = timelineDaySelector.find('.icon');
-
-    TabPreferences.registerEventListeners(tabChoiceRoot);
-
-    tabChoiceRoot.on('shown.bs.tab', function(e) {
-        var targetTab = $(e.target).attr('data-tabname');
-        root.find('[data-tab-content]').addClass('d-none');
-        root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none');
-    });
-
-    timelineDaySelectorContainer.on('click', '[data-from]', function(e) {
-        var option = $(e.target);
-        var daysOffset = option.attr('data-from');
-        var daysLimit = option.attr('data-to');
-        var context = {
-            midnight: midnight,
-            daysoffset: daysOffset,
-            hasdaysoffset: true
-        };
-        
-        if (daysLimit == undefined) {
-            context.nodayslimit = true;
-        } else {
-            context.dayslimit = daysLimit;
-            context.hasdayslimit = true;
-        }
-
-        timelineDaySelector.html(option.text());
-        timelineDaySelector.prepend(timelineDaySelectorIcon);
-
-        var listContainers = root.find('[data-region="event-list-container"]');
-        listContainers.attr('data-days-offset');
-
-        if (daysLimit != undefined) {
-            listContainers.attr('data-days-limit', daysLimit);
-        } else {
-            listContainers.removeAttr('data-days-limit');
-        }
-
-        var viewDatesEventList = timelineViewContainer.find('[data-region="timeline-view-dates"]').find(EventList.rootSelector);
-        EventList.init(viewDatesEventList, [25, 50]);
-
-        var viewCoursesBlocks = timelineViewContainer.find('#myoverview_timeline_courses').find('[data-region="course-block"]');
-        viewCoursesBlocks.each(function(index, block) {
-            block = $(block);
-
-            if (!block.hasClass('hidden')) {
-                EventListByCourse.init(block);
-            }
-        });
-    });
+    Main.init(root, {{midnight}});
 });
 {{/js}}

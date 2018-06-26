@@ -15,20 +15,29 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_myoverview/timeline-view
+    @template block_myoverview/courses-view-nav-sort-button
 
-    This template renders the timeline view for the myoverview block.
+    This template renders the main content area for the myoverview block.
 
     Example context (json):
     {}
 }}
-<div data-region="timeline-view">
-    <div class="tab-content">
-        <div class="tab-pane active fade show" id="myoverview_timeline_dates">
-            {{> block_myoverview/timeline-view-dates }}
-        </div>
-        <div class="tab-pane fade" id="myoverview_timeline_courses">
-            {{> block_myoverview/timeline-view-courses }}
-        </div>
+<div data-region="courses-sort-button" class="btn-group">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {{#pix}} i/filter {{/pix}} Sort
+    </button>
+    <div class="dropdown-menu">
+        <a class="dropdown-item" href="#">
+            Category
+        </a>
+        <a class="dropdown-item" href="#">
+            Last accessed
+        </a>
+        <a class="dropdown-item" href="#">
+            Title
+        </a>
+        <a class="dropdown-item" href="#">
+            Custom
+        </a>
     </div>
 </div>
