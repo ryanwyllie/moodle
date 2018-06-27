@@ -43,15 +43,8 @@ function(
         var datesViewRoot = root.find(SELECTORS.TIMELINE_DATES_VIEW);
         var coursesViewRoot = root.find(SELECTORS.TIMELINE_COURSES_VIEW);
 
-        if (datesViewRoot.hasClass('active') && !datesViewRoot.attr('data-seen')) {
-            datesViewRoot.attr('data-seen', true);
-            TimelineViewDates.init(datesViewRoot);
-        }
-
-        if (coursesViewRoot.hasClass('active') && !coursesViewRoot.attr('data-seen')) {
-            coursesViewRoot.attr('data-seen', true);
-            TimelineViewCourses.init(coursesViewRoot);
-        }
+        TimelineViewDates.init(datesViewRoot);
+        TimelineViewCourses.init(coursesViewRoot);
     };
 
     var reset = function(root) {
@@ -61,8 +54,20 @@ function(
         TimelineViewCourses.reset(coursesViewRoot);
     };
 
+    var shown = function(root) {
+        var datesViewRoot = root.find(SELECTORS.TIMELINE_DATES_VIEW);
+        var coursesViewRoot = root.find(SELECTORS.TIMELINE_COURSES_VIEW);
+
+        if (datesViewRoot.hasClass('active')) {
+            TimelineViewDates.shown(datesViewRoot);
+        } else {
+            TimelineViewCourses.shown(coursesViewRoot);
+        }
+    };
+
     return {
         init: init,
-        reset: reset
+        reset: reset,
+        shown: shown,
     };
 });

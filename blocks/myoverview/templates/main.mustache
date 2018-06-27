@@ -30,9 +30,13 @@
                 <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
                     {{> block_myoverview/timeline-view-nav-day-filter }}
                 </div>
-                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    {{> block_myoverview/courses-view-nav-grouping-display-filter }}
-                </div>
+                {{#coursesview}}
+                    {{#hascourses}}
+                        <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
+                            {{> block_myoverview/courses-view-nav-grouping-display-filter }}
+                        </div>
+                    {{/hascourses}}
+                {{/coursesview}}
             </div>
             <div class="col-sm d-flex justify-content-center">
                 <ul data-region="block-myoverview-view-choices" class="nav nav-pills ml-auto mr-auto" role="tablist">
@@ -51,12 +55,6 @@
             <div class="col-sm d-flex justify-content-end">
                 <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
                     {{> block_myoverview/timeline-view-nav-view-selector }}
-                </div>
-                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}} mr-2" data-tab-content="courses">
-                    {{> block_myoverview/courses-view-nav-sort-button }}
-                </div>
-                <div class="{{#viewingtimeline}}d-none{{/viewingtimeline}}" data-tab-content="courses">
-                    {{> block_myoverview/courses-view-nav-display-selector }}
                 </div>
             </div>
         </div>

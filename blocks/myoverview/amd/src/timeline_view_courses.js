@@ -39,9 +39,7 @@ function(
         HIDDEN_COURSE_BLOCK: '[data-region="course-block"].hidden',
     };
 
-    var init = function(root) {
-        root = $(root);
-
+    var registerEventListeners = function(root) {
         CustomEvents.define(root, [CustomEvents.events.activate]);
         // Show more courses and load their events when the user clicks the "more courses"
         // button.
@@ -57,7 +55,7 @@ function(
 
             // If there was only one hidden block then we have no more to show now
             // so we can disable the button.
-            if (blocks && blocks.length == 1) {
+            if (blocks && blocks.length <= 1) {
                 button.prop('disabled', true);
             }
 
@@ -67,12 +65,9 @@ function(
             }
             e.stopPropagation();
         });
-
-        // Start loading the first set of courses.
-        root.find(SELECTORS.MORE_COURSES_BUTTON).trigger(CustomEvents.events.activate);
     };
 
-    var reset = function(root) {
+    var load = function(root) {
         var blocks = root.find(SELECTORS.COURSE_BLOCK);
 
         if (blocks) {
@@ -85,8 +80,41 @@ function(
         }
     };
 
+    var init = function(root) {
+        root = $(root);
+        var hiddenCourseBlocks = root.find(SELECTORS.HIDDEN_COURSE_BLOCK);
+
+        if (root.hasClass('active')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+
+        if (!hiddenCourseBlocks.length) {
+            var moreCoursesButton = root.find(SELECTORS.MORE_COURSES_BUTTON);
+            moreCoursesButton.prop('disabled', true);
+        }
+
+        registerEventListeners(root);
+    };
+
+    var reset = function(root) {
+        root.removeAttr('data-seen');
+        if (root.hasClass('active')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+    };
+
+    var shown = function(root) {
+        if (!root.attr('data-seen')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+    };
+
     return {
         init: init,
-        reset: reset
+        reset: reset,
+        shown: shown
     };
 });

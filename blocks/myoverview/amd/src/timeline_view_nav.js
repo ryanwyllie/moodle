@@ -36,7 +36,6 @@ function(
 ) {
 
     var SELECTORS = {
-        TIMELINE_VIEW_DATES: '[data-region="timeline-view-dates"]',
         TIMELINE_DAY_FILTER: '[data-region="timeline-day-filter"]',
         TIMELINE_DAY_FILTER_OPTION: '[data-from]',
         TIMELINE_VIEW_SELECTOR: '[data-region="timeline-view-selector"]'
@@ -44,8 +43,6 @@ function(
 
     var registerTimelineDaySelector = function(root, timelineViewRoot, midnight) {
         var timelineDaySelectorContainer = root.find(SELECTORS.TIMELINE_DAY_FILTER);
-        var timelineDaySelector = timelineDaySelectorContainer.find('[data-toggle]');
-        var timelineDaySelectorIcon = timelineDaySelector.find('.icon');
 
         CustomEvents.define(timelineDaySelectorContainer, [CustomEvents.events.activate]);
         timelineDaySelectorContainer.on(
@@ -58,11 +55,6 @@ function(
                 if (option.hasClass('active')) {
                     // If it's already active then we don't need to do anything.
                     return;
-                } else {
-                    // Clear the active class from all other options.
-                    option.parent().children().removeClass('active');
-                    // Make this option active.
-                    option.addClass('active');
                 }
 
                 var daysOffset = option.attr('data-from');
@@ -79,9 +71,6 @@ function(
                     context.dayslimit = daysLimit;
                     context.hasdayslimit = true;
                 }
-
-                timelineDaySelector.html(option.text());
-                timelineDaySelector.prepend(timelineDaySelectorIcon);
 
                 var listContainers = root.find(EventList.rootSelector);
                 listContainers.attr('data-days-offset', daysOffset);
@@ -101,7 +90,7 @@ function(
         // Listen for when the user changes tab so that we can show the first set of courses
         // and load their events when they request the sort by courses view for the first time.
         root.find(SELECTORS.TIMELINE_VIEW_SELECTOR).on('shown shown.bs.tab', function(e) {
-            TimelineView.init(timelineViewRoot);
+            TimelineView.shown(timelineViewRoot);
         });
     };
 

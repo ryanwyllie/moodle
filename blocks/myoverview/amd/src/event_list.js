@@ -54,7 +54,7 @@ function(
 
     var DEFAULT_PAGED_CONTENT_CONFIG = {
         ignoreControlWhileLoading: true,
-        controlPlacementBottom: true
+        controlPlacementBottom: true,
     };
 
     /**

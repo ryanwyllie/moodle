@@ -35,14 +35,37 @@ function(
         EVENT_LIST_CONTAINER: '[data-region="event-list-container"]',
     };
 
-    var init = function(root) {
-        root = $(root);
+    var load = function(root) {
         var eventListContainer = root.find(SELECTORS.EVENT_LIST_CONTAINER);
         EventList.init(eventListContainer, [25, 50]);
     };
 
+    var init = function(root) {
+        root = $(root);
+        if (root.hasClass('active')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+    };
+
+    var reset = function(root) {
+        root.removeAttr('data-seen');
+        if (root.hasClass('active')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+    };
+
+    var shown = function(root) {
+        if (!root.attr('data-seen')) {
+            load(root);
+            root.attr('data-seen', true);
+        }
+    };
+
     return {
         init: init,
-        reset: init
+        reset: reset,
+        shown: shown
     };
 });

@@ -22,42 +22,40 @@
     Example context (json):
     {}
 }}
-<div id="sort-by-courses-view-{{uniqid}}">
-    {{#coursesview}}
-        {{#inprogress}}
-            {{#haspages}}
-                {{#pages}}
-                    <ul class="list-group unstyled hidden" data-region="course-block">
-                        {{#courses}} {{> block_myoverview/course-item }} {{/courses}}
-                    </ul>
-                {{/pages}}
-                <div class="text-xs-center text-center m-t-1">
-                    <button type="button" class="btn btn-secondary" data-action="more-courses">
-                        {{#str}} morecourses, block_myoverview {{/str}}
-                        <span class="hidden" data-region="loading-icon-container">
-                            {{> core/loading }}
-                        </span>
-                    </button>
-                </div>
-            {{/haspages}}
-            {{^haspages}}
-                <div class="text-xs-center text-center m-t-3">
-                    <img class="empty-placeholder-image-lg"
-                         src="{{urls.noevents}}"
-                         alt="{{#str}} nocoursesinprogress, block_myoverview {{/str}}"
-                         role="presentation">
-                    <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_myoverview {{/str}}</p>
-                </div>
-            {{/haspages}}
-        {{/inprogress}}
-        {{^inprogress}}
+{{#coursesview}}
+    {{#inprogress}}
+        {{#haspages}}
+            {{#pages}}
+                <ul class="list-group unstyled {{^pages.0}}hidden{{/pages.0}}" data-region="course-block">
+                    {{#courses}} {{> block_myoverview/course-item }} {{/courses}}
+                </ul>
+            {{/pages}}
+            <div class="text-xs-center text-center m-t-1">
+                <button type="button" class="btn btn-secondary" data-action="more-courses">
+                    {{#str}} morecourses, block_myoverview {{/str}}
+                    <span class="hidden" data-region="loading-icon-container">
+                        {{> core/loading }}
+                    </span>
+                </button>
+            </div>
+        {{/haspages}}
+        {{^haspages}}
             <div class="text-xs-center text-center m-t-3">
                 <img class="empty-placeholder-image-lg"
-                     src="{{urls.noevents}}"
-                     alt="{{#str}} nocoursesinprogress, block_myoverview {{/str}}"
-                     role="presentation">
+                        src="{{urls.noevents}}"
+                        alt="{{#str}} nocoursesinprogress, block_myoverview {{/str}}"
+                        role="presentation">
                 <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_myoverview {{/str}}</p>
             </div>
-        {{/inprogress}}
-    {{/coursesview}}
-</div>
+        {{/haspages}}
+    {{/inprogress}}
+    {{^inprogress}}
+        <div class="text-xs-center text-center m-t-3">
+            <img class="empty-placeholder-image-lg"
+                    src="{{urls.noevents}}"
+                    alt="{{#str}} nocoursesinprogress, block_myoverview {{/str}}"
+                    role="presentation">
+            <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_myoverview {{/str}}</p>
+        </div>
+    {{/inprogress}}
+{{/coursesview}}

@@ -22,11 +22,11 @@
     Example context (json):
     {}
 }}
-<div data-region="timeline-day-filter" class="btn-group">
+<div data-region="timeline-day-filter" class="dropdown">
     <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        {{#pix}} i/duration {{/pix}} Next 30 days
+        {{#pix}} i/duration {{/pix}} <span data-active-item-text class="d-sm-inline-block d-none">Next 30 days</span>
     </button>
-    <div class="dropdown-menu">
+    <div class="dropdown-menu" data-show-active-item>
         <a class="dropdown-item" href="#" data-from="-14">All</a>
         <a class="dropdown-item" href="#" data-from="-14" data-to="0">Overdue</a>
         <div class="dropdown-divider"></div>
