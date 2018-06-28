@@ -83,8 +83,13 @@
         id="{{$pagingbarid}}paging-bar-{{uniqid}}{{/pagingbarid}}"
         class="ml-auto"
         data-region="paging-bar"
-        data-active-page-number="{{activepagenumber}}"
         data-ignore-control-while-loading="{{ignorecontrolwhileloading}}"
+        {{#activepagenumber}}
+            data-active-page-number="{{.}}"
+        {{/activepagenumber}}
+        {{^activepagenumber}}
+            data-active-page-number="1"
+        {{/activepagenumber}}
         {{#showitemsperpageselector}}
             data-items-per-page="{{itemsperpage.0}}"
         {{/showitemsperpageselector}}
@@ -137,25 +142,3 @@
         </ul>
     </nav>
 </div>
-{{#js}}
-require(
-[
-    'jquery',
-    'core/paged_content_paging_bar',
-    'core/paged_control_limit_selector',
-],
-function(
-    $,
-    PagingControl,
-    PagingControlLimitSelector
-) {
-    var root = $('#{{$pagingbarid}}paging-bar-{{uniqid}}{{/pagingbarid}}');
-    var limitControlRoot = $('#paging-control-limit-container-{{uniqid}}');
-    // All of the custom paged content events are fired on the container element so
-    // we should listen on that.
-    var eventElement = root.closest('[data-region="paged-content-container"]');
-
-    PagingControl.init(root, eventElement);
-    PagingControlLimitSelector.init(limitControlRoot, eventElement);
-});
-{{/js}}
