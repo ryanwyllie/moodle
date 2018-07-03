@@ -109,13 +109,19 @@ echo $OUTPUT->render_from_template('core/test_server_render_paging_bar', [
     'serverpagingbar' => $pagingbarcontext,
     'serverpagingbarcontext' => sprintf("%s", print_r($pagingbarcontext, true))
 ]);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_static_list', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_async', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_async_unknown_pages_single_limit', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_async_unknown_pages_variable_limit', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_async_unknown_pages_variable_limit_bottom', []);
 echo $OUTPUT->render_from_template('core/test_server_render_paging_dropdown', [
     'serverpagingdropdown' => $pagingdropdowncontext,
     'serverpagingdropdowncontext' => sprintf("%s", print_r($pagingdropdowncontext, true))
 ]);
-echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_static_list', []);
 echo $OUTPUT->render_from_template('core/test_client_render_paging_dropdown_static_list', []);
-echo $OUTPUT->render_from_template('core/test_client_render_paging_bar_async', []);
 echo $OUTPUT->render_from_template('core/test_client_render_paging_dropdown_async', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_dropdown_async_unknown_pages_static_limit', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_dropdown_async_unknown_pages_static_limit_max_pages', []);
+echo $OUTPUT->render_from_template('core/test_client_render_paging_dropdown_async_unknown_pages_variable_limit', []);
 echo '</div>';
 echo $OUTPUT->footer();
