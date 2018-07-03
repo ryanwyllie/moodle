@@ -63,7 +63,7 @@
                 >
                     {{itemsperpage.0}}
                 </button>
-                <div class="dropdown-menu">
+                <div class="dropdown-menu" data-show-active-item>
                     {{#itemsperpage}}
                         <a
                             class="dropdown-item"
@@ -101,7 +101,7 @@
             {{#previous}}
                 {{< core/paged_content_paging_bar_item }}
                     {{$item-content}}
-                        <span aria-hidden="true">{{#pix}} i/previous, core {{/pix}}</span>
+                        <span class="icon-no-margin" aria-hidden="true">{{#pix}} i/previous, core {{/pix}}</span>
                         <span class="sr-only">{{#str}}previous{{/str}}</span>
                     {{/item-content}}
                     {{$attributes}}data-control="previous"{{/attributes}}
@@ -133,7 +133,7 @@
             {{#next}}
                 {{< core/paged_content_paging_bar_item }}
                     {{$item-content}}
-                        <span aria-hidden="true">{{#pix}} i/next, core {{/pix}}</span>
+                        <span class="icon-no-margin" aria-hidden="true">{{#pix}} i/next, core {{/pix}}</span>
                         <span class="sr-only">{{#str}}next{{/str}}</span>
                     {{/item-content}}
                     {{$attributes}}data-control="next"{{/attributes}}
