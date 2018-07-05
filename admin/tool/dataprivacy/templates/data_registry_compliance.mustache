@@ -37,7 +37,7 @@
         "count" : 5
     }
 }}
-<div class="dataprivacy-main">
+<div id="data-privacy-main-{{uniqid}}" class="dataprivacy-main">
     <h2>{{#str}}pluginregistrytitle, tool_dataprivacy{{/str}}</h2>
     <hr />
     {{#count}}
@@ -58,9 +58,17 @@
     <hr />
     <!-- Search and filtering area -->
     <div class="tool_dataprivacy-search-area">
-        <input type="text" class="tool_dataprivacy-search-box" placeholder="{{#str}}searchplaceholder, tool_dataprivacy{{/str}}" />
-        <input class="tool_dataprivacy-filter" type="checkbox" name="additional" data-type="additional" data-display="show">{{#str}}external, tool_dataprivacy{{/str}}
-        <input class="tool_dataprivacy-filter" type="checkbox" name="api-issue" data-type="api-issue" data-display="show">{{#str}}requiresattention, tool_dataprivacy{{/str}}
+        <form class="form-inline">
+            <input type="text" class="form-control mr-2 tool_dataprivacy-search-box" placeholder="{{#str}}searchplaceholder, tool_dataprivacy{{/str}}" />
+            <div class="form-check form-check-inline">
+                <input id="checkbox-1-{{uniqid}}" class="form-check-input tool_dataprivacy-filter" type="checkbox" name="additional" data-type="additional" data-display="show">
+                <label class="form-check-label" for="checkbox-1-{{uniqid}}">{{#str}}external, tool_dataprivacy{{/str}}</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input id="checkbox-2-{{uniqid}}" class="form-check-input tool_dataprivacy-filter" type="checkbox" name="api-issue" data-type="api-issue" data-display="show">
+                <label class="form-check-label" for="checkbox-2-{{uniqid}}">{{#str}}requiresattention, tool_dataprivacy{{/str}}</label>
+            </div>
+        </form>
     </div>
     <br />
     <br />
@@ -69,7 +77,11 @@
     <div>
         <div class="type expand" data-plugin="{{plugin_type_raw}}">
             <a  href='#'>
-            <h3 id="{{plugin_type_raw}}">{{#pix}}t/collapsed, moodle, {{#str}}expandplugintype, tool_dataprivacy{{/str}}{{/pix}}{{plugin_type}}</h3>
+            <h3 id="{{plugin_type_raw}}">
+                <span class="collapsed-icon">{{#pix}}t/collapsed, moodle, {{#str}}expandplugintype, tool_dataprivacy{{/str}}{{/pix}}</span>
+                <span class="expanded-icon">{{#pix}}t/expanded, moodle, {{#str}}expandplugintype, tool_dataprivacy{{/str}}{{/pix}}</span>
+                {{plugin_type}}
+            </h3>
             </a>
         </div>
         <div class="tool_dataprivacy-element hide p-b-1" data-plugintarget="{{plugin_type_raw}}" aria-expanded="false" role="contentinfo">
@@ -85,40 +97,26 @@
 </div>
 {{#js}}
 require(['jquery', 'tool_dataprivacy/expand_contract'], function($, ec) {
+    //var root = $('#data-privacy-main-{{uniqid}}');
+    //ec.init(root, {{{rawdata}}});
 
-    ec.init({{{rawdata}}});
+    var rawData = {{{rawdata}}};
+    var items = []
+    for (var key in rawData) {
+        items.push(rawData[key]);
+    }
 
-    $('.expand').click(function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        ec.expandCollapse($(this));
-    });
-
-    $('.tool_dataprivacy-expand-all').click(function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var nextstate = $(this).attr('data-visibility-state');
-        ec.expandCollapseAll(nextstate);
-    });
-
-    $('.tool_dataprivacy-filter').click(function() {
-        var type = $(this).attr('data-type');
-        if ($(this).attr('data-display') == "show") {
-            $('.tool_dataprivacy-filter[data-type="' + type + '"]').attr('data-display', 'hide');
-            $('.tool_dataprivacy-filter[data-type="' + type + '"]').prop('checked', true);
-        } else {
-            $('.tool_dataprivacy-filter[data-type="' + type + '"]').attr('data-display', 'show');
-            $('.tool_dataprivacy-filter[data-type="' + type + '"]').prop('checked', false);
-        }
-        ec.filterList();
-    });
-
-    $('[data-link]').click(function() {
-        ec.followLink($(this).data('link'));
-    });
-
+    var searchRoot = $('.tool_dataprivacy-search-area');
     $('.tool_dataprivacy-search-box').keyup(function() {
-        ec.search();
+        //ec.search();
+        var filterFunction = ec.buildFilterFunction(searchRoot);
+        var filteredList = ec.filterList(filterFunction, items);
+        var objects = {};
+        for (var i = 0; i < filteredList.length; i++) {
+            var item = filteredList[i];
+            objects[item.plugin_type_raw] = item;
+        }
+        ec.updatedisplay(rawData, objects);
     });
 
 });

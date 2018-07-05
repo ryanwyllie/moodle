@@ -49,7 +49,7 @@ define(['jquery', 'core/url', 'core/str'], function($, url, str) {
     /**
      * Update the page to show or hide the relevant nodes.
      */
-    var updatedisplay = function() {
+    var updatedisplay = function(filterlist, currentlist) {
         // Check each component and see if it is already hidden. Hide if necessary.
         var pluginstohide = $.extend(true, {}, filterlist);
         if (Object.keys(filterlist).length != Object.keys(currentlist).length || searchlength > 0) {
@@ -92,14 +92,14 @@ define(['jquery', 'core/url', 'core/str'], function($, url, str) {
             }
         } else {
             // Reset back to normal.
-            resetNodes();
+            resetNodes(filterlist);
         }
     };
 
     /**
      * Reset the all of the nodes back to the original state.
      */
-    var resetNodes = function() {
+    var resetNodes = function(filterlist) {
         for (var key in filterlist) {
             var node = $('[data-plugintarget="' + key + '"]');
             node.addClass('hide');
@@ -134,6 +134,36 @@ define(['jquery', 'core/url', 'core/str'], function($, url, str) {
         parentnode.find(':header i.fa').removeClass('fa-plus-square');
         parentnode.find(':header i.fa').addClass('fa-minus-square');
         parentnode.find(':header img.icon').attr('src', expandedImage.attr('src'));
+    };
+
+    var getApiIssueFilter = function() {
+        return function(item) {
+            return (item.hasOwnProperty('compliant') && item.compliant) ? false : true;
+        }
+    };
+
+    var getAdditionalFilter = function() {
+        return function(item) {
+            return (item.hasOwnProperty('external')) ? true : false;
+        }
+    };
+
+    var getTextFilter = function(text) {
+        return function(item) {
+            if (item.hasOwnProperty('plugin_type')) {
+                if (item.plugin_type.toLowerCase().indexOf(text) >= 0) {
+                    return true;
+                }
+            }
+
+            if (item.hasOwnProperty('component')) {
+                if (item.component.toLowerCase().indexOf(text) >= 0) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     };
 
     return /** @alias module:tool_dataprivacy/expand-collapse */ {
@@ -228,72 +258,64 @@ define(['jquery', 'core/url', 'core/str'], function($, url, str) {
             });
         },
 
+        buildFilterFunction: function(root) {
+            var filters = [];
+
+            var apiElement = root.find('[data-type="api-issue"]');
+            var additionalElement = root.find('[data-type="additional"]');
+            var searchElement = root.find('input[type="text"]');
+
+            if (apiElement.prop('checked')) {
+                filters.push(getApiIssueFilter());
+            }
+
+            if (additionalElement.prop('checked')) {
+                filters.push(getAdditionalFilter());
+            }
+
+            var text = searchElement.val();
+            if (text) {
+                filters.push(getTextFilter(text));
+            }
+
+            if (filters.length) {
+                return function(item) {
+                    for (var i = 0; i < filters.length; i++) {
+                        var filter = filters[0];
+                        if (filter(item)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            } else {
+                return function() {
+                    return true;
+                }
+            }
+        },
+
         /**
          * Applies the selected filters to the plugin list.
          */
-        filterList: function() {
+        filterList: function(filterFunction, list) {
+            return list.reduce(function(carry, item) {
+                var filteredPlugins = item.plugins.filter(filterFunction);
 
-            var filterfunctions = {
-                /**
-                 *  Returns if the component is compliant with the API.
-                 * 
-                 * @param  {object} component The component object that we are filtering.
-                 * @return {boolean} If the object is compliant with the API.
-                 */
-                "api-issue": function(component) {
-                    return (component.compliant) ? false : true;
-                },
-                /**
-                 * Is this component and external / third party plugin.
-                 *
-                 * @param  {object} component The component object that we are filtering.
-                 * @return {boolean} If the component is an external plugin.
-                 */
-                "additional": function(component) {
-                    return (component.hasOwnProperty('external')) ? true : false;
-                }
-            };
-
-            /**
-             * Returns a list of nodes that match all of the filters.
-             *
-             * @param  {object} listitem The list item to filter on.
-             * @param  {object} filtertype The filter type to filter with.
-             * @return {array} An array of plugin objects.
-             */
-            var getfilteredlist = function(listitem, filtertype) {
-                var newpluginlist = [];
-                currentlist[listitem].plugins.forEach(function(component) {
-                    if (filterfunctions[filtertype](component)) {
-                        newpluginlist.push(component);
-                    }
-                });
-                return newpluginlist;
-            };
-
-            var selectedfilters = $('.tool_dataprivacy-filter[data-display="hide"]');
-            if (selectedfilters.length < filterlength && searchlength == 0) {
-                currentlist = $.extend(true, {}, filterlist);
-            }
-            filterlength = selectedfilters.length;
-
-            selectedfilters.each(function() {
-                var filtertype = $(this).attr('data-type');
-                var newlist = {};
-
-                // Reduce current list.
-                for (var listitem in currentlist) {
-                    var newpluginlist = getfilteredlist(listitem, filtertype);
-                    if (newpluginlist.length > 0) {
-                        var item = currentlist[listitem];
-                        item.plugins = newpluginlist;
-                        newlist[listitem] = item;
-                    }
+                if (filteredPlugins.length) {
+                    var newItem = $.extend({}, item);
+                    newItem.plugins = filteredPlugins;
+                    return carry.concat([newItem]);
                 }
 
-                currentlist = newlist;
-            });
-            updatedisplay();
+                if (filterFunction(item)) {
+                    var newItem = $.extend({}, item);
+                    return carry.concat([newItem]);
+                };
+
+                return carry;
+            }, []);
         },
 
         /**
@@ -354,5 +376,7 @@ define(['jquery', 'core/url', 'core/str'], function($, url, str) {
             }
             updatedisplay();
         },
+
+        updatedisplay: updatedisplay
     };
 });

@@ -2115,3 +2115,20 @@ div.editor_atto_toolbar button .icon {
     width: auto;
 }
 
+.dataprivacy-main {
+    .expand {
+        .collapsed-icon {
+            display: inline-block;
+        }
+        .expanded-icon {
+            display: none;
+        }
+    }
+
+    .collapsed-icon {
+        display: none;
+    }
+    .expanded-icon {
+        display: inline-block;
+    }
+}
