@@ -1,0 +1,9 @@
+<h2>Stuff</h2>
+<div id="app">
+</div>
+<input id="thing" />
+{{#js}}
+require(['jquery', 'core/test'], function($, Test) {
+    Test.init(document.getElementById('app'), $('#thing'));
+});
+{{/js}}
