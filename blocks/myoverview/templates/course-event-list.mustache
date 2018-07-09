@@ -102,9 +102,3 @@
         </a>
     </div>
 </div>
-{{#js}}
-require(['jquery', 'block_myoverview/event_list'], function($, EventList) {
-    var root = $("#event-list-container-{{$courseid}}{{/courseid}}");
-    EventList.registerEventListeners(root);
-});
-{{/js}}

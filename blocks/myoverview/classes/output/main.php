@@ -97,7 +97,7 @@ class main implements renderable, templatable {
             $viewingcourses = true;
         }
 
-        return [
+        $context = [
             'midnight' => usergetmidnight(time()),
             'coursesview' => $coursesview->export_for_template($output),
             'urls' => [
@@ -107,5 +107,8 @@ class main implements renderable, templatable {
             'viewingtimeline' => $viewingtimeline,
             'viewingcourses' => $viewingcourses
         ];
+        $context['context'] = json_encode($context);
+
+        return $context;
     }
 }
