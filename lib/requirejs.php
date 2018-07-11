@@ -123,29 +123,52 @@ if ($rev > 0 and $rev < (time() + 60 * 60)) {
     }
 }
 
+// Ok, now we need to start normal moodle script, we need to load all libs and $DB.
+define('ABORT_AFTER_CONFIG_CANCEL', true);
+
+define('NO_MOODLE_COOKIES', true); // Session not used here.
+define('NO_UPGRADE_CHECK', true);  // Ignore upgrade check.
+
+require("$CFG->dirroot/lib/setup.php");
+
 if ($lazyload) {
-    $jsfiles = core_requirejs::find_one_amd_module($component, $module, true);
+    $jsfiles = core_requirejs::find_one_amd_module($component, $module, false);
 } else {
-    $jsfiles = core_requirejs::find_all_amd_modules(true);
+    $jsfiles = core_requirejs::find_all_amd_modules(false);
 }
 
-$content = '';
+// Create the empty source map
+$map = new axy\sourcemap\SourceMap();
+$map->file = 'core/first.js';
+
+// The content of the resulting file
+$result = [];
+$line = 0;
+
 foreach ($jsfiles as $modulename => $jsfile) {
     $shortfilename = str_replace($CFG->dirroot, '', $jsfile);
-    $js = "// ---- $shortfilename ----\n";
-    $js .= file_get_contents($jsfile) . "\n";
-    // Inject the module name into the define.
-    $replace = 'define(\'' . $modulename . '\', ';
-    $search = 'define(';
+    
+    $js = file_get_contents($jsfile) . "\n";
+    // remove link to a source map
+    $js = preg_replace('~//# sourceMappingURL.*$~s', '', $js);
+    $js = rtrim($js);
+    $result[] = $js;
 
-    if (strpos($js, $search) === false) {
-        // We can't call debugging because we only have minimal config loaded.
-        header('HTTP/1.0 500 error');
-        die('JS file: ' . $shortfilename . ' cannot be loaded, or does not contain a javascript module in AMD format. "define()" not found.');
+    $mapfile = $jsfile.'.map';
+    if (file_exists($mapfile)) {
+        $mapdata = file_get_contents($mapfile);
+        $mapdata = json_decode($mapdata, true);
+        $mapdata['sources'][0] = "{$modulename}.js";
+        $map->concat($mapdata, $line);
     }
-
-    // Replace only the first occurrence.
-    $js = implode($replace, explode($search, $js, 2));
-    $content .= $js;
+       
+    $line += substr_count($js, "\n") + 1;
 }
+
+$mapjson = json_encode($map);
+$mapbase64 = base64_encode($mapjson);
+$mapdataurl = '//# sourceMappingURL=data:application/json;base64,' . $mapbase64;
+$result[] = $mapdataurl;
+$content = implode("\n", $result);
+
 js_send_uncached($content, 'requirejs.php');
