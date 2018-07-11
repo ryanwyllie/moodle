@@ -22,6 +22,8 @@ information provided here is intended especially for developers.
     - I set the field "<field_string>" to multiline
     - I follow "<link_string>"" in the open menu
 * Removed the lib/password_compat/lib/password.php file.
+* Moodle now supports JavaScript ES6 syntax through the use of the Babel (https://babeljs.io/) transpiler.
+  Please see https://docs.moodle.org/dev/Javascript_Modules for more detail.
 
 === 3.5 ===
 
