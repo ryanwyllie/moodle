@@ -323,4 +323,32 @@
     <license>MIT</license>
     <version>1.1.1</version>
   </library>
+  <library>
+    <location>axy/sourcemap</location>
+    <name>axypro sourcemap</name>
+    <license>MIT</license>
+    <version>0.1.4</version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>axy/errors</location>
+    <name>axypro errors</name>
+    <license>MIT</license>
+    <version>1.0.4</version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>axy/codecs-base64vlq</location>
+    <name>axypro codecs-base64vlq</name>
+    <license>MIT</license>
+    <version>1.0.1</version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>axy/backtrace</location>
+    <name>axypro backtrace</name>
+    <license>MIT</license>
+    <version>1.0.5</version>
+    <licenseversion></licenseversion>
+  </library>
 </libraries>
