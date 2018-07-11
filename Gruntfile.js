@@ -67,7 +67,7 @@ module.exports = function(grunt) {
      * @param {String} srcPath the  matched src path
      * @return {String} The rewritten destination path.
      */
-    var uglifyRename = function(destPath, srcPath) {
+    var babelRename = function(destPath, srcPath) {
         destPath = srcPath.replace('src', 'build');
         destPath = destPath.replace('.js', '.min.js');
         destPath = path.resolve(cwd, destPath);
@@ -116,14 +116,46 @@ module.exports = function(grunt) {
             // Check YUI module source files.
             yui: {src: ['**/yui/src/**/*.js', '!*/**/yui/src/*/meta/*.js']}
         },
-        uglify: {
-            amd: {
+        babel: {
+            options: {
+                sourceMaps: true,
+                plugins: [
+                    // This plugin modifies the Babel transpiling for "export default"
+                    // so that if it's used then only the exported value is returned
+                    // by the generated AMD module. This plugin must run first.
+                    'add-module-exports',
+                    'transform-es2015-modules-amd-lazy',
+                    path.resolve('babel-plugin-add-module-to-define.js')
+                ],
+                presets: [
+                    ['minify', {
+                        // Need to disable mangling because it changes property names
+                        // on exported objects which breaks the ES6 -> AMD transpiled
+                        // modules.
+                        mangle: false
+                    }],
+                    ['env', {
+                        targets: {
+                            browsers: [
+                                ">0.25%",
+                                "last 2 versions",
+                                "not ie <= 10",
+                                "not op_mini all",
+                                "not Opera > 0",
+                                "not dead"
+                            ]
+                        },
+                        modules: false
+                    }],
+                    ['stage-3']
+                ]
+            },
+            dist: {
                 files: [{
                     expand: true,
                     src: amdSrc,
-                    rename: uglifyRename
-                }],
-                options: {report: 'none'}
+                    rename: babelRename
+                }]
             }
         },
         less: {
@@ -357,10 +389,10 @@ module.exports = function(grunt) {
           var files = Object.keys(changedFiles);
           grunt.config('eslint.amd.src', files);
           grunt.config('eslint.yui.src', files);
-          grunt.config('uglify.amd.files', [{expand: true, src: files, rename: uglifyRename}]);
           grunt.config('shifter.options.paths', files);
           grunt.config('stylelint.less.src', files);
           grunt.config('gherkinlint.options.files', files);
+          grunt.config('babel.dist.files', [{expand: true, src: files, rename: babelRename}]);
           changedFiles = Object.create(null);
     }, 200);
 
@@ -370,19 +402,19 @@ module.exports = function(grunt) {
     });
 
     // Register NPM tasks.
-    grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-sass');
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-stylelint');
+    grunt.loadNpmTasks('grunt-babel');
 
     // Register JS tasks.
     grunt.registerTask('shifter', 'Run Shifter against the current directory', tasks.shifter);
     grunt.registerTask('gherkinlint', 'Run gherkinlint against the current directory', tasks.gherkinlint);
     grunt.registerTask('ignorefiles', 'Generate ignore files for linters', tasks.ignorefiles);
     grunt.registerTask('yui', ['eslint:yui', 'shifter']);
-    grunt.registerTask('amd', ['eslint:amd', 'uglify']);
+    grunt.registerTask('amd', ['eslint:amd', 'babel']);
     grunt.registerTask('js', ['amd', 'yui']);
 
     // Register CSS taks.
