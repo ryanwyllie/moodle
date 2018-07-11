@@ -64,6 +64,10 @@ lib/amd/src/popper.js
 lib/geopattern-php/
 lib/php-jwt/
 lib/babel-polyfill/
+lib/axy/sourcemap/
+lib/axy/backtrace/
+lib/axy/codecs/base64vlq/
+lib/axy/errors/
 media/player/videojs/amd/src/video-lazy.js
 media/player/videojs/amd/src/Youtube-lazy.js
 media/player/videojs/videojs/
