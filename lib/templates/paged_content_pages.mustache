@@ -35,7 +35,11 @@
         ]
     }
 }}
-<div id="{{$pagingcontentid}}page-container-{{uniqid}}{{/pagingcontentid}}" data-region="page-container">
+<div
+    id="{{$pagingcontentid}}page-container-{{uniqid}}{{/pagingcontentid}}"
+    style="min-height: 50px"
+    data-region="page-container"
+>
     {{#pages}}
         {{$paged-content-page}}
             {{> core/paged_content_page }}
