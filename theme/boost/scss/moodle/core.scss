@@ -2118,3 +2118,29 @@ div.editor_atto_toolbar button .icon {
     width: auto;
 }
 
+.icon-no-margin {
+    .icon {
+        margin-left: 0;
+        margin-right: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}
+
+.bg-pulse-grey {
+    animation: bg-pulse-grey 2s infinite linear;
+}
+
+@keyframes bg-pulse-grey
+{
+    0%{
+        background-color: $gray-100;
+    }
+    50%{
+        background-color: $gray-300;
+    }
+    100%{
+        background-color: $gray-100;
+    }
+}
+
