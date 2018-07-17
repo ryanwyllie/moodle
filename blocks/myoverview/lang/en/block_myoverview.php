@@ -24,6 +24,7 @@
 
 $string['defaulttab'] = 'Default tab';
 $string['defaulttab_desc'] = 'The tab that will be displayed when a user first views their course overview. When returning to their course overview, the user\'s active tab is remembered.';
+$string['duedate'] = 'Due date';
 $string['future'] = 'Future';
 $string['inprogress'] = 'In progress';
 $string['morecourses'] = 'More courses';
@@ -36,9 +37,11 @@ $string['nocoursespast'] = 'No past courses';
 $string['noevents'] = 'No upcoming activities due';
 $string['next30days'] = 'Next 30 days';
 $string['next7days'] = 'Next 7 days';
+$string['next3months'] = 'Next 3 months';
+$string['next6months'] = 'Next 6 months';
+$string['overdue'] = 'Overdue';
 $string['past'] = 'Past';
 $string['pluginname'] = 'Course overview';
-$string['recentlyoverdue'] = 'Recently overdue';
 $string['sortbycourses'] = 'Sort by courses';
 $string['sortbydates'] = 'Sort by dates';
 $string['timeline'] = 'Timeline';

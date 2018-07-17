@@ -22,21 +22,29 @@
  * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/notification', 'core/templates',
-        'core/custom_interaction_events',
-        'block_myoverview/calendar_events_repository'],
-        function($, Notification, Templates, CustomEvents, CalendarEventsRepository) {
+define(
+[
+    'jquery',
+    'core/notification',
+    'core/templates',
+    'core/paged_content_factory',
+    'block_myoverview/calendar_events_repository'
+],
+function(
+    $,
+    Notification,
+    Templates,
+    PagedContentFactory,
+    CalendarEventsRepository
+) {
 
     var SECONDS_IN_DAY = 60 * 60 * 24;
 
     var SELECTORS = {
         EMPTY_MESSAGE: '[data-region="empty-message"]',
         ROOT: '[data-region="event-list-container"]',
-        EVENT_LIST: '[data-region="event-list"]',
         EVENT_LIST_CONTENT: '[data-region="event-list-content"]',
-        EVENT_LIST_GROUP_CONTAINER: '[data-region="event-list-group-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        VIEW_MORE_BUTTON: '[data-action="view-more"]'
+        EVENT_LIST_LOADING_PLACEHOLDER: '[data-region="event-list-loading-placeholder"]',
     };
 
     var TEMPLATES = {
@@ -44,129 +52,16 @@ define(['jquery', 'core/notification', 'core/templates',
         COURSE_EVENT_LIST_ITEMS: 'block_myoverview/course-event-list-items'
     };
 
-    /**
-     * Set a flag on the element to indicate that it has completed
-     * loading all event data.
-     *
-     * @method setLoadedAll
-     * @private
-     * @param {object} root The container element
-     */
-    var setLoadedAll = function(root) {
-        root.attr('data-loaded-all', true);
-    };
-
-    /**
-     * Check if all event data has finished loading.
-     *
-     * @method hasLoadedAll
-     * @private
-     * @param {object} root The container element
-     * @return {bool} if the element has completed all loading
-     */
-    var hasLoadedAll = function(root) {
-        return !!root.attr('data-loaded-all');
-    };
-
-    /**
-     * Set the element state to loading.
-     *
-     * @method startLoading
-     * @private
-     * @param {object} root The container element
-     */
-    var startLoading = function(root) {
-        var loadingIcon = root.find(SELECTORS.LOADING_ICON_CONTAINER),
-            viewMoreButton = root.find(SELECTORS.VIEW_MORE_BUTTON);
-
-        root.addClass('loading');
-        loadingIcon.removeClass('hidden');
-        viewMoreButton.prop('disabled', true);
-    };
-
-    /**
-     * Remove the loading state from the element.
-     *
-     * @method stopLoading
-     * @private
-     * @param {object} root The container element
-     */
-    var stopLoading = function(root) {
-        var loadingIcon = root.find(SELECTORS.LOADING_ICON_CONTAINER),
-            viewMoreButton = root.find(SELECTORS.VIEW_MORE_BUTTON);
-
-        root.removeClass('loading');
-        loadingIcon.addClass('hidden');
-
-        if (!hasLoadedAll(root)) {
-            // Only enable the button if we've got more events to load.
-            viewMoreButton.prop('disabled', false);
-        }
-    };
-
-    /**
-     * Check if the element is currently loading some event data.
-     *
-     * @method isLoading
-     * @private
-     * @param {object} root The container element
-     * @returns {Boolean}
-     */
-    var isLoading = function(root) {
-        return root.hasClass('loading');
-    };
-
-    /**
-     * Flag the root element to remember that it contains events.
-     *
-     * @method setHasContent
-     * @private
-     * @param {object} root The container element
-     */
-    var setHasContent = function(root) {
-        root.attr('data-has-events', true);
-    };
-
-    /**
-     * Check if the root element has had events loaded.
-     *
-     * @method hasContent
-     * @private
-     * @param {object} root The container element
-     * @return {bool}
-     */
-    var hasContent = function(root) {
-        return root.attr('data-has-events') ? true : false;
-    };
-
-    /**
-     * Update the visibility of the content area. The content area
-     * is hidden if we have no events.
-     *
-     * @method updateContentVisibility
-     * @private
-     * @param {object} root The container element
-     * @param {int} eventCount A count of the events we just received.
-     */
-    var updateContentVisibility = function(root, eventCount) {
-        if (eventCount) {
-            // We've rendered some events, let's remember that.
-            setHasContent(root);
-        } else {
-            // If this is the first time trying to load events and
-            // we don't have any then there isn't any so let's show
-            // the empty message.
-            if (!hasContent(root)) {
-                hideContent(root);
-            }
-        }
+    // We want the paged content controls below the paged content area
+    // and the controls should be ignored while data is loading.
+    var DEFAULT_PAGED_CONTENT_CONFIG = {
+        ignoreControlWhileLoading: true,
+        controlPlacementBottom: true,
     };
 
     /**
      * Hide the content area and display the empty content message.
      *
-     * @method hideContent
-     * @private
      * @param {object} root The container element
      */
     var hideContent = function(root) {
@@ -175,240 +70,296 @@ define(['jquery', 'core/notification', 'core/templates',
     };
 
     /**
-     * Render a group of calendar events and add them to the event
-     * list.
+     * Show the content area and hide the empty content message.
      *
-     * @method renderGroup
-     * @private
-     * @param {object}  group           The group container element
-     * @param {array}   calendarEvents  The list of calendar events
-     * @param {string}  templateName    The template name
-     * @return {promise} Resolved when the elements are attached to the DOM
+     * @param {object} root The container element
      */
-    var renderGroup = function(group, calendarEvents, templateName) {
-
-        group.removeClass('hidden');
-
-        return Templates.render(
-            templateName,
-            {events: calendarEvents}
-        ).done(function(html, js) {
-            Templates.appendNodeContents(group.find(SELECTORS.EVENT_LIST), html, js);
-        });
+    var showContent = function(root) {
+        root.find(SELECTORS.EVENT_LIST_CONTENT).removeClass('hidden');
+        root.find(SELECTORS.EMPTY_MESSAGE).addClass('hidden');
     };
 
     /**
-     * Determine the time (in seconds) from the given timestamp until the calendar
-     * event will need actioning.
+     * Render the HTML for the given calendar events.
      *
-     * @method timeUntilEvent
-     * @private
-     * @param {int}     timestamp   The time to compare with
-     * @param {object}  event       The calendar event
-     * @return {int}
-     */
-    var timeUntilEvent = function(timestamp, event) {
-        var orderTime = event.timesort || 0;
-        return orderTime - timestamp;
-    };
-
-    /**
-     * Check if the given calendar event should be added to the given event
-     * list group container. The event list group container will specify a
-     * day range for the time boundary it is interested in.
-     *
-     * If only a start day is specified for the container then it will be treated
-     * as an open catchment for all events that begin after that time.
-     *
-     * @method eventBelongsInContainer
-     * @private
-     * @param {object} root         The root element
-     * @param {object} event        The calendar event
-     * @param {object} container    The group event list container
-     * @return {bool}
-     */
-    var eventBelongsInContainer = function(root, event, container) {
-        var todayTime = root.attr('data-midnight'),
-            timeUntilContainerStart = +container.attr('data-start-day') * SECONDS_IN_DAY,
-            timeUntilContainerEnd = +container.attr('data-end-day') * SECONDS_IN_DAY,
-            timeUntilEventNeedsAction = timeUntilEvent(todayTime, event);
-
-        if (container.attr('data-end-day') === '') {
-            return timeUntilContainerStart <= timeUntilEventNeedsAction;
-        } else {
-            return timeUntilContainerStart <= timeUntilEventNeedsAction &&
-                   timeUntilEventNeedsAction < timeUntilContainerEnd;
-        }
-    };
-
-    /**
-     * Return a function that can be used to filter a list of events based on the day
-     * range specified on the given event list group container.
-     *
-     * @method getFilterCallbackForContainer
-     * @private
-     * @param {object} root      The root element
-     * @param {object} container Event list group container
-     * @return {function}
-     */
-    var getFilterCallbackForContainer = function(root, container) {
-        return function(event) {
-            return eventBelongsInContainer(root, event, $(container));
-        };
-    };
-
-    /**
-     * Render the given calendar events in the container element. The container
-     * elements must have a day range defined using data attributes that will be
-     * used to group the calendar events according to their order time.
-     *
-     * @method render
-     * @private
-     * @param {object}  root            The container element
+     * @param {int|undefined} courseId Course ID to restrict events to
      * @param {array}   calendarEvents  A list of calendar events
-     * @return {promise} Resolved with a count of the number of rendered events
+     * @return {promise} Resolved with HTML and JS strings.
      */
-    var render = function(root, calendarEvents) {
-        var renderCount = 0;
+    var render = function(courseId, calendarEvents) {
         var templateName = TEMPLATES.EVENT_LIST_ITEMS;
 
-        if (root.attr('data-course-id')) {
+        if (courseId) {
             templateName = TEMPLATES.COURSE_EVENT_LIST_ITEMS;
         }
 
-        // Loop over each of the element list groups and find the set of calendar events
-        // that belong to that group (as defined by the group's day range). The matching
-        // list of calendar events are rendered and added to the DOM within that group.
-        return $.when.apply($, $.map(root.find(SELECTORS.EVENT_LIST_GROUP_CONTAINER), function(container) {
-            var events = calendarEvents.filter(getFilterCallbackForContainer(root, container));
-
-            if (events.length) {
-                renderCount += events.length;
-                return renderGroup($(container), events, templateName);
-            } else {
-                return null;
-            }
-        })).then(function() {
-            return renderCount;
-        });
+        return Templates.render(templateName, { events: calendarEvents });
     };
 
     /**
-     * Retrieve a list of calendar events, render and append them to the end of the
-     * existing list. The events will be loaded based on the set of data attributes
-     * on the root element.
+     * Retrieve a list of calendar events from the server for the given
+     * constraints.
      *
-     * This function can be provided with a jQuery promise. If it is then it won't
-     * attempt to load data by itself, instead it will use the given promise.
-     *
-     * The provided promise must resolve with an an object that has an events key
-     * and value is an array of calendar events.
-     * E.g.
-     * { events: ['event 1', 'event 2'] }
-     *
-     * @method load
-     * @param {object} root The root element of the event list
-     * @param {object} promise A jQuery promise resolved with events
+     * @param {int} midnight The user's midnight time in unix timestamp.
+     * @param {int} limit Limit the result set to this number of items
+     * @param {int} daysOffset How many days (from midnight) to offset the results from
+     * @param {int|undefined} daysLimit How many dates (from midnight) to limit the result to
+     * @param {int|falsey} lastId The ID of the last seen event (if any)
+     * @param {int|undefined} courseId Course ID to restrict events to
      * @return {promise} A jquery promise
      */
-    var load = function(root, promise) {
-        root = $(root);
-        var limit = +root.attr('data-limit'),
-            courseId = +root.attr('data-course-id'),
-            lastId = root.attr('data-last-id'),
-            midnight = root.attr('data-midnight'),
-            startTime = midnight - (14 * SECONDS_IN_DAY);
+    var load = function(midnight, limit, daysOffset, daysLimit, lastId, courseId) {
+        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+        var endTime = daysLimit != undefined ? midnight + (daysLimit * SECONDS_IN_DAY) : false;
 
-        // Don't load twice.
-        if (isLoading(root)) {
-            return $.Deferred().resolve();
+        var args = {
+            starttime: startTime,
+            limit: limit,
+        };
+
+        if (lastId) {
+            args.aftereventid = lastId;
         }
 
-        startLoading(root);
+        if (endTime) {
+            args.endtime = endTime;
+        }
 
-        // If we haven't been provided a promise to resolve the
-        // data then we will load our own.
-        if (typeof promise == 'undefined') {
-            var args = {
-                starttime: startTime,
-                limit: limit,
-            };
-
-            if (lastId) {
-                args.aftereventid = lastId;
-            }
-
+        if (courseId) {
             // If we have a course id then we only want events from that course.
-            if (courseId) {
-                args.courseid = courseId;
-                promise = CalendarEventsRepository.queryByCourse(args);
-            } else {
-                // Otherwise we want events from any course.
-                promise = CalendarEventsRepository.queryByTime(args);
-            }
+            args.courseid = courseId;
+            return CalendarEventsRepository.queryByCourse(args);
+        } else {
+            // Otherwise we want events from any course.
+            return CalendarEventsRepository.queryByTime(args);
+        }
+    };
+
+    /**
+     * Handle a single page request from the paged content. Uses the given page data to request
+     * the events from the server.
+     * 
+     * Checks the given preloadedPages before sending a request to the server to make sure we
+     * don't load data unnecessarily.
+     * 
+     * @param {object} pageData A single page data (see core/paged_content_pages for more info).
+     * @param {object} actions Paged content actions (see core/paged_content_pages for more info).
+     * @param {int} midnight The user's midnight time in unix timestamp.
+     * @param {object} lastIds The last event ID for each loaded page. Page number is key, id is value.
+     * @param {object} preloadedPages An object of preloaded page data. Page number as key, data promise as value.
+     * @param {int|undefined} courseId Course ID to restrict events to
+     * @param {int} daysOffset How many days (from midnight) to offset the results from
+     * @param {int|undefined} daysLimit How many dates (from midnight) to limit the result to
+     */
+    var loadEventsFromPageData = function(
+        pageData,
+        actions,
+        midnight,
+        lastIds,
+        preloadedPages,
+        courseId,
+        daysOffset,
+        daysLimit
+    ) {
+        var pageNumber = pageData.pageNumber;
+        var limit = pageData.limit;
+        var lastPageNumber = pageNumber;
+        
+        // This is here to protect us if, for some reason, the pages
+        // are loaded out of order somehow and we don't have a reference
+        // to the previous page. In that case, scan back to find the most
+        // recent page we've seen.
+        while (!lastIds.hasOwnProperty(lastPageNumber)) {
+            lastPageNumber--;
+        }
+        // Use the last id of the most recent page.
+        var lastId = lastIds[lastPageNumber];
+        var eventsPromise = null;
+
+        if (preloadedPages && preloadedPages.hasOwnProperty(pageNumber)) {
+            // This page has been preloaded so use that rather than load the values
+            // again.
+            eventsPromise = preloadedPages[pageNumber];
+        } else {
+            // Load one more than the given limit so that we can tell if there
+            // is more content to load after this.
+            eventsPromise = load(midnight, limit + 1, daysOffset, daysLimit, lastId, courseId);
         }
 
-        // Request data from the server.
-        return promise.then(function(result) {
+        return eventsPromise.then(function(result) {
             if (!result.events.length) {
-                // No events, nothing to do.
-                setLoadedAll(root);
-                return 0;
+                // If we didn't get any events back then tell the paged content
+                // that we're done loading.
+                actions.allItemsLoaded(pageNumber);
+                return;
             }
 
             var calendarEvents = result.events;
-
-            // Remember the last id we've seen.
-            root.attr('data-last-id', calendarEvents[calendarEvents.length - 1].id);
-
-            if (calendarEvents.length < limit) {
-                // No more events to load, disable loading button.
-                setLoadedAll(root);
+            // We expect to receive limit + 1 events back from the server.
+            // Any less means there are no more events to load.
+            var loadedAll = calendarEvents.length <= limit;
+            
+            if (loadedAll) {
+                // Tell the pagination that everything is loaded.
+                actions.allItemsLoaded(pageNumber);
+            } else {
+                // Remove the last element from the array because it isn't
+                // needed in this result set.
+                calendarEvents.pop();
             }
 
-            // Render the events.
-            return render(root, calendarEvents).then(function(renderCount) {
-                if (renderCount < calendarEvents.length) {
-                    // If the number of events that was rendered is less than
-                    // the number we sent for rendering we can assume that there
-                    // are no groups to add them in. Since the ordering of the
-                    // events is guaranteed it means that any future requests will
-                    // also yield events that can't be rendered, so let's not bother
-                    // sending any more requests.
-                    setLoadedAll(root);
-                }
-                return calendarEvents.length;
-            });
-        }).then(function(eventCount) {
-            return updateContentVisibility(root, eventCount);
-        }).fail(
-            Notification.exception
-        ).always(function() {
-            stopLoading(root);
+            return calendarEvents;
         });
     };
 
     /**
-     * Register the event listeners for the container element.
-     *
-     * @method registerEventListeners
-     * @param {object} root The root element of the event list
+     * Use the paged content factory to create a paged content element for showing
+     * the event list. We only provide a page limit to the factory because we don't
+     * know exactly how many pages we'll need. This creates a paging bar with just
+     * next/previous buttons.
+     * 
+     * This function specifies the callback for loading the event data that the user
+     * is requesting.
+     * 
+     * @param {int|array} pageLimit A single limit or list of limits as options for the paged content
+     * @param {object} preloadedPages An object of preloaded page data. Page number as key, data promise as value.
+     * @param {int} midnight The user's midnight time in unix timestamp.
+     * @param {object} firstLoad A jQuery promise to be resolved after the first set of data is loaded.
+     * @param {int|undefined} courseId Course ID to restrict events to
+     * @param {int} daysOffset How many days (from midnight) to offset the results from
+     * @param {int|undefined} daysLimit How many dates (from midnight) to limit the result to
      */
-    var registerEventListeners = function(root) {
-        CustomEvents.define(root, [CustomEvents.events.activate]);
-        root.on(CustomEvents.events.activate, SELECTORS.VIEW_MORE_BUTTON, function() {
-            load(root);
-        });
+    var createPagedContent = function(
+        pageLimit,
+        preloadedPages,
+        midnight,
+        firstLoad,
+        courseId,
+        daysOffset,
+        daysLimit
+    ) {      
+        // Remember the last event id we loaded on each page because we can't
+        // use the offset value since the backend can skip events if the user doesn't
+        // have the capability to see them. Instead we load the next page of events
+        // based on the last seen event id.
+        var lastIds = { 1: 0 };
+        var hasContent = false;
+
+        return PagedContentFactory.createWithLimit(
+            pageLimit,
+            function(pagesData, actions) {   
+                var promises = [];
+
+                pagesData.forEach(function(pageData) {
+                    var pageNumber = pageData.pageNumber;
+                    // Load the page data.
+                    var pagePromise = loadEventsFromPageData(
+                        pageData,
+                        actions,
+                        midnight,
+                        lastIds,
+                        preloadedPages,
+                        courseId,
+                        daysOffset,
+                        daysLimit
+                    ).then(function(calendarEvents) {
+                        if (calendarEvents) {
+                            // Remember that we've loaded content.
+                            hasContent = true;
+                            // Remember the last id we've seen.
+                            var lastEventId = calendarEvents[calendarEvents.length - 1].id;
+                            // Record the id that the next page will need to start from.
+                            lastIds[pageNumber + 1] = lastEventId;
+                            // Get the HTML and JS for these calendar events.
+                            return render(courseId, calendarEvents);
+                        } else {
+                            return;
+                        }
+                    })
+                    .catch(Notification.exception);
+
+                    promises.push(pagePromise);
+                });
+    
+                $.when.apply($, promises).then(function() {
+                    // Tell the calling code that the first page has been loaded
+                    // and whether it contains any content.
+                    firstLoad.resolve(hasContent);
+                });
+
+                return promises;
+            },
+            DEFAULT_PAGED_CONTENT_CONFIG
+        );
+    };
+
+    /**
+     * Create a paged content region for the calendar events in the given root element.
+     * The content of the root element are replaced with a new paged content section
+     * each time this function is called.
+     * 
+     * This function will be called each time the offset or limit values are changed to
+     * reload the event list region.
+     * 
+     * @param {object} root The event list container element
+     * @param {int|array} pageLimit A single limit or list of limits as options for the paged content
+     * @param {object} preloadedPages An object of preloaded page data. Page number as key, data promise as value.
+     */
+    var init = function(root, pageLimit, preloadedPages) {
+        root = $(root);
+        
+        // Create a promise that will be resolved once the first set of page
+        // data has been loaded. This ensures that the loading placeholder isn't
+        // hidden until we have all of the data back to prevent the page elements
+        // jumping around.
+        var firstLoad = $.Deferred();
+        var eventListContent = root.find(SELECTORS.EVENT_LIST_CONTENT);
+        var loadingPlaceholder = root.find(SELECTORS.EVENT_LIST_LOADING_PLACEHOLDER);
+        var courseId =  root.attr('data-course-id');
+        var daysOffset = parseInt(root.attr('data-days-offset'), 10);
+        var daysLimit = root.attr('data-days-limit');
+        var midnight = parseInt(root.attr('data-midnight'),10)
+
+        // Make sure the content area and loading placeholder is visible.
+        // This is because the init function can be called to re-initialise
+        // an existing event list area.
+        showContent(root);
+        loadingPlaceholder.removeClass('hidden')
+
+        // Days limit isn't mandatory.
+        if (daysLimit != undefined) {
+            daysLimit = parseInt(daysLimit, 10);
+        }
+
+        // Created the paged content element.
+        createPagedContent(pageLimit, preloadedPages, midnight, firstLoad, courseId, daysOffset, daysLimit)
+            .then(function(html, js) {
+                html = $(html);
+                // Hide the content for now.
+                html.addClass('hidden');
+                // Replace existing elements with the newly created paged content.
+                // If we're reinitialising an existing event list this will replace
+                // the old event list (including removing any event handlers).
+                Templates.replaceNodeContents(eventListContent, html, js);
+
+                firstLoad.then(function(hasContent) {
+                    // Prevent changing page elements too much by only showing the content
+                    // once we've loaded some data for the first time. This allows our
+                    // fancy loading placeholder to shine. 
+                    html.removeClass('hidden');
+                    loadingPlaceholder.addClass('hidden');
+
+                    if (!hasContent) {
+                        // If we didn't get any data then show the empty data message.
+                        hideContent(root);
+                    }
+                });
+            })
+            .catch(Notification.exception);
     };
 
     return {
-        init: function(root) {
-            root = $(root);
-            load(root);
-            registerEventListeners(root);
-        },
-        registerEventListeners: registerEventListeners,
-        load: load,
+        init: init,
         rootSelector: SELECTORS.ROOT,
     };
 });
