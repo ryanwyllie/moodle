@@ -22,22 +22,7 @@
     Example context (json):
     {}
 }}
-<div id="timeline-view-{{uniqid}}" data-region="timeline-view">
-    <div class="d-flex justify-content-center">
-        <ul class="nav nav-pills my-5">
-            <li class="nav-item">
-            <a class="nav-link active" href="#myoverview_timeline_dates" data-toggle="tab">
-                {{#str}} sortbydates, block_myoverview {{/str}}
-            </a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="#myoverview_timeline_courses" data-toggle="tab">
-                {{#str}} sortbycourses, block_myoverview {{/str}}
-            </a>
-            </li>
-        </ul>
-    </div>
-
+<div data-region="timeline-view">
     <div class="tab-content">
         <div class="tab-pane active fade show" id="myoverview_timeline_dates">
             {{> block_myoverview/timeline-view-dates }}

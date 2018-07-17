@@ -27,7 +27,11 @@ define(
     'block_myoverview/event_list',
     'block_myoverview/calendar_events_repository'
 ],
-function($, EventList, EventsRepository) {
+function(
+    $,
+    EventList,
+    EventsRepository
+) {
 
     var SECONDS_IN_DAY = 60 * 60 * 24;
 
@@ -49,10 +53,17 @@ function($, EventList, EventsRepository) {
             return;
         }
 
+        // We treat all of the event lists the same in the courses view so we
+        // can just grab the first element and pull all of the attributes from that.
         var eventList = courseBlocks.find(SELECTORS.EVENT_LIST_CONTAINER).first();
-        var midnight = eventList.attr('data-midnight');
-        var startTime = midnight - (14 * SECONDS_IN_DAY);
-        var limit = eventList.attr('data-limit');
+        var midnight = parseInt(eventList.attr('data-midnight'),10);
+        var daysOffset = parseInt(eventList.attr('data-days-offset'), 10);
+        var daysLimit = eventList.attr('data-days-limit');
+        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+        var endTime = daysLimit != undefined ? midnight + (parseInt(daysLimit, 10) * SECONDS_IN_DAY) : false;
+        // Hard limit all of the course event lists to avoid loading a huge amount
+        // of events.
+        var limit = 10;
         var courseIds = courseBlocks.map(function() {
             return $(this).attr('data-course-id');
         }).get();
@@ -63,7 +74,10 @@ function($, EventList, EventsRepository) {
         var coursesPromise = EventsRepository.queryByCourses({
             courseids: courseIds,
             starttime: startTime,
-            limit: limit
+            endtime: endTime,
+            // Load one more than the limit so that we can determine if there are
+            // any more events to load after this.
+            limit: limit + 1
         });
 
         // Load the events into each course block.
@@ -71,12 +85,12 @@ function($, EventList, EventsRepository) {
             container = $(container);
             var courseId = container.attr('data-course-id');
             var eventListContainer = container.find(EventList.rootSelector);
-            var promise = $.Deferred();
+            var deferred = $.Deferred();
 
             // Once all of the course events have been loaded then we need
             // to extract just the ones relevant to this course block and
             // hand them to the event list to render.
-            coursesPromise.done(function(result) {
+            coursesPromise.then(function(result) {
                 var events = [];
                 // Get this course block's events from the collection returned
                 // from the server.
@@ -88,14 +102,14 @@ function($, EventList, EventsRepository) {
                     events = courseGroup[0].events;
                 }
 
-                promise.resolve({events: events});
-            }).fail(function(e) {
-                promise.reject(e);
+                deferred.resolve({events: events});
+            }).catch(function(e) {
+                deferred.reject(e);
             });
 
             // Provide the event list with a promise that will be resolved
             // when we have received the events from the server.
-            EventList.load(eventListContainer, promise);
+            EventList.init(eventListContainer, limit, { 1: deferred.promise() });
         });
     };
 

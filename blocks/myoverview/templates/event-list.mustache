@@ -24,53 +24,26 @@
     }
 }}
 <div data-region="event-list-container"
-     data-limit="{{$limit}}20{{/limit}}"
+     data-days-offset="{{$daysoffset}}{{#hasdaysoffset}}{{daysoffset}}{{/hasdaysoffset}}{{^hasdaysoffset}}0{{/hasdaysoffset}}{{/daysoffset}}"
+     {{^nodayslimit}}data-days-limit="{{$dayslimit}}{{#hasdayslimit}}{{dayslimit}}{{/hasdayslimit}}{{^hasdayslimit}}30{{/hasdayslimit}}{{/dayslimit}}"{{/nodayslimit}}
      data-course-id="{{$courseid}}{{/courseid}}"
-     data-last-id="{{$lastid}}{{/lastid}}"
      data-midnight="{{midnight}}"
-     id="event-list-container-{{$courseid}}{{/courseid}}">
-
-    <div data-region="event-list-content">
-        {{< block_myoverview/event-list-group }}
-            {{$title}}{{#str}} recentlyoverdue, block_myoverview {{/str}}{{/title}}
-            {{$extratitleclasses}}text-danger{{/extratitleclasses}}
-            {{$startday}}-14{{/startday}}
-            {{$endday}}0{{/endday}}
-        {{/ block_myoverview/event-list-group }}
-        {{< block_myoverview/event-list-group }}
-            {{$title}}{{#str}} today {{/str}}{{/title}}
-            {{$extratitleclasses}}{{/extratitleclasses}}
-            {{$startday}}0{{/startday}}
-            {{$endday}}1{{/endday}}
-        {{/ block_myoverview/event-list-group }}
-        {{< block_myoverview/event-list-group }}
-            {{$title}}{{#str}} next7days, block_myoverview {{/str}}{{/title}}
-            {{$extratitleclasses}}{{/extratitleclasses}}
-            {{$startday}}1{{/startday}}
-            {{$endday}}7{{/endday}}
-        {{/ block_myoverview/event-list-group }}
-        {{< block_myoverview/event-list-group }}
-            {{$title}}{{#str}} next30days, block_myoverview {{/str}}{{/title}}
-            {{$extratitleclasses}}{{/extratitleclasses}}
-            {{$startday}}7{{/startday}}
-            {{$endday}}30{{/endday}}
-        {{/ block_myoverview/event-list-group }}
-        {{< block_myoverview/event-list-group }}
-            {{$title}}{{#str}} future, block_myoverview {{/str}}{{/title}}
-            {{$extratitleclasses}}{{/extratitleclasses}}
-            {{$startday}}30{{/startday}}
-            {{$endday}}{{/endday}}
-        {{/ block_myoverview/event-list-group }}
-
-        <div class="text-xs-center text-center m-y-2">
-            <button type="button" class="btn btn-secondary" data-action="view-more">
-                {{#str}} viewmore {{/str}}
-                <span class="hidden" data-region="loading-icon-container">
-                    {{> core/loading }}
-                </span>
-            </button>
-        </div>
+>
+    <div data-region="event-list-loading-placeholder">
+        <ul class="pl-0">
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+            {{> block_myoverview/placeholder-event-list-item }}
+        </ul>
     </div>
+    <div data-region="event-list-content"></div>
     <div class="hidden text-xs-center text-center m-t-3" data-region="empty-message">
         <img class="empty-placeholder-image-lg"
              src="{{urls.noevents}}"
@@ -79,9 +52,3 @@
         <p class="text-muted m-t-1">{{#str}} noevents, block_myoverview {{/str}}</p>
     </div>
 </div>
-{{#js}}
-require(['jquery', 'block_myoverview/event_list'], function($, EventList) {
-    var root = $("#event-list-container-{{$courseid}}{{/courseid}}");
-    EventList.registerEventListeners(root);
-});
-{{/js}}
