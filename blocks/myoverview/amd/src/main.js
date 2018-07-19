@@ -51,8 +51,8 @@ function(
             var targetTab = $(e.target).attr('data-tabname');
             // Show/hide the relevant nav controls when the user changes tabs
             // between the timeline and courses view.
-            root.find('[data-tab-content]').addClass('d-none');
-            root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none');
+            root.find('[data-tab-content]').addClass('d-none hidden');
+            root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none hidden');
         });
     };
 
