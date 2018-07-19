@@ -23,17 +23,6 @@
     {}
 }}
 <div id="timeline-view-{{uniqid}}" data-region="timeline-view">
-    <div class="row text-center">
-        <div class="btn-group m-b-1" role="group" data-toggle="btns">
-            <a class="btn btn-default active" href="#myoverview_timeline_dates" data-toggle="tab">
-                {{#str}} sortbydates, block_myoverview {{/str}}
-            </a>
-            <a class="btn btn-default" href="#myoverview_timeline_courses" data-toggle="tab">
-                {{#str}} sortbycourses, block_myoverview {{/str}}
-            </a>
-        </div>
-    </div>
-
     <div class="tab-content">
         <div class="tab-pane active fade in" id="myoverview_timeline_dates">
             {{> block_myoverview/timeline-view-dates }}

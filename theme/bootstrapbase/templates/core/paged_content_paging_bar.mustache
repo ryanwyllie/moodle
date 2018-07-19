@@ -90,9 +90,3 @@
         {{/next}}
     </ul>
 </div>
-{{#js}}
-require(['jquery', 'core/paged_content_paging_bar'], function($, PagingControl) {
-    var root = $('#{{$pagingbarid}}paging-bar-{{uniqid}}{{/pagingbarid}}');
-    PagingControl.init(root);
-});
-{{/js}}
