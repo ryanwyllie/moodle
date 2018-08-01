@@ -47,14 +47,3 @@
         </div>
     </div>
 </div>
-{{#js}}
-require(['block_myoverview/main'], function(BlockMyOverviewComponent) {
-    var context = {{{context}}}
-
-    new BlockMyOverviewComponent(
-        document.getElementById('block-myoverview-{{uniqid}}'),
-        'block_myoverview/main',
-        context
-    );
-});
-{{/js}}

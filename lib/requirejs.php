@@ -129,6 +129,7 @@ define('NO_MOODLE_COOKIES', true);
 define('NO_UPGRADE_CHECK', true);
 
 require("$CFG->dirroot/lib/setup.php");
+raise_memory_limit(MEMORY_EXTRA);
 
 if ($lazyload) {
     $jsfiles = core_requirejs::find_one_amd_module($component, $module, false);

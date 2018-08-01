@@ -9,6 +9,11 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_title("Test page");
 $PAGE->set_heading("Test page");
 
+$context = [
+    'title' => 'Test',
+    'items' => [1, 2, 3]
+];
+
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('core/test', []);
+echo $OUTPUT->render_from_template('core/test', $context);
 echo $OUTPUT->footer();

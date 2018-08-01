@@ -1,32 +1,19 @@
-<h2>Stuff</h2>
-<button id="swap" type="button" class="btn btn-primary">Change view</button>
-<hr/>
-<div id="app"></div>
-{{#js}}
-require(['jquery', 'core/mustache_component'], function($, MustacheComponent) {
-    var timeline = true;
-    var context = {
-        viewingtimeline: true,
-        viewingcourses: false
-    };
-
-    var component = new MustacheComponent(
-        document.getElementById('app'),
-        'block_myoverview/main',
-        context
-    );
-    context = component.getTemplateContext();
-
-    $('#swap').on('click', function(e) {
-        timeline = !timeline;
-
-        if (timeline) {
-            context.viewingtimeline = true;
-            context.viewingcourses = false;
-        } else {
-            context.viewingtimeline = false;
-            context.viewingcourses = true;
-        }
-    });
-});
-{{/js}}
+{{#viewstore}}
+    {{#component}}
+        <input
+            type="text"
+            value="{{title}}"
+            onChange="(function(e) {this.props.context.title = e.target.value}.bind(this))"
+        />
+    {{/component}}
+    {{#component}}
+        <h2>{{title}}</h2>
+    {{/component}}
+    {{#component}}
+        <ul>
+            {{#items}}
+                <li>{{.}}</li>
+            {{/items}}
+        </ul>
+    {{/component}}
+{{/viewstore}}
