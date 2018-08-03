@@ -25,13 +25,13 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
-    'block_timeline/timeline_view',
+    'block_timeline/view',
     'block_timeline/event_list',
 ],
 function(
     $,
     CustomEvents,
-    TimelineView,
+    View,
     EventList
 ) {
 
@@ -77,7 +77,7 @@ function(
 
                 // Reset the views to reinitialise the event lists now that we've
                 // updated the day limits.
-                TimelineView.reset(timelineViewRoot);
+                View.reset(timelineViewRoot);
 
                 data.originalEvent.preventDefault();
             }
@@ -94,11 +94,11 @@ function(
      * @param {object} root The root element for the overview block
      * @param {object} timelineViewRoot The root element for the timeline view
      */
-    var registerTimelineViewSelector = function(root, timelineViewRoot) {
+    var registerViewSelector = function(root, timelineViewRoot) {
         // Listen for when the user changes tab so that we can show the first set of courses
         // and load their events when they request the sort by courses view for the first time.
         root.find(SELECTORS.TIMELINE_VIEW_SELECTOR).on('shown shown.bs.tab', function(e) {
-            TimelineView.shown(timelineViewRoot);
+            View.shown(timelineViewRoot);
         });
     };
 
@@ -112,7 +112,7 @@ function(
     var init = function(root, timelineViewRoot) {
         root = $(root);
         registerTimelineDaySelector(root, timelineViewRoot);
-        registerTimelineViewSelector(root, timelineViewRoot);
+        registerViewSelector(root, timelineViewRoot);
     };
 
     return {

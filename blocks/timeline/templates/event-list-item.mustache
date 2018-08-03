@@ -41,36 +41,17 @@
         }
     }
 }}
-<li class="list-group-item event-list-item" data-region="event-list-item">
-    <div class="row">
-        <div class="col-sm-8 col-lg-6 col-xl-7">
-            <div class="d-inline-block icon-large event-icon">
-                {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
-            </div>
-            <div class="d-inline-block event-name-container">
-                <a class="event-name text-truncate" href="{{{url}}}">{{{name}}}</a>
-                <p class="small text-muted text-truncate m-b-0">{{{course.fullnamedisplay}}}</p>
-            </div>
+<li class="list-group-item pl-0 pr-0" data-region="event-list-item">
+    <div class="d-flex">
+        <div class="icon-large">
+            {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
         </div>
-        <div class="col-sm-4 col-lg-6 col-xl-5">
-            <div class="row">
-                <div class="col-lg-5 text-xs-right text-lg-left text-truncate">
-                    {{#userdate}} {{timesort}}, {{#str}} strftimerecent {{/str}} {{/userdate}}
-                </div>
-                <div class="hidden-md-down d-none d-md-block col-lg-7 text-truncate">
-                    {{#action.actionable}}
-                        <a href="{{{action.url}}}">{{action.name}}</a>
-                        {{#action.itemcount}}
-                            {{#action.showitemcount}}
-                                <span class="tag tag-pill tag-default">{{.}}</span>
-                            {{/action.showitemcount}}
-                        {{/action.itemcount}}
-                    {{/action.actionable}}
-                    {{^action.actionable}}
-                        <div class="text-muted">{{action.name}}</div>
-                    {{/action.actionable}}
-                </div>
-            </div>
+        <div class="flex-grow-1 event-name-container text-truncate">
+            <a class="event-name text-truncate" href="{{{url}}}">{{{name}}}</a>
+            <p class="small text-muted text-truncate m-b-0">{{{course.fullnamedisplay}}}</p>
+        </div>
+        <div>
+            {{#userdate}} {{timesort}}, {{#str}} strftimerecent {{/str}} {{/userdate}}
         </div>
     </div>
 </li>

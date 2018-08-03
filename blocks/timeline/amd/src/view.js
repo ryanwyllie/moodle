@@ -24,18 +24,18 @@
 define(
 [
     'jquery',
-    'block_timeline/timeline_view_dates',
-    'block_timeline/timeline_view_courses',
+    'block_timeline/view_dates',
+    'block_timeline/view_courses',
 ],
 function(
     $,
-    TimelineViewDates,
-    TimelineViewCourses,
+    ViewDates,
+    ViewCourses,
 ) {
 
     var SELECTORS = {
-        TIMELINE_DATES_VIEW: '#myoverview_timeline_dates',
-        TIMELINE_COURSES_VIEW: '#myoverview_timeline_courses',
+        TIMELINE_DATES_VIEW: '#mytimeline_timeline_dates',
+        TIMELINE_COURSES_VIEW: '#mytimeline_timeline_dates',
     };
 
     /**
@@ -50,8 +50,8 @@ function(
         var datesViewRoot = root.find(SELECTORS.TIMELINE_DATES_VIEW);
         var coursesViewRoot = root.find(SELECTORS.TIMELINE_COURSES_VIEW);
 
-        TimelineViewDates.init(datesViewRoot);
-        TimelineViewCourses.init(coursesViewRoot);
+        ViewDates.init(datesViewRoot);
+        ViewCourses.init(coursesViewRoot);
     };
 
     /**
@@ -66,8 +66,8 @@ function(
     var reset = function(root) {
         var datesViewRoot = root.find(SELECTORS.TIMELINE_DATES_VIEW);
         var coursesViewRoot = root.find(SELECTORS.TIMELINE_COURSES_VIEW);
-        TimelineViewDates.reset(datesViewRoot);
-        TimelineViewCourses.reset(coursesViewRoot);
+        ViewDates.reset(datesViewRoot);
+        ViewCourses.reset(coursesViewRoot);
     };
 
     /**
@@ -83,9 +83,9 @@ function(
         var coursesViewRoot = root.find(SELECTORS.TIMELINE_COURSES_VIEW);
 
         if (datesViewRoot.hasClass('active')) {
-            TimelineViewDates.shown(datesViewRoot);
+            ViewDates.shown(datesViewRoot);
         } else {
-            TimelineViewCourses.shown(coursesViewRoot);
+            ViewCourses.shown(coursesViewRoot);
         }
     };
 

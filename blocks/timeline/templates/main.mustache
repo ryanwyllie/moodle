@@ -17,34 +17,25 @@
 {{!
     @template block_timeline/main
 
-    This template renders the main content area for the myoverview block.
+    This template renders the main content area for the timeline block.
 
     Example context (json):
     {}
 }}
 
-<div id="block-timeline-{{uniqid}}" class="block-myoverview" data-region="myoverview">
+<div id="block-timeline-{{uniqid}}" class="block-timeline" data-region="timeline">
     <div class="container p-0 m-b-1">
         <div class="row no-gutters">
             <div class="col-sm d-flex justify-content-start">
-                <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    {{> block_timeline/timeline-view-nav-day-filter }}
-                </div>
-            </div>
-            <div class="col-sm d-flex justify-content-center">
-                
+                {{> block_timeline/timeline-view-nav-day-filter }}
             </div>
             <div class="col-sm d-flex justify-content-end">
-                <div class="{{#viewingcourses}}d-none{{/viewingcourses}}" data-tab-content="timeline">
-                    {{> block_timeline/timeline-view-nav-view-selector }}
-                </div>
+                {{> block_timeline/timeline-view-nav-view-selector }}
             </div>
         </div>
     </div>
-    <div class="tab-content container p-0">
-        <div role="tabpanel" class="tab-pane fade in active" id="mytimeline_timeline_view">
-            {{> block_timeline/timeline-view }}
-        </div>
+    <div class="container p-0">
+        {{> block_timeline/timeline-view }}
     </div>
 </div>
 {{#js}}

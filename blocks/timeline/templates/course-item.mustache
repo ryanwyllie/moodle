@@ -27,16 +27,16 @@
     }
 }}
 <li class="list-group-item m-y-1">
-<div data-region="course-events-container" id="course-events-container-{{id}}" data-course-id="{{id}}">
-    <div class="row">
-        <div class="col-lg-3">
-            {{> block_timeline/course-summary }}
-        </div>
-        <div class="col-lg-9">
-            {{< block_timeline/event-list }}
-                {{$courseid}}{{id}}{{/courseid}}
-            {{/ block_timeline/event-list }}
+    <div data-region="course-events-container" id="course-events-container-{{id}}" data-course-id="{{id}}">
+        <div class="row">
+            <div class="col-lg-3">
+                {{> block_timeline/course-summary }}
+            </div>
+            <div class="col-lg-9">
+                {{< block_timeline/event-list }}
+                    {{$courseid}}{{id}}{{/courseid}}
+                {{/ block_timeline/event-list }}
+            </div>
         </div>
     </div>
-</div>
 </li>

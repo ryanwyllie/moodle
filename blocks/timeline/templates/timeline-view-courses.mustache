@@ -22,40 +22,19 @@
     Example context (json):
     {}
 }}
-{{#coursesview}}
-    {{#inprogress}}
-        {{#haspages}}
-            {{#pages}}
-                <ul class="list-group unstyled {{^pages.0}}hidden{{/pages.0}}" data-region="course-block">
-                    {{#courses}} {{> block_timeline/course-item }} {{/courses}}
-                </ul>
-            {{/pages}}
-            <div class="text-xs-center text-center m-t-1">
-                <button type="button" class="btn btn-secondary" data-action="more-courses">
-                    {{#str}} morecourses, block_timeline {{/str}}
-                    <span class="hidden" data-region="loading-icon-container">
-                        {{> core/loading }}
-                    </span>
-                </button>
-            </div>
-        {{/haspages}}
-        {{^haspages}}
-            <div class="text-xs-center text-center m-t-3">
-                <img class="empty-placeholder-image-lg"
-                        src="{{urls.noevents}}"
-                        alt="{{#str}} nocoursesinprogress, block_timeline {{/str}}"
-                        role="presentation">
-                <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_timeline {{/str}}</p>
-            </div>
-        {{/haspages}}
-    {{/inprogress}}
-    {{^inprogress}}
-        <div class="text-xs-center text-center m-t-3">
-            <img class="empty-placeholder-image-lg"
-                    src="{{urls.noevents}}"
-                    alt="{{#str}} nocoursesinprogress, block_timeline {{/str}}"
-                    role="presentation">
-            <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_timeline {{/str}}</p>
-        </div>
-    {{/inprogress}}
-{{/coursesview}}
+{{#coursepages}}
+    {{#.}}
+        <ul class="list-group unstyled {{^.0}}hidden{{/.0}}" data-region="course-block">
+            {{#.}} {{> block_timeline/course-item }} {{/.}}
+        </ul>
+    {{/.}}
+{{/coursepages}}
+{{^coursepages}}
+    <div class="text-xs-center text-center m-t-3">
+        <img class="empty-placeholder-image-lg"
+                src="{{urls.noevents}}"
+                alt="{{#str}} nocoursesinprogress, block_timeline {{/str}}"
+                role="presentation">
+        <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_timeline {{/str}}</p>
+    </div>
+{{/coursepages}}

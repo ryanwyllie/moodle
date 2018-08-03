@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript to initialise the myoverview block.
+ * Javascript to initialise the timeline block.
  *
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -23,37 +23,18 @@
 define(
 [
     'jquery',
-    'block_timeline/tab_preferences',
-    'block_timeline/timeline_view_nav',
-    'block_timeline/timeline_view'
+    'block_timeline/view_nav',
+    'block_timeline/view'
 ],
 function(
     $,
-    TabPreferences,
-    TimelineViewNav,
-    TimelineView
+    ViewNav,
+    View
 ) {
 
     var SELECTORS = {
-        VIEW_CHOICES: '[data-region="block-myoverview-view-choices"]',
+        VIEW_CHOICES: '[data-region="block-timeline-view-choices"]',
         TIMELINE_VIEW: '[data-region="timeline-view"]'
-    };
-
-    /**
-     * Listen for tab changes between the timeline and courses tab and show
-     * the relevant nav controls at the top of the block.
-     * 
-     * @param {object} root The root element for the overview block.
-     * @param {object} tabChoiceRoot Root element for the tab elements.
-     */
-    var registerTabChangeListener = function(root, tabChoiceRoot) {  
-        tabChoiceRoot.on('shown.bs.tab', function(e) {
-            var targetTab = $(e.target).attr('data-tabname');
-            // Show/hide the relevant nav controls when the user changes tabs
-            // between the timeline and courses view.
-            root.find('[data-tab-content]').addClass('d-none hidden');
-            root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none hidden');
-        });
     };
 
     /**
@@ -63,17 +44,12 @@ function(
      */
     var init = function(root) {
         root = $(root);
-        var tabChoiceRoot = root.find(SELECTORS.VIEW_CHOICES);
-        var timelineViewRoot = root.find(SELECTORS.TIMELINE_VIEW);
+        var viewRoot = root.find(SELECTORS.TIMELINE_VIEW);
 
-        // Remember the user's tab selection (timeline / courses).
-        TabPreferences.registerEventListeners(tabChoiceRoot);
         // Initialise the timeline navigation elements.
-        TimelineViewNav.init(root, timelineViewRoot);
+        ViewNav.init(root, viewRoot);
         // Initialise the timeline view modules.
-        TimelineView.init(timelineViewRoot);
-        // Handle changes between the timeline / courses tabs.
-        registerTabChangeListener(root, tabChoiceRoot);
+        View.init(viewRoot);
     };
 
     return {

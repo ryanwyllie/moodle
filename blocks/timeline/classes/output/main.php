@@ -27,8 +27,9 @@ defined('MOODLE_INTERNAL') || die();
 use renderable;
 use renderer_base;
 use templatable;
-use core_completion\progress;
+use core_course\external\course_summary_exporter;
 
+require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
 /**
@@ -38,20 +39,6 @@ require_once($CFG->libdir . '/completionlib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class main implements renderable, templatable {
-
-    /**
-     * @var string The tab to display.
-     */
-    public $tab;
-
-    /**
-     * Constructor.
-     *
-     * @param string $tab The tab to display.
-     */
-    public function __construct() {
-    }
-
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
@@ -61,40 +48,30 @@ class main implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $USER;
 
-        $courses = enrol_get_my_courses('*');
-        $coursesprogress = [];
-
-        foreach ($courses as $course) {
-
-            $completion = new \completion_info($course);
-
-            // First, let's make sure completion is enabled.
-            if (!$completion->is_enabled()) {
-                continue;
-            }
-
-            $percentage = progress::get_course_progress_percentage($course);
-            if (!is_null($percentage)) {
-                $percentage = floor($percentage);
-            }
-
-            $coursesprogress[$course->id]['completed'] = $completion->is_course_complete($USER->id);
-            $coursesprogress[$course->id]['progress'] = $percentage;
-        }
-
-        $coursesview = new courses_view($courses, $coursesprogress);
+        $courses = array_values(enrol_get_my_courses('*'));
         $nocoursesurl = $output->image_url('courses', 'block_myoverview')->out();
         $noeventsurl = $output->image_url('activities', 'block_myoverview')->out();
 
+        $inprogresscourses = array_filter($courses, function($course) {
+            return \course_classify_for_timeline($course) === COURSE_TIMELINE_INPROGRESS;
+        });
+        $formattedcourses = array_map(function($course) use ($output) {
+            $context = \context_course::instance($course->id);
+            $exporter = new course_summary_exporter($course, [
+                'context' => $context
+            ]);
+            
+            return $exporter->export($output);
+        }, $inprogresscourses);
+        $coursepages = array_chunk($formattedcourses, 6);
+
         return [
             'midnight' => usergetmidnight(time()),
-            'coursesview' => $coursesview->export_for_template($output),
+            'coursepages' => $coursepages,
             'urls' => [
                 'nocourses' => $nocoursesurl,
                 'noevents' => $noeventsurl
-            ],
-            'viewingtimeline' => $viewingtimeline,
-            'viewingcourses' => $viewingcourses
+            ]
         ];
     }
 }
