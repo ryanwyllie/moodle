@@ -21,40 +21,8 @@
  */
 
 define(
-[
-    'jquery',
-    'block_myoverview/tab_preferences',
-    'block_myoverview/timeline_view_nav',
-    'block_myoverview/timeline_view'
-],
-function(
-    $,
-    TabPreferences,
-    TimelineViewNav,
-    TimelineView
-) {
-
-    var SELECTORS = {
-        VIEW_CHOICES: '[data-region="block-myoverview-view-choices"]',
-        TIMELINE_VIEW: '[data-region="timeline-view"]'
-    };
-
-    /**
-     * Listen for tab changes between the timeline and courses tab and show
-     * the relevant nav controls at the top of the block.
-     * 
-     * @param {object} root The root element for the overview block.
-     * @param {object} tabChoiceRoot Root element for the tab elements.
-     */
-    var registerTabChangeListener = function(root, tabChoiceRoot) {  
-        tabChoiceRoot.on('shown.bs.tab', function(e) {
-            var targetTab = $(e.target).attr('data-tabname');
-            // Show/hide the relevant nav controls when the user changes tabs
-            // between the timeline and courses view.
-            root.find('[data-tab-content]').addClass('d-none hidden');
-            root.find('[data-tab-content="' + targetTab + '"]').removeClass('d-none hidden');
-        });
-    };
+['jquery'],
+function($) {
 
     /**
      * Initialise all of the modules for the overview block.
@@ -62,18 +30,6 @@ function(
      * @param {object} root The root element for the overview block.
      */
     var init = function(root) {
-        root = $(root);
-        var tabChoiceRoot = root.find(SELECTORS.VIEW_CHOICES);
-        var timelineViewRoot = root.find(SELECTORS.TIMELINE_VIEW);
-
-        // Remember the user's tab selection (timeline / courses).
-        TabPreferences.registerEventListeners(tabChoiceRoot);
-        // Initialise the timeline navigation elements.
-        TimelineViewNav.init(root, timelineViewRoot);
-        // Initialise the timeline view modules.
-        TimelineView.init(timelineViewRoot);
-        // Handle changes between the timeline / courses tabs.
-        registerTabChangeListener(root, tabChoiceRoot);
     };
 
     return {
