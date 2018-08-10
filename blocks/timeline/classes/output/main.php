@@ -39,6 +39,9 @@ require_once($CFG->libdir . '/completionlib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class main implements renderable, templatable {
+
+    const COURSES_PER_PAGE = 2;
+
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
@@ -63,7 +66,7 @@ class main implements renderable, templatable {
             
             return $exporter->export($output);
         }, $inprogresscourses);
-        $coursepages = array_chunk($formattedcourses, 6);
+        $coursepages = array_chunk($formattedcourses, self::COURSES_PER_PAGE);
 
         return [
             'midnight' => usergetmidnight(time()),

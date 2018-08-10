@@ -26,17 +26,11 @@
         "summary": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
     }
 }}
-<li class="list-group-item m-y-1">
+<li class="list-group-item mt-3 p-0 border-0">
     <div data-region="course-events-container" id="course-events-container-{{id}}" data-course-id="{{id}}">
-        <div class="row">
-            <div class="col-lg-3">
-                {{> block_timeline/course-summary }}
-            </div>
-            <div class="col-lg-9">
-                {{< block_timeline/event-list }}
-                    {{$courseid}}{{id}}{{/courseid}}
-                {{/ block_timeline/event-list }}
-            </div>
-        </div>
+        <h4 class="h5"><a href="{{viewurl}}">{{{fullnamedisplay}}}</a></h4>
+        {{< block_timeline/event-list }}
+            {{$courseid}}{{id}}{{/courseid}}
+        {{/ block_timeline/event-list }}
     </div>
 </li>

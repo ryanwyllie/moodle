@@ -15,9 +15,10 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/event-list-items
+    @template block_timeline/course-event-list-items
 
-    This template renders a group of event list items for the myoverview block.
+    This template renders a group of event list items for the myoverview block
+    sort by courses view.
 
     Example context (json):
     {
@@ -26,9 +27,6 @@
                 "name": "Assignment due 1",
                 "url": "https://www.google.com",
                 "timesort": 1490320388,
-                "course": {
-                    "fullnamedisplay": "Course 1"
-                },
                 "action": {
                     "name": "Submit assignment",
                     "url": "https://www.google.com",
@@ -45,9 +43,6 @@
                 "name": "Assignment due 2",
                 "url": "https://www.google.com",
                 "timesort": 1490320388,
-                "course": {
-                    "fullnamedisplay": "Course 1"
-                },
                 "action": {
                     "name": "Submit assignment",
                     "url": "https://www.google.com",
@@ -63,8 +58,6 @@
         ]
     }
 }}
-<div class="pl-0 list-group list-group-flush">
 {{#events}}
-    {{> block_timeline/event-list-item }}
+    {{> block_timeline/course-event-list-item }}
 {{/events}}
-</div>

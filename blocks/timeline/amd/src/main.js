@@ -33,7 +33,6 @@ function(
 ) {
 
     var SELECTORS = {
-        VIEW_CHOICES: '[data-region="block-timeline-view-choices"]',
         TIMELINE_VIEW: '[data-region="timeline-view"]'
     };
 

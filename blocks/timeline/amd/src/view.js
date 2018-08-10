@@ -34,8 +34,8 @@ function(
 ) {
 
     var SELECTORS = {
-        TIMELINE_DATES_VIEW: '#mytimeline_timeline_dates',
-        TIMELINE_COURSES_VIEW: '#mytimeline_timeline_dates',
+        TIMELINE_DATES_VIEW: '[data-region="view-dates"]',
+        TIMELINE_COURSES_VIEW: '[data-region="view-courses"]',
     };
 
     /**

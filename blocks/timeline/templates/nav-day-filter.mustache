@@ -15,14 +15,14 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/timeline-view-nav-day-filter
+    @template block_timeline/nav-day-filter
 
     This template renders the day range selector for the timeline view.
 
     Example context (json):
     {}
 }}
-<div data-region="timeline-day-filter" class="dropdown">
+<div data-region="day-filter" class="dropdown">
     <button type="button" class="btn btn-outline-secondary dropdown-toggle icon-no-margin" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         {{#pix}} i/duration {{/pix}} <span data-active-item-text class="sr-only">{{#str}} next30days, block_timeline {{/str}}</span>
     </button>

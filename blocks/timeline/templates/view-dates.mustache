@@ -15,20 +15,13 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/timeline-view
+    @template block_timeline/view-dates
 
-    This template renders the timeline view for the myoverview block.
+    This template renders the timeline view by dates for the myoverview block.
 
     Example context (json):
     {}
 }}
-<div data-region="timeline-view">
-    <div class="tab-content">
-        <div class="tab-pane active fade show" id="mytimeline_timeline_dates">
-            {{> block_timeline/timeline-view-dates }}
-        </div>
-        <div class="tab-pane fade" id="mytimeline_timeline_courses">
-            {{> block_timeline/timeline-view-courses }}
-        </div>
-    </div>
+<div data-region="timeline-view-dates">
+    {{> block_timeline/event-list }}
 </div>

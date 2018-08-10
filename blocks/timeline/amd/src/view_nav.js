@@ -36,9 +36,9 @@ function(
 ) {
 
     var SELECTORS = {
-        TIMELINE_DAY_FILTER: '[data-region="timeline-day-filter"]',
+        TIMELINE_DAY_FILTER: '[data-region="day-filter"]',
         TIMELINE_DAY_FILTER_OPTION: '[data-from]',
-        TIMELINE_VIEW_SELECTOR: '[data-region="timeline-view-selector"]'
+        TIMELINE_VIEW_SELECTOR: '[data-region="view-selector"]'
     };
 
     /**

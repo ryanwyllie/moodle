@@ -48,7 +48,7 @@ function(
     };
 
     var TEMPLATES = {
-        EVENT_LIST_ITEMS: 'block_timeline/event-list-items',
+        EVENT_LIST_CONTENT: 'block_timeline/event-list-content',
         COURSE_EVENT_LIST_ITEMS: 'block_timeline/course-event-list-items'
     };
 
@@ -79,21 +79,84 @@ function(
         root.find(SELECTORS.EMPTY_MESSAGE).addClass('hidden');
     };
 
+    var getDayTimestamp = function(timestamp, midnight) {
+        // The timestamp is in seconds but we need milliseconds.
+        var diffSeconds = Math.abs(timestamp - midnight);
+        var diffDays = Math.floor(diffSeconds / SECONDS_IN_DAY);
+        var diffDaysInSeconds = diffDays * SECONDS_IN_DAY;
+        // Is the timestamp in the future or past?
+        return timestamp > midnight ? midnight + diffDaysInSeconds : midnight - diffDaysInSeconds;
+    };
+
+    /**
+     * Construct the template context from a list of calendar events. The events
+     * are grouped by which day they are on. The day is calculated from the user's
+     * midnight timestamp to ensure that the calculation is timezone agnostic.
+     * 
+     * The return data structure will look like:
+     * {
+     *      eventsbyday: [
+     *          {
+     *              dayTimestamp: 1533744000,
+     *              events: [
+     *                  { ...event 1 data... },
+     *                  { ...event 2 data... }
+     *              ]
+     *          },
+     *          {
+     *              dayTimestamp: 1533830400,
+     *              events: [
+     *                  { ...event 3 data... },
+     *                  { ...event 4 data... }
+     *              ]
+     *          }
+     *      ]
+     * }
+     * 
+     * Each day timestamp is the day's midnight in the user's timezone.
+     * 
+     * @param {array} calendarEvents List of calendar events
+     * @param {int} midnight A timestamp representing midnight in the user's timezone
+     * @return {object}
+     */
+    var buildTemplateContext = function(calendarEvents, midnight) {
+        var eventsByDay = {};
+        var templateContext = {
+            eventsbyday: []
+        };
+
+        calendarEvents.forEach(function(calendarEvent) {
+            var dayTimestamp = getDayTimestamp(calendarEvent.timesort, midnight);
+            if (eventsByDay[dayTimestamp]) {
+                eventsByDay[dayTimestamp].push(calendarEvent);
+            } else {
+                eventsByDay[dayTimestamp] = [calendarEvent];
+            }
+        });
+
+        Object.keys(eventsByDay).forEach(function(dayTimestamp) {
+            var events = eventsByDay[dayTimestamp];
+            templateContext.eventsbyday.push({
+                dayTimestamp: dayTimestamp,
+                events: events
+            });
+        });
+
+        return templateContext;
+    };
+
     /**
      * Render the HTML for the given calendar events.
      *
-     * @param {int|undefined} courseId Course ID to restrict events to
-     * @param {array}   calendarEvents  A list of calendar events
+     * @param {array} calendarEvents  A list of calendar events
+     * @param {int} midnight A timestamp representing midnight for the user
      * @return {promise} Resolved with HTML and JS strings.
      */
-    var render = function(courseId, calendarEvents) {
-        var templateName = TEMPLATES.EVENT_LIST_ITEMS;
+    var render = function(calendarEvents, midnight) {
+        var templateContext = buildTemplateContext(calendarEvents, midnight);
+        var templateName = TEMPLATES.EVENT_LIST_CONTENT;
 
-        if (courseId) {
-            templateName = TEMPLATES.COURSE_EVENT_LIST_ITEMS;
-        }
-
-        return Templates.render(templateName, { events: calendarEvents });
+        return Templates.render(templateName, templateContext);
     };
 
     /**
@@ -271,7 +334,7 @@ function(
                             // Record the id that the next page will need to start from.
                             lastIds[pageNumber + 1] = lastEventId;
                             // Get the HTML and JS for these calendar events.
-                            return render(courseId, calendarEvents);
+                            return render(calendarEvents, midnight);
                         } else {
                             return;
                         }

@@ -41,17 +41,17 @@
         }
     }
 }}
-<a class="list-group-item list-group-item-action flex-column pl-0 pr-0" href="{{{action.url}}}" data-region="event-list-item">
+<a class="list-group-item list-group-item-action flex-column py-2 pl-0 pr-0 border-0" href="{{{action.url}}}" data-region="event-list-item">
     <div class="d-flex">
-        <div class="icon-large d-flex align-self-center">
+        <div class="icon-size-4 d-flex align-self-center">
             {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
         </div>
-        <div class="flex-grow-1 event-name-container text-truncate">
+        <div class="w-100 event-name-container text-truncate line-height-3">
             <h6 class="event-name text-truncate mb-0">{{{name}}}</h6>
             <small class="text-muted text-truncate m-b-0">{{{course.fullnamedisplay}}}</small>
         </div>
         <small class="text-right text-nowrap ml-1">
-            {{#userdate}} {{timesort}}, {{#str}} strftimerecent {{/str}} {{/userdate}}
+            {{#userdate}} {{timesort}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
         </small>
     </div>
 </a>

@@ -42,7 +42,7 @@ function(
      */
     var load = function(root) {
         var eventListContainer = root.find(SELECTORS.EVENT_LIST_CONTAINER);
-        EventList.init(eventListContainer, [10, 20, 40]);
+        EventList.init(eventListContainer, [5, 10, 25, 50]);
     };
 
     /**

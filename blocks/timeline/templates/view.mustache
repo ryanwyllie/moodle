@@ -15,26 +15,20 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/timeline-view-courses
+    @template block_timeline/view
 
-    This template renders the timeline view by courses for the myoverview block.
+    This template renders the timeline view for the myoverview block.
 
     Example context (json):
     {}
 }}
-{{#coursepages}}
-    {{#.}}
-        <ul class="list-group unstyled {{^.0}}hidden{{/.0}}" data-region="course-block">
-            {{#.}} {{> block_timeline/course-item }} {{/.}}
-        </ul>
-    {{/.}}
-{{/coursepages}}
-{{^coursepages}}
-    <div class="text-xs-center text-center m-t-3">
-        <img class="empty-placeholder-image-lg"
-                src="{{urls.noevents}}"
-                alt="{{#str}} nocoursesinprogress, block_timeline {{/str}}"
-                role="presentation">
-        <p class="text-muted m-t-1">{{#str}} nocoursesinprogress, block_timeline {{/str}}</p>
+<div data-region="timeline-view">
+    <div class="tab-content">
+        <div class="tab-pane active fade show" data-region="view-dates" id="view_dates_{{uniqid}}">
+            {{> block_timeline/view-dates }}
+        </div>
+        <div class="tab-pane fade" data-region="view-courses" id="view_courses_{{uniqid}}">
+            {{> block_timeline/view-courses }}
+        </div>
     </div>
-{{/coursepages}}
+</div>

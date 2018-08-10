@@ -15,22 +15,22 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/timeline-view-nav-day-selector
+    @template block_timeline/nav-view-selector
 
     This template renders the timeline sort selector.
 
     Example context (json):
     {}
 }}
-<div data-region="timeline-view-selector" class="btn-group">
+<div data-region="view-selector" class="btn-group">
     <button type="button" class="btn btn-outline-secondary dropdown-toggle icon-no-margin" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         {{#pix}} i/filter {{/pix}} <span class="sr-only">{{#str}} sort, core {{/str}}</span>
     </button>
-    <div class="dropdown-menu list-group hidden">
-        <a class="dropdown-item active" href="#mytimeline_timeline_dates" data-toggle="tab">
+    <div class="dropdown-menu dropdown-menu-right list-group hidden">
+        <a class="dropdown-item active" href="#view_dates_{{uniqid}}" data-toggle="tab">
             {{#str}} sortbydates, block_timeline {{/str}}
         </a>
-        <a class="dropdown-item" href="#mytimeline_timeline_courses" data-toggle="tab">
+        <a class="dropdown-item" href="#view_courses_{{uniqid}}" data-toggle="tab">
             {{#str}} sortbycourses, block_timeline {{/str}}
         </a>
     </div>
