@@ -103,4 +103,5 @@ body {
 // for an outline button. 
 .btn-outline-secondary {
     @include button-outline-variant($gray-600);
+    border-color: $border-color;
 }
