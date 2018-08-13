@@ -4205,6 +4205,7 @@ function course_filter_courses_by_timeline_classification(
     return [$filteredcourses, $numberofcoursesprocessed];
 }
 
+
 /**
  * Check module updates since a given time.
  * This function checks for updates in the module config, file areas, completion, grades, comments and ratings.
