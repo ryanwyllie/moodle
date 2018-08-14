@@ -4137,9 +4137,7 @@ function course_get_enrolled_courses_for_logged_in_user(
     $querylimit = (!$haslimit || $limit > $dbquerylimit) ? $dbquerylimit : $limit;
 
     while ($courses = enrol_get_my_courses($fields, $sort, $querylimit, [], false, $offset)) {
-        foreach ($courses as $course) {
-            yield $course;
-        }
+        yield from $courses;
 
         $recordsloaded += $querylimit;
 

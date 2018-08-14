@@ -4384,7 +4384,7 @@ class core_course_courselib_testcase extends advanced_testcase {
         // number of DB queries.
         $actualresult = array_map(function($course) {
            return $course->shortname; 
-        }, iterator_to_array($courses));
+        }, iterator_to_array($courses, false));
 
         sort($expectedresult);
 
