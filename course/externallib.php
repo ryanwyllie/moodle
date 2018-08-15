@@ -3592,7 +3592,7 @@ class core_course_external extends external_api {
         int $offset = 0,
         string $sort = null
     ) {
-        global $CFG, $PAGE;
+        global $CFG, $PAGE, $USER;
         require_once($CFG->dirroot . '/course/lib.php');
 
         $params = self::validate_parameters(self::get_enrolled_courses_by_timeline_classification_parameters(),
@@ -3619,6 +3619,8 @@ class core_course_external extends external_api {
             default:
                 throw new invalid_parameter_exception('Invalid classification');
         }
+
+        self::validate_context(context_user::instance($USER->id));
 
         $requiredproperties = course_summary_exporter::define_properties();
         $fields = join(',', array_keys($requiredproperties));
