@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_timeline/course-item
+    @template block_timeline/course-item-loading-placeholder
 
     This template renders the each course block containing a summary and calendar events.
 
@@ -27,10 +27,18 @@
     }
 }}
 <li class="list-group-item mt-3 p-0 border-0">
-    <div data-region="course-events-container" id="course-events-container-{{id}}" data-course-id="{{id}}">
-        <h4 class="h5"><a href="{{viewurl}}">{{{fullnamedisplay}}}</a></h4>
-        {{< block_timeline/event-list }}
-            {{$courseid}}{{id}}{{/courseid}}
-        {{/ block_timeline/event-list }}
+    <div class="w-50 bg-pulse-grey mb-2" style="height: 20px"></div>
+    <div>
+        <ul class="pl-0 list-group list-group-flush">
+            {{> block_timeline/placeholder-event-list-item }}
+            {{> block_timeline/placeholder-event-list-item }}
+            {{> block_timeline/placeholder-event-list-item }}
+            {{> block_timeline/placeholder-event-list-item }}
+            {{> block_timeline/placeholder-event-list-item }}
+        </ul>
+        <div class="pt-3 d-flex justify-content-between">
+            <div class="w-25 bg-pulse-grey" style="height: 35px"></div>
+            <div class="w-25 bg-pulse-grey" style="height: 35px"></div>
+        </div>
     </div>
 </li>

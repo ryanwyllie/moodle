@@ -25,20 +25,20 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
-    'block_timeline/view',
-    'block_timeline/event_list',
+    'block_timeline/view'
 ],
 function(
     $,
     CustomEvents,
-    View,
-    EventList
+    View
 ) {
 
     var SELECTORS = {
         TIMELINE_DAY_FILTER: '[data-region="day-filter"]',
         TIMELINE_DAY_FILTER_OPTION: '[data-from]',
-        TIMELINE_VIEW_SELECTOR: '[data-region="view-selector"]'
+        TIMELINE_VIEW_SELECTOR: '[data-region="view-selector"]',
+        DATA_DAYS_OFFSET: '[data-days-offset]',
+        DATA_DAYS_LIMIT: '[data-days-limit]',
     };
 
     /**
@@ -65,14 +65,15 @@ function(
 
                 var daysOffset = option.attr('data-from');
                 var daysLimit = option.attr('data-to');
-                var listContainers = root.find(EventList.rootSelector);
+                var elementsWithDaysOffset = root.find(SELECTORS.DATA_DAYS_OFFSET);
+                var elementsWithDaysLimit = root.find(SELECTORS.DATA_DAYS_LIMIT);
 
-                // Update the event lists to have the new day range values.
-                listContainers.attr('data-days-offset', daysOffset);
+                elementsWithDaysOffset.attr('data-days-offset', daysOffset);
+
                 if (daysLimit != undefined) {
-                    listContainers.attr('data-days-limit', daysLimit);
+                    elementsWithDaysLimit.attr('data-days-limit', daysLimit);
                 } else {
-                    listContainers.removeAttr('data-days-limit');
+                    elementsWithDaysLimit.removeAttr('data-days-limit');
                 }
 
                 // Reset the views to reinitialise the event lists now that we've

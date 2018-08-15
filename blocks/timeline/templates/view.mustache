@@ -27,7 +27,17 @@
         <div class="tab-pane active fade show" data-region="view-dates" id="view_dates_{{uniqid}}">
             {{> block_timeline/view-dates }}
         </div>
-        <div class="tab-pane fade" data-region="view-courses" id="view_courses_{{uniqid}}">
+        <div 
+            class="tab-pane fade"
+            data-region="view-courses"
+            data-midnight="{{midnight}}"
+            data-limit="2"
+            data-offset="0"
+            data-days-limit="30"
+            data-days-offset="0"
+            data-no-events-url="{{urls.noevents}}"
+            id="view_courses_{{uniqid}}"
+        >
             {{> block_timeline/view-courses }}
         </div>
     </div>
