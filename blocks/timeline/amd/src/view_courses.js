@@ -55,6 +55,7 @@ function(
 
     var COURSE_CLASSIFICATION = 'inprogress';
     var COURSE_EVENT_LIMIT = 5;
+    var COURSE_LIMIT = 2;
     var SECONDS_IN_DAY = 60 * 60 * 24;
 
     /**
@@ -77,50 +78,79 @@ function(
         });
     };
 
+    /**
+     * Hide the loading placeholder elements.
+     * 
+     * @param {object} root The rool element.
+     */
     var hideLoadingPlaceholder = function(root) {
         root.find(SELECTORS.COURSE_ITEMS_LOADING_PLACEHOLDER).addClass('hidden');
     };
 
+    /**
+     * Hide the "more courses" button.
+     * 
+     * @param {object} root The rool element.
+     */
     var hideMoreCoursesButton = function(root) {
         root.find(SELECTORS.MORE_COURSES_BUTTON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Show the "more courses" button.
+     * 
+     * @param {object} root The rool element.
+     */
     var showMoreCoursesButton = function(root) {
         root.find(SELECTORS.MORE_COURSES_BUTTON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Display the message for when there are no courses available.
+     * 
+     * 
+     */
     var showNoCoursesEmptyMessage = function(root) {
         root.find(SELECTORS.NO_COURSES_EMPTY_MESSAGE).removeClass('hidden');
     };
 
+    /**
+     * Render the course items HTML to the page.
+     * 
+     * @param {object} root The rool element.
+     * @param {string} html The course items HTML to render.
+     */
     var renderCourseItemsHTML = function(root, html) {
         var container = root.find(SELECTORS.COURSES_LIST);
         Templates.appendNodeContents(container, html, '');
     };
 
     /**
-     * Find all of the visible course blocks and initialise the event
-     * list module to being loading the events for the course block.
+     * Get a list of events for the given course ids. Returns a promise that will
+     * be resolved with the events.
      * 
-     * @param {object} root The root element for the timeline courses view.
+     * @param {array} courseIds The list of course ids to fetch events for.
+     * @param {int} startTime Timestamp to fetch events from.
+     * @param {int} limit Limit to the number of events (this applies per course, not total)
+     * @param {int} endTime Timestamp to fetch events to.
+     * @return {object} jQuery promise.
      */
-    var loadMoreCourses = function(root) {
-        var offset = parseInt(root.attr('data-offset'), 10);
-        var limit = parseInt(root.attr('data-limit'), 10);
-        var daysOffset = parseInt(root.attr('data-days-offset'), 10);
-        var daysLimit = root.attr('data-days-limit');
-        var midnight = parseInt(root.attr('data-midnight'), 10);
-        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
-        var endTime = daysLimit != undefined ? midnight + (parseInt(daysLimit, 10) * SECONDS_IN_DAY) : false;
-        var noEventsURL = root.attr('data-no-events-url');
-        var eventsDeferred = $.Deferred();
-        var renderDeferred = $.Deferred();
+    var getEventsForCourseIds = function(courseIds, startTime, limit, endTime) {
+        var args = {
+            courseids: courseIds,
+            starttime: startTime,
+            limit: limit
+        };
 
-        var coursesPromise = CourseRepository.getEnrolledCoursesByTimelineClassification(
-            COURSE_CLASSIFICATION,
-            limit,
-            offset
-        );
+        if (endTime) {
+            args.endtime = endTime;
+        }
+
+        return EventsRepository.queryByCourses(args);
+    };
+
+    var loadEventsForCoursesPromise = function(coursesPromise, startTime, endTime) {
+        var eventsDeferred = $.Deferred();
 
         coursesPromise.then(function(results) {
             if (results.courses) {
@@ -128,26 +158,29 @@ function(
                     return course.id;
                 });
 
-                EventsRepository.queryByCourses({
-                    courseids: courseIds,
-                    starttime: startTime,
-                    endtime: endTime,
-                    limit: COURSE_EVENT_LIMIT
-                })
-                .then(function(result) {
-                  eventsDeferred.resolve(result);  
-                });
+                getEventsForCourseIds(courseIds, startTime, COURSE_EVENT_LIMIT, endTime)
+                    .then(function(result) {
+                        eventsDeferred.resolve(result);  
+                    });                
             }
 
             return results;
+        })
+        .catch(function(error) {
+          eventsDeferred.reject(error);  
         });
 
+        return eventsDeferred.promise();
+    };
+
+    var updateDisplayFromCoursesPromise = function(coursesPromise, root, midnight, daysOffset, daysLimit, noEventsURL) {
+        var renderDeferred = $.Deferred();
+
         coursesPromise.then(function(result) {
-            root.attr('data-offset', result.nextoffset);
             return result.courses;
         })
         .then(function(courses) {
-            if (courses.length < limit) {
+            if (courses.length < COURSE_LIMIT) {
                 hideMoreCoursesButton(root);
             } else {
                 showMoreCoursesButton(root);
@@ -164,6 +197,7 @@ function(
                     hasdayslimit: true,
                     daysoffset: daysOffset,
                     dayslimit: daysLimit,
+                    nodayslimit: daysLimit == undefined,
                     urls: {
                         noevents: noEventsURL
                     }
@@ -186,19 +220,53 @@ function(
         })
         .catch(function(error) {
             hideLoadingPlaceholder(root);
-            eventsDeferred.reject(error);
             renderDeferred.reject(error);
-            Notification.exception(error);
         });
 
-        $.when(coursesPromise, eventsDeferred.promise(), renderDeferred.promise())
-            .then(function(coursesByClassification, eventsByCourse) {
+        return renderDeferred.promise();
+    }
 
+    var updateOffsetFromCoursesPromise = function(root, coursesPromise) {
+        coursesPromise.then(function(result) {
+            root.attr('data-offset', result.nextoffset);
+            return result;
+        })
+    };
+
+    /**
+     * Find all of the visible course blocks and initialise the event
+     * list module to being loading the events for the course block.
+     * 
+     * @param {object} root The root element for the timeline courses view.
+     */
+    var loadMoreCourses = function(root) {
+        var offset = parseInt(root.attr('data-offset'), 10);
+        var limit = parseInt(root.attr('data-limit'), 10);
+        var daysOffset = parseInt(root.attr('data-days-offset'), 10);
+        var daysLimit = root.attr('data-days-limit');
+        var midnight = parseInt(root.attr('data-midnight'), 10);
+        var startTime = midnight + (daysOffset * SECONDS_IN_DAY);
+        var endTime = daysLimit != undefined ? midnight + (parseInt(daysLimit, 10) * SECONDS_IN_DAY) : false;
+        var noEventsURL = root.attr('data-no-events-url');
+        var coursesPromise = CourseRepository.getEnrolledCoursesByTimelineClassification(
+            COURSE_CLASSIFICATION,
+            limit,
+            offset
+        );
+
+        var eventsPromise = loadEventsForCoursesPromise(coursesPromise, startTime, endTime);
+        var renderPromise = updateDisplayFromCoursesPromise(coursesPromise, root, midnight, daysOffset, daysLimit, noEventsURL);
+        updateOffsetFromCoursesPromise(root, coursesPromise);
+
+        coursesPromise.catch(Notification.exception);
+
+        return $.when(coursesPromise, eventsPromise, renderPromise)
+            .then(function(coursesByClassification, eventsByCourse) {
                 coursesByClassification.courses.forEach(function(course) {
                     var courseId = course.id;
                     var events = [];
                     var courseEventsContainer = root.find('[data-region="course-events-container"][data-course-id="' + courseId + '"]');
-                    var eventListContainer = courseEventsContainer.find('[data-region="event-list-container"]');
+                    var eventListRoot = courseEventsContainer.find(EventList.rootSelector);
                     var courseGroups = eventsByCourse.groupedbycourse.filter(function(group) {
                         return group.courseid == courseId;
                     });
@@ -209,7 +277,7 @@ function(
 
                     var pageOnePreload = $.Deferred().resolve({ events: events }).promise();
 
-                    EventList.init(eventListContainer, COURSE_EVENT_LIMIT, { 1: pageOnePreload });
+                    EventList.init(eventListRoot, COURSE_EVENT_LIMIT, { 1: pageOnePreload });
                 });
             });
     };
@@ -225,12 +293,7 @@ function(
             return $(this).attr('data-course-id');
         }).get();
 
-        var eventsPromise = EventsRepository.queryByCourses({
-            courseids: courseIds,
-            starttime: startTime,
-            endtime: endTime,
-            limit: COURSE_EVENT_LIMIT
-        });
+        var eventsPromise = getEventsForCourseIds(courseIds, startTime, COURSE_EVENT_LIMIT, endTime);
 
         eventsPromise.catch(Notification.exception);
 

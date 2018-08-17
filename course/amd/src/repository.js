@@ -22,6 +22,15 @@
  */
 define(['jquery', 'core/ajax'], function($, Ajax) {
 
+    /**
+     * Get the list of courses that the logged in user is enrolled in for a given
+     * timeline classification.
+     * 
+     * @param {string} classification past, inprogress, or future
+     * @param {int} limit Only return this many results
+     * @param {int} offset Skip this many results from the start of the result set
+     * @param {string} sort Column to sort by and direction, e.g. 'shortname asc'
+     */
     var getEnrolledCoursesByTimelineClassification = function(classification, limit, offset, sort) {
         var args = {
             classification: classification

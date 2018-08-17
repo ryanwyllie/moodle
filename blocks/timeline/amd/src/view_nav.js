@@ -66,14 +66,13 @@ function(
                 var daysOffset = option.attr('data-from');
                 var daysLimit = option.attr('data-to');
                 var elementsWithDaysOffset = root.find(SELECTORS.DATA_DAYS_OFFSET);
-                var elementsWithDaysLimit = root.find(SELECTORS.DATA_DAYS_LIMIT);
 
                 elementsWithDaysOffset.attr('data-days-offset', daysOffset);
 
                 if (daysLimit != undefined) {
-                    elementsWithDaysLimit.attr('data-days-limit', daysLimit);
+                    elementsWithDaysOffset.attr('data-days-limit', daysLimit);
                 } else {
-                    elementsWithDaysLimit.removeAttr('data-days-limit');
+                    elementsWithDaysOffset.removeAttr('data-days-limit');
                 }
 
                 // Reset the views to reinitialise the event lists now that we've

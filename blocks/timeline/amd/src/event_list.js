@@ -79,13 +79,33 @@ function(
         root.find(SELECTORS.EMPTY_MESSAGE).addClass('hidden');
     };
 
+    /**
+     * Empty the content area.
+     *
+     * @param {object} root The container element
+     */
+    var emptyContent = function(root) {
+        root.find(SELECTORS.EVENT_LIST_CONTENT).empty();
+    };
+
+    /**
+     * Calculated the midnight timestamp of a given timestamp using the user's
+     * midnight timestamp. Calculations are based on the user's midnight so that
+     * timezone's are preserved.
+     * 
+     * @param {int} timestamp The timestamp to calculate from
+     * @param {int} midnight The user's midnight timestamp
+     * @return {int} The midnight value of the user's timestamp
+     */
     var getDayTimestamp = function(timestamp, midnight) {
         // The timestamp is in seconds but we need milliseconds.
+        var future = timestamp > midnight;
         var diffSeconds = Math.abs(timestamp - midnight);
-        var diffDays = Math.floor(diffSeconds / SECONDS_IN_DAY);
+        var diffDays = future ? Math.floor(diffSeconds / SECONDS_IN_DAY) : Math.ceil(diffSeconds / SECONDS_IN_DAY);
         var diffDaysInSeconds = diffDays * SECONDS_IN_DAY;
         // Is the timestamp in the future or past?
-        return timestamp > midnight ? midnight + diffDaysInSeconds : midnight - diffDaysInSeconds;
+        var dayTimestamp = future ? midnight + diffDaysInSeconds : midnight - diffDaysInSeconds;
+        return dayTimestamp;
     };
 
     /**
@@ -137,6 +157,7 @@ function(
         Object.keys(eventsByDay).forEach(function(dayTimestamp) {
             var events = eventsByDay[dayTimestamp];
             templateContext.eventsbyday.push({
+                past: dayTimestamp < midnight,
                 dayTimestamp: dayTimestamp,
                 events: events
             });
@@ -386,6 +407,7 @@ function(
         // Make sure the content area and loading placeholder is visible.
         // This is because the init function can be called to re-initialise
         // an existing event list area.
+        emptyContent(root);
         showContent(root);
         loadingPlaceholder.removeClass('hidden')
 
