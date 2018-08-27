@@ -157,6 +157,16 @@ $doughnut-fill-colour: $brand-warning;
     }
 }
 
+.block_myoverview {
+    .empty-placeholder-image-sm {
+        height: 50px;
+    }
+
+    .empty-placeholder-image-lg {
+        height: 125px;
+    }
+}
+
 .card-deck {
     .card {
         $card-gutter : $card-deck-margin * 2;
