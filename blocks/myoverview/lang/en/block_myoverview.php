@@ -22,17 +22,34 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['all'] = 'All';
+$string['all:aria'] = 'View all courses';
+$string['card'] = 'Card';
+$string['card:aria'] = 'Switch to card view';
+$string['complete'] = 'Complete';
+$string['favorite'] = 'Favorite';
 $string['future'] = 'Future';
+$string['future:aria'] = 'View future courses';
+$string['hidden'] = 'Hidden';
 $string['inprogress'] = 'In progress';
+$string['inprogress:aria'] = 'View in progress courses';
+$string['lastaccessed'] = 'Last accessed';
+$string['lastaccessed:aria'] = 'Sort course by lastaccessed';
+$string['list'] = 'List';
+$string['list:aria'] = 'Switch to list view';
 $string['morecourses'] = 'More courses';
 $string['myoverview:addinstance'] = 'Add a new course overview block';
 $string['myoverview:myaddinstance'] = 'Add a new course overview block to Dashboard';
-$string['nocourses'] = 'No courses';
-$string['nocoursesinprogress'] = 'No in progress courses';
 $string['nocoursesfuture'] = 'No future courses';
+$string['nocoursesinprogress'] = 'No in progress courses';
+$string['nocourses'] = 'No courses';
 $string['nocoursespast'] = 'No past courses';
 $string['past'] = 'Past';
+$string['past:aria'] = 'View past courses';
 $string['pluginname'] = 'Course overview';
-$string['viewcourse'] = 'View course';
+$string['summary'] = 'Summary';
+$string['summary:aria'] = 'Switch to summary view';
+$string['title'] = 'Title';
+$string['title:aria'] = 'Sort courses by title';
 $string['viewcoursename'] = 'View course {$a}';
-$string['privacy:metadata'] = 'The myoverview block does not store any personal data.';
+$string['viewcourse'] = 'View course';

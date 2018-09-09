@@ -15,15 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for the My overview block.
+ * Page external functions and service definitions.
  *
- * @package    block_myoverview
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @package    mod_page
+ * @category   external
+ * @copyright  2015 Juan Leyva <juan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since      Moodle 3.0
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2018051401;         // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2018050800;         // Requires this Moodle version.
-$plugin->component = 'block_myoverview'; // Full name of the plugin (used for diagnostics).
+$functions = array(
+
+    'block_myoverview_mycourses' => array(
+        'classname'     => 'block_myoverview_external',
+        'methodname'    => 'mycourses',
+        'description'   => 'get my courses',
+        'type'          => 'read',
+        'ajax'          => true,
+    )
+);
