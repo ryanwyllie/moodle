@@ -598,18 +598,30 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
     }
 
     $orderby = "";
+    $lastaccess = false;
     $sort    = trim($sort);
     if (!empty($sort)) {
         $rawsorts = explode(',', $sort);
         $sorts = array();
         foreach ($rawsorts as $rawsort) {
             $rawsort = trim($rawsort);
+            if ($rawsort == 'lastaccessed') {
+                $lastaccess = true;
+                continue;
+            }
             if (strpos($rawsort, 'c.') === 0) {
                 $rawsort = substr($rawsort, 2);
             }
             $sorts[] = trim($rawsort);
         }
-        $sort = 'c.'.implode(',c.', $sorts);
+        if ($lastaccess) {
+            $sort = 'lastaccessed DESC';
+            if (count($sorts)) {
+                $sort .= ', c.'.implode(',c.', $sorts);
+            }
+        } else {
+            $sort = 'c.'.implode(',c.', $sorts);
+        }
         $orderby = "ORDER BY $sort";
     }
 
@@ -622,9 +634,13 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
         $params['loginas'] = $USER->loginascontext->instanceid;
     }
 
+    $lastaccessselect = "";
+    $lastaccessjoin = "";
+
     $coursefields = 'c.' .join(',c.', $fields);
     $ccselect = ', ' . context_helper::get_preload_record_columns_sql('ctx');
     $ccjoin = "LEFT JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :contextlevel)";
+
     $params['contextlevel'] = CONTEXT_COURSE;
     $wheres = implode(" AND ", $wheres);
 
@@ -644,10 +660,17 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
                  WHERE ue.status = :active AND e.status = :enabled AND ue.timestart < :now1
                        AND (ue.timeend = 0 OR ue.timeend > :now2)";
         $params['userid'] = $USER->id;
+        $params['useridlastaccess'] = $USER->id;
         $params['active'] = ENROL_USER_ACTIVE;
         $params['enabled'] = ENROL_INSTANCE_ENABLED;
         $params['now1'] = round(time(), -2); // Improves db caching.
         $params['now2'] = $params['now1'];
+
+        if ($lastaccess) {
+            $params['useridla'] = $USER->id;
+            $lastaccessselect = ', ul.timeaccess as lastaccessed';
+            $lastaccessjoin = "LEFT JOIN {user_lastaccess} ul ON (ul.courseid = c.id AND ul.userid = :useridla)";
+        }
     }
 
     // When including non-enrolled but accessible courses...
@@ -708,11 +731,12 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
 
     // Note: we can not use DISTINCT + text fields due to Oracle and MS limitations, that is why
     // we have the subselect there.
-    $sql = "SELECT $coursefields $ccselect
+    $sql = "SELECT $coursefields $ccselect $lastaccessselect
               FROM {course} c
               JOIN ($courseidsql) en ON (en.courseid = c.id)
-           $ccjoin
-             WHERE $wheres
+            $lastaccessjoin
+            $ccjoin
+             WHERE $wheres 
           $orderby";
 
     $courses = $DB->get_records_sql($sql, $params, $offset, $limit);
@@ -1910,7 +1934,8 @@ abstract class enrol_plugin {
                     );
             $event->trigger();
             // Check if course contacts cache needs to be cleared.
-            core_course_category::user_enrolment_changed($courseid, $ue->userid,
+            require_once($CFG->libdir . '/coursecatlib.php');
+            coursecat::user_enrolment_changed($courseid, $ue->userid,
                     $ue->status, $ue->timestart, $ue->timeend);
         }
 
@@ -2004,7 +2029,8 @@ abstract class enrol_plugin {
                 );
         $event->trigger();
 
-        core_course_category::user_enrolment_changed($instance->courseid, $ue->userid,
+        require_once($CFG->libdir . '/coursecatlib.php');
+        coursecat::user_enrolment_changed($instance->courseid, $ue->userid,
                 $ue->status, $ue->timestart, $ue->timeend);
     }
 
@@ -2088,7 +2114,8 @@ abstract class enrol_plugin {
         $context->mark_dirty();
 
         // Check if courrse contacts cache needs to be cleared.
-        core_course_category::user_enrolment_changed($courseid, $ue->userid, ENROL_USER_SUSPENDED);
+        require_once($CFG->libdir . '/coursecatlib.php');
+        coursecat::user_enrolment_changed($courseid, $ue->userid, ENROL_USER_SUSPENDED);
 
         // reset current user enrolment caching
         if ($userid == $USER->id) {
