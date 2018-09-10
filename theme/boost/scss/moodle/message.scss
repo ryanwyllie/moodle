@@ -1191,6 +1191,17 @@
     }
 }
 
+.message-drawer {
+    position: fixed;
+    top: $navbar-height;
+    right: 0;
+    height: 100%;
+    width: 285px;
+    z-index: $zindex-fixed;
+    background-color: $white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+}
+
 @media (max-width: 480px) {
     .messaging-area-container {
         .messaging-area {
