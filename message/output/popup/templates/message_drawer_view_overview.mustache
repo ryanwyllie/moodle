@@ -35,7 +35,52 @@
 }}
 
 <div data-region="view-overview">
-overview
-
-<a data-action="requests" href="#">view requests</a>
+    <div class="d-flex p-2 border-bottom">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">
+                    {{#pix}} a/search, core {{/pix}}
+                </span>
+            </div>
+            <input type="text" class="form-control" placeholder="Search" aria-label="Search">
+        </div>
+        <div class="align-self-center ml-2">
+            <a href="#" data-route="view-settings">{{#pix}} t/edit, core {{/pix}}</a>
+        </div>
+    </div>
+    <div class="text-right p-2 border-bottom">
+        <a href="#" data-route="view-requests">Requests</a>
+    </div>
+    <div class="card border-0">
+        <div id="view-overview-contacts" class="card-header p-1">
+            <button
+                class="btn btn-link"
+                data-toggle="collapse"
+                data-target="#view-overview-contacts-target"
+                aria-expanded="false"
+                aria-controls="view-overview-contacts-target"
+            >
+                <i class="fa fa-caret-right mr-1"></i> Contacts
+            </button>
+        </div>
+        <div id="view-overview-contacts-target" class="collapse" aria-labelledby="view-overview-contacts">
+            content
+        </div>
+    </div>
+    <div class="card border-0">
+        <div id="view-overview-messages" class="card-header p-1">
+            <button
+                class="btn btn-link"
+                data-toggle="collapse"
+                data-target="#view-overview-messages-target"
+                aria-expanded="false"
+                aria-controls="view-overview-messages-target"
+            >
+                <i class="fa fa-caret-right mr-1"></i> Messages
+            </button>
+        </div>
+        <div id="view-overview-messages-target" class="collapse" aria-labelledby="view-overview-messages">
+            content
+        </div>
+    </div>
 </div>
