@@ -25,12 +25,14 @@
 define(
 [
     'jquery',
+    'core/custom_interaction_events',
     'message_popup/message_drawer_view_overview',
     'message_popup/message_router',
     'message_popup/message_routes'
 ],
 function(
     $,
+    CustomEvents,
     ViewOverview,
     Router,
     Routes
@@ -45,7 +47,9 @@ function(
         VIEW_NON_CONTACT: '[data-region="view-non-contact"]',
         VIEW_OVERVIEW: '[data-region="view-overview"]',
         VIEW_REQUESTS: '[data-region="view-requests"]',
-        VIEW_SETTINGS: '[data-region="view-settings"]'
+        VIEW_SETTINGS: '[data-region="view-settings"]',
+        ROUTES: '[data-route]',
+        ROUTES_BACK: '[data-route-back]'
     };
 
     var createRoutes = function(root) {
@@ -60,8 +64,28 @@ function(
         Router.add(Routes.VIEW_SETTINGS, root.find(SELECTORS.VIEW_SETTINGS));
     };
 
+    var registerEventListeners = function(root) {
+        CustomEvents.define(root, [CustomEvents.events.activate]);
+
+        root.on(CustomEvents.events.activate, SELECTORS.ROUTES, function(e, data) {
+            var element = $(e.target).closest(SELECTORS.ROUTES);
+            var route = element.attr('data-route');
+            Router.go(route);
+
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ROUTES_BACK, function(e, data) {
+            Router.back();
+
+            data.originalEvent.preventDefault();
+        });
+    };
+
     var init = function(root) {
+        root = $(root);
         createRoutes(root);
+        registerEventListeners(root);
         Router.go(Routes.VIEW_OVERVIEW);
     };
 
