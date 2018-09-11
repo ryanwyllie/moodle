@@ -52,9 +52,9 @@ function(
     };
 
     var show = function(root) {
-        if (!root.attr('data-seen')) {
+        if (!root.attr('data-init')) {
             registerEventListeners(root);
-            root.attr('data-seen', true);
+            root.attr('data-init', true);
         }
 
         Contacts.show(root.find(SELECTORS.CONTACTS));
