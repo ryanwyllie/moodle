@@ -120,20 +120,26 @@ function(
     };
 
     var registerEventListeners = function(root) {
+        root.on('show.bs.collapse', function() {
+            if (!root.attr('data-seen')) {
+                loadMoreContacts(root)
+                    .then(function(contacts) {
+                        if (contacts.length > 0) {
+                            return renderContacts(root, contacts);
+                        } else {
+                            return renderNoContactsMessage(root);
+                        }
+                    });
+
+                root.attr('data-seen', true);
+            }
+        });
     };
 
     var show = function(root) {
-        if (!root.attr('data-seen')) {
+        if (!root.attr('data-init')) {
             registerEventListeners(root);
-            loadMoreContacts(root)
-                .then(function(contacts) {
-                    if (contacts.length > 0) {
-                        return renderContacts(root, contacts);
-                    } else {
-                        return renderNoContactsMessage(root);
-                    }
-                });
-            root.attr('data-seen', true);
+            root.attr('data-init', true);
         }
     };
 
