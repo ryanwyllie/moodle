@@ -34,6 +34,26 @@
 
 }}
 
-<div class="list-group" data-region="contacts-list">
-    {{> message_popup/message_drawer_view_overview_contacts_list }}
-</div>
+{{#contacts}}
+    <a
+        href="#"
+        class="p-2 d-flex"
+        data-route="view-conversation"
+        data-route-param="{{userid}}"
+    >
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+        <div class="w-100 text-truncate ml-2">
+            <h6 class="m-0">{{fullname}}</h6>
+            <p class="m-0">
+                {{#sentfromcurrentuser}}{{#str}} you, core_message {{/str}}{{/sentfromcurrentuser}}
+                <span class="text-muted">{{lastmessage}}</span>
+            </p>
+        </div>
+    </a>
+{{/contacts}}
