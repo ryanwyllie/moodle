@@ -37,7 +37,7 @@
 {{#contacts}}
     <a
         href="#"
-        class="p-2 d-flex"
+        class="p-2 d-flex list-group-item list-group-item-action border-0"
         data-route="view-conversation"
         data-route-param="{{userid}}"
     >
@@ -49,11 +49,20 @@
             style="height: 40px"
         >
         <div class="w-100 text-truncate ml-2">
-            <h6 class="m-0">{{fullname}}</h6>
-            <p class="m-0">
+            <strong class="m-0">{{fullname}}</strong>
+            <p class="m-0 font-weight-light text-truncate">
                 {{#sentfromcurrentuser}}{{#str}} you, core_message {{/str}}{{/sentfromcurrentuser}}
-                <span class="text-muted">{{lastmessage}}</span>
+                {{lastmessage}}
             </p>
+        </div>
+        {{#unreadcount}}
+        <div class="align-self-center">
+            <span class="badge badge-pill badge-primary">{{.}}</span>
+        </div>
+        {{/unreadcount}}
+        <div class="align-self-center text-muted">
+            <!-- TODO: FIX THIS ICON -->
+            {{#pix}} e/left_to_right, core {{/pix}}
         </div>
     </a>
 {{/contacts}}
