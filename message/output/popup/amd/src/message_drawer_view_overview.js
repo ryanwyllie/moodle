@@ -26,17 +26,20 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
+    'message_popup/message_drawer_view_overview_contacts',
     'message_popup/message_router',
     'message_popup/message_routes'
 ],
 function(
     $,
     CustomEvents,
+    Contacts,
     Router,
     Routes
 ) {
 
     var SELECTORS = {
+        CONTACTS: '[data-region="view-overview-contacts"]'
     };
 
     var registerEventListeners = function(root) {
@@ -53,6 +56,8 @@ function(
             registerEventListeners(root);
             root.attr('data-seen', true);
         }
+
+        Contacts.show(root.find(SELECTORS.CONTACTS));
     };
 
     return {
