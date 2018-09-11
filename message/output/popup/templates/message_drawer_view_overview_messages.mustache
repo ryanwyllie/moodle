@@ -38,7 +38,13 @@
     {{$region}}view-overview-messages{{/region}}
     {{$title}}{{#str}} messages, core_message {{/str}}{{/title}}
     {{$content}}
-        <div class="list-group" data-region="messages-list"></div>
+        <div class="list-group" data-region="messages-list">
+            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+        </div>
     {{/content}}
     {{$emptymessage}}
         <p>You do not have any messages lol</p>
