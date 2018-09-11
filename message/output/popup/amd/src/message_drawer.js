@@ -70,7 +70,8 @@ function(
         root.on(CustomEvents.events.activate, SELECTORS.ROUTES, function(e, data) {
             var element = $(e.target).closest(SELECTORS.ROUTES);
             var route = element.attr('data-route');
-            Router.go(route);
+            var param = element.attr('data-route-param');
+            Router.go(route, param);
 
             data.originalEvent.preventDefault();
         });

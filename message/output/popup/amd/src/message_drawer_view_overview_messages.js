@@ -39,7 +39,8 @@ define(
     ) {
 
         var SELECTORS = {
-            MESSAGES_LIST: '[data-region="messages-list"]'
+            MESSAGES_LIST: '[data-region="messages-list"]',
+            PLACEHOLDER: '[data-region="placeholder"]'
         };
 
         var TEMPLATES = {
@@ -49,6 +50,7 @@ define(
         var render = function(root, contacts) {
             return Templates.render(TEMPLATES.MESSAGES_LIST, {contacts: contacts})
                 .then(function(html) {
+                    root.find(SELECTORS.PLACEHOLDER).remove();
                     root.find(SELECTORS.MESSAGES_LIST).append(html);
                 })
                 .catch(Notification.exception);

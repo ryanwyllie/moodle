@@ -39,7 +39,8 @@ function(
 ) {
 
     var SELECTORS = {
-        CONTACTS_LIST: '[data-region="contacts-list"]'
+        CONTACTS_LIST: '[data-region="contacts-list"]',
+        PLACEHOLDER: '[data-region="placeholder"]'
     };
 
     var TEMPLATES = {
@@ -49,6 +50,7 @@ function(
     var render = function(root, contacts) {
         return Templates.render(TEMPLATES.CONTACTS_LIST, {contacts: contacts})
             .then(function(html) {
+                root.find(SELECTORS.PLACEHOLDER).remove();
                 root.find(SELECTORS.CONTACTS_LIST).append(html);
             })
             .catch(Notification.exception);
