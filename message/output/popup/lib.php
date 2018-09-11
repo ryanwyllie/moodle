@@ -77,11 +77,13 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
 }
 
 function message_popup_before_standard_top_of_body_html() {
-    global $CFG, $PAGE;
+    global $USER, $CFG, $PAGE;
 
     if (!empty($CFG->messaging)) {
         $renderer = $PAGE->get_renderer('core');
-        return $renderer->render_from_template('message_popup/message_drawer', []);
+        return $renderer->render_from_template('message_popup/message_drawer', [
+            'loggedinuserid' => $USER->id
+        ]);
     }
 
     return '';

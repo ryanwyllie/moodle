@@ -42,6 +42,7 @@ function(
 
     var go = function(newRoute) {
         var newConfig;
+        var args = [].slice.call(arguments);
 
         Object.keys(routes).forEach(function(route) {
             var config = routes[route];
@@ -58,7 +59,8 @@ function(
             element.removeClass('hidden');
 
             if (newConfig.onGo) {
-                newConfig.onGo(element);
+                args.unshift(element);
+                newConfig.onGo.apply(undefined, args);
             }
         }
 
