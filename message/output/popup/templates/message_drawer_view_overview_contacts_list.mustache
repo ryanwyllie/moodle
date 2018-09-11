@@ -34,28 +34,20 @@
 
 }}
 
-<div data-region="view-overview">
-    <div class="d-flex p-2 border-bottom">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text">
-                    {{#pix}} a/search, core {{/pix}}
-                </span>
-            </div>
-            <input
-                type="text"
-                class="form-control"
-                placeholder="{{#str}} search, core_search {{/str}}"
-                aria-label="{{#str}} search, core_search {{/str}}"
-            >
-        </div>
-        <div class="align-self-center ml-2">
-            <a href="#" data-route="view-settings">{{#pix}} t/edit, core {{/pix}}</a>
-        </div>
-    </div>
-    <div class="text-right p-2 border-bottom">
-        <a href="#" data-route="view-requests">{{#str}} requests, core {{/str}}</a>
-    </div>
-    {{> message_popup/message_drawer_view_overview_contacts }}
-    {{> message_popup/message_drawer_view_overview_messages }}
-</div>
+{{#contacts}}
+    <a
+        href="#"
+        class="p-2 d-flex"
+        data-route="view-contact"
+        data-route-param="{{userid}}"
+    >
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+        <h6 class="ml-2">{{fullname}}</h6>
+    </a>
+{{/contacts}}

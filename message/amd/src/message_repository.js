@@ -96,9 +96,31 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return promise;
     };
 
+    var getContacts = function(userId, limit, offset) {
+        var args = {
+            userid: userId
+        };
+
+        if (typeof limit !== 'undefined') {
+            args.liminum = limit;
+        }
+
+        if (typeof offset !== 'undefined') {
+            args.limitfrom = offset;
+        }
+
+        var request = {
+            methodname: 'core_message_data_for_messagearea_contacts',
+            args: args
+        };
+
+        return Ajax.call([request])[0];
+    };
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
         markAllAsRead: markAllAsRead,
+        getContacts: getContacts
     };
 });

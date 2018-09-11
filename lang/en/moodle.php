@@ -1649,6 +1649,7 @@ $string['requestcourse'] = 'Request a course';
 $string['requestedby'] = 'Requested by';
 $string['requestedcourses'] = 'Requested courses';
 $string['requestreason'] = 'Reason for course request';
+$string['requests'] = 'Requests';
 $string['required'] = 'Required';
 $string['requirespayment'] = 'This course requires payment for access';
 $string['resendemail'] = 'Resend email';
