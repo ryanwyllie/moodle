@@ -34,6 +34,8 @@ function(
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
         EMPTY_MESSAGE: '[data-region="empty-message-container"]',
+        COLLAPSE_REGION: '[data-region="collapse-region"]',
+        PLACEHOLDER: '[data-region="placeholder-container"]'
     };
 
     var startLoading = function(root) {
@@ -52,43 +54,91 @@ function(
         return root.find(SELECTORS.CONTENT_CONTAINER);
     };
 
+    var isVisible = function(root) {
+        return root.find(SELECTORS.COLLAPSE_REGION).hasClass('show');
+    };
+
     var showEmptyMessage = function(root) {
         getContentContainer(root).addClass('hidden');
         root.find(SELECTORS.EMPTY_MESSAGE).removeClass('hidden');
     };
 
+    var showPlaceholder = function(root) {
+        root.find(SELECTORS.PLACEHOLDER).removeClass('hidden');
+    };
+
+    var hidePlaceholder = function(root) {
+        root.find(SELECTORS.PLACEHOLDER).addClass('hidden');
+    };
+
+    var showContent = function(root) {
+        getContentContainer(root).removeClass('hidden');
+    };
+
+    var hideContent = function(root) {
+        getContentContainer(root).addClass('hidden');
+    };
+
+    var loadAndRender = function(root, loadCallback, renderCallback) {
+        startLoading(root);
+
+        return loadCallback(root, getUserId(root))
+            .then(function(items) {
+                if (items.length > 0) {
+                    var contentContainer = getContentContainer(root);
+                    return renderCallback(contentContainer, items);
+                } else {
+                    return showEmptyMessage(root);
+                }
+            })
+            .then(function() {
+                stopLoading(root);
+                root.attr('data-seen', true);
+                return;
+            })
+            .catch(function() {
+                stopLoading(root);
+                root.attr('data-seen', true);
+                return;
+            });
+    };
+
+    var initialLoadAndRender = function(root, loadCallback, renderCallback) {
+        getContentContainer(root).empty();
+        showPlaceholder(root);
+        hideContent(root);
+        loadAndRender(root, loadCallback, renderCallback)
+            .then(function() {
+                hidePlaceholder(root);
+                showContent(root);
+                return;
+            })
+            .catch(function() {
+                hidePlaceholder(root);
+                showContent(root);
+                return;
+            });
+    };
+
     var registerEventListeners = function(root, loadCallback, renderCallback) {
         root.on('show.bs.collapse', function() {
             if (!root.attr('data-seen')) {
-                startLoading(root);
-
-                loadCallback(root, getUserId(root))
-                    .then(function(items) {
-                        if (items.length > 0) {
-                            return renderCallback(root, items);
-                        } else {
-                            return showEmptyMessage(root);
-                        }
-                    })
-                    .then(function() {
-                        stopLoading(root);
-                        return;
-                    })
-                    .catch(function() {
-                        stopLoading(root);
-                        return;
-                    });
-
-                root.attr('data-seen', true);
+                initialLoadAndRender(root, loadCallback, renderCallback);
             }
         });
     };
 
     var show = function(root, loadCallback, renderCallback) {
         root = $(root);
+        root.removeAttr('data-seen');
+
         if (!root.attr('data-init')) {
             registerEventListeners(root, loadCallback, renderCallback);
             root.attr('data-init', true);
+        }
+
+        if (isVisible(root)) {
+            initialLoadAndRender(root, loadCallback, renderCallback);
         }
     };
 

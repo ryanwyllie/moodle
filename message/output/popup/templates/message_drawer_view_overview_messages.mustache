@@ -37,15 +37,13 @@
 {{< message_popup/message_drawer_view_overview_section }}
     {{$region}}view-overview-messages{{/region}}
     {{$title}}{{#str}} messages, core_message {{/str}}{{/title}}
-    {{$content}}
-        <div class="list-group" data-region="messages-list">
-            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
-        </div>
-    {{/content}}
+    {{$placeholder}}
+        {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_messages_list_item_placeholder }}
+    {{/placeholder}}
     {{$emptymessage}}
         <p>You do not have any messages lol</p>
     {{/emptymessage}}

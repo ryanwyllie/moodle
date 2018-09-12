@@ -37,15 +37,13 @@
 {{< message_popup/message_drawer_view_overview_section }}
     {{$region}}view-overview-contacts{{/region}}
     {{$title}}{{#str}} contacts, core_message {{/str}}{{/title}}
-    {{$content}}
-        <div class="list-group" data-region="contacts-list">
-            {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
-        </div>
-    {{/content}}
+    {{$placeholder}}
+        {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
+        {{> message_popup/message_drawer_view_overview_contacts_list_item_placeholder }}
+    {{/placeholder}}
     {{$emptymessage}}
         <p>You do not have any contacts lol</p>
     {{/emptymessage}}

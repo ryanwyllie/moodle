@@ -38,20 +38,14 @@ define(
         Section
     ) {
 
-        var SELECTORS = {
-            MESSAGES_LIST: '[data-region="messages-list"]',
-            PLACEHOLDER: '[data-region="placeholder"]'
-        };
-
         var TEMPLATES = {
             MESSAGES_LIST: 'message_popup/message_drawer_view_overview_messages_list'
         };
 
-        var render = function(root, contacts) {
+        var render = function(contentContainer, contacts) {
             return Templates.render(TEMPLATES.MESSAGES_LIST, {contacts: contacts})
                 .then(function(html) {
-                    root.find(SELECTORS.PLACEHOLDER).remove();
-                    root.find(SELECTORS.MESSAGES_LIST).append(html);
+                    contentContainer.append(html);
                 })
                 .catch(Notification.exception);
         };
