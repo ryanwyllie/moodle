@@ -117,10 +117,75 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return Ajax.call([request])[0];
     };
 
+    var getProfile = function(loggedInUserId, profileUserId) {
+        var request = {
+            methodname: 'core_message_data_for_messagearea_get_profile',
+            args: {
+                currentuserid: loggedInUserId,
+                otheruserid: profileUserId
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var blockContacts = function(loggedInUserId, contactUserIds) {
+        var request = {
+            methodname: 'core_message_block_contacts',
+            args: {
+                userid: loggedInUserId,
+                userids: contactUserIds
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var unblockContacts = function(loggedInUserId, contactUserIds) {
+        var request = {
+            methodname: 'core_message_unblock_contacts',
+            args: {
+                userid: loggedInUserId,
+                userids: contactUserIds
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var createContacts = function(loggedInUserId, requestUserIds) {
+        var request = {
+            methodname: 'core_message_create_contacts',
+            args: {
+                userid: loggedInUserId,
+                userids: requestUserIds
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var deleteContacts = function(loggedInUserId, contactUserIds) {
+        var request = {
+            methodname: 'core_message_delete_contacts',
+            args: {
+                userid: loggedInUserId,
+                userids: contactUserIds
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
         markAllAsRead: markAllAsRead,
-        getContacts: getContacts
+        getContacts: getContacts,
+        getProfile: getProfile,
+        blockContacts: blockContacts,
+        unblockContacts: unblockContacts,
+        createContacts: createContacts,
+        deleteContacts: deleteContacts
     };
 });

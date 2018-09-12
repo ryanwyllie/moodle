@@ -1,0 +1,88 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template message_output_popup/message_drawer
+
+    This template will render the message drawer.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * All data attributes are required
+
+    Context variables required for this template:
+    * userid The logged in user id
+    * urls The URLs for the popover
+
+    Example context (json):
+    {}
+
+}}
+
+<div class="d-flex justify-content-center">
+    <img
+        class="rounded-circle"
+        src="{{profileimageurl}}"
+        aria-hidden="true"
+        alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
+        title="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
+        style="height: 60px; width: 60px"
+    >
+    <h3 class="ml-2 mt-2 h6 text-truncate">{{fullname}}</h3>
+</div>
+<div class="py-2 mt-4 border-bottom">
+    <a href="#" data-route="view-conversation" data-route-param="{{userid}}">
+        {{#str}} sendmessage, core_message {{/str}}
+    </a>
+</div>
+<div class="py-2 border-bottom">
+    <a
+        class="{{^isblocked}}hidden{{/isblocked}}"
+        data-action="unblock"
+        data-user-id="{{userid}}"
+        href="#"
+    >
+        {{#str}}unblockcontact, message{{/str}}
+    </a>
+    <a
+        class="text-danger {{#isblocked}}hidden{{/isblocked}}"
+        data-action="block"
+        data-user-id="{{userid}}"
+        href="#"
+    >
+        {{#str}}blockcontact, message{{/str}}
+    </a>
+</div>
+<div class="py-2 border-bottom">
+    <a
+        class="text-danger {{^iscontact}}hidden{{/iscontact}}"
+        data-action="remove-contact"
+        data-user-id="{{userid}}"
+        href="#"
+    >
+        {{#str}}removecontact, message{{/str}}
+    </a>
+    <a
+        class="{{#iscontact}}hidden{{/iscontact}}"
+        data-action="add-contact"
+        data-user-id="{{userid}}"
+        href="#"
+    >
+        {{#str}}addcontact, message{{/str}}
+    </a>
+</div>
