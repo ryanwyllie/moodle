@@ -52,12 +52,15 @@ class helper {
         global $DB;
 
         $hash = self::get_conversation_hash([$userid, $otheruserid]);
+        $ufields = \user_picture::fields('u', array('lastaccess'), 'userfrom_id', 'userfrom_');
 
         $sql = "SELECT m.id, m.useridfrom, m.subject, m.fullmessage, m.fullmessagehtml,
-                       m.fullmessageformat, m.smallmessage, m.timecreated, muaread.timecreated AS timeread
+                       m.fullmessageformat, m.smallmessage, m.timecreated, muaread.timecreated AS timeread, $ufields
                   FROM {message_conversations} mc
             INNER JOIN {messages} m
                     ON m.conversationid = mc.id
+            INNER JOIN {user} u
+                    ON u.id = m.useridfrom
              LEFT JOIN {message_user_actions} muaread
                     ON (muaread.messageid = m.id
                    AND muaread.userid = :userid1
@@ -116,6 +119,7 @@ class helper {
      * @return array
      */
     public static function create_messages($userid, $messages) {
+        global $PAGE;
         // Store the messages.
         $arrmessages = array();
 
@@ -150,6 +154,10 @@ class helper {
             $msg->displayblocktime = $displayblocktime;
             $msg->timecreated = $message->timecreated;
             $msg->timeread = $message->timeread;
+            $prefix = 'userfrom_';
+            $userfields = \user_picture::unalias($message, array('lastaccess'), $prefix . 'id', $prefix);
+            $userpicture = new \user_picture($userfields);
+            $msg->profileimageurl = $userpicture->get_url($PAGE)->out(false);
             $arrmessages[] = $msg;
         }
 

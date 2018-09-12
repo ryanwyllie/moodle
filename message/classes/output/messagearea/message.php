@@ -79,6 +79,11 @@ class message implements templatable, renderable {
     public $timeread;
 
     /**
+     * @var string The profileimageurl.
+     */
+    public $profileimageurl;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $message
@@ -92,6 +97,7 @@ class message implements templatable, renderable {
         $this->displayblocktime = $message->displayblocktime;
         $this->timecreated = $message->timecreated;
         $this->timeread = $message->timeread;
+        $this->profileimageurl = $message->profileimageurl;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -106,6 +112,7 @@ class message implements templatable, renderable {
         if ($this->currentuserid == $this->useridfrom) {
             $message->position = 'right';
         }
+        $message->profileimageurl = $this->profileimageurl;
         $message->timesent = userdate($this->timecreated, get_string('strftimetime'));
         $message->timecreated = $this->timecreated;
         $message->isread = !empty($this->timeread) ? 1 : 0;
