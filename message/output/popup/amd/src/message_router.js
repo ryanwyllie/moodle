@@ -42,7 +42,8 @@ function(
 
     var go = function(newRoute) {
         var newConfig;
-        var args = [].slice.call(arguments);
+        // Get the rest of the arguments, if any.
+        var args = [].slice.call(arguments, 1);
 
         Object.keys(routes).forEach(function(route) {
             var config = routes[route];

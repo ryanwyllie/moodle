@@ -38,20 +38,14 @@ function(
     Section
 ) {
 
-    var SELECTORS = {
-        CONTACTS_LIST: '[data-region="contacts-list"]',
-        PLACEHOLDER: '[data-region="placeholder"]'
-    };
-
     var TEMPLATES = {
         CONTACTS_LIST: 'message_popup/message_drawer_view_overview_contacts_list'
     };
 
-    var render = function(root, contacts) {
+    var render = function(contentContainer, contacts) {
         return Templates.render(TEMPLATES.CONTACTS_LIST, {contacts: contacts})
             .then(function(html) {
-                root.find(SELECTORS.PLACEHOLDER).remove();
-                root.find(SELECTORS.CONTACTS_LIST).append(html);
+                contentContainer.append(html);
             })
             .catch(Notification.exception);
     };
