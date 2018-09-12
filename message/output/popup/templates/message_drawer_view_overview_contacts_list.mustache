@@ -49,5 +49,10 @@
             style="height: 40px"
         >
         <h6 class="ml-2">{{fullname}}</h6>
+        {{#isblocked}}
+            <div class="ml-auto align-self-end">
+                {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
+            </div>
+        {{/isblocked}}
     </a>
 {{/contacts}}

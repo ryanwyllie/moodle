@@ -58,12 +58,16 @@
         class="collapse border-bottom"
         aria-labelledby="{{$region}}{{/region}}-toggle"
         data-parent="#message-drawer-view-overview-container"
+        data-region="collapse-region"
     >
         <div class="hidden" data-region="empty-message-container">
             {{$emptymessage}}{{/emptymessage}}
         </div>
-        <div data-region="content-container">
+        <div class="hidden list-group" data-region="content-container">
             {{$content}}{{/content}}
+        </div>
+        <div class="list-group" data-region="placeholder-container">
+            {{$placeholder}}{{/placeholder}}
         </div>
     </div>
 </div>
