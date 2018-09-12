@@ -177,6 +177,28 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return Ajax.call([request])[0];
     };
 
+    var getMessages = function(currentUserId, otherUserid, limit, offset) {
+        var args = {
+            currentuserid: currentUserId,
+            otheruserid: otherUserid
+        };
+
+        if (typeof limit !== 'undefined') {
+            args.liminum = limit;
+        }
+
+        if (typeof offset !== 'undefined') {
+            args.limitfrom = offset;
+        }
+
+        var request = {
+            methodname: 'core_message_data_for_messagearea_messages',
+            args: args
+        };
+
+        return Ajax.call([request])[0];
+    };
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
@@ -186,6 +208,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         blockContacts: blockContacts,
         unblockContacts: unblockContacts,
         createContacts: createContacts,
-        deleteContacts: deleteContacts
+        deleteContacts: deleteContacts,
+        getMessages: getMessages
     };
 });
