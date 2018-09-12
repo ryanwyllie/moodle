@@ -34,6 +34,36 @@
 
 }}
 
-<div class="hidden" data-region="view-conversation">
-conversation
+<div class="hidden conversation" data-region="view-conversation" data-user-id="{{loggedinuserid}}">
+    <div class="d-flex conversation-wrapper">
+        <div class="d-flex flex-column">
+            <div data-region="view-conversation-header">
+            </div>
+
+            <div class="messages pt-3" data-region="view-conversation-messages">
+            </div>
+
+            <div class="response w-100" data-region="response">
+                <div class="d-flex">
+                    <textarea
+                        data-region="send-message-txt"
+                        class="form-control"
+                        rows="1"
+                        data-auto-rows=""
+                        data-max-rows="5"
+                        role="textbox"
+                        aria-label="{{#str}}writeamessage, core_message{{/str}}"
+                        placeholder="{{#str}}writeamessage, core_message{{/str}}"
+                    ></textarea>
+                    <button class="btn btn-link" data-action="send-message">
+                        <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                        <span class="sr-only">{{#str}}send, core_message{{/str}}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-3" data-region="loading-placeholder-container">
+    </div>
+
 </div>

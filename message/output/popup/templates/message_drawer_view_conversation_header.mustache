@@ -1,0 +1,67 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template message_output_popup/message_drawer
+
+    This template will render the message drawer.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * All data attributes are required
+
+    Context variables required for this template:
+    * userid The logged in user id
+    * urls The URLs for the popover
+
+    Example context (json):
+    {}
+
+}}
+
+<div class="border-bottom d-flex p-2">
+    <a class="align-self-center" href="#" data-route-back>
+        <!-- TODO: FIX THIS ICON -->
+        {{#pix}} e/right_to_left, core {{/pix}}
+    </a>
+    <a
+        href="#"
+        class="d-flex"
+        data-route="view-contact"
+        data-route-param="{{userid}}"
+    >
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+        <h6 class="ml-2"><strong>{{fullname}}</strong></h6>  
+    </a>
+    <div class="btn-group ml-auto mr-3" role="group">
+        <button class="btn btn-link">
+            <i class="fa fa-search" aria-hidden="true"></i>
+            <span class="sr-only">Search</span>
+        </button>
+        <button class="btn btn-link">
+            <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+            <span class="sr-only">Options</span>
+        </button>
+    </div>
+</div>
