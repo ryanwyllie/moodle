@@ -26,6 +26,7 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
+    'message_popup/message_drawer_view_contact',
     'message_popup/message_drawer_view_overview',
     'message_popup/message_router',
     'message_popup/message_routes'
@@ -33,6 +34,7 @@ define(
 function(
     $,
     CustomEvents,
+    ViewContact,
     ViewOverview,
     Router,
     Routes
@@ -53,7 +55,7 @@ function(
     };
 
     var createRoutes = function(root) {
-        Router.add(Routes.VIEW_CONTACT, root.find(SELECTORS.VIEW_CONTACT));
+        Router.add(Routes.VIEW_CONTACT, root.find(SELECTORS.VIEW_CONTACT), ViewContact.show);
         Router.add(Routes.VIEW_CONVERSATION, root.find(SELECTORS.VIEW_CONVERSATION));
         Router.add(Routes.VIEW_GROUP_CONVERSATION, root.find(SELECTORS.VIEW_GROUP_CONVERSATION));
         Router.add(Routes.VIEW_GROUP_FAVOURITES, root.find(SELECTORS.VIEW_GROUP_FAVOURITES));
