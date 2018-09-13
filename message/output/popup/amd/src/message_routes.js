@@ -32,6 +32,7 @@ define([],function() {
         VIEW_NON_CONTACT: 'view-non-contact',
         VIEW_OVERVIEW: 'view-overview',
         VIEW_REQUESTS: 'view-requests',
+        VIEW_SEARCH: 'view-search',
         VIEW_SETTINGS: 'view-settings'
     };
 });

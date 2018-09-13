@@ -28,6 +28,7 @@ define(
     'core/custom_interaction_events',
     'message_popup/message_drawer_view_contact',
     'message_popup/message_drawer_view_overview',
+    'message_popup/message_drawer_view_search',
     'message_popup/message_router',
     'message_popup/message_routes'
 ],
@@ -36,6 +37,7 @@ function(
     CustomEvents,
     ViewContact,
     ViewOverview,
+    ViewSearch,
     Router,
     Routes
 ) {
@@ -49,6 +51,7 @@ function(
         VIEW_NON_CONTACT: '[data-region="view-non-contact"]',
         VIEW_OVERVIEW: '[data-region="view-overview"]',
         VIEW_REQUESTS: '[data-region="view-requests"]',
+        VIEW_SEARCH: '[data-region="view-search"]',
         VIEW_SETTINGS: '[data-region="view-settings"]',
         ROUTES: '[data-route]',
         ROUTES_BACK: '[data-route-back]'
@@ -63,6 +66,7 @@ function(
         Router.add(Routes.VIEW_NON_CONTACT, root.find(SELECTORS.VIEW_NON_CONTACT));
         Router.add(Routes.VIEW_OVERVIEW, root.find(SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
         Router.add(Routes.VIEW_REQUESTS, root.find(SELECTORS.VIEW_REQUESTS));
+        Router.add(Routes.VIEW_SEARCH, root.find(SELECTORS.VIEW_SEARCH), ViewSearch.show);
         Router.add(Routes.VIEW_SETTINGS, root.find(SELECTORS.VIEW_SETTINGS));
     };
 
