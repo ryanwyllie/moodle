@@ -45,9 +45,6 @@ function(
     };
 
     var registerEventListeners = function(root) {
-        root.on('focus', SELECTORS.SEARCH_INPUT, function() {
-            Router.go(Routes.VIEW_SEARCH);
-        });
     };
 
     var show = function(root) {
@@ -55,9 +52,6 @@ function(
             registerEventListeners(root);
             root.attr('data-init', true);
         }
-
-        Contacts.show(root.find(SELECTORS.CONTACTS));
-        Messages.show(root.find(SELECTORS.MESSAGES));
     };
 
     return {
