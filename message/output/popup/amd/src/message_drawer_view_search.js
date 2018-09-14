@@ -46,6 +46,7 @@ function(
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER: '[data-region="loading-placeholder"]',
         SEARCH_ICON_CONTAINER: '[data-region="search-icon-container"]',
+        SEARCH_ACTION: '[data-action="search"]',
         SEARCH_INPUT: '[data-region="search-input"]',
         SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]'
     };
@@ -218,6 +219,16 @@ function(
             hideSearchResults(root);
             hideLoadingIcon(root);
             hideLoadingPlaceholder(root);
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.SEARCH_ACTION, function(e, data) {
+            var searchText = searchInput.val().trim();
+
+            if (searchText !== '') {
+                search(root, searchText);
+            }
+
+            data.originalEvent.preventDefault();
         });
     };
 
