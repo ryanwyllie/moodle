@@ -34,15 +34,25 @@
 
 }}
 
-<div id="message-drawer" class="message-drawer hidden" aria-expanded="false">
-    {{> message_popup/message_drawer_view_contact }}
-    {{> message_popup/message_drawer_view_conversation }}
-    {{> message_popup/message_drawer_view_group_conversation }}
-    {{> message_popup/message_drawer_view_group_favourites }}
-    {{> message_popup/message_drawer_view_group_info }}
-    {{> message_popup/message_drawer_view_non_contact }}
-    {{> message_popup/message_drawer_view_overview }}
-    {{> message_popup/message_drawer_view_requests }}
-    {{> message_popup/message_drawer_view_search }}
-    {{> message_popup/message_drawer_view_settings }}
-</div>
+{{#noncontacts}}
+    <a
+        href="#"
+        class="p-2 d-flex list-group-item list-group-item-action border-0"
+        data-route="view-non-contact"
+        data-route-param="{{userid}}"
+    >
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+        <h6 class="ml-2">{{fullname}}</h6>
+        {{#isblocked}}
+            <div class="ml-auto align-self-end">
+                {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
+            </div>
+        {{/isblocked}}
+    </a>
+{{/noncontacts}}

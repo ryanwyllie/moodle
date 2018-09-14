@@ -34,12 +34,18 @@
 
 }}
 
-<div data-region="view-search">
+<div
+    data-region="view-search"
+    data-user-id="{{loggedinuserid}}"
+>
     <div class="d-flex p-2 border-bottom">
         <div class="input-group">
             <div class="input-group-prepend">
-                <span class="input-group-text">
+                <span class="input-group-text" data-region="search-icon-container">
                     {{#pix}} a/search, core {{/pix}}
+                </span>
+                <span class="input-group-text hidden" data-region="loading-icon-container">
+                    {{> core/loading }}
                 </span>
             </div>
             <input
@@ -49,8 +55,23 @@
                 aria-label="{{#str}} search, core_search {{/str}}"
                 data-region="search-input"
             >
+            <div class="input-group-append">
+                <button
+                    data-route-back
+                    data-action="cancel-search"
+                    class="btn btn-outline-secondary"
+                    type="button"
+                >
+                    {{#pix}} e/cancel, core {{/pix}}
+                </button>
+            </div>
         </div>
     </div>
-    <div data-region="search-results-container">
+    <div class="hidden p-2" data-region="search-results-container"></div>
+    <div class="hidden p-2" data-region="loading-placeholder">
+
+    </div>
+    <div class="p-2" data-region="empty-message-container">
+        <p>Search for users or messages</p>
     </div>
 </div>

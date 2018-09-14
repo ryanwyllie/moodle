@@ -34,15 +34,26 @@
 
 }}
 
-<div id="message-drawer" class="message-drawer hidden" aria-expanded="false">
-    {{> message_popup/message_drawer_view_contact }}
-    {{> message_popup/message_drawer_view_conversation }}
-    {{> message_popup/message_drawer_view_group_conversation }}
-    {{> message_popup/message_drawer_view_group_favourites }}
-    {{> message_popup/message_drawer_view_group_info }}
-    {{> message_popup/message_drawer_view_non_contact }}
-    {{> message_popup/message_drawer_view_overview }}
-    {{> message_popup/message_drawer_view_requests }}
-    {{> message_popup/message_drawer_view_search }}
-    {{> message_popup/message_drawer_view_settings }}
-</div>
+{{#hasresults}}
+    {{#hascontacts}}
+        <h4>Contacts</h4>
+        <div class="list-group mb-3">
+            {{> message_popup/message_drawer_contacts_list }}
+        </div>
+    {{/hascontacts}}
+    {{#hasnoncontacts}}
+        <h4>Non contacts</h4>
+        <div class="list-group mb-3">
+            {{> message_popup/message_drawer_non_contacts_list }}
+        </div>
+    {{/hasnoncontacts}}
+    {{#hasmessages}}
+        <h4>Messages</h4>
+        <div class="list-group">
+            {{> message_popup/message_drawer_messages_list }}
+        </div>
+    {{/hasmessages}}
+{{/hasresults}}
+{{^hasresults}}
+    <p>No results found.</p>
+{{/hasresults}}

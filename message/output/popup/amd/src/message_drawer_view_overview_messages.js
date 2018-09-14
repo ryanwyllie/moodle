@@ -39,11 +39,11 @@ define(
     ) {
 
         var TEMPLATES = {
-            MESSAGES_LIST: 'message_popup/message_drawer_view_overview_messages_list'
+            MESSAGES_LIST: 'message_popup/message_drawer_messages_list'
         };
 
         var render = function(contentContainer, contacts) {
-            return Templates.render(TEMPLATES.MESSAGES_LIST, {contacts: contacts})
+            return Templates.render(TEMPLATES.MESSAGES_LIST, {messages: contacts})
                 .then(function(html) {
                     contentContainer.append(html);
                 })
