@@ -28,18 +28,14 @@ define(
     'core/custom_interaction_events',
     'core/notification',
     'core/templates',
-    'core_message/message_repository',
-    'message_popup/message_router',
-    'message_popup/message_routes'
+    'core_message/message_repository'
 ],
 function(
     $,
     CustomEvents,
     Notification,
     Templates,
-    Repository,
-    Router,
-    Routes
+    Repository
 ) {
 
     var RESULT_LIMIT = 20;
@@ -179,12 +175,12 @@ function(
             });
     };
 
-    var search = function(root, searchString) {
+    var search = function(root, searchText) {
         var loggedInUserId = getLoggedInUserId(root);
         startLoading(root);
         $.when(
-            Repository.searchUsers(loggedInUserId, searchString, RESULT_LIMIT),
-            Repository.searchMessages(loggedInUserId, searchString, RESULT_LIMIT)
+            Repository.searchUsers(loggedInUserId, searchText, RESULT_LIMIT),
+            Repository.searchMessages(loggedInUserId, searchText, RESULT_LIMIT)
         )
         .then(function(usersResults, messagesResults) {
             usersResults.messages = messagesResults.contacts;
@@ -206,10 +202,10 @@ function(
         CustomEvents.define(root, [CustomEvents.events.activate]);
 
         searchInput.on(CustomEvents.events.enter, function(e, data) {
-            var searchString = searchInput.val().trim();
+            var searchText = searchInput.val().trim();
 
-            if (searchString !== '') {
-                search(root, searchString);
+            if (searchText !== '') {
+                search(root, searchText);
             }
 
             data.originalEvent.preventDefault();
@@ -225,13 +221,19 @@ function(
         });
     };
 
-    var show = function(root) {
+    var show = function(root, searchText) {
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
         }
 
-        getSearchInput(root).focus();
+        var searchInput = getSearchInput(root);
+        searchInput.focus();
+
+        if (typeof searchText !== 'undefined') {
+            searchInput.val(searchText);
+            search(root, searchText);
+        }
     };
 
     return {

@@ -24,15 +24,9 @@
  */
 define([],function() {
     return {
-        VIEW_CONTACT: 'view-contact',
-        VIEW_CONVERSATION: 'view-conversation',
-        VIEW_GROUP_CONVERSATION: 'view-group-conversation',
-        VIEW_GROUP_FAVOURITES: 'view-group-favourites',
-        VIEW_GROUP_INFO: 'view-group-info',
-        VIEW_NON_CONTACT: 'view-non-contact',
-        VIEW_OVERVIEW: 'view-overview',
-        VIEW_REQUESTS: 'view-requests',
-        VIEW_SEARCH: 'view-search',
-        VIEW_SETTINGS: 'view-settings'
+        CONTACT_BLOCKED: 'message-drawer-contact-blocked',
+        CONTACT_UNBLOCKED: 'message-drawer-contact-unblocked',
+        CONTACT_ADDED: 'message-drawer-contact-added',
+        CONTACT_REMOVED: 'message-drawer-contact-removed'
     };
 });
