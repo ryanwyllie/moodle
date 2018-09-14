@@ -39,7 +39,7 @@ function(
 ) {
 
     var TEMPLATES = {
-        CONTACTS_LIST: 'message_popup/message_drawer_view_overview_contacts_list'
+        CONTACTS_LIST: 'message_popup/message_drawer_contacts_list'
     };
 
     var render = function(contentContainer, contacts) {
