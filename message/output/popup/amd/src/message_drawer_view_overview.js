@@ -25,15 +25,13 @@
 define(
 [
     'jquery',
-    'core/custom_interaction_events',
     'message_popup/message_drawer_view_overview_contacts',
     'message_popup/message_drawer_view_overview_messages',
-    'message_popup/message_router',
-    'message_popup/message_routes'
+    'message_popup/message_drawer_router',
+    'message_popup/message_drawer_routes'
 ],
 function(
     $,
-    CustomEvents,
     Contacts,
     Messages,
     Router,
@@ -42,24 +40,29 @@ function(
 
     var SELECTORS = {
         CONTACTS: '[data-region="view-overview-contacts"]',
-        MESSAGES: '[data-region="view-overview-messages"]'
+        MESSAGES: '[data-region="view-overview-messages"]',
+        SEARCH_INPUT: '[data-region="view-overview-search-input"]',
+    };
+
+    var getSearchInput = function(root) {
+        return root.find(SELECTORS.SEARCH_INPUT);
     };
 
     var registerEventListeners = function(root) {
-        CustomEvents.define(root, [CustomEvents.events.activate]);
-
-        root.on(CustomEvents.events.activate, '[data-action="requests"]', function(e, data) {
-            Router.go(Routes.VIEW_REQUESTS);
-            data.originalEvent.preventDefault();
+        var searchInput = getSearchInput(root);
+        searchInput.on('focus', function() {
+            Router.go(Routes.VIEW_SEARCH);
         });
     };
 
     var show = function(root) {
+        root = $(root);
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
         }
 
+        getSearchInput(root).val('');
         Contacts.show(root.find(SELECTORS.CONTACTS));
         Messages.show(root.find(SELECTORS.MESSAGES));
     };

@@ -198,6 +198,46 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
 
         return Ajax.call([request])[0];
     };
+ 
+    var searchUsers = function(loggedInUserId, searchString, limit) {
+        var args = {
+            userid: loggedInUserId,
+            search: searchString
+        };
+
+        if (typeof limit !== 'undefined') {
+            args.limitnum = limit;
+        }
+
+        var request = {
+            methodname: 'core_message_data_for_messagearea_search_users',
+            args: args
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var searchMessages = function(loggedInUserId, searchString, limit, offset) {
+        var args = {
+            userid: loggedInUserId,
+            search: searchString
+        };
+
+        if (typeof limit !== 'undefined') {
+            args.limitnum = limit;
+        }
+
+        if (typeof offset !== 'undefined') {
+            args.limitfrom = offset;
+        }
+
+        var request = {
+            methodname: 'core_message_data_for_messagearea_search_messages',
+            args: args
+        };
+
+        return Ajax.call([request])[0];
+    };
 
     return {
         query: query,
@@ -209,6 +249,8 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         unblockContacts: unblockContacts,
         createContacts: createContacts,
         deleteContacts: deleteContacts,
-        getMessages: getMessages
+        getMessages: getMessages,
+        searchUsers: searchUsers,
+        searchMessages: searchMessages
     };
 });

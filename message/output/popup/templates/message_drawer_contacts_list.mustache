@@ -34,6 +34,27 @@
 
 }}
 
-<div class="hidden" data-region="view-non-contact">
-view non-contact
-</div>
+{{#contacts}}
+    <a
+        href="#"
+        class="p-2 d-flex list-group-item list-group-item-action border-0"
+        data-route="view-contact"
+        data-route-param="{{userid}}"
+        data-contact-user-id="{{userid}}"
+    >
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+        <h6 class="ml-2">{{fullname}}</h6>
+        <div
+            class="ml-auto align-self-end {{^isblocked}}hidden{{/isblocked}}"
+            data-region="block-icon-container"
+        >
+            {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
+        </div>
+    </a>
+{{/contacts}}

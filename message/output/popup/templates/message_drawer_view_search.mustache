@@ -34,29 +34,43 @@
 
 }}
 
-<div data-region="view-overview" id="message-drawer-view-overview-container">
+<div
+    data-region="view-search"
+    data-user-id="{{loggedinuserid}}"
+>
     <div class="d-flex p-2 border-bottom">
+        <a
+            class="align-self-center"
+            href="#"
+            data-route-back
+            data-action="cancel-search"
+        >
+            <!-- TODO: FIX THIS ICON -->
+            {{#pix}} e/right_to_left, core {{/pix}}
+        </a>
         <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text pr-0 bg-white">
-                    {{#pix}} a/search, core {{/pix}}
-                </span>
-            </div>
             <input
                 type="text"
-                class="form-control border-left-0"
+                class="form-control"
                 placeholder="{{#str}} search, core_search {{/str}}"
                 aria-label="{{#str}} search, core_search {{/str}}"
-                data-region="view-overview-search-input"
+                data-region="search-input"
             >
-        </div>
-        <div class="align-self-center ml-2">
-            <a href="#" data-route="view-settings">{{#pix}} t/edit, core {{/pix}}</a>
+            <div class="input-group-append">
+                <span class="input-group-text" data-region="search-icon-container">
+                    {{#pix}} a/search, core {{/pix}}
+                </span>
+                <span class="input-group-text hidden" data-region="loading-icon-container">
+                    {{> core/loading }}
+                </span>
+            </div>
         </div>
     </div>
-    <div class="text-right p-2 border-bottom">
-        <a href="#" data-route="view-requests">{{#str}} requests, core {{/str}}</a>
+    <div class="hidden p-2" data-region="search-results-container"></div>
+    <div class="hidden p-2" data-region="loading-placeholder">
+
     </div>
-    {{> message_popup/message_drawer_view_overview_contacts }}
-    {{> message_popup/message_drawer_view_overview_messages }}
+    <div class="p-2" data-region="empty-message-container">
+        <p>Search for users or messages</p>
+    </div>
 </div>
