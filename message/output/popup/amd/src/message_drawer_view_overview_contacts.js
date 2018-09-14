@@ -28,6 +28,7 @@ define(
     'core/notification',
     'core/templates',
     'core_message/message_repository',
+    'message_popup/message_drawer_events',
     'message_popup/message_drawer_view_overview_section'
 ],
 function(
@@ -35,8 +36,13 @@ function(
     Notification,
     Templates,
     MessageRepository,
+    Events,
     Section
 ) {
+
+    var SELECTORS = {
+        BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]'
+    };
 
     var TEMPLATES = {
         CONTACTS_LIST: 'message_popup/message_drawer_contacts_list'
@@ -58,8 +64,52 @@ function(
             .catch(Notification.exception);
     };
 
+    var findContact = function(root, userId) {
+        return root.find('[data-contact-user-id="' + userId + '"]');
+    };
+
+    var removeContact = function(root, userId) {
+        findContact(root, userId).remove();
+    };
+
+    var blockContact = function(root, userId) {
+        var contact = findContact(root, userId);
+        if (contact.length) {
+            contact.find(SELECTORS.BLOCK_ICON_CONTAINER).removeClass('hidden');
+        }
+    };
+
+    var unblockContact = function(root, userId) {
+        var contact = findContact(root, userId);
+        if (contact.length) {
+            contact.find(SELECTORS.BLOCK_ICON_CONTAINER).addClass('hidden');
+        }
+    };
+
+    var registerEventListeners = function(root) {
+        var body = $('body');
+
+        body.on(Events.CONTACT_REMOVED, function(e, userId) {
+            removeContact(root, userId);
+        });
+
+        body.on(Events.CONTACT_BLOCKED, function(e, userId) {
+            blockContact(root, userId);
+        });
+
+        body.on(Events.CONTACT_UNBLOCKED, function(e, userId) {
+            unblockContact(root, userId);
+        });
+    };
+
     var show = function(root) {
         root = $(root);
+
+        if (!root.attr('data-contacts-init')) {
+            registerEventListeners(root);
+            root.attr('data-contacts-init', true);
+        }
+
         Section.show(root, load, render);
     };
 

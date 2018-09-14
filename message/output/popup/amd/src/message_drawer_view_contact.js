@@ -28,14 +28,16 @@ define(
     'core/custom_interaction_events',
     'core/notification',
     'core/templates',
-    'core_message/message_repository'
+    'core_message/message_repository',
+    'message_popup/message_drawer_events',
 ],
 function(
     $,
     CustomEvents,
     Notification,
     Templates,
-    Repository
+    Repository,
+    Events
 ) {
 
     var SELECTORS = {
@@ -135,6 +137,8 @@ function(
             .then(function() {
                 hideAddContactButton(root);
                 showRemoveContactButton(root);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(Events.CONTACT_ADDED, [profileUserId]);
                 return;
             });
     };
@@ -144,6 +148,8 @@ function(
             .then(function() {
                 showAddContactButton(root);
                 hideRemoveContactButton(root);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(Events.CONTACT_REMOVED, [profileUserId]);
                 return;
             });
     };
@@ -153,6 +159,8 @@ function(
             .then(function() {
                 hideBlockButton(root);
                 showUnblockButton(root);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(Events.CONTACT_BLOCKED, [profileUserId]);
                 return;
             });
     };
@@ -162,6 +170,8 @@ function(
             .then(function() {
                 showBlockButton(root);
                 hideUnblockButton(root);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(Events.CONTACT_UNBLOCKED, [profileUserId]);
                 return;
             });
     };

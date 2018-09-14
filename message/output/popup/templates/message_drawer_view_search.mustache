@@ -39,15 +39,16 @@
     data-user-id="{{loggedinuserid}}"
 >
     <div class="d-flex p-2 border-bottom">
+        <a
+            class="align-self-center"
+            href="#"
+            data-route-back
+            data-action="cancel-search"
+        >
+            <!-- TODO: FIX THIS ICON -->
+            {{#pix}} e/right_to_left, core {{/pix}}
+        </a>
         <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" data-region="search-icon-container">
-                    {{#pix}} a/search, core {{/pix}}
-                </span>
-                <span class="input-group-text hidden" data-region="loading-icon-container">
-                    {{> core/loading }}
-                </span>
-            </div>
             <input
                 type="text"
                 class="form-control"
@@ -56,14 +57,12 @@
                 data-region="search-input"
             >
             <div class="input-group-append">
-                <button
-                    data-route-back
-                    data-action="cancel-search"
-                    class="btn btn-outline-secondary"
-                    type="button"
-                >
-                    {{#pix}} e/cancel, core {{/pix}}
-                </button>
+                <span class="input-group-text" data-region="search-icon-container">
+                    {{#pix}} a/search, core {{/pix}}
+                </span>
+                <span class="input-group-text hidden" data-region="loading-icon-container">
+                    {{> core/loading }}
+                </span>
             </div>
         </div>
     </div>
