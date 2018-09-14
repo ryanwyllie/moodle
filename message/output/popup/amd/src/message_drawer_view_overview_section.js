@@ -130,19 +130,20 @@ function(
 
     var show = function(root, loadCallback, renderCallback) {
         root = $(root);
-        root.removeAttr('data-seen');
 
         if (!root.attr('data-init')) {
             registerEventListeners(root, loadCallback, renderCallback);
-            root.attr('data-init', true);
-        }
 
-        if (isVisible(root)) {
-            initialLoadAndRender(root, loadCallback, renderCallback);
+            if (isVisible(root)) {
+                initialLoadAndRender(root, loadCallback, renderCallback);
+            }
+
+            root.attr('data-init', true);
         }
     };
 
     return {
-        show: show
+        show: show,
+        getContentContainer: getContentContainer
     };
 });

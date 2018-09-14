@@ -27,8 +27,8 @@ define(
     'jquery',
     'message_popup/message_drawer_view_overview_contacts',
     'message_popup/message_drawer_view_overview_messages',
-    'message_popup/message_router',
-    'message_popup/message_routes'
+    'message_popup/message_drawer_router',
+    'message_popup/message_drawer_routes'
 ],
 function(
     $,
@@ -44,18 +44,25 @@ function(
         SEARCH_INPUT: '[data-region="view-overview-search-input"]',
     };
 
+    var getSearchInput = function(root) {
+        return root.find(SELECTORS.SEARCH_INPUT);
+    };
+
     var registerEventListeners = function(root) {
-        root.on('focus', SELECTORS.SEARCH_INPUT, function() {
+        var searchInput = getSearchInput(root);
+        searchInput.on('focus', function() {
             Router.go(Routes.VIEW_SEARCH);
         });
     };
 
     var show = function(root) {
+        root = $(root);
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
         }
 
+        getSearchInput(root).val('');
         Contacts.show(root.find(SELECTORS.CONTACTS));
         Messages.show(root.find(SELECTORS.MESSAGES));
     };

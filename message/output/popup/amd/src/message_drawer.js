@@ -29,8 +29,8 @@ define(
     'message_popup/message_drawer_view_contact',
     'message_popup/message_drawer_view_overview',
     'message_popup/message_drawer_view_search',
-    'message_popup/message_router',
-    'message_popup/message_routes'
+    'message_popup/message_drawer_router',
+    'message_popup/message_drawer_routes'
 ],
 function(
     $,
@@ -48,7 +48,6 @@ function(
         VIEW_GROUP_CONVERSATION: '[data-region="view-group-conversation"]',
         VIEW_GROUP_FAVOURITES: '[data-region="view-group-favourites"]',
         VIEW_GROUP_INFO: '[data-region="view-group-info"]',
-        VIEW_NON_CONTACT: '[data-region="view-non-contact"]',
         VIEW_OVERVIEW: '[data-region="view-overview"]',
         VIEW_REQUESTS: '[data-region="view-requests"]',
         VIEW_SEARCH: '[data-region="view-search"]',
@@ -63,7 +62,6 @@ function(
         Router.add(Routes.VIEW_GROUP_CONVERSATION, root.find(SELECTORS.VIEW_GROUP_CONVERSATION));
         Router.add(Routes.VIEW_GROUP_FAVOURITES, root.find(SELECTORS.VIEW_GROUP_FAVOURITES));
         Router.add(Routes.VIEW_GROUP_INFO, root.find(SELECTORS.VIEW_GROUP_INFO));
-        Router.add(Routes.VIEW_NON_CONTACT, root.find(SELECTORS.VIEW_NON_CONTACT));
         Router.add(Routes.VIEW_OVERVIEW, root.find(SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
         Router.add(Routes.VIEW_REQUESTS, root.find(SELECTORS.VIEW_REQUESTS));
         Router.add(Routes.VIEW_SEARCH, root.find(SELECTORS.VIEW_SEARCH), ViewSearch.show);
