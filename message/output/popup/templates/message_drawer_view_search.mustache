@@ -74,9 +74,32 @@
     </div>
     <div class="hidden p-2" data-region="search-results-container"></div>
     <div class="hidden p-2" data-region="loading-placeholder">
-
+        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
+        <div class="list-group mb-3">
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+        </div>
+        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
+        <div class="list-group mb-3">
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+        </div>
+        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
+        <div class="list-group">
+            {{> message_popup/message_drawer_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_messages_list_item_placeholder }}
+            {{> message_popup/message_drawer_messages_list_item_placeholder }}
+        </div>
     </div>
     <div class="p-2" data-region="empty-message-container">
-        <p>Search for users or messages</p>
+        <p>{{#str}} searchcombined, core_message {{/str}}</p>
     </div>
 </div>

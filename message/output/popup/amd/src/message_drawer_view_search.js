@@ -28,23 +28,30 @@ define(
     'core/custom_interaction_events',
     'core/notification',
     'core/templates',
-    'core_message/message_repository'
+    'core_message/message_repository',
+    'message_popup/message_drawer_events',
 ],
 function(
     $,
     CustomEvents,
     Notification,
     Templates,
-    Repository
+    Repository,
+    Events
 ) {
 
     var RESULT_LIMIT = 20;
 
     var SELECTORS = {
+        BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
         CANCEL_SEARCH_BUTTON: '[data-action="cancel-search"]',
+        CONTACTS_CONTAINER: '[data-region="contacts-container"]',
         EMPTY_MESSAGE_CONTAINER: '[data-region="empty-message-container"]',
+        LIST: '[data-region="list"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER: '[data-region="loading-placeholder"]',
+        MESSAGES_CONTAINER: '[data-region="messages-container"]',
+        NON_CONTACTS_CONTAINER: '[data-region="non-contacts-container"]',
         SEARCH_ICON_CONTAINER: '[data-region="search-icon-container"]',
         SEARCH_ACTION: '[data-action="search"]',
         SEARCH_INPUT: '[data-region="search-input"]',
@@ -81,6 +88,18 @@ function(
 
     var getSearchResultsContainer = function(root) {
         return root.find(SELECTORS.SEARCH_RESULTS_CONTAINER);
+    };
+
+    var getContactsContainer = function(root) {
+        return root.find(SELECTORS.CONTACTS_CONTAINER);
+    };
+
+    var getNonContactsContainer = function(root) {
+        return root.find(SELECTORS.NON_CONTACTS_CONTAINER);
+    };
+
+    var getMessagesContainer = function(root) {
+        return root.find(SELECTORS.MESSAGES_CONTAINER);
     };
 
     var showEmptyMessage = function(root) {
@@ -153,6 +172,56 @@ function(
         enableSearchInput(root);
     };
 
+    var findContact = function(root, userId) {
+        return root.find('[data-contact-user-id="' + userId + '"]');
+    };
+
+    var addContact = function(root, userId) {
+        var nonContactsContainer = getNonContactsContainer(root);
+        var nonContact = findContact(nonContactsContainer, userId);
+
+        if (nonContact.length) {
+            nonContact.remove();
+            var contactsContainer = getContactsContainer(root);
+            contactsContainer.removeClass('hidden');
+            contactsContainer.find(SELECTORS.LIST).append(nonContact);
+        }
+
+        if (!nonContactsContainer.find(SELECTORS.LIST).children().length) {
+            nonContactsContainer.addClass('hidden');
+        }
+    };
+
+    var removeContact = function(root, userId) {
+        var contactsContainer = getContactsContainer(root);
+        var contact = findContact(contactsContainer, userId);
+
+        if (contact.length) {
+            contact.remove();
+            var nonContactsContainer = getNonContactsContainer(root);
+            nonContactsContainer.removeClass('hidden');
+            nonContactsContainer.find(SELECTORS.LIST).append(contact);
+        }
+
+        if (!contactsContainer.find(SELECTORS.LIST).children().length) {
+            contactsContainer.addClass('hidden');
+        }
+    };
+
+    var blockContact = function(root, userId) {
+        var contact = findContact(root, userId);
+        if (contact.length) {
+            contact.find(SELECTORS.BLOCK_ICON_CONTAINER).removeClass('hidden');
+        }
+    };
+
+    var unblockContact = function(root, userId) {
+        var contact = findContact(root, userId);
+        if (contact.length) {
+            contact.find(SELECTORS.BLOCK_ICON_CONTAINER).addClass('hidden');
+        }
+    };
+
     var renderSearchResults = function(root, results) {
         var hascontacts = (results.contacts.length > 0);
         var hasnoncontacts = (results.noncontacts.length > 0);
@@ -179,7 +248,7 @@ function(
     var search = function(root, searchText) {
         var loggedInUserId = getLoggedInUserId(root);
         startLoading(root);
-        $.when(
+        return $.when(
             Repository.searchUsers(loggedInUserId, searchText, RESULT_LIMIT),
             Repository.searchMessages(loggedInUserId, searchText, RESULT_LIMIT)
         )
@@ -198,6 +267,7 @@ function(
     };
 
     var registerEventListeners = function(root) {
+        var body = $('body');
         var searchInput = getSearchInput(root);
         CustomEvents.define(searchInput, [CustomEvents.events.enter]);
         CustomEvents.define(root, [CustomEvents.events.activate]);
@@ -206,7 +276,10 @@ function(
             var searchText = searchInput.val().trim();
 
             if (searchText !== '') {
-                search(root, searchText);
+                search(root, searchText)
+                    .then(function() {
+                        searchInput.focus();
+                    });
             }
 
             data.originalEvent.preventDefault();
@@ -229,6 +302,22 @@ function(
             }
 
             data.originalEvent.preventDefault();
+        });
+
+        body.on(Events.CONTACT_ADDED, function(e, userId) {
+            addContact(root, userId);
+        });
+
+        body.on(Events.CONTACT_REMOVED, function(e, userId) {
+            removeContact(root, userId);
+        });
+
+        body.on(Events.CONTACT_BLOCKED, function(e, userId) {
+            blockContact(root, userId);
+        });
+
+        body.on(Events.CONTACT_UNBLOCKED, function(e, userId) {
+            unblockContact(root, userId);
         });
     };
 
