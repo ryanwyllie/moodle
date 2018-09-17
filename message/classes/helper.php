@@ -158,6 +158,7 @@ class helper {
             $userfields = \user_picture::unalias($message, array('lastaccess'), $prefix . 'id', $prefix);
             $userpicture = new \user_picture($userfields);
             $msg->profileimageurl = $userpicture->get_url($PAGE)->out(false);
+            $msg->fullname = fullname($userfields);
             $arrmessages[] = $msg;
         }
 
