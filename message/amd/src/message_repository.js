@@ -239,6 +239,29 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return Ajax.call([request])[0];
     };
 
+    var sendMessages = function(messages) {
+        var request = {
+            methodname: 'core_message_send_instant_messages',
+            args: {
+                messages: messages
+            }
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    var sendMessage = function(toUserId, text) {
+        var message = {
+            touserid: toUserId,
+            text: text
+        };
+
+        return sendMessages([message])
+            .then(function(result) {
+                return result[0];
+            });
+    };
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
@@ -251,6 +274,8 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         deleteContacts: deleteContacts,
         getMessages: getMessages,
         searchUsers: searchUsers,
-        searchMessages: searchMessages
+        searchMessages: searchMessages,
+        sendMessages: sendMessages,
+        sendMessage: sendMessage
     };
 });

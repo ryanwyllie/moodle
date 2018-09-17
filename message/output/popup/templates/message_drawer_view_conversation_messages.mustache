@@ -1,14 +1,26 @@
 {{#messages}}
-
-<div class="small text-center">{{timesent}}</div>
-<div class="message pl-1 pr-1 {{position}}">
-    <img
-        class="rounded-circle"
-        src="{{{profileimageurl}}}"
-        alt="{{fullname}}"
-        aria-hidden="true"
-        style="height: 20px"
-    >
-	{{{text}}}
-</div>
+    {{#displayblocktime}}
+        <h6 class="text-center mb-4">{{blocktime}}</h6>
+    {{/displayblocktime}}
+    <div class="d-flex" data-region="message">
+        <div>
+            <img
+                class="rounded-circle"
+                src="{{{profileimageurl}}}"
+                alt="{{fullname}}"
+                aria-hidden="true"
+                style="height: 40px"
+            >
+        </div>
+        <div class="pl-2 pr-2">
+            <strong class="text-truncate">{{fullname}}</strong>
+            <div class="text-muted">{{{text}}}</div>
+        </div>
+        <div
+            class="ml-auto small text-right text-muted"
+            style="flex-shrink: 0"
+        >
+            {{timesent}}
+        </div>
+    </div>
 {{/messages}}

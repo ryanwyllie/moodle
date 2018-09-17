@@ -25,6 +25,8 @@
 define(
 [
     'jquery',
+    'core/auto_rows',
+    'core/custom_interaction_events',
     'core/notification',
     'core/templates',
     'core_message/message_repository',
@@ -32,6 +34,8 @@ define(
 ],
 function(
     $,
+    AutoRows,
+    CustomEvents,
     Notification,
     Templates,
     Repository,
@@ -39,9 +43,14 @@ function(
 ) {
 
     var SELECTORS = {
+        AUTO_ROWS: '[data-region=""]',
         HEADER: '[data-region="view-conversation-header"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
-        PLACEHOLDER: '[data-region="placeholder"]'
+        PLACEHOLDER: '[data-region="placeholder"]',
+        MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
+        SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
+        SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
+        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]'
     };
 
     var TEMPLATES = {
@@ -52,6 +61,24 @@ function(
     // HOW DO I REUSE THIS STUFF FROM OTHER MODULES?
     var getLoggedInUserId = function(root) {
         return root.attr('data-user-id');
+    };
+
+    var getMessageTextArea = function(root) {
+        return root.find(SELECTORS.MESSAGE_TEXT_AREA);
+    };
+
+    var startSendMessageLoading = function(root) {
+        root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', true);
+        root.find(SELECTORS.MESSAGE_TEXT_AREA).prop('disabled', true);
+        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    };
+
+    var stopSendMessageLoading = function(root) {
+        root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', false);
+        root.find(SELECTORS.MESSAGE_TEXT_AREA).prop('disabled', false);
+        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
     // Header stuff.
@@ -78,21 +105,78 @@ function(
     };
 
     var renderMessages = function(root, messages) {
-        messagesContainer = root.find(SELECTORS.MESSAGES);
+        var messagesContainer = root.find(SELECTORS.MESSAGES);
         return Templates.render(TEMPLATES.MESSAGES, {messages: messages})
             .then(function(html, js) {
                 Templates.replaceNodeContents(messagesContainer, html, js);
                 messagesContainer.animate({
-                    scrollTop: $(document).height() 
+                    scrollTop: $(document).height()
                 }, "fast");
             })
             .catch(Notification.exception);
     };
 
+    var sendMessage = function(toUserId, text) {
+        return Repository.sendMessage(toUserId, text);
+    };
 
+    var renderSentMessage = function(root, text) {
+        var context = {
+            messages: [{
+                displayblocktime: false,
+                fullname: root.attr('data-full-name'),
+                profileimageurl: root.attr('data-profile-url'),
+                text: text
+            }]
+        };
+
+        return Templates.render(TEMPLATES.MESSAGES, context)
+            .then(function(html) {
+                var messagesContainer = root.find(SELECTORS.MESSAGES);
+                messagesContainer.append(html);
+            });
+    };
+
+    var registerEventListeners = function(root, otherUserId) {
+        AutoRows.init(root);
+
+        CustomEvents.define(root, [CustomEvents.events.activate]);
+        root.on(CustomEvents.events.activate, SELECTORS.SEND_MESSAGE_BUTTON, function(e, data) {
+            var textArea = getMessageTextArea(root);
+            var text = textArea.val().trim();
+
+            if (text !== '') {
+                startSendMessageLoading(root);
+                sendMessage(otherUserId, text)
+                    .then(function() {
+                        return renderSentMessage(root, text);
+                    })
+                    .then(function() {
+                        return textArea.val('');
+                    })
+                    .then(function() {
+                        return stopSendMessageLoading(root);
+                    })
+                    .then(function() {
+                        return textArea.focus();
+                    })
+                    .catch(function(error) {
+                        Notification.exception(error);
+                        startSendMessageLoading(root);
+                    });
+            }
+
+            data.originalEvent.preventDefault();
+        });
+    };
 
     var show = function(root, otherUserId) {
         root = $(root);
+        if (!root.attr('data-init')) {
+            registerEventListeners(root, otherUserId);
+            root.attr('data-init', true);
+        }
+
         var currentUserId = getLoggedInUserId(root);
 
         // THIS IS DUPLICATING THINGS AGAIN FROM VIEW CONTACT.JS
