@@ -55,7 +55,8 @@ function(
 
     var TEMPLATES = {
         HEADER: 'message_popup/message_drawer_view_conversation_header',
-        MESSAGES: 'message_popup/message_drawer_view_conversation_messages'
+        MESSAGES: 'message_popup/message_drawer_view_conversation_messages',
+        ADDCONTACT: 'message_popup/message_drawer_add_contact'
     };
 
     // HOW DO I REUSE THIS STUFF FROM OTHER MODULES?
@@ -94,6 +95,15 @@ function(
                 Templates.replaceNodeContents(headerContainer, html, js);
             });
     };
+
+    var renderAddContact = function(root, profile) {
+        var messagesContainer = root.find(SELECTORS.MESSAGES);
+        return Templates.render(TEMPLATES.ADDCONTACT, profile)
+            .then(function(html,js) {
+                Templates.replaceNodeContents(messagesContainer, html, js);
+            })
+            .catch(Notification.exception);
+    }
 
     // Message loading.
     var loadMessages = function(root, currentUserId, otherUserId) {
@@ -183,17 +193,24 @@ function(
         loadHeader(root, otherUserId).then(function(profile) {
             // NEEDS LOADING ICON
             renderHeader(root, profile);
+
+            loadMessages(root, currentUserId, otherUserId).then(function(messages) {
+            // FOR NOW SHOW ADD CONTACT WHEN NO MESSAGES YET.
+                if (messages.length == 0) {
+                    renderAddContact(root, profile)
+                }
+                renderMessages(root, messages);
+            })
+            .catch(function(error) {
+                Notification.exception(error);
+            });
+
         })
         .catch(function(error) {
             Notification.exception(error);
         });
 
-        loadMessages(root, currentUserId, otherUserId).then(function(messages) {
-            renderMessages(root, messages);
-        })
-        .catch(function(error) {
-            Notification.exception(error);
-        });
+
     };
 
     return {

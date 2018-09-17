@@ -36,6 +36,7 @@
 
 <div
     data-region="view-search"
+    class="h-100"
     data-user-id="{{loggedinuser.id}}"
 >
     <div class="d-flex p-2 border-bottom">
@@ -72,7 +73,7 @@
             </div>
         </div>
     </div>
-    <div class="hidden p-2" data-region="search-results-container"></div>
+    <div class="h-100 hidden p-2" data-region="search-results-container" style="overflow-y: scroll;"></div>
     <div class="hidden p-2" data-region="loading-placeholder">
         <div class="bg-light mb-3 w-50" style="height: 30px"></div>
         <div class="list-group mb-3">

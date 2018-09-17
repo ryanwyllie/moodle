@@ -24,6 +24,7 @@
 
 $string['addcontact'] = 'Add contact';
 $string['addtoyourcontacts'] = 'Add to your contacts';
+$string['addtoyourcontactsandmessage'] = 'Add to your contacts and message';
 $string['ago'] = '{$a} ago';
 $string['allusers'] = 'All messages from all users';
 $string['backupmessageshelp'] = 'If enabled, then instant messages will be included in SITE automated backups';
@@ -88,6 +89,8 @@ $string['notificationwindow'] = 'Notification window';
 $string['notificationpreferences'] = 'Notification preferences';
 $string['notificationimage'] = 'Notification image';
 $string['notifications'] = 'Notifications';
+$string['notincontactsheading'] = '{$a} is not in your contacts';
+$string['notincontacts'] = 'You need to add {$a} to your contacts to be able to send them messages.';
 $string['off'] = 'Off';
 $string['offline'] = 'Offline';
 $string['on'] = 'On';
