@@ -79,13 +79,23 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
 function message_popup_before_standard_top_of_body_html() {
     global $USER, $CFG, $PAGE;
 
-    if (empty($CFG->messaging)) {
+    // Early bail out conditions.
+    if (empty($CFG->messaging) || !isloggedin() || isguestuser() || user_not_fully_set_up($USER) ||
+        get_user_preferences('auth_forcepasswordchange') ||
+        (!$USER->policyagreed && !is_siteadmin() &&
+            ($manager = new \core_privacy\local\sitepolicy\manager()) && $manager->is_defined())) {
         return '';
     }
 
     $renderer = $PAGE->get_renderer('core');
+    $profileurl = (new \user_picture($USER))->get_url($PAGE)->out(false);
+    $fullname = fullname($USER);
 
     return $renderer->render_from_template('message_popup/message_drawer', [
-        'loggedinuserid' => $USER->id
+        'loggedinuser' => [
+            'id' => $USER->id,
+            'fullname' => $fullname,
+            'profileurl' => $profileurl
+        ]
     ]);
 }
