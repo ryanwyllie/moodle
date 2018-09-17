@@ -15,30 +15,19 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_myoverview/paging-content
+    @template block_myoverview/progress-bar
 
-    This template renders each of the content regions for a paginated
-    content section.
+    This template renders a simple progress bar.
 
     Example context (json):
     {
-        "pages": [
-            {
-                "active": true,
-                "page": 1,
-                "content": "<p>Some page content</p>"
-            },
-            {
-                "page": 2,
-                "content": "<p>Some page content</p>"
-            }
-        ]
+        "progress": 50
     }
 }}
-<div id="{{$pagingcontentid}}paging-content-{{uniqid}}{{/pagingcontentid}}" data-region="paging-content">
-    {{#pages}}
-        {{$paging-content-item}}
-            {{> block_myoverview/paging-content-item }}
-        {{/paging-content-item}}
-    {{/pages}}
+
+<div class="progress">
+	<div class="progress-bar bar" role="progressbar" aria-valuenow="{{progress}}" style="width: {{progress}}%" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+<div class="small">
+	<strong>{{progress}}%</strong> {{#str}}complete, block_myoverview{{/str}}
 </div>
