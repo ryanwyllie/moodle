@@ -598,18 +598,31 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
     }
 
     $orderby = "";
+    $lastaccess = false;
+    $lastaccessedsort = "";
     $sort    = trim($sort);
     if (!empty($sort)) {
         $rawsorts = explode(',', $sort);
         $sorts = array();
         foreach ($rawsorts as $rawsort) {
             $rawsort = trim($rawsort);
+            if (preg_match('/lastaccessed\s?(asc|desc)?/i', $rawsort)) {
+                $lastaccess = true;
+                $lastaccessedsort = $rawsort;
+                continue;
+            }
             if (strpos($rawsort, 'c.') === 0) {
                 $rawsort = substr($rawsort, 2);
             }
             $sorts[] = trim($rawsort);
         }
-        $sort = 'c.'.implode(',c.', $sorts);
+        if ($lastaccess) {
+            if (count($sorts)) {
+                $sort = $lastaccessedsort . ', c.'.implode(',c.', $sorts);
+            }
+        } else {
+            $sort = 'c.'.implode(',c.', $sorts);
+        }
         $orderby = "ORDER BY $sort";
     }
 
@@ -621,6 +634,9 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
         $wheres[] = "courseid = :loginas";
         $params['loginas'] = $USER->loginascontext->instanceid;
     }
+
+    $lastaccessselect = "";
+    $lastaccessjoin = "";
 
     $coursefields = 'c.' .join(',c.', $fields);
     $ccselect = ', ' . context_helper::get_preload_record_columns_sql('ctx');
@@ -648,6 +664,12 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
         $params['enabled'] = ENROL_INSTANCE_ENABLED;
         $params['now1'] = round(time(), -2); // Improves db caching.
         $params['now2'] = $params['now1'];
+
+        if ($lastaccess) {
+            $params['useridla'] = $USER->id;
+            $lastaccessselect = ', ul.timeaccess as lastaccessed';
+            $lastaccessjoin = "LEFT JOIN {user_lastaccess} ul ON (ul.courseid = c.id AND ul.userid = :useridla)";
+        }
     }
 
     // When including non-enrolled but accessible courses...
@@ -708,10 +730,11 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
 
     // Note: we can not use DISTINCT + text fields due to Oracle and MS limitations, that is why
     // we have the subselect there.
-    $sql = "SELECT $coursefields $ccselect
+    $sql = "SELECT $coursefields $ccselect $lastaccessselect
               FROM {course} c
               JOIN ($courseidsql) en ON (en.courseid = c.id)
-           $ccjoin
+            $lastaccessjoin
+            $ccjoin
              WHERE $wheres
           $orderby";
 
