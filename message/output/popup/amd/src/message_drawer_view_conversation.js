@@ -42,6 +42,8 @@ function(
     Log
 ) {
 
+    var SECONDS_IN_DAY = 86400;
+
     var SELECTORS = {
         AUTO_ROWS: '[data-region=""]',
         HEADER: '[data-region="view-conversation-header"]',
@@ -55,6 +57,8 @@ function(
 
     var TEMPLATES = {
         HEADER: 'message_popup/message_drawer_view_conversation_header',
+        DAY: 'message_popup/message_drawer_view_conversation_day',
+        MESSAGE: 'message_popup/message_drawer_view_conversation_message',
         MESSAGES: 'message_popup/message_drawer_view_conversation_messages',
         ADDCONTACT: 'message_popup/message_drawer_add_contact'
     };
@@ -180,6 +184,235 @@ function(
         });
     };
 
+    /**
+     * Calculated the midnight timestamp of a given timestamp using the user's
+     * midnight timestamp. Calculations are based on the user's midnight so that
+     * timezone's are preserved.
+     *
+     * @param {int} timestamp The timestamp to calculate from
+     * @param {int} midnight The user's midnight timestamp
+     * @return {int} The midnight value of the user's timestamp
+     */
+    var getDayTimestamp = function(timestamp, midnight) {
+        var future = timestamp > midnight;
+        var diffSeconds = Math.abs(timestamp - midnight);
+        var diffDays = future ? Math.floor(diffSeconds / SECONDS_IN_DAY) : Math.ceil(diffSeconds / SECONDS_IN_DAY);
+        var diffDaysInSeconds = diffDays * SECONDS_IN_DAY;
+        // Is the timestamp in the future or past?
+        var dayTimestamp = future ? midnight + diffDaysInSeconds : midnight - diffDaysInSeconds;
+        return dayTimestamp;
+    };
+
+    var getLoggedInUserProfile = function(root) {
+        return {
+            userid: getLoggedInUserId(root),
+            fullname: root.attr('data-full-name'),
+            profileimageurl: root.attr('data-profile-url'),
+        }
+    };
+
+    var formatMessages = function(messages, loggedInUserId) {
+        return messages.map(function(message) {
+            return {
+                id: message.id,
+                isread: message.isread,
+                fromloggedinuser: message.useridfrom == loggedInUserId,
+                useridfrom: message.useridfrom,
+                useridto: message.useridto,
+                text: message.text,
+                timecreated: parseInt(message.timecreated, 10)
+            };
+        });
+    };
+
+    var sortMessagesByDay = function(messages, midnight) {
+        var messagesByDay = messages.reduce(function(carry, message) {
+            var dayTimestamp = getDayTimestamp(message.timecreated, midnight)
+
+            if (carry.hasOwnProperty(dayTimestamp)) {
+                carry[dayTimestamp].push(message);
+            } else {
+                carry[dayTimestamp] = [message];
+            }
+
+            return carry;
+        }, {});
+
+        return Object.keys(messagesByDay).map(function(dayTimestamp) {
+            return {
+                timestamp: dayTimestamp,
+                messages: messagesByDay[dayTimestamp]
+            };
+        });
+    };
+
+    var buildInitialState = function(root, midnight, loggedInUserId, otherUserProfiles) {
+        var members = otherUserProfiles.reduce(function(carry, profile) {
+            carry[profile.userid] = profile;
+            return carry;
+        }, {});
+
+        members[loggedInUserId] = getLoggedInUserProfile(root);
+
+
+        return {
+            midnight: midnight,
+            loggedInUserId: loggedInUserId,
+            members: members,
+            messages: []
+        };
+    };
+
+    var addMessagesToState = function(state, messages) {
+        var newState = Object.assign({}, state);
+        var formattedMessages = formatMessages(messages, state.loggedInUserId);
+        var allMessages = state.messages.concat(formattedMessages);
+        // Sort the messages. Oldest to newest.
+        allMessages.sort(function(a, b) {
+            if (a.timecreated < b.timecreated) {
+                return -1;
+            } else if (a.timecreated > b.timecreated) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        newState.messages = allMessages;
+        return newState;
+    };
+
+    var diffArrays = function(a, b, matchFunction) {
+        // Make copy of it
+        b = b.slice();
+        var missingFromA = [];
+        var missingFromB = [];
+        var matches = [];
+
+        a.forEach(function(current) {
+            var found = false;
+            var index = 0;
+
+            for (; index < b.length; index++) {
+                var next = b[index];
+
+                if (matchFunction(current, next)) {
+                    found = true;
+                    matches.push({
+                        a: current,
+                        b: next
+                    });
+                    break;
+                }
+            }
+
+            if (found) {
+                // This day has been processed so removed it from the list.
+                b.splice(index, 1);
+            } else {
+                // If we couldn't find it in the next messages then it means
+                // it needs to be added.
+                missingFromB.push(dayCurrent);
+            }
+        });
+
+        missingFromA = b;
+
+        return {
+            missingFromA: missingFromA,
+            missingFromB: missingFromB,
+            matches: matches
+        };
+    };
+
+    var findPositionInArray = function(array, continueFunction) {
+        var before = null;
+
+        for (var i = 0; i < array.length; i++) {
+            var candidate = array[i];
+            before = candidate;
+            if (!continueFunction(candidate)) {
+                break;
+            }
+        }
+
+        return before;
+    };
+
+    var getStatePatch = function(state, newState) {
+        var patch = {
+            days: {
+                add: [],
+                remove: []
+            },
+            messages: {
+                add: [],
+                remove: []
+            }
+        }
+
+        var current = sortMessagesByDay(state.messages, state.midnight);
+        var next = sortMessagesByDay(newState.messages, newState.midnight);
+        var daysDiff = diffArrays(current, next, function(dayCurrent, dayNext) {
+            return dayCurrent.timestamp == dayNext.timestamp;
+        });
+
+        patch.days.remove = daysDiff.missingFromB;
+
+        // Any days left over in the "next" list weren't in the "current" list
+        // so they will need to be added.
+        daysDiff.missingFromA.forEach(function(day) {
+            var before = findPositionInArray(current, function(candidate) {
+                return day.timestamp < candidate.timestamp;
+            });
+
+            patch.days.add.push({
+                before: before,
+                value: day
+            });
+        });
+
+        daysDiff.matches.forEach(function(days) {
+            var dayCurrent = days.current;
+            var dayNext = days.next;
+            var messagesDiff = diffArrays(dayCurrent.messages, dayNext.messages, function(messageCurrent, messageNext) {
+                return messageCurrent.id == messageNext.id;
+            });
+
+            patch.messages.remove = patch.messages.remove.concat(messagesDiff.missingFromB);
+
+            messagesDiff.missingFromA.forEach(function(message) {
+                var before = findPositionInArray(dayCurrent.messages, function(candidate) {
+                    return message.timecreated < candidate.timecreated;
+                });
+
+                patch.messages.add.push({
+                    before: before,
+                    value: message,
+                    day: dayCurrent
+                });
+            });
+        });
+
+        return patch;
+    };
+
+    var renderPatch = function(root, patch) {
+        var messagesContainer = root.find(SELECTORS.MESSAGES);
+
+        patch.days.add.forEach(function(day) {
+            Templates.render(TEMPLATES.DAY, day.value)
+                .then(function(html) {
+                    if (day.before) {
+                        var element = messagesContainer.find('[data-day-id="' + day.before.timecreated + '"]');
+                        $(html).insertBefore(element);
+                    } else {
+                        messagesContainer.append(html);
+                    }
+                });
+        });
+    };
+
     var show = function(root, otherUserId) {
         root = $(root);
         if (!root.attr('data-init')) {
@@ -187,30 +420,21 @@ function(
             root.attr('data-init', true);
         }
 
-        var currentUserId = getLoggedInUserId(root);
+        var loggedInUserId = getLoggedInUserId(root);
+        var midnight = parseInt(root.attr('data-midnight'), 10);
 
-        // THIS IS DUPLICATING THINGS AGAIN FROM VIEW CONTACT.JS
-        loadHeader(root, otherUserId).then(function(profile) {
-            // NEEDS LOADING ICON
-            renderHeader(root, profile);
+        return $.when(
+            loadHeader(root, otherUserId),
+            loadMessages(root, loggedInUserId, otherUserId)
+        )
+        .then(function(otherUserProfile, messages) {
+            var state = buildInitialState(root, midnight, loggedInUserId, [otherUserProfile]);
+            var newState = addMessagesToState(state, messages);
+            var diff = getStatePatch(state, newState);
+            var stop = "";
 
-            loadMessages(root, currentUserId, otherUserId).then(function(messages) {
-            // FOR NOW SHOW ADD CONTACT WHEN NO MESSAGES YET.
-                if (messages.length == 0) {
-                    renderAddContact(root, profile)
-                }
-                renderMessages(root, messages);
-            })
-            .catch(function(error) {
-                Notification.exception(error);
-            });
-
-        })
-        .catch(function(error) {
-            Notification.exception(error);
+            renderPatch(root, diff);
         });
-
-
     };
 
     return {

@@ -95,7 +95,8 @@ function message_popup_before_standard_top_of_body_html() {
         'loggedinuser' => [
             'id' => $USER->id,
             'fullname' => $fullname,
-            'profileurl' => $profileurl
+            'profileurl' => $profileurl,
+            'midnight' => usergetmidnight(time())
         ]
     ]);
 }

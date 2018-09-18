@@ -1,0 +1,25 @@
+<div
+    class="d-flex"
+    data-region="message"
+    data-message-id="{{id}}"
+>
+    <div>
+        <img
+            class="rounded-circle"
+            src="{{{profileimageurl}}}"
+            alt="{{fullname}}"
+            aria-hidden="true"
+            style="height: 40px"
+        >
+    </div>
+    <div class="pl-2 pr-2">
+        <strong class="text-truncate">{{fullname}}</strong>
+        <div class="text-muted">{{{text}}}</div>
+    </div>
+    <div
+        class="ml-auto small text-right text-muted"
+        style="flex-shrink: 0"
+    >
+        {{#userdate}} {{timecreated}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
+    </div>
+</div>
