@@ -34,6 +34,48 @@
 
 }}
 
-<div class="hidden" data-region="view-settings">
-settings
+<div class="h-100 hidden" data-region="view-settings">
+    <div class="border-bottom d-flex p-2">
+        <div class="align-self-center" >
+            <a href="#" data-route-back>
+                <!-- TODO: FIX THIS ICON -->
+                {{#pix}} e/right_to_left, core {{/pix}}
+            </a>
+        </div>
+        <div class="align-self-center">
+            {{#str}}messagepreferences, message {{/str}}
+        </div>
+    </div>
+
+    <div data-region="settings" class="p-3">
+        <div data-region="preference-control" class="custom-control custom-checkbox mb-3">
+            <input type="checkbox" 
+                class="custom-control-input"
+                data-preference="message_blocknoncontacts"
+                data-value="0"
+                id="block-noncontacts"
+            >
+            <label class="custom-control-label" for="block-noncontacts">
+                {{#str}} blocknoncontacts, message {{/str}}
+            </label>
+            <span class="loading-icon hidden">
+                {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
+            </span>
+        </div>
+            
+        <div data-region="preference-control" class="custom-control custom-checkbox">
+            <input type="checkbox"
+                class="custom-control-input"
+                data-preference="toggle-email-alerts"
+                data-value="0"
+                id="email-alerts"
+            >
+            <label class="custom-control-label" for="email-alerts">
+                {{#str}} emailalert, hub {{/str}}
+            </label>
+            <span class="loading-icon hidden">
+                {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
+            </span>
+        </div>
+    </div>
 </div>

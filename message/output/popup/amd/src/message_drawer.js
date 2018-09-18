@@ -30,6 +30,7 @@ define(
     'message_popup/message_drawer_view_overview',
     'message_popup/message_drawer_view_conversation',
     'message_popup/message_drawer_view_search',
+    'message_popup/message_drawer_view_settings',
     'message_popup/message_drawer_router',
     'message_popup/message_drawer_routes'
 ],
@@ -40,6 +41,7 @@ function(
     ViewOverview,
     ViewConversation,
     ViewSearch,
+    ViewSettings,
     Router,
     Routes
 ) {
@@ -67,7 +69,7 @@ function(
         Router.add(Routes.VIEW_OVERVIEW, root.find(SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
         Router.add(Routes.VIEW_REQUESTS, root.find(SELECTORS.VIEW_REQUESTS));
         Router.add(Routes.VIEW_SEARCH, root.find(SELECTORS.VIEW_SEARCH), ViewSearch.show);
-        Router.add(Routes.VIEW_SETTINGS, root.find(SELECTORS.VIEW_SETTINGS));
+        Router.add(Routes.VIEW_SETTINGS, root.find(SELECTORS.VIEW_SETTINGS), ViewSettings.show);
     };
 
     var registerEventListeners = function(root) {

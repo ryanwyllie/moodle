@@ -262,6 +262,33 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             });
     };
 
+    var savePreference = function(UserId, preference, value) {
+        var request = {
+            methodname: 'core_user_update_user_preferences',
+            args: {
+                userid: UserId,
+                preferences: [
+                    {
+                        type: preference,
+                        value: value,
+                    }
+                ]
+            }
+        };
+        return Ajax.call([request])[0];
+    }
+
+    var getPreference = function(UserId, preference) {
+        var request = {
+            methodname: 'core_user_get_user_preferences',
+            args: {
+                userid: UserId,
+                name: preference
+            }
+        };
+        return Ajax.call([request])[0];
+    }
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
@@ -276,6 +303,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         searchUsers: searchUsers,
         searchMessages: searchMessages,
         sendMessages: sendMessages,
-        sendMessage: sendMessage
+        sendMessage: sendMessage,
+        savePreference: savePreference
     };
 });
