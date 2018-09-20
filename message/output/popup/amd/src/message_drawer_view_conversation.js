@@ -29,8 +29,7 @@ define(
     'core/custom_interaction_events',
     'core/notification',
     'core/templates',
-    'core_message/message_repository',
-    'core/log'
+    'core_message/message_repository'
 ],
 function(
     $,
@@ -38,23 +37,25 @@ function(
     CustomEvents,
     Notification,
     Templates,
-    Repository,
-    Log
+    Repository
 ) {
 
     var SECONDS_IN_DAY = 86400;
+    var LOAD_MESSAGE_LIMIT = 100;
+    var NEWEST_FIRST = true;
 
     var SELECTORS = {
-        AUTO_ROWS: '[data-region=""]',
         HEADER: '[data-region="view-conversation-header"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
-        PLACEHOLDER: '[data-region="placeholder"]',
+        PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]',
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
         SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         DAY_CONTAINER: '[data-region="day-container"]',
-        DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]'
+        DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]',
+        CONTENT_CONTAINER: '[data-region="content-container"]',
+        CONTENT_CONTAINER: '[data-region="content-container"]',
     };
 
     var TEMPLATES = {
@@ -90,12 +91,46 @@ function(
         return otherUserIds.length ? otherUserIds[0] : null;
     };
 
+    var getContentContainer = function(root) {
+        return root.find(SELECTORS.CONTENT_CONTAINER);
+    };
+
+    var showContentContainer = function(root) {
+        getContentContainer(root).removeClass('hidden');
+    };
+
+    var hideContentContainer = function(root) {
+        getContentContainer(root).addClass('hidden');
+    };
+
+    var getPlaceholderContainer = function(root) {
+        return root.find(SELECTORS.PLACEHOLDER_CONTAINER);
+    };
+
+    var showPlaceholderContainer = function(root) {
+        getPlaceholderContainer(root).removeClass('hidden');
+    };
+
+    var hidePlaceholderContainer = function(root) {
+        getPlaceholderContainer(root).addClass('hidden');
+    };
+
     var getMessageTextArea = function(root) {
         return root.find(SELECTORS.MESSAGE_TEXT_AREA);
     };
 
     var getMessagesContainer = function(root) {
         return root.find(SELECTORS.MESSAGES);
+    };
+
+    var getMessageElement = function(root, messageId) {
+        var messagesContainer = getMessagesContainer(root);
+        return messagesContainer.find('[data-message-id="' + messageId + '"]');
+    };
+
+    var getDayElement = function(root, dayTimeCreated) {
+        var messagesContainer = getMessagesContainer(root);
+        return messagesContainer.find('[data-day-id="' + dayTimeCreated + '"]');
     };
 
     var disableSendMessage = function(root) {
@@ -120,9 +155,21 @@ function(
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
-    var scrollToBottomOfMessages = function(root) {
+    var scrollToMessage = function(root, messageId) {
         var messagesContainer = getMessagesContainer(root);
-        messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+        var messageElement = getMessageElement(root, messageId);
+        // Scroll the message container down to the top of the message element.
+        var scrollTop = messagesContainer.scrollTop() + messageElement.position().top;
+        messagesContainer.scrollTop(scrollTop);
+    };
+
+    var scrollToMostRecentMessage = function(root) {
+        var state = getGlobalViewState();
+
+        if (state.messages.length) {
+            var lastMessage = state.messages[state.messages.length - 1];
+            scrollToMessage(root, lastMessage.id);
+        }
     };
 
     // Header stuff.
@@ -139,8 +186,8 @@ function(
     };
 
     // Message loading.
-    var loadMessages = function(currentUserId, otherUserId) {
-        return Repository.getMessages(currentUserId, otherUserId)
+    var loadMessages = function(currentUserId, otherUserId, limit, offset, newestFirst) {
+        return Repository.getMessages(currentUserId, otherUserId, limit, offset, newestFirst)
             .then(function(result) {
                 return result.messages;
             })
@@ -156,15 +203,45 @@ function(
         return renderPatch(root, patch);
     };
 
+    var loadAndRenderMessages = function(root, loggedInUserId, otherUserId, limit, offset, newestFirst) {
+        disableSendMessage(root);
+        var loadedAllMessages = false;
+
+        return loadMessages(loggedInUserId, otherUserId, limit + 1, offset, newestFirst)
+            .then(function(messages) {
+                if (messages.length <= limit) {
+                    loadedAllMessages = true;
+                }
+                return renderMessages(root, messages.slice(1));
+            })
+            .then(function() {
+                var state = getGlobalViewState();
+                state.loadedAllMessages = loadedAllMessages;
+                return setGlobalViewState(state);
+            })
+            .then(function() {
+                return enableSendMessage(root);
+            })
+            .catch(function(error) {
+                enableSendMessage(root);
+                return error;
+            });
+    };
+
     var sendMessage = function(toUserId, text) {
         return Repository.sendMessage(toUserId, text);
     };
 
     var registerEventListeners = function(root) {
         var loggedInUserId = getLoggedInUserId(root);
+        var isLoadingMoreMessages = false;
         AutoRows.init(root);
 
-        CustomEvents.define(root, [CustomEvents.events.activate]);
+        CustomEvents.define(root, [
+            CustomEvents.events.activate,
+            CustomEvents.events.scrollTop
+        ]);
+
         root.on(CustomEvents.events.activate, SELECTORS.SEND_MESSAGE_BUTTON, function(e, data) {
             var textArea = getMessageTextArea(root);
             var text = textArea.val().trim();
@@ -187,7 +264,7 @@ function(
                         return renderMessages(root, [message]);
                     })
                     .then(function() {
-                        return scrollToBottomOfMessages(root);
+                        return scrollToMostRecentMessage(root);
                     })
                     .then(function() {
                         return textArea.val('');
@@ -200,12 +277,46 @@ function(
                     })
                     .catch(function(error) {
                         Notification.exception(error);
-                        startSendMessageLoading(root);
+                        stopSendMessageLoading(root);
                     });
             }
 
             data.originalEvent.preventDefault();
         });
+
+
+        var messagesContainer = getMessagesContainer(root);
+        CustomEvents.define(messagesContainer, [CustomEvents.events.scrollTop]);
+        messagesContainer.on(CustomEvents.events.scrollTop, function(e, data) {
+            var state = getGlobalViewState();
+            var hasMembers = Object.keys(state.members).length > 1;
+
+            if (!isLoadingMoreMessages && !state.loadedAllMessages && hasMembers) {
+                var hasMessages = state.messages.length > 0;
+                var firstMessageeId = null;
+                if (hasMessages) {
+                    var firstMessage = state.messages[0];
+                    firstMessageId = firstMessage.id;
+                }
+
+                loadAndRenderMessages(root, loggedInUserId, getOtherUserId(), state.limit, state.offset, NEWEST_FIRST)
+                    .then(function() {
+                        isLoadingMoreMessages = false;
+
+                        if (firstMessageId) {
+                            scrollToMessage(root, firstMessageId);
+                        }
+
+                        return;
+                    })
+                    .catch(function() {
+                        isLoadingMoreMessages = false;
+                        return;
+                    });
+            }
+
+            data.originalEvent.preventDefault();
+        })
     };
 
     /**
@@ -270,27 +381,30 @@ function(
         });
     };
 
-    var buildInitialState = function(root, midnight, loggedInUserId, otherUserProfiles) {
-        var members = otherUserProfiles.reduce(function(carry, profile) {
-            carry[profile.userid] = profile;
-            return carry;
-        }, {});
-
-        members[loggedInUserId] = getLoggedInUserProfile(root);
-
-
+    var buildInitialState = function(root, midnight, loggedInUserId) {
         return {
             midnight: midnight,
             loggedInUserId: loggedInUserId,
-            members: members,
-            messages: []
+            members: {},
+            messages: [],
+            limit: LOAD_MESSAGE_LIMIT,
+            offset: 0,
+            loadedAllMessages: false
         };
     };
 
-    var addMessagesToState = function(state, messages) {
+    var cloneState = function(state) {
         var newState = Object.assign({}, state);
+        newState.messages = state.messages.slice();
+        newState.members = Object.assign({}, state.members);
+        return newState;
+    };
+
+    var addMessagesToState = function(state, messages) {
+        var newState = cloneState(state);
         var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
         var allMessages = state.messages.concat(formattedMessages);
+        var newOffset = state.offset + state.limit;
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {
             if (a.timecreated < b.timecreated) {
@@ -303,6 +417,15 @@ function(
         });
 
         newState.messages = allMessages;
+        newState.offset = newOffset;
+        return newState;
+    };
+
+    var addMembersToSate = function(state, members) {
+        var newState = cloneState(state);
+        members.forEach(function(member) {
+            newState.members[member.userid] = member;
+        });
         return newState;
     };
 
@@ -349,16 +472,14 @@ function(
         };
     };
 
-    var findPositionInArray = function(array, continueFunction) {
+    var findPositionInArray = function(array, breakFunction) {
         var before = null;
 
         for (var i = 0; i < array.length; i++) {
             var candidate = array[i];
 
-            if (!continueFunction(candidate)) {
-                break;
-            } else {
-                before = candidate;
+            if (breakFunction(candidate)) {
+                return candidate;
             }
         }
 
@@ -439,7 +560,7 @@ function(
             patch.days.add.forEach(function(data, index) {
                 daysRenderPromises[index].then(function(html) {
                     if (data.before) {
-                        var element = messagesContainer.find('[data-day-id="' + data.before.timestamp + '"]');
+                        var element = getDayElement(root, data.before.timestamp);
                         return $(html).insertBefore(element);
                     } else {
                         return messagesContainer.append(html);
@@ -454,10 +575,10 @@ function(
             patch.messages.add.forEach(function(data, index) {
                 messagesRenderPromises[index].then(function(html) {
                     if (data.before) {
-                        var element = messagesContainer.find('[data-message-id="' + data.before.id + '"]');
+                        var element = getMessageElement(root, data.before.id);
                         return $(html).insertBefore(element);
                     } else {
-                        var dayContainer = messagesContainer.find('[data-day-id="' + data.day.timestamp + '"]');
+                        var dayContainer = getDayElement(root, data.day.timestamp);
                         var dayMessagesContainer = dayContainer.find(SELECTORS.DAY_MESSAGES_CONTAINER);
                         return dayMessagesContainer.append(html);
                     }
@@ -466,11 +587,11 @@ function(
         });
 
         patch.days.remove.forEach(function(data) {
-            messagesContainer.find('[data-day-id="' + data.timecreated + '"]').remove();
+            getDayElement(root, data.timecreated).remove();
         });
 
         patch.messages.remove.forEach(function(data) {
-            messagesContainer.find('[data-message-id="' + data.id + '"]').remove();
+            getMessageElement(root, data.id).remove();
         });
 
         return $.when.apply($, daysRenderPromises.concat(messagesRenderPromises));
@@ -478,38 +599,44 @@ function(
 
     var show = function(root, otherUserId) {
         root = $(root);
+
+        var loggedInUserId = getLoggedInUserId(root);
+        var loggedInUserProfile = getLoggedInUserProfile(root);
+        var midnight = parseInt(root.attr('data-midnight'), 10);
+        var initialState = buildInitialState(root, midnight, loggedInUserId);
+        setGlobalViewState(initialState);
         getMessagesContainer(root).empty();
-        setGlobalViewState({});
         disableSendMessage(root);
+        hideContentContainer(root);
+        showPlaceholderContainer(root);
 
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
         }
 
-        var loggedInUserId = getLoggedInUserId(root);
-        var midnight = parseInt(root.attr('data-midnight'), 10);
 
-        return $.when(
-            loadProfile(loggedInUserId, otherUserId),
-            loadMessages(loggedInUserId, otherUserId)
-        )
-        .then(function(otherUserProfile, messages) {
-            renderHeader(root, otherUserProfile);
-            var initialState = buildInitialState(root, midnight, loggedInUserId, [otherUserProfile]);
-            setGlobalViewState(initialState);
-            return messages;
-        })
-        .then(function(messages) {
-            return renderMessages(root, messages);
-        })
-        .then(function() {
-            return scrollToBottomOfMessages(root);
-        })
-        .then(function() {
-            return enableSendMessage(root);
-        })
-        .catch(Notification.exception);
+        return loadProfile(loggedInUserId, otherUserId)
+            .then(function(otherUserProfile) {
+                var newState = addMembersToSate(initialState, [otherUserProfile, loggedInUserProfile]);
+                setGlobalViewState(newState);
+                return otherUserProfile;
+            })
+            .then(function(otherUserProfile) {
+                renderHeader(root, otherUserProfile);
+                return otherUserProfile;
+            })
+            .then(function() {
+                return loadAndRenderMessages(root, loggedInUserId, otherUserId, LOAD_MESSAGE_LIMIT, 0, NEWEST_FIRST);
+            })
+            .then(function() {
+                hidePlaceholderContainer(root);
+                return showContentContainer(root);
+            })
+            .then(function() {
+                return scrollToMostRecentMessage(root);
+            })
+            .catch(Notification.exception);
     };
 
     return {

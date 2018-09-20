@@ -1,25 +1,29 @@
 <div
-    class="d-flex"
+    class="d-flex flex-column p-2 {{#fromloggedinuser}}bg-secondary{{/fromloggedinuser}}{{^fromloggedinuser}}bg-white{{/fromloggedinuser}} rounded mb-2"
     data-region="message"
     data-message-id="{{id}}"
 >
-    <div>
-        <img
-            class="rounded-circle"
-            src="{{{userfrom.profileimageurl}}}"
-            alt="{{userfrom.fullname}}"
-            aria-hidden="true"
-            style="height: 40px"
+    <div class="d-flex align-items-center {{^fromloggedinuser}}mb-1{{/fromloggedinuser}}">
+        {{^fromloggedinuser}}
+        <div>
+            <img
+                class="rounded-circle"
+                src="{{{userfrom.profileimageurl}}}"
+                alt="{{userfrom.fullname}}"
+                aria-hidden="true"
+                style="height: 35px"
+            >
+        </div>
+        <div class="pl-2 pr-2">
+            <strong class="text-truncate">{{userfrom.fullname}}</strong>
+        </div>
+        {{/fromloggedinuser}}
+        <div
+            class="ml-auto small text-right text-muted"
+            style="flex-shrink: 0"
         >
+            {{#userdate}} {{timecreated}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
+        </div>
     </div>
-    <div class="pl-2 pr-2">
-        <strong class="text-truncate">{{userfrom.fullname}}</strong>
-        <div class="text-muted">{{{text}}}</div>
-    </div>
-    <div
-        class="ml-auto small text-right text-muted"
-        style="flex-shrink: 0"
-    >
-        {{#userdate}} {{timecreated}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
-    </div>
+    <div class="text-muted">{{{text}}}</div>
 </div>
