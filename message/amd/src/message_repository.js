@@ -263,31 +263,33 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             });
     };
 
-    var savePreference = function(UserId, preference, value) {
+    var savePreferences = function(UserId, preferences) {
         var request = {
             methodname: 'core_user_update_user_preferences',
             args: {
                 userid: UserId,
-                preferences: [
-                    {
-                        type: preference,
-                        value: value,
-                    }
-                ]
+                preferences: preferences
             }
         };
-        return Ajax.call([request])[0];
+        var promise = Ajax.call([request])[0];
+
+        promise.fail(Notification.exception);
+
+        return promise;
     }
 
-    var getPreference = function(UserId, preference) {
+    var getPreferences = function(UserId) {
         var request = {
             methodname: 'core_user_get_user_preferences',
             args: {
-                userid: UserId,
-                name: preference
+                userid: UserId
             }
         };
-        return Ajax.call([request])[0];
+        var promise = Ajax.call([request])[0];
+
+        promise.fail(Notification.exception);
+
+        return promise;
     }
 
     return {
@@ -305,6 +307,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         searchMessages: searchMessages,
         sendMessages: sendMessages,
         sendMessage: sendMessage,
-        savePreference: savePreference
+        savePreferences: savePreferences,
+        getPreferences: getPreferences
     };
 });

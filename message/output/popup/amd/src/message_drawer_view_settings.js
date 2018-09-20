@@ -27,30 +27,91 @@ define(
     'jquery',
     'core_message/message_repository',
     'core/custom_interaction_events',
-    'core/log'
 ],
 function(
     $,
     Repository,
-    CustomEvents,
-    Log
+    CustomEvents
 ) {
 
     var SELECTORS = {
         SETTINGS: '[data-region="settings"]',
         PREFERENCE_CONTROL: '[data-region="preference-control"]',
-        PREFERENCE: '[data-preference]',
-        BLOCK_NON_CONTACTS: '[data-block-non-contacts]',
+        CHECKBOX: '[data-region="checkbox"]',
         LOADINGICON: '.loading-icon'
     };
 
-    var loadPreferences = function(root) {
+    var PREFERENCES_ON = {
+        'blocknoncontacts': [
+                    {
+                        type: 'message_blocknoncontacts',
+                        value: "1",
+                    }],
+
+        'emailnotifications': [
+                    {
+                        type: 'message_provider_moodle_instantmessage_loggedoff',
+                        value: 'email'
+                    },
+                    {
+                        type: 'message_provider_moodle_instantmessage_loggedin',
+                        value: 'email'
+                    }]
+        };
+
+    var PREFERENCES_OFF = {
+        'blocknoncontacts': [
+                    {
+                        type: 'message_blocknoncontacts',
+                        value: "0",
+                    }],
+
+        'emailnotifications': [
+                    {
+                        type: 'message_provider_moodle_instantmessage_loggedoff',
+                        value: 'none'
+                    },
+                    {
+                        type: 'message_provider_moodle_instantmessage_loggedin',
+                        value: 'none'
+                    }]
+        };
+
+    /**
+     * Load Preferences and check boxes for preferences already set.
+     *
+     */
+    var loadPreferences = function(root, loggedInUserid) {
         var SettingsContainer = root.find(SELECTORS.SETTINGS);
 
-        SettingsContainer.find(SELECTORS.PREFERENCE_CONTROL)
-            .each(function(e) {
-                var preference = $(this).find(SELECTORS.PREFERENCE)
-                    .attr('data-preference');
+        var storedPreferences = Repository.getPreferences(loggedInUserid)
+            .then(function(allpreferences) {
+
+                SettingsContainer.find(SELECTORS.PREFERENCE_CONTROL)
+                    .each(function(index, setting) {
+                        var setting = $(setting);
+                        var checkbox = setting.find(SELECTORS.CHECKBOX);
+                        var preference = setting.attr('data-preference');
+
+                        if (preference in PREFERENCES_ON) {
+                            checkpreferences = PREFERENCES_ON[preference];
+                            var found = 0;
+                            checkpreferences.forEach(function(checkpreference) {
+                                setpreference = allpreferences.preferences.find(function(pref) {
+                                    if (pref.name === checkpreference.type &&
+                                        pref.value === checkpreference.value ) {
+                                        return true;
+                                    }
+                                })
+                                if (setpreference) {
+                                    found++;
+                                }
+                            });
+                            if (checkpreferences.length == found) {
+                                checkbox.prop('checked', true);
+                            }
+                        }
+                    });
             });
     }
     /**
@@ -67,19 +128,20 @@ function(
         ]);
 
         SettingsContainer.on(CustomEvents.events.activate,
-            SELECTORS.PREFERENCE,
-            function(e, data) {
-                var setting = $(e.target);
-                setting.parent(SELECTORS.PREFERENCE_CONTROL)
-                    .find(SELECTORS.LOADINGICON).toggleClass('hidden');
+            SELECTORS.PREFERENCE_CONTROL,
+            function(e) {
+                var setting = $(e.target).closest(SELECTORS.PREFERENCE_CONTROL);
+                var loadingicon = setting.find(SELECTORS.LOADINGICON);
+                var checkbox = setting.find(SELECTORS.CHECKBOX);
 
                 var preference = setting.attr('data-preference');
-                var ischecked = setting.prop('checked');
-                var value = ischecked ? 1 : 0;
-                Repository.savePreference(loggedInUserid, preference, value)
+                var ischecked = checkbox.prop('checked');
+
+                var preferences = ischecked ? PREFERENCES_ON[preference] : PREFERENCES_OFF[preference];
+
+                Repository.savePreferences(loggedInUserid, preferences)
                     .then(function() {
-                        setting.parent(SELECTORS.PREFERENCE_CONTROL)
-                            .find(SELECTORS.LOADINGICON).toggleClass('hidden');
+                        setting.closest(SELECTORS.LOADINGICON).toggleClass('hidden');
                     });
             }
         );
