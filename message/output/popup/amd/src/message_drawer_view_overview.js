@@ -25,21 +25,18 @@
 define(
 [
     'jquery',
-    'message_popup/message_drawer_view_overview_contacts',
     'message_popup/message_drawer_view_overview_messages',
     'message_popup/message_drawer_router',
     'message_popup/message_drawer_routes'
 ],
 function(
     $,
-    Contacts,
     Messages,
     Router,
     Routes
 ) {
 
     var SELECTORS = {
-        CONTACTS: '[data-region="view-overview-contacts"]',
         MESSAGES: '[data-region="view-overview-messages"]',
         SEARCH_INPUT: '[data-region="view-overview-search-input"]',
     };
@@ -63,7 +60,6 @@ function(
         }
 
         getSearchInput(root).val('');
-        Contacts.show(root.find(SELECTORS.CONTACTS));
         Messages.show(root.find(SELECTORS.MESSAGES));
     };
 

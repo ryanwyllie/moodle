@@ -25,6 +25,7 @@
 define([],function() {
     return {
         VIEW_CONTACT: 'view-contact',
+        VIEW_CONTACTS: 'view-contacts',
         VIEW_CONVERSATION: 'view-conversation',
         VIEW_GROUP_CONVERSATION: 'view-group-conversation',
         VIEW_GROUP_FAVOURITES: 'view-group-favourites',
