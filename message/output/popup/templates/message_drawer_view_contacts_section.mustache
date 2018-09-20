@@ -34,17 +34,22 @@
 
 }}
 
-{{< message_popup/message_drawer_view_overview_section }}
-    {{$region}}view-overview-contacts{{/region}}
-    {{$title}}{{#str}} contacts, core_message {{/str}}{{/title}}
-    {{$placeholder}}
-        {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-    {{/placeholder}}
-    {{$emptymessage}}
-        <p class="text-muted mt-2">{{#str}} nocontacts, core_message {{/str}}</p>
-    {{/emptymessage}}
-{{/ message_popup/message_drawer_view_overview_section }}
+<div
+    data-region="{{$region}}{{/region}}"
+    data-user-id="{{loggedinuser.id}}"
+>
+    <div
+        id="{{$region}}{{/region}}-target"
+        aria-labelledby="{{$region}}{{/region}}"
+    >
+        <div class="hidden text-center p-2" data-region="empty-message-container">
+            {{$emptymessage}}{{/emptymessage}}
+        </div>
+        <div class="hidden list-group" data-region="content-container">
+            {{$content}}{{/content}}
+        </div>
+        <div class="list-group" data-region="placeholder-container">
+            {{$placeholder}}{{/placeholder}}
+        </div>
+    </div>
+</div>
