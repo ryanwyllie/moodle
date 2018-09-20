@@ -48,11 +48,12 @@
     </div>
 
     <div data-region="settings" class="p-3">
-        <div data-region="preference-control" class="custom-control custom-checkbox mb-3">
-            <input type="checkbox" 
+        <div data-region="preference-control"
+             data-preference="blocknoncontacts"
+             class="custom-control custom-checkbox mb-3">
+            <input type="checkbox"
+                data-region="checkbox"
                 class="custom-control-input"
-                data-preference="message_blocknoncontacts"
-                data-value="0"
                 id="block-noncontacts"
             >
             <label class="custom-control-label" for="block-noncontacts">
@@ -63,11 +64,12 @@
             </span>
         </div>
             
-        <div data-region="preference-control" class="custom-control custom-checkbox">
+        <div data-region="preference-control"
+             data-preference="emailnotifications"
+             class="custom-control custom-checkbox">
             <input type="checkbox"
+                data-region="checkbox"
                 class="custom-control-input"
-                data-preference="toggle-email-alerts"
-                data-value="0"
                 id="email-alerts"
             >
             <label class="custom-control-label" for="email-alerts">
