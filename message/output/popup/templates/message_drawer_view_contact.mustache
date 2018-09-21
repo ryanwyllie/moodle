@@ -39,27 +39,20 @@
     data-region="view-contact"
     data-user-id="{{loggedinuser.id}}"
 >
-    <div class="border-bottom d-flex p-2">
+    <div class="p-2">
         <a class="align-self-center" href="#" data-route-back>
             <!-- TODO: FIX THIS ICON -->
             {{#pix}} e/right_to_left, core {{/pix}}
         </a>
-        <h3 class="m-0">{{#str}} info, core_message {{/str}}</h3>
-        <div class="hidden align-self-center ml-auto" data-region="loading-icon-container">
-            {{> core/loading }}
+    </div>
+    <div class="px-3 pb-3" data-region="loading-placeholder-container">
+        <div class="bg-secondary mx-auto rounded-circle" style="height: 100px; width: 100px"></div>
+        <div class="bg-secondary mx-auto mt-2 w-75" style="height: 36px;"></div>
+        <div class="px-4 mt-4">
+            <div class="bg-secondary my-2" style="height: 36px"></div>
+            <div class="bg-secondary my-2" style="height: 36px"></div>
+            <div class="bg-secondary my-2" style="height: 36px"></div>
         </div>
     </div>
-    <div class="p-3" data-region="loading-placeholder-container">
-        <div class="d-flex justify-content-center">
-            <div class="bg-light rounded-circle" style="height: 50px; width: 50px"></div>
-            <div class="bg-light ml-2 mt-2 w-50" style="height: 20px;"></div>
-        </div>
-        <div class="bg-light my-2 mt-4 w-50" style="height: 20px"></div>
-        <div class="bg-light my-2 w-100" style="height: 1px"></div>
-        <div class="bg-light my-2 w-50" style="height: 20px"></div>
-        <div class="bg-light my-2 w-100" style="height: 1px"></div>
-        <div class="bg-light my-2 w-50" style="height: 20px"></div>
-        <div class="bg-light my-2 w-100" style="height: 1px"></div>
-    </div>
-    <div class="p-3" data-region="content-container"></div>
+    <div class="px-3 pb-3" data-region="content-container"></div>
 </div>

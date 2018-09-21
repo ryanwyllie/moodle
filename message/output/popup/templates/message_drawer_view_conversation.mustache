@@ -51,7 +51,9 @@
                     class="px-2 pb-2 pt-0 position-relative"
                     data-region="view-conversation-messages"
                     style="overflow-y: auto"
-                ></div>
+                >
+                    <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
+                </div>
 
                 <div class="mt-auto w-100 p-2 border-top bg-white" data-region="response">
                     <div class="d-flex">
