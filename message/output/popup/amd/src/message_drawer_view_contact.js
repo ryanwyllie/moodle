@@ -48,6 +48,7 @@ function(
         CONTENT_CONTAINER: '[data-region="content-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER_CONTAINER: '[data-region="loading-placeholder-container"]',
+        TEXT_CONTAINER: '[data-region="button-text"]'
     };
 
     var TEMPLATES = {
@@ -63,10 +64,14 @@ function(
     };
 
     var showLoadingIcon = function(root) {
+        root.prop('disabled', true);
+        root.find(SELECTORS.TEXT_CONTAINER).addClass('hidden');
         root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
     var hideLoadingIcon = function(root) {
+        root.prop('disabled', false);
+        root.find(SELECTORS.TEXT_CONTAINER).removeClass('hidden');
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
@@ -183,14 +188,14 @@ function(
                 var target = $(e.target).closest(selector);
                 var profileUserId = target.attr('data-user-id');
 
-                showLoadingIcon(root);
+                showLoadingIcon(target);
                 callback(root, loggedInUserId, profileUserId)
                     .then(function() {
-                        hideLoadingIcon(root);
+                        hideLoadingIcon(target);
                     })
                     .catch(function(error) {
                         Notification.exception(error);
-                        hideLoadingIcon(root);
+                        hideLoadingIcon(target);
                     });
 
                 data.originalEvent.preventDefault();

@@ -48,19 +48,12 @@
 <div class="px-4 mt-4">
     <button
         type="button"
-        class="btn btn-primary btn-block"
-        data-route="view-conversation"
-        data-route-param="{{userid}}"
-    >
-        {{#str}} sendmessage, core_message {{/str}}
-    </button>
-    <button
-        type="button"
         class="btn btn-primary btn-block {{^isblocked}}hidden{{/isblocked}}"
         data-action="unblock"
         data-user-id="{{userid}}"
     >
-        {{#str}}unblockcontact, message{{/str}}
+        <span data-region="button-text">{{#str}}unblockcontact, message{{/str}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
     </button>
     <button
         type="button"
@@ -68,7 +61,8 @@
         data-action="block"
         data-user-id="{{userid}}"
     >
-        {{#str}}blockcontact, message{{/str}}
+        <span data-region="button-text">{{#str}}blockcontact, message{{/str}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
     </button>
     <button
         type="button"
@@ -76,7 +70,8 @@
         data-action="remove-contact"
         data-user-id="{{userid}}"
     >
-        {{#str}}removecontact, message{{/str}}
+        <span data-region="button-text">{{#str}}removecontact, message{{/str}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
     </button>
     <button
         type="button"
@@ -84,6 +79,7 @@
         data-action="add-contact"
         data-user-id="{{userid}}"
     >
-        {{#str}}addcontact, message{{/str}}
+        <span data-region="button-text">{{#str}}addcontact, message{{/str}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
     </button>
 </div>
