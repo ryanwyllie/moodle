@@ -29,7 +29,7 @@ define(
     'core/templates',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
-    'message_popup/message_drawer_view_overview_section'
+    'message_popup/message_drawer_view_contacts_section'
 ],
 function(
     $,
@@ -56,7 +56,7 @@ function(
             .catch(Notification.exception);
     };
 
-    var load = function(root, userId) {
+    var loadContacts = function(root, userId) {
         return MessageRepository.getContacts(userId)
             .then(function(result) {
                 return result.contacts;
@@ -109,8 +109,7 @@ function(
             registerEventListeners(root);
             root.attr('data-contacts-init', true);
         }
-
-        Section.show(root, load, render);
+        Section.show(root, loadContacts, render);
     };
 
     return {
