@@ -634,7 +634,9 @@ function(
         return $.when.apply($, daysRenderPromises.concat(messagesRenderPromises));
     };
 
-    var reset = function(root, loggedInUserId) {
+    var reset = function(root, otherUserId) {
+        var loggedInUserId = getLoggedInUserId(root);
+        var loggedInUserProfile = getLoggedInUserProfile(root);
         var midnight = parseInt(root.attr('data-midnight'), 10);
         var initialState = buildInitialState(midnight, loggedInUserId);
         setGlobalViewState(initialState);
@@ -643,21 +645,6 @@ function(
         disableSendMessage(root);
         hideContentContainer(root);
         showPlaceholderContainer(root);
-
-        return initialState;
-    };
-
-    var show = function(root, otherUserId) {
-        root = $(root);
-
-        var loggedInUserId = getLoggedInUserId(root);
-        var loggedInUserProfile = getLoggedInUserProfile(root);
-        var initialState = reset(root, loggedInUserId);
-
-        if (!root.attr('data-init')) {
-            registerEventListeners(root);
-            root.attr('data-init', true);
-        }
 
         return loadProfile(loggedInUserId, otherUserId)
             .then(function(otherUserProfile) {
@@ -679,7 +666,22 @@ function(
             .then(function() {
                 return scrollToMostRecentMessage(root);
             })
-            .catch(Notification.exception);
+            .catch(Notification.exception);;
+    };
+
+    var show = function(root, otherUserId) {
+        root = $(root);
+
+        if (!root.attr('data-init')) {
+            registerEventListeners(root);
+            root.attr('data-init', true);
+            reset(root, otherUserId);
+        } else {
+            var currentOtherUserId = getOtherUserId();
+            if (currentOtherUserId && currentOtherUserId != otherUserId) {
+                reset(root, otherUserId);
+            }
+        }
     };
 
     return {
