@@ -40,6 +40,7 @@ function(
     Repository
 ) {
 
+    var viewState = {};
     var SECONDS_IN_DAY = 86400;
     var LOAD_MESSAGE_LIMIT = 100;
     var NEWEST_FIRST = true;
@@ -68,8 +69,6 @@ function(
         ADDCONTACT: 'message_popup/message_drawer_add_contact'
     };
 
-    var viewState = {};
-
     var setGlobalViewState = function(state) {
         viewState = state;
     };
@@ -78,7 +77,6 @@ function(
         return viewState;
     };
 
-    // HOW DO I REUSE THIS STUFF FROM OTHER MODULES?
     var getLoggedInUserId = function(root) {
         return root.attr('data-user-id');
     };

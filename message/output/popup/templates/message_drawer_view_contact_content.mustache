@@ -34,55 +34,56 @@
 
 }}
 
-<div class="d-flex justify-content-center">
+<div class="text-center">
     <img
         class="rounded-circle"
         src="{{profileimageurl}}"
         aria-hidden="true"
         alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
         title="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
-        style="height: 60px; width: 60px"
+        style="height: 100px; width: 100px"
     >
-    <h3 class="ml-2 mt-2 h6 text-truncate">{{fullname}}</h3>
 </div>
-<div class="py-2 mt-4 border-bottom">
-    <a href="#" data-route="view-conversation" data-route-param="{{userid}}">
+<h2 class="mt-2 text-center text-truncate">{{fullname}}</h2>
+<div class="px-4 mt-4">
+    <button
+        type="button"
+        class="btn btn-primary btn-block"
+        data-route="view-conversation"
+        data-route-param="{{userid}}"
+    >
         {{#str}} sendmessage, core_message {{/str}}
-    </a>
-</div>
-<div class="py-2 border-bottom">
-    <a
-        class="{{^isblocked}}hidden{{/isblocked}}"
+    </button>
+    <button
+        type="button"
+        class="btn btn-primary btn-block {{^isblocked}}hidden{{/isblocked}}"
         data-action="unblock"
         data-user-id="{{userid}}"
-        href="#"
     >
         {{#str}}unblockcontact, message{{/str}}
-    </a>
-    <a
-        class="text-danger {{#isblocked}}hidden{{/isblocked}}"
+    </button>
+    <button
+        type="button"
+        class="btn btn-danger btn-block {{#isblocked}}hidden{{/isblocked}}"
         data-action="block"
         data-user-id="{{userid}}"
-        href="#"
     >
         {{#str}}blockcontact, message{{/str}}
-    </a>
-</div>
-<div class="py-2 border-bottom">
-    <a
-        class="text-danger {{^iscontact}}hidden{{/iscontact}}"
+    </button>
+    <button
+        type="button"
+        class="btn btn-danger btn-block {{^iscontact}}hidden{{/iscontact}}"
         data-action="remove-contact"
         data-user-id="{{userid}}"
-        href="#"
     >
         {{#str}}removecontact, message{{/str}}
-    </a>
-    <a
-        class="{{#iscontact}}hidden{{/iscontact}}"
+    </button>
+    <button
+        type="button"
+        class="btn btn-primary btn-block {{#iscontact}}hidden{{/iscontact}}"
         data-action="add-contact"
         data-user-id="{{userid}}"
-        href="#"
     >
         {{#str}}addcontact, message{{/str}}
-    </a>
+    </button>
 </div>
