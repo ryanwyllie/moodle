@@ -60,23 +60,25 @@ function(
             element.removeClass('hidden');
 
             if (newConfig.onGo) {
-                args.unshift(element);
-                newConfig.onGo.apply(undefined, args);
+                newConfig.onGo.apply(undefined, [element].concat(args));
             }
         }
 
-        history.push(newRoute);
+        history.push({
+            route: newRoute,
+            params: args
+        });
     };
 
     var back = function() {
         if (history) {
             // Remove the current route.
             history.pop();
-            var previousRoute = history.pop();
+            var previous = history.pop();
 
-            if (previousRoute) {
+            if (previous) {
                 // If we have a previous route then show it.
-                go(previousRoute);
+                go.apply(undefined, [previous.route].concat(previous.params));
             }
         }
     };
