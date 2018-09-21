@@ -720,6 +720,188 @@ class core_enrollib_testcase extends advanced_testcase {
     }
 
     /**
+     * Test cases for the test_enrol_get_my_courses_sort_by_last_access test.
+     */
+    public function get_enrol_get_my_courses_sort_by_last_access_test_cases() {
+        $now = time();
+
+        $enrolledcoursesdata = [
+            ['shortname' => 'a', 'lastaccess' => $now - 2],
+            ['shortname' => 'b', 'lastaccess' => $now - 1],
+            ['shortname' => 'c', 'lastaccess' => $now],
+            ['shortname' => 'd', 'lastaccess' => $now - 1],
+            ['shortname' => 'e']
+        ];
+        $unenrolledcoursesdata = [
+            ['shortname' => 'x', 'lastaccess' => $now - 2],
+            ['shortname' => 'y', 'lastaccess' => $now - 1],
+            ['shortname' => 'z', 'lastaccess' => $now]
+        ];
+
+        return [
+            'empty set' => [
+                'enrolledcoursesdata' => [],
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => []
+            ],
+            'lastaccessed asc no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['a', 'b', 'd', 'c', 'e']
+            ],
+            'lastaccessed asc with limit no offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc',
+                'limit' => 2,
+                'offset' => 0,
+                'expectedcourses' => ['a', 'b']
+            ],
+            'lastaccessed asc with limit and offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc',
+                'limit' => 2,
+                'offset' => 2,
+                'expectedcourses' => ['d', 'c']
+            ],
+            'lastaccessed asc with limit and offset beyond end of data set' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc',
+                'limit' => 2,
+                'offset' => 4,
+                'expectedcourses' => ['e']
+            ],
+            'lastaccessed desc no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed desc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['e', 'c', 'b', 'd', 'a']
+            ],
+            'lastaccessed desc, shortname desc, no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed desc, shortname desc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['e', 'c', 'd', 'b', 'a']
+            ],
+            'lastaccessed asc, shortname desc, no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'lastaccessed asc, shortname desc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['a', 'd', 'b', 'c', 'e']
+            ],
+            'shortname asc, no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'shortname asc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['a', 'b', 'c', 'd', 'e']
+            ],
+            'shortname desc, no limit or offset' => [
+                'enrolledcoursesdata' => $enrolledcoursesdata,
+                'unenrolledcoursesdata' => $unenrolledcoursesdata,
+                'sort' => 'shortname desc',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['e', 'd', 'c', 'b', 'a']
+            ],
+        ];
+    }
+
+    /**
+     * Test the get_enrolled_courses_by_timeline_classification function.
+     *
+     * @dataProvider get_enrol_get_my_courses_sort_by_last_access_test_cases()
+     * @param array $enrolledcoursesdata Courses to create and enrol the user in
+     * @param array $unenrolledcoursesdata Courses to create nut not enrol the user in
+     * @param string $sort Sort string for the enrol function
+     * @param int $limit Maximum number of results
+     * @param int $offset Offset the courses result set by this amount
+     * @param array $expectedcourses Expected courses in result
+     */
+    public function test_enrol_get_my_courses_sort_by_last_access(
+        $enrolledcoursesdata,
+        $unenrolledcoursesdata,
+        $sort,
+        $limit,
+        $offset,
+        $expectedcourses
+    ) {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $student = $generator->create_user();
+        $lastaccessrecords = [];
+
+        foreach ($enrolledcoursesdata as $coursedata) {
+            $lastaccess = null;
+
+            if (isset($coursedata['lastaccess'])) {
+                $lastaccess = $coursedata['lastaccess'];
+                unset($coursedata['lastaccess']);
+            }
+
+            $course = $generator->create_course($coursedata);
+            $generator->enrol_user($student->id, $course->id, 'student');
+
+            if (!is_null($lastaccess)) {
+                $lastaccessrecords[] = [
+                    'userid' => $student->id,
+                    'courseid' => $course->id,
+                    'timeaccess' => $lastaccess
+                ];
+            }
+        }
+
+        foreach ($unenrolledcoursesdata as $coursedata) {
+            $lastaccess = null;
+
+            if (isset($coursedata['lastaccess'])) {
+                $lastaccess = $coursedata['lastaccess'];
+                unset($coursedata['lastaccess']);
+            }
+
+            $course = $generator->create_course($coursedata);
+
+            if (!is_null($lastaccess)) {
+                $lastaccessrecords[] = [
+                    'userid' => $student->id,
+                    'courseid' => $course->id,
+                    'timeaccess' => $lastaccess
+                ];
+            }
+        }
+
+        if (!empty($lastaccessrecords)) {
+            $DB->insert_records('user_lastaccess', $lastaccessrecords);
+        }
+
+        $this->setUser($student);
+
+        $result = enrol_get_my_courses('shortname', $sort, $limit, [], false, $offset);
+        $actual = array_map(function($course) {
+            return $course->shortname;
+        }, array_values($result));
+
+        $this->assertEquals($expectedcourses, $actual);
+    }
+
+    /**
      * test_course_users
      *
      * @return void
