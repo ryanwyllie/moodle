@@ -43,30 +43,38 @@
     </div>
     <div class="d-flex w-100">
         <a class="d-flex" href="#" data-route="view-contact" data-route-param="{{userid}}">
-        <div>
-            <img
-                class="rounded-circle"
-                src="{{{profileimageurl}}}"
-                alt="{{fullname}}"
-                aria-hidden="true"
-                style="height: 40px"
-            >
-        </div>
-        <div class="w-100 text-truncate ml-2">
-            <strong class="m-0">{{fullname}}</strong>
-            {{#showonlinestatus}}
-                <p class="m-0 font-weight-light text-truncate">
-                    {{#isonline}}{{#str}} loggedin, core_message {{/str}}{{/isonline}}
-                    {{^isonline}}{{#str}} loggedoff, core_message {{/str}}{{/isonline}}
-                </p>
-            {{/showonlinestatus}}
-        </div>
+            <div>
+                <img
+                    class="rounded-circle"
+                    src="{{{profileimageurl}}}"
+                    alt="{{fullname}}"
+                    aria-hidden="true"
+                    style="height: 40px"
+                >
+            </div>
+            <div class="w-100 text-truncate ml-2">
+                <strong class="m-0">{{fullname}}</strong>
+                {{#showonlinestatus}}
+                    <p class="m-0 font-weight-light text-truncate">
+                        {{#isonline}}{{#str}} loggedin, core_message {{/str}}{{/isonline}}
+                        {{^isonline}}{{#str}} loggedoff, core_message {{/str}}{{/isonline}}
+                    </p>
+                {{/showonlinestatus}}
+            </div>
         </a>
-        <div class="ml-auto" style="flex-shrink: 0">
-            <button class="btn btn-link">
+        <div class="ml-auto dropdown" style="flex-shrink: 0">
+            <button class="btn btn-link" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
                 <span class="sr-only">Options</span>
             </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#" data-route="view-contact" data-route-param="{{userid}}">{{#str}} info, core_message {{/str}}</a>
+                <a class="dropdown-item {{#isblocked}}hidden{{/isblocked}}" href="#">{{#str}} blockuser, core_message {{/str}}</a>
+                <a class="dropdown-item {{^isblocked}}hidden{{/isblocked}}" href="#">{{#str}} unblockuser, core_message {{/str}}</a>
+                <a class="dropdown-item" href="#">{{#str}} deleteconversation, core_message {{/str}}</a>
+                <a class="dropdown-item {{#iscontact}}hidden{{/iscontact}}" href="#">{{#str}} addtoyourcontacts, core_message {{/str}}</a>
+                <a class="dropdown-item {{^iscontact}}hidden{{/iscontact}}" href="#">{{#str}} removefromyourcontacts, core_message {{/str}}</a>
+            </div>
         </div>
     </div>
 </div>
