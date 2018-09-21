@@ -55,7 +55,9 @@ function(
         DAY_CONTAINER: '[data-region="day-container"]',
         DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
-        CONTENT_CONTAINER: '[data-region="content-container"]',
+        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
+        MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
+        RESPONSE_CONTAINER: '[data-region="response"]'
     };
 
     var TEMPLATES = {
@@ -79,6 +81,14 @@ function(
     // HOW DO I REUSE THIS STUFF FROM OTHER MODULES?
     var getLoggedInUserId = function(root) {
         return root.attr('data-user-id');
+    };
+
+    var getLoggedInUserFullName = function(root) {
+        return root.attr('data-full-name');
+    };
+
+    var getLoggedInUserProfileUrl = function(root) {
+        return root.attr('data-profile-url');
     };
 
     var getOtherUserId = function() {
@@ -133,6 +143,22 @@ function(
         return messagesContainer.find('[data-day-id="' + dayTimeCreated + '"]');
     };
 
+    var getDayContainers = function(root) {
+        return root.find(SELECTORS.DAY_CONTAINER);
+    };
+
+    var getMoreMessagesLoadingIconContainer = function(root) {
+        return root.find(SELECTORS.MORE_MESSAGES_LOADING_ICON_CONTAINER);
+    };
+
+    var showMoreMessagesLoadingIcon = function(root) {
+        getMoreMessagesLoadingIconContainer(root).removeClass('hidden');
+    };
+
+    var hideMoreMessagesLoadingIcon = function(root) {
+        getMoreMessagesLoadingIconContainer(root).addClass('hidden');
+    };
+
     var disableSendMessage = function(root) {
         root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', true);
         root.find(SELECTORS.MESSAGE_TEXT_AREA).prop('disabled', true);
@@ -145,14 +171,16 @@ function(
 
     var startSendMessageLoading = function(root) {
         disableSendMessage(root);
-        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
-        root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+        var responseContainer = root.find(SELECTORS.RESPONSE_CONTAINER);
+        responseContainer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
+        responseContainer.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
     var stopSendMessageLoading = function(root) {
         enableSendMessage(root);
-        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
-        root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+        var responseContainer = root.find(SELECTORS.RESPONSE_CONTAINER);
+        responseContainer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
+        responseContainer.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
     var scrollToMessage = function(root, messageId) {
@@ -232,14 +260,46 @@ function(
         return Repository.sendMessage(toUserId, text);
     };
 
+    var sendAndRenderMessage = function(root, toUserId, text) {
+        startSendMessageLoading(root);
+        return sendMessage(toUserId, text)
+            .then(function(result) {
+                var message = {
+                    id: result.msgid,
+                    fullname: getLoggedInUserFullName(root),
+                    profileimageurl: getLoggedInUserProfileUrl(root),
+                    text: result.text,
+                    timecreated: parseInt(result.timecreated, 10),
+                    useridfrom: getLoggedInUserId(root),
+                    useridto: toUserId,
+                    isread: true
+                };
+                return renderMessages(root, [message]);
+            })
+            .then(function() {
+                return scrollToMostRecentMessage(root);
+            })
+            .then(function() {
+                return stopSendMessageLoading(root);
+            })
+            .catch(function(error) {
+                stopSendMessageLoading(root);
+                return error;
+            });
+    };
+
     var registerEventListeners = function(root) {
         var loggedInUserId = getLoggedInUserId(root);
         var isLoadingMoreMessages = false;
+        var messagesContainer = getMessagesContainer(root);
         AutoRows.init(root);
 
         CustomEvents.define(root, [
-            CustomEvents.events.activate,
-            CustomEvents.events.scrollTop
+            CustomEvents.events.activate
+        ]);
+        CustomEvents.define(messagesContainer, [
+            CustomEvents.events.scrollTop,
+            CustomEvents.events.scrollLock,
         ]);
 
         root.on(CustomEvents.events.activate, SELECTORS.SEND_MESSAGE_BUTTON, function(e, data) {
@@ -248,60 +308,38 @@ function(
             var otherUserId = getOtherUserId();
 
             if (text !== '') {
-                startSendMessageLoading(root);
-                sendMessage(otherUserId, text)
-                    .then(function(result) {
-                        var message = {
-                            id: result.msgid,
-                            fullname: root.attr('data-full-name'),
-                            profileimageurl: root.attr('data-profile-url'),
-                            text: result.text,
-                            timecreated: parseInt(result.timecreated, 10),
-                            useridfrom: loggedInUserId,
-                            useridto: otherUserId,
-                            isread: true
-                        };
-                        return renderMessages(root, [message]);
-                    })
-                    .then(function() {
-                        return scrollToMostRecentMessage(root);
-                    })
+                sendAndRenderMessage(root, otherUserId, text)
                     .then(function() {
                         return textArea.val('');
-                    })
-                    .then(function() {
-                        return stopSendMessageLoading(root);
                     })
                     .then(function() {
                         return textArea.focus();
                     })
                     .catch(function(error) {
                         Notification.exception(error);
-                        stopSendMessageLoading(root);
                     });
             }
 
             data.originalEvent.preventDefault();
         });
 
-
-        var messagesContainer = getMessagesContainer(root);
-        CustomEvents.define(messagesContainer, [CustomEvents.events.scrollTop]);
         messagesContainer.on(CustomEvents.events.scrollTop, function(e, data) {
             var state = getGlobalViewState();
             var hasMembers = Object.keys(state.members).length > 1;
 
             if (!isLoadingMoreMessages && !state.loadedAllMessages && hasMembers) {
                 var hasMessages = state.messages.length > 0;
-                var firstMessageeId = null;
+                var firstMessageId = null;
                 if (hasMessages) {
                     var firstMessage = state.messages[0];
                     firstMessageId = firstMessage.id;
                 }
 
+                showMoreMessagesLoadingIcon(root);
                 loadAndRenderMessages(root, loggedInUserId, getOtherUserId(), state.limit, state.offset, NEWEST_FIRST)
                     .then(function() {
                         isLoadingMoreMessages = false;
+                        hideMoreMessagesLoadingIcon(root);
 
                         if (firstMessageId) {
                             scrollToMessage(root, firstMessageId);
@@ -311,12 +349,13 @@ function(
                     })
                     .catch(function() {
                         isLoadingMoreMessages = false;
+                        hideMoreMessagesLoadingIcon(root);
                         return;
                     });
             }
 
             data.originalEvent.preventDefault();
-        })
+        });
     };
 
     /**
@@ -341,8 +380,8 @@ function(
     var getLoggedInUserProfile = function(root) {
         return {
             userid: getLoggedInUserId(root),
-            fullname: root.attr('data-full-name'),
-            profileimageurl: root.attr('data-profile-url'),
+            fullname: getLoggedInUserFullName(root),
+            profileimageurl: getLoggedInUserProfileUrl(root),
         }
     };
 
@@ -381,7 +420,7 @@ function(
         });
     };
 
-    var buildInitialState = function(root, midnight, loggedInUserId) {
+    var buildInitialState = function(midnight, loggedInUserId) {
         return {
             midnight: midnight,
             loggedInUserId: loggedInUserId,
@@ -597,24 +636,30 @@ function(
         return $.when.apply($, daysRenderPromises.concat(messagesRenderPromises));
     };
 
+    var reset = function(root, loggedInUserId) {
+        var midnight = parseInt(root.attr('data-midnight'), 10);
+        var initialState = buildInitialState(midnight, loggedInUserId);
+        setGlobalViewState(initialState);
+        // Remove and previous messages.
+        getDayContainers(root).remove();
+        disableSendMessage(root);
+        hideContentContainer(root);
+        showPlaceholderContainer(root);
+
+        return initialState;
+    };
+
     var show = function(root, otherUserId) {
         root = $(root);
 
         var loggedInUserId = getLoggedInUserId(root);
         var loggedInUserProfile = getLoggedInUserProfile(root);
-        var midnight = parseInt(root.attr('data-midnight'), 10);
-        var initialState = buildInitialState(root, midnight, loggedInUserId);
-        setGlobalViewState(initialState);
-        getMessagesContainer(root).empty();
-        disableSendMessage(root);
-        hideContentContainer(root);
-        showPlaceholderContainer(root);
+        var initialState = reset(root, loggedInUserId);
 
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
         }
-
 
         return loadProfile(loggedInUserId, otherUserId)
             .then(function(otherUserProfile) {
