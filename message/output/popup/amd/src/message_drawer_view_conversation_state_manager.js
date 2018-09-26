@@ -144,6 +144,25 @@ define([], function() {
         return before;
     };
 
+    var isArrayEqual = function(a, b) {
+        a.sort();
+        b.sort();
+        var aLength = a.length;
+        var bLength = b.length;
+
+        if (aLength < 1 && bLength < 1) {
+            return true;
+        }
+
+        if (aLength != bLength) {
+            return false;
+        }
+
+        return a.every(function(item, index) {
+            return item == b[index];
+        });
+    };
+
     var buildDaysPatch = function(current, daysDiff) {
         return {
             remove: daysDiff.missingFromB,
@@ -194,13 +213,35 @@ define([], function() {
         };
     };
 
+    var buildConversationPatch = function(state, newState) {
+        var oldMessageIds = state.messages.map(function(message) {
+            return message.id;
+        });
+        var newMessageIds = newState.messages.map(function(message) {
+            return message.id;
+        });
+
+        if (!isArrayEqual(oldMessageIds, newMessageIds)) {
+            var current = sortMessagesByDay(state.messages, state.midnight);
+            var next = sortMessagesByDay(newState.messages, newState.midnight);
+            var daysDiff = diffArrays(current, next, function(dayCurrent, dayNext) {
+                return dayCurrent.timestamp == dayNext.timestamp;
+            });
+
+            return {
+                days: buildDaysPatch(current, daysDiff),
+                messages: buildMessagesPatch(daysDiff.matches)
+            };
+        } else {
+            return null;
+        }
+    };
+
     var buildHeaderPatch = function(state, newState) {
         var oldMemberIds = Object.keys(state.members);
         var newMemberIds = Object.keys(newState.members);
-        oldMemberIds.sort();
-        newMemberIds.sort();
 
-        if (oldMemberIds == newMemberIds) {
+        if (isArrayEqual(oldMemberIds, newMemberIds)) {
             return null;
         }
 
@@ -222,7 +263,7 @@ define([], function() {
         }
     };
 
-    var getScrollToMessage = function(state, newState) {
+    var buildScrollToMessagePatch = function(state, newState) {
         var oldMessages = state.messages;
         var newMessages = newState.messages;
 
@@ -235,7 +276,7 @@ define([], function() {
         }
 
         var previousNewest = oldMessages[state.messages.length - 1];
-        var currentNewest = newMessages[allMessages.length - 1];
+        var currentNewest = newMessages[newMessages.length - 1];
         var previousOldest = oldMessages[0];
         var currentOldest = newMessages[0];
 
@@ -248,31 +289,67 @@ define([], function() {
         return null;
     };
 
+    var buildLoadingMembersPatch = function(state, newState) {
+        if (!state.loadingMembers && newState.loadingMembers) {
+            return true;
+        } else if (state.loadingMembers && !newState.loadingMembers) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
+    var buildLoadingFirstMessages = function(state, newState) {
+        if (state.messages.length < 1 && newState.loadingMessages) {
+            return true;
+        } else if (state.messages.length < 1 && state.loadingMessages && !newState.loadingMessages) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
+    var buildLoadingMessages = function(state, newState) {
+        if (!state.loadingMessages && newState.loadingMessages) {
+            return true;
+        } else if (state.loadingMessages && !newState.loadingMessages) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
+    var buildSendingMessage = function(state, newState) {
+        if (!state.sendingMessage && newState.sendingMessage) {
+            return true;
+        } else if (state.sendingMessage && !newState.sendingMessage) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
     var buildPatch = function(state, newState) {
-        var patch = {
-            days: {add: [], remove: []},
-            messages: {add: [], remove: []},
-            header: buildHeaderPatch(state, newState),
-            scrollToMessage: getScrollToMessage(state, newState),
-            showHeaderPlaceholder: newState.loadingMembers,
-            showContentPlaceholder: state.messages.length < 1 && newState.loadingMessages,
-            loadingMessages: newState.loadingMessages,
-            sendingMessage: newState.sendingMessage,
-            hasSentMessage: state.sendingMessage && !newState.sendingMessage
+        var config = {
+            conversation: buildConversationPatch,
+            header: buildHeaderPatch,
+            scrollToMessage: buildScrollToMessagePatch,
+            loadingMembers: buildLoadingMembersPatch,
+            loadingFirstMessages: buildLoadingFirstMessages,
+            loadingMessages: buildLoadingMessages,
+            sendingMessage: buildSendingMessage
         }
 
-        if (state.messages != newState.messages) {
-            var current = sortMessagesByDay(state.messages, state.midnight);
-            var next = sortMessagesByDay(newState.messages, newState.midnight);
-            var daysDiff = diffArrays(current, next, function(dayCurrent, dayNext) {
-                return dayCurrent.timestamp == dayNext.timestamp;
-            });
+        return Object.keys(config).reduce(function(patch, key) {
+            var buildFunc = config[key];
+            var value = buildFunc(state, newState);
 
-            patch.days = buildDaysPatch(current, daysDiff);
-            patch.messages = buildMessagesPatch(daysDiff.matches);
-        }
+            if (value !== null) {
+                patch[key] = value;
+            }
 
-        return patch;
+            return patch;
+        }, {});
     };
 
     var buildInitialState = function(midnight, loggedInUserId) {

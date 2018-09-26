@@ -44,7 +44,7 @@
 >
     <div class="h-100 d-flex flex-column">
         <div class="hidden" data-region="view-conversation-header"></div>
-        <div class="h-100 hidden" data-region="content-container">
+        <div class="hidden" data-region="content-container" style="flex: 1; overflow-y: auto">
             <div class="h-100 d-flex flex-column">
                 <div
                     class="px-2 pb-2 pt-0 position-relative"
@@ -81,7 +81,7 @@
         <div data-region="header-placeholder">
             {{> message_popup/message_drawer_view_conversation_header_placeholder }}
         </div>
-        <div class="h-100" data-region="content-placeholder">
+        <div data-region="content-placeholder" style="flex: 1; overflow-y: auto">
             {{> message_popup/message_drawer_view_conversation_content_placeholder }}
         </div>
     </div>

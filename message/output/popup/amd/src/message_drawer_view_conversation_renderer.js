@@ -135,12 +135,12 @@ function(
 
     var disableSendMessage = function(root) {
         root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', true);
-        root.find(SELECTORS.MESSAGE_TEXT_AREA).prop('disabled', true);
+        getMessageTextArea(root).prop('disabled', true);
     };
 
     var enableSendMessage = function(root) {
         root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', false);
-        root.find(SELECTORS.MESSAGE_TEXT_AREA).prop('disabled', false);
+        getMessageTextArea(root).prop('disabled', false);
     };
 
     var startSendMessageLoading = function(root) {
@@ -157,20 +157,10 @@ function(
         responseContainer.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
-    var scrollToMessage = function(root, messageId) {
-        var messagesContainer = getMessagesContainer(root);
-        var messageElement = getMessageElement(root, messageId);
-        // Scroll the message container down to the top of the message element.
-        var scrollTop = messagesContainer.scrollTop() + messageElement.position().top;
-        messagesContainer.scrollTop(scrollTop);
-    };
-
-    var renderHeader = function(root, data) {
-        var headerContainer = getHeaderContainer(root);
-        return Templates.render(TEMPLATES.HEADER, data.context)
-            .then(function(html, js) {
-                Templates.replaceNodeContents(headerContainer, html, js);
-            });
+    var hasSentMessage = function(root) {
+        var textArea = getMessageTextArea(root);
+        textArea.val('');
+        textArea.focus();
     };
 
     var renderAddDays = function(root, days) {
@@ -230,66 +220,127 @@ function(
         });
     };
 
-    var render = function(root, patch) {
+    var renderConversation = function(root, data) {
         var renderingPromises = [];
 
-        if (patch.days.add.length > 0) {
-            renderingPromises.concat(renderAddDays(root, patch.days.add));
+        if (data.days.add.length > 0) {
+            renderingPromises = renderingPromises.concat(renderAddDays(root, data.days.add));
         }
 
-        if (patch.messages.add.length > 0) {
-            renderingPromises.concat(renderAddMessages(root, patch.messages.add));
+        if (data.messages.add.length > 0) {
+            renderingPromises = renderingPromises.concat(renderAddMessages(root, data.messages.add));
         }
 
-        if (patch.days.remove.length > 0) {
-            renderRemoveDays(root, patch.days.remove);
+        if (data.days.remove.length > 0) {
+            renderRemoveDays(root, data.days.remove);
         }
 
-        if (patch.messages.remove.length > 0) {
-            renderRemoveMessages(root, patch.messages.remove);
+        if (data.messages.remove.length > 0) {
+            renderRemoveMessages(root, data.messages.remove);
         }
 
-        if (patch.header) {
-            renderingPromises.concat(renderHeader(root, patch.header));
-        }
+        return $.when.apply($, renderingPromises);
+    };
 
-        if (patch.showHeaderPlaceholder) {
+    var renderHeader = function(root, data) {
+        var headerContainer = getHeaderContainer(root);
+        return Templates.render(TEMPLATES.HEADER, data.context)
+            .then(function(html, js) {
+                Templates.replaceNodeContents(headerContainer, html, js);
+            });
+    };
+
+    var renderScrollToMessage = function(root, messageId) {
+        var messagesContainer = getMessagesContainer(root);
+        var messageElement = getMessageElement(root, messageId);
+        // Scroll the message container down to the top of the message element.
+        var scrollTop = messagesContainer.scrollTop() + messageElement.position().top;
+        messagesContainer.scrollTop(scrollTop);
+    };
+
+    var renderLoadingMembers = function(root, isLoadingMembers) {
+        if (isLoadingMembers) {
             hideHeaderContainer(root);
             showHeaderPlaceholder(root);
         } else {
             showHeaderContainer(root);
             hideHeaderPlaceholder(root);
         }
+    };
 
-        if (patch.showContentPlaceholder) {
+    var renderLoadingFirstMessages = function(root, isLoadingFirstMessages) {
+        if (isLoadingFirstMessages) {
             hideContentContainer(root);
             showContentPlaceholder(root);
         } else {
             showContentContainer(root);
             hideContentPlaceholder(root);
         }
+    };
 
-        if (patch.loadingMessages) {
+    var renderLoadingMessages = function(root, isLoading) {
+        if (isLoading) {
             showMoreMessagesLoadingIcon(root);
         } else {
             hideMoreMessagesLoadingIcon(root);
         }
+    };
 
-        if (patch.sendingMessage) {
+    var renderSendingMessage = function(root, isSending) {
+        if (isSending) {
             startSendMessageLoading(root);
         } else {
             stopSendMessageLoading(root);
+            hasSentMessage(root);
         }
+    };
 
-        var renderingPromise = $.when.apply($, renderingPromises);
+    var render = function(root, patch) {
+        var configs = [
+            {
+                // Any async rendering (stuff that required templates) should
+                // go in here.
+                conversation: renderConversation,
+                header: renderHeader
+            },
+            {
+                loadingMembers: renderLoadingMembers,
+                loadingFirstMessages: renderLoadingFirstMessages,
+                loadingMessages: renderLoadingMessages,
+                sendingMessage: renderSendingMessage
+            },
+            {
+                // Scrolling should be last to make sure everything
+                // on the page is visible.
+                scrollToMessage: renderScrollToMessage
+            }
+        ];
+        // Helper function to process each of the configs above.
+        var processConfig = function(config) {
+            var results = [];
 
-        if (patch.scrollToMessage) {
-            renderingPromise.then(function() {
-                scrollToMessage(root, patch.scrollToMessage);
+            for (var key in patch) {
+                if (config.hasOwnProperty(key)) {
+                    var renderFunc = config[key];
+                    var patchValue = patch[key];
+                    results.push(renderFunc(root, patchValue));
+                }
+            }
+
+            return results;
+        };
+
+        // The first config is special because it contains async rendering.
+        var renderingPromises = processConfig(configs[0]);
+
+        // Wait for the async rendering to complete before processing the
+        // rest of the configs, in order.
+        return $.when.apply($, renderingPromises)
+            .then(function() {
+                for (var i = 1; i < configs.length; i++) {
+                    processConfig(configs[i]);
+                }
             });
-        }
-
-        return renderingPromise;
     };
 
     return {
