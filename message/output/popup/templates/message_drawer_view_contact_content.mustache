@@ -39,8 +39,8 @@
         class="rounded-circle"
         src="{{profileimageurl}}"
         aria-hidden="true"
-        alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
-        title="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
+        alt="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
+        title="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
         style="height: 100px; width: 100px"
     >
 </div>
@@ -49,37 +49,37 @@
     <button
         type="button"
         class="btn btn-primary btn-block {{^isblocked}}hidden{{/isblocked}}"
-        data-action="unblock"
-        data-user-id="{{userid}}"
+        data-route="view-conversation"
+        data-route-param-1="{{userid}}"
+        data-route-param-2="unblock"
     >
-        <span data-region="button-text">{{#str}}unblockuser, message{{/str}}</span>
-        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        {{#str}}unblockuser, message{{/str}}
     </button>
     <button
         type="button"
         class="btn btn-danger btn-block {{#isblocked}}hidden{{/isblocked}}"
-        data-action="block"
-        data-user-id="{{userid}}"
+        data-route="view-conversation"
+        data-route-param-1="{{userid}}"
+        data-route-param-2="block"
     >
-        <span data-region="button-text">{{#str}}blockuser, message{{/str}}</span>
-        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        {{#str}}blockuser, message{{/str}}
     </button>
     <button
         type="button"
         class="btn btn-danger btn-block {{^iscontact}}hidden{{/iscontact}}"
-        data-action="remove-contact"
-        data-user-id="{{userid}}"
+        data-route="view-conversation"
+        data-route-param-1="{{userid}}"
+        data-route-param-2="remove-contact"
     >
-        <span data-region="button-text">{{#str}}removefromyourcontacts, message{{/str}}</span>
-        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        {{#str}}removefromyourcontacts, message{{/str}}
     </button>
     <button
         type="button"
         class="btn btn-primary btn-block {{#iscontact}}hidden{{/iscontact}}"
-        data-action="add-contact"
-        data-user-id="{{userid}}"
+        data-route="view-conversation"
+        data-route-param-1="{{userid}}"
+        data-route-param-2="add-contact"
     >
-        <span data-region="button-text">{{#str}}addtoyourcontacts, message{{/str}}</span>
-        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        {{#str}}addtoyourcontacts, message{{/str}}
     </button>
 </div>

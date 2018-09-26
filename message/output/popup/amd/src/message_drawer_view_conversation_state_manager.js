@@ -24,7 +24,6 @@
  */
 define([], function() {
     var SECONDS_IN_DAY = 86400;
-    var LOAD_MESSAGE_LIMIT = 100;
 
     var cloneState = function(state) {
         var newState = Object.assign({}, state);
@@ -482,8 +481,6 @@ define([], function() {
             loggedInUserId: loggedInUserId,
             members: {},
             messages: [],
-            limit: LOAD_MESSAGE_LIMIT,
-            offset: 0,
             loadingMessages: true,
             sendingMessage: false,
             loadingMembers: true,
@@ -499,7 +496,6 @@ define([], function() {
         var newState = cloneState(state);
         var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
         var allMessages = state.messages.concat(formattedMessages);
-        var newOffset = state.offset + state.limit;
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {
             if (a.timecreated < b.timecreated) {
@@ -512,7 +508,6 @@ define([], function() {
         });
 
         newState.messages = allMessages;
-        newState.offset = newOffset;
 
         return newState;
     };
