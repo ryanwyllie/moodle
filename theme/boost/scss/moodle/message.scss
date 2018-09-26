@@ -1191,6 +1191,8 @@
     }
 }
 
+// New styles for the messaging UI. Once MDL-63303 is done all CSS above this line should be removed.
+
 .message-drawer {
     position: fixed;
     top: $navbar-height;
@@ -1199,8 +1201,36 @@
     width: 320px;
     z-index: $zindex-fixed;
     background-color: $white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+    box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
+
+    button[data-toggle="collapse"] i:before{
+        content: $fa-var-caret-down;
+    }
+
+    button[data-toggle="collapse"].collapsed i:before{
+        content: $fa-var-caret-right;
+    }
+
+    .matchtext {
+        background-color: lighten($primary, 40%);
+        color: $body-color;
+        height: 1.5rem;
+    }
+    .contact-status {
+        position: absolute;
+        left: 39px;
+        top: 39px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        &.online {
+            border: 1px solid $body-bg;
+            background-color: $green;
+        }
+    }
 }
+
+// New styles for the messaging UI. Once MDL-63303 is done all CSS below this line should be removed.
 
 @media (max-width: 480px) {
     .messaging-area-container {

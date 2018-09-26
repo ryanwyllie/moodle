@@ -39,21 +39,19 @@
     data-user-id="{{loggedinuser.id}}"
 >
     <div class="border-bottom d-flex p-3">
-        <div class="align-self-center" >
+        <div>
             <a href="#" data-route-back>
                 <!-- TODO: FIX THIS ICON -->
                 {{#pix}} e/right_to_left, core {{/pix}}
             </a>
         </div>
-        <div class="align-self-center">
+        <div>
             {{#str}} contacts, core_message {{/str}}
         </div>
-    </div>
-
-    <div class="border-bottom text-center p2">
-        <div class="btn-group mt-3 mb-3 " role="toolbar" data-region="contact-views">
-            <button type="button" class="btn btn-secondary active" data-button-action="view-contacts">{{#str}} contacts, core_message {{/str}}</button>
-            <button type="button" class="btn btn-secondary" data-button-action="view-requests">{{#str}} requests, core {{/str}}</button>
+        <div class="ml-auto">
+            <a href="#" data-action="search-contacts">
+                {{#pix}} a/search, core {{/pix}}
+            </a>
         </div>
     </div>
 

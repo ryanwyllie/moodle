@@ -36,19 +36,19 @@
 
 {{#hasresults}}
     <div class="{{^hascontacts}}hidden{{/hascontacts}}" data-region="contacts-container">
-        <h4>{{#str}} contacts, core_message {{/str}}</h4>
+        <h4 class="h6">{{#str}} contacts, core_message {{/str}}</h4>
         <div class="list-group mb-3" data-region="list">
             {{> message_popup/message_drawer_contacts_list }}
         </div>
     </div>
     <div class="{{^hasnoncontacts}}hidden{{/hasnoncontacts}}" data-region="non-contacts-container">
-        <h4>{{#str}} noncontacts, core_message {{/str}}</h4>
+        <h4 class="h6">{{#str}} noncontacts, core_message {{/str}}</h4>
         <div class="list-group mb-3" data-region="list">
             {{> message_popup/message_drawer_non_contacts_list }}
         </div>
     </div>
     <div class="{{^hasmessages}}hidden{{/hasmessages}}" data-region="messages-container">
-        <h4>{{#str}} messages, core_message {{/str}}</h4>
+        <h4 class="h6">{{#str}} messages, core_message {{/str}}</h4>
         <div class="list-group" data-region="list">
             {{> message_popup/message_drawer_messages_list }}
         </div>

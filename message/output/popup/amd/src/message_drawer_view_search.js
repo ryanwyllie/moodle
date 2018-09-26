@@ -172,6 +172,15 @@ function(
         enableSearchInput(root);
     };
 
+    var highlightSearch = function(root, searchText) {
+        root.find('[data-region="searchable"]').each(function() {
+              var content = $(this).text();
+              var regex = new RegExp('(' + searchText + ')', 'gi');
+              content = content.replace(regex, '<span class="matchtext">$1</span>');
+              $(this).replaceWith(content);
+        });
+    }
+
     var findContact = function(root, userId) {
         return root.find('[data-contact-user-id="' + userId + '"]');
     };
@@ -258,6 +267,7 @@ function(
         })
         .then(function() {
             stopLoading(root);
+            highlightSearch(root, searchText);
             return;
         })
         .catch(function(error) {
