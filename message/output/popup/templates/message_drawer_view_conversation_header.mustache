@@ -69,11 +69,11 @@
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="#" data-route="view-contact" data-route-param="{{userid}}">{{#str}} info, core_message {{/str}}</a>
-                <a class="dropdown-item {{#isblocked}}hidden{{/isblocked}}" href="#">{{#str}} blockuser, core_message {{/str}}</a>
-                <a class="dropdown-item {{^isblocked}}hidden{{/isblocked}}" href="#">{{#str}} unblockuser, core_message {{/str}}</a>
+                <a class="dropdown-item {{#isblocked}}hidden{{/isblocked}}" href="#" data-action="request-block">{{#str}} blockuser, core_message {{/str}}</a>
+                <a class="dropdown-item {{^isblocked}}hidden{{/isblocked}}" href="#" data-action="request-unblock">{{#str}} unblockuser, core_message {{/str}}</a>
                 <a class="dropdown-item" href="#">{{#str}} deleteconversation, core_message {{/str}}</a>
-                <a class="dropdown-item {{#iscontact}}hidden{{/iscontact}}" href="#">{{#str}} addtoyourcontacts, core_message {{/str}}</a>
-                <a class="dropdown-item {{^iscontact}}hidden{{/iscontact}}" href="#">{{#str}} removefromyourcontacts, core_message {{/str}}</a>
+                <a class="dropdown-item {{#iscontact}}hidden{{/iscontact}}" href="#" data-action="request-add-contact">{{#str}} addtoyourcontacts, core_message {{/str}}</a>
+                <a class="dropdown-item {{^iscontact}}hidden{{/iscontact}}" href="#" data-action="request-remove-contact">{{#str}} removefromyourcontacts, core_message {{/str}}</a>
             </div>
         </div>
     </div>

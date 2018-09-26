@@ -23,6 +23,7 @@
  */
 
 $string['addcontact'] = 'Add contact';
+$string['addcontactconfirm'] = 'Are you sure you want to add {$a} from your contacts?';
 $string['addtoyourcontacts'] = 'Add to your contacts';
 $string['addtoyourcontactsandmessage'] = 'Add to your contacts and message';
 $string['ago'] = '{$a} ago';
@@ -30,6 +31,7 @@ $string['allusers'] = 'All messages from all users';
 $string['backupmessageshelp'] = 'If enabled, then instant messages will be included in SITE automated backups';
 $string['blockcontact'] = 'Block contact';
 $string['blockuser'] = 'Block user';
+$string['blockuserconfirm'] = 'Are you sure you want to block {$a}?';
 $string['blocknoncontacts'] = 'Prevent non-contacts from messaging me';
 $string['canceledit'] = 'Cancel editing messages';
 $string['contactblocked'] = 'Contact blocked';
@@ -143,6 +145,7 @@ $string['privacy:metadata:preference:core_message_settings'] = 'Settings related
 $string['privacy:request:preference:set'] = 'The value of the setting \'{$a->name}\' was \'{$a->value}\'';
 $string['processorsettings'] = 'Processor settings';
 $string['removecontact'] = 'Remove contact';
+$string['removecontactconfirm'] = 'Are you sure you want to remove {$a} from your contacts?';
 $string['removecoursefilter'] = 'Remove filter for course {$a}';
 $string['removefromyourcontacts'] = 'Remove from your contacts';
 $string['requiresconfiguration'] = 'Requires configuration';
@@ -173,6 +176,7 @@ $string['togglemessagemenu'] = 'Toggle messages menu';
 $string['touserdoesntexist'] = 'You can not send a message to a user id ({$a}) that doesn\'t exist';
 $string['unblockcontact'] = 'Unblock contact';
 $string['unblockuser'] = 'Unblock user';
+$string['unblockuserconfirm'] = 'Are you sure you want to unblock {$a}?';
 $string['unknownuser'] = 'Unknown user';
 $string['unreadnotification'] = 'Unread notification: {$a}';
 $string['unreadnewmessage'] = 'New message from {$a}';

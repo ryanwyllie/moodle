@@ -28,8 +28,13 @@ define([], function() {
 
     var cloneState = function(state) {
         var newState = Object.assign({}, state);
-        newState.messages = state.messages.slice();
-        newState.members = Object.assign({}, state.members);
+        newState.messages = state.messages.map(function(message) {
+            return Object.assign({}, message);
+        });
+        newState.members = Object.keys(state.members).reduce(function(carry, id) {
+            carry[id] = Object.assign({}, state.members[id]);
+            return carry;
+        }, {});
         return newState;
     };
 
@@ -329,6 +334,108 @@ define([], function() {
         }
     };
 
+    var buildConfirmBlockUser = function(state, newState) {
+        if (newState.pendingBlockUsers.length) {
+            // We currently only support a single user;
+            var userId = newState.pendingBlockUsers[0];
+            return newState.members[userId];
+        } else if (state.pendingBlockUsers.length) {
+            return false;
+        }
+
+        return null;
+    };
+
+    var buildConfirmUnblockUser = function(state, newState) {
+        if (newState.pendingUnblockUsers.length) {
+            // We currently only support a single user;
+            var userId = newState.pendingUnblockUsers[0];
+            return newState.members[userId];
+        } else if (state.pendingUnblockUsers.length) {
+            return false;
+        }
+
+        return null;
+    };
+
+    var buildConfirmAddContact = function(state, newState) {
+        if (newState.pendingAddContacts.length) {
+            // We currently only support a single user;
+            var userId = newState.pendingAddContacts[0];
+            return newState.members[userId];
+        } else if (state.pendingAddContacts.length) {
+            return false;
+        }
+
+        return null;
+    };
+
+    var buildConfirmRemoveContact = function(state, newState) {
+        if (newState.pendingRemoveContacts.length) {
+            // We currently only support a single user;
+            var userId = newState.pendingRemoveContacts[0];
+            return newState.members[userId];
+        } else if (state.pendingRemoveContacts.length) {
+            return false;
+        }
+
+        return null;
+    };
+
+    var buildIsBlocked = function(state, newState) {
+        var oldMemberIds = Object.keys(state.members);
+        var newMemberIds = Object.keys(newState.members);
+        var loggedInUserId = newState.loggedInUserId;
+        var otherUserIds = newMemberIds.filter(function(id) {
+            return id != loggedInUserId;
+        });
+        var isGroupMessage = otherUserIds.length > 1;
+
+        if (isGroupMessage || !oldMemberIds.length || !newMemberIds.length) {
+            // No rendering required for this state in group messages.
+            return null;
+        }
+
+        var otherUserId = otherUserIds[0];
+        var before = state.members[otherUserId];
+        var after = newState.members[otherUserId];
+
+        if (before.isblocked && !after.isblocked) {
+            return false;
+        } else if (!before.isblocked && after.isblocked) {
+            return true;
+        } else {
+            return null;
+        }
+    };
+
+    var buildIsContact = function(state, newState) {
+        var oldMemberIds = Object.keys(state.members);
+        var newMemberIds = Object.keys(newState.members);
+        var loggedInUserId = newState.loggedInUserId;
+        var otherUserIds = newMemberIds.filter(function(id) {
+            return id != loggedInUserId;
+        });
+        var isGroupMessage = otherUserIds.length > 1;
+
+        if (isGroupMessage || !oldMemberIds.length || !newMemberIds.length) {
+            // No rendering required for this state in group messages.
+            return null;
+        }
+
+        var otherUserId = otherUserIds[0];
+        var before = state.members[otherUserId];
+        var after = newState.members[otherUserId];
+
+        if (before.iscontact && !after.iscontact) {
+            return false;
+        } else if (!before.iscontact && after.iscontact) {
+            return true;
+        } else {
+            return null;
+        }
+    };
+
     var buildPatch = function(state, newState) {
         var config = {
             conversation: buildConversationPatch,
@@ -337,7 +444,13 @@ define([], function() {
             loadingMembers: buildLoadingMembersPatch,
             loadingFirstMessages: buildLoadingFirstMessages,
             loadingMessages: buildLoadingMessages,
-            sendingMessage: buildSendingMessage
+            sendingMessage: buildSendingMessage,
+            confirmBlockUser: buildConfirmBlockUser,
+            confirmUnblockUser: buildConfirmUnblockUser,
+            confirmAddContact: buildConfirmAddContact,
+            confirmRemoveContact: buildConfirmRemoveContact,
+            isBlocked: buildIsBlocked,
+            isContact: buildIsContact
         }
 
         return Object.keys(config).reduce(function(patch, key) {
@@ -362,7 +475,11 @@ define([], function() {
             offset: 0,
             loadingMessages: true,
             sendingMessage: false,
-            loadingMembers: true
+            loadingMembers: true,
+            pendingBlockUsers: [],
+            pendingUnblockUsers: [],
+            pendingRemoveContacts: [],
+            pendingAddContacts: []
         };
     };
 
@@ -414,6 +531,106 @@ define([], function() {
         return newState;
     };
 
+    var addPendingBlockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            newState.pendingBlockUsers.push(id);
+        });
+        return newState;
+    };
+
+    var addPendingRemoveContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            newState.pendingRemoveContacts.push(id);
+        });
+        return newState;
+    };
+
+    var addPendingUnblockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            newState.pendingUnblockUsers.push(id);
+        });
+        return newState;
+    };
+
+    var addPendingAddContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            newState.pendingAddContacts.push(id);
+        });
+        return newState;
+    };
+
+    var removePendingBlockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        newState.pendingBlockUsers = newState.pendingBlockUsers.filter(function(id) {
+            return userIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    var removePendingRemoveContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        newState.pendingRemoveContacts = newState.pendingRemoveContacts.filter(function(id) {
+            return userIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    var removePendingUnblockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        newState.pendingUnblockUsers = newState.pendingUnblockUsers.filter(function(id) {
+            return userIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    var removePendingAddContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        newState.pendingAddContacts = newState.pendingAddContacts.filter(function(id) {
+            return userIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    var blockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            if (newState.members.hasOwnProperty(id)) {
+                newState.members[id].isblocked = true;
+            }
+        });
+    };
+
+    var unblockUsers = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            if (newState.members.hasOwnProperty(id)) {
+                newState.members[id].isblocked = false;
+            }
+        });
+    };
+
+    var removeContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            if (newState.members.hasOwnProperty(id)) {
+                newState.members[id].iscontact = false;
+            }
+        });
+    };
+
+    var addContacts = function(state, userIds) {
+        var newState = cloneState(state);
+        userIds.forEach(function(id) {
+            if (newState.members.hasOwnProperty(id)) {
+                newState.members[id].iscontact = true;
+            }
+        });
+    };
+
     return {
         buildPatch: buildPatch,
         buildInitialState: buildInitialState,
@@ -421,6 +638,18 @@ define([], function() {
         addMembersToSate: addMembersToSate,
         setLoadingMessages: setLoadingMessages,
         setSendingMessage: setSendingMessage,
-        setLoadingMembers: setLoadingMembers
+        setLoadingMembers: setLoadingMembers,
+        addPendingBlockUsers: addPendingBlockUsers,
+        addPendingRemoveContacts: addPendingRemoveContacts,
+        addPendingUnblockUsers: addPendingUnblockUsers,
+        addPendingAddContacts: addPendingAddContacts,
+        removePendingBlockUsers: removePendingBlockUsers,
+        removePendingRemoveContacts: removePendingRemoveContacts,
+        removePendingUnblockUsers: removePendingUnblockUsers,
+        removePendingAddContacts: removePendingAddContacts,
+        blockUsers: blockUsers,
+        unblockUsers: unblockUsers,
+        removeContacts: removeContacts,
+        addContacts: addContacts
     };
 });

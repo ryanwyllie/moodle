@@ -29,6 +29,7 @@ define(
     'core/custom_interaction_events',
     'core/notification',
     'core_message/message_repository',
+    'message_popup/message_drawer_events',
     'message_popup/message_drawer_view_conversation_renderer',
     'message_popup/message_drawer_view_conversation_state_manager'
 ],
@@ -38,6 +39,7 @@ function(
     CustomEvents,
     Notification,
     Repository,
+    MessageDrawerEvents,
     Renderer,
     StateManager
 ) {
@@ -47,19 +49,18 @@ function(
     var NEWEST_FIRST = true;
 
     var SELECTORS = {
-        HEADER: '[data-region="view-conversation-header"]',
+        ACTION_CANCEL_CONFIRM: '[data-action="cancel-confirm"]',
+        ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
+        ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
+        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
+        ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
+        ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
+        ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
+        ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
+        ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
-        PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]',
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
-        SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        DAY_CONTAINER: '[data-region="day-container"]',
-        DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]',
-        CONTENT_CONTAINER: '[data-region="content-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
-        RESPONSE_CONTAINER: '[data-region="response"]'
     };
 
     var getLoggedInUserId = function(root) {
@@ -107,7 +108,6 @@ function(
             });
     };
 
-    // Header stuff.
     var loadProfile = function(root, loggedInUserId, otherUserId) {
         var loggedInUserProfile = getLoggedInUserProfile(root);
         var newState = StateManager.setLoadingMembers(viewState, true);
@@ -130,7 +130,6 @@ function(
             });
     };
 
-    // Message loading.
     var loadMessages = function(root, currentUserId, otherUserId, limit, offset, newestFirst) {
         var newState = StateManager.setLoadingMessages(viewState, true);
         return render(root, newState)
@@ -158,6 +157,79 @@ function(
                 render(root, newState);
                 return error;
             });
+    };
+
+    var requestBlockUser = function(root, userId) {
+        var newState = StateManager.addPendingBlockUsers(viewState, [userId]);
+        return render(root, newState);
+    };
+
+    var blockUser = function(root, userId) {
+        var loggedInUserId = viewState.loggedInUserId;
+        return Repository.blockContacts(loggedInUserId, [userId])
+            .then(function() {
+                var newState = StateManager.blockUsers(viewState, [userId]);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(MessageDrawerEvents.CONTACT_BLOCKED, [userId]);
+                return render(root, newState);
+            });
+    };
+
+    var requestUnblockUser = function(root, userId) {
+        var newState = StateManager.addPendingUnblockUsers(viewState, [userId]);
+        return render(root, newState);
+    };
+
+    var unblockUser = function(root, userId) {
+        var loggedInUserId = viewState.loggedInUserId;
+        return Repository.unblockContacts(loggedInUserId, [userId])
+            .then(function() {
+                var newState = StateManager.unblockUsers(viewState, [userId]);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(MessageDrawerEvents.CONTACT_UNBLOCKED, [userId]);
+                return render(root, newState);
+            });
+    };
+
+    var requestRemoveContact = function(root, userId) {
+        var newState = StateManager.addPendingRemoveContacts(viewState, [userId]);
+        return render(root, newState);
+    };
+
+    var removeContact = function(root, userId) {
+        var loggedInUserId = viewState.loggedInUserId;
+        return Repository.deleteContacts(loggedInUserId, [userId])
+            .then(function() {
+                var newState = StateManager.removeContacts(viewState, [userId]);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(MessageDrawerEvents.CONTACT_REMOVED, [userId]);
+                return render(root, newState);
+            });
+    };
+
+    var requestAddContact = function(root, userId) {
+        var newState = StateManager.addPendingAddContacts(viewState, [userId]);
+        return render(root, newState);
+    };
+
+    var addContact = function(root, userId) {
+        var loggedInUserId = viewState.loggedInUserId;
+
+        return Repository.createContacts(loggedInUserId, [userId])
+            .then(function() {
+                var newState = StateManager.addContacts(viewState, [userId]);
+                // TODO: Use proper pubsub thing.
+                $('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+                return render(root, newState);
+            });
+    };
+
+    var cancelRequest = function(root, userId) {
+        var newState = StateManager.removePendingAddContacts(viewState, [userId]);
+        newState = StateManager.removePendingRemoveContacts(newState, [userId]);
+        newState = StateManager.removePendingUnblockUsers(newState, [userId]);
+        newState = StateManager.removePendingBlockUsers(newState, [userId]);
+        return render(root, newState);
     };
 
     var sendMessage = function(root, toUserId, text) {
@@ -206,11 +278,54 @@ function(
 
             if (text !== '') {
                 sendMessage(root, otherUserId, text)
-                    .catch(function(error) {
-                        Notification.exception(error);
-                    });
+                    .catch(Notification.exception);
             }
 
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_BLOCK, function(e, data) {
+            requestBlockUser(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_UNBLOCK, function(e, data) {
+            requestUnblockUser(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_ADD_CONTACT, function(e, data) {
+            requestAddContact(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, function(e, data) {
+            requestRemoveContact(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CANCEL_CONFIRM, function(e, data) {
+            cancelRequest(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_BLOCK, function(e, data) {
+            blockUser(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_UNBLOCK, function(e, data) {
+            unblockUser(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, function(e, data) {
+            addContact(root, getOtherUserId());
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, function(e, data) {
+            removeContact(root, getOtherUserId());
             data.originalEvent.preventDefault();
         });
 
@@ -223,9 +338,9 @@ function(
                         isLoadingMoreMessages = false;
                         return;
                     })
-                    .catch(function() {
+                    .catch(function(error) {
                         isLoadingMoreMessages = false;
-                        return;
+                        Notification.exception(error);
                     });
             }
 
