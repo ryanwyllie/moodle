@@ -26,10 +26,14 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
+    'message_popup/message_drawer_router',
+    'message_popup/message_drawer_routes'
 ],
 function(
     $,
-    CustomEvents
+    CustomEvents,
+    Router,
+    Routes
 ) {
 
     var SELECTORS = {
@@ -38,7 +42,8 @@ function(
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
         EMPTY_MESSAGE: '[data-region="empty-message-container"]',
-        PLACEHOLDER: '[data-region="placeholder-container"]'
+        PLACEHOLDER: '[data-region="placeholder-container"]',
+        SEARCH_CONTACTS: '[data-action="search-contacts"]'
     };
 
     var startLoading = function(root) {
@@ -121,6 +126,7 @@ function(
 
     var registerEventListeners = function(root, loadCallback, renderCallback) {
 
+        // Will be used later for contact requests view.
         actionContainer = root.find(SELECTORS.ACTION_CONTAINER);
         CustomEvents.define(actionContainer, [
             CustomEvents.events.activate
@@ -134,6 +140,12 @@ function(
                 }
             }
         );
+
+        searchBtn = root.find(SELECTORS.SEARCH_CONTACTS);
+        searchBtn.on(CustomEvents.events.activate,
+            function() {
+            Router.go(Routes.VIEW_SEARCH);
+        });
         
     };
 
