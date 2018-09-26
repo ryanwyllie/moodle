@@ -25,13 +25,20 @@
 define(
 [
     'jquery',
+    'core/str',
     'core/templates'
 ],
 function(
     $,
+    Str,
     Templates
 ) {
     var SELECTORS = {
+        ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
+        ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
+        ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
+        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
+        CONFIRM_DIALOGUE_TEXT: '[data-region="dialogue-text"]',
         HEADER: '[data-region="view-conversation-header"]',
         HEADER_PLACEHOLDER_CONTAINER: '[data-region="header-placeholder"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
@@ -39,12 +46,12 @@ function(
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
         SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
-        RESPONSE_CONTAINER: '[data-region="response"]'
+        RESPONSE_CONTAINER: '[data-region="response"]',
+        CONFIRM_DIALOGUE_CONTAINER: '[data-region="confirm-dialogue-container"]'
     };
 
     var TEMPLATES = {
@@ -161,6 +168,18 @@ function(
         var textArea = getMessageTextArea(root);
         textArea.val('');
         textArea.focus();
+    };
+
+    var getConfirmDialogueContainer = function(root) {
+        return root.find(SELECTORS.CONFIRM_DIALOGUE_CONTAINER);
+    };
+
+    var showConfirmDialogue = function(root) {
+        getConfirmDialogueContainer(root).removeClass('hidden');
+    };
+
+    var hideConfirmDialogue = function(root) {
+        getConfirmDialogueContainer(root).addClass('hidden');
     };
 
     var renderAddDays = function(root, days) {
@@ -295,13 +314,93 @@ function(
         }
     };
 
+    var renderConfirmBlockUser = function(root, user) {
+        var dialogue = getConfirmDialogueContainer(root);
+        var button = dialogue.find(SELECTORS.ACTION_CONFIRM_BLOCK);
+        var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
+        if (user) {
+            return Str.get_string('blockuserconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    button.removeClass('hidden');
+                    text.text(string);
+                    return showConfirmDialogue(root);
+                });
+        } else {
+            hideConfirmDialogue(root);
+            button.addClass('hidden');
+            text.text('');
+            return true;
+        }
+    };
+
+    var renderConfirmUnblockUser = function(root, user) {
+        var dialogue = getConfirmDialogueContainer(root);
+        var button = dialogue.find(SELECTORS.ACTION_CONFIRM_UNBLOCK);
+        var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
+        if (user) {
+            return Str.get_string('unblockuserconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    button.removeClass('hidden');
+                    text.text(string);
+                    return showConfirmDialogue(root);
+                });
+        } else {
+            hideConfirmDialogue(root);
+            button.addClass('hidden');
+            text.text('');
+            return true;
+        }
+    };
+
+    var renderConfirmAddContact = function(root, user) {
+        var dialogue = getConfirmDialogueContainer(root);
+        var button = dialogue.find(SELECTORS.ACTION_CONFIRM_ADD_CONTACT);
+        var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
+        if (user) {
+            return Str.get_string('addcontactconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    button.removeClass('hidden');
+                    text.text(string);
+                    return showConfirmDialogue(root);
+                });
+        } else {
+            hideConfirmDialogue(root);
+            button.addClass('hidden');
+            text.text('');
+            return true;
+        }
+    };
+
+    var renderConfirmRemoveContact = function(root, user) {
+        var dialogue = getConfirmDialogueContainer(root);
+        var button = dialogue.find(SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT);
+        var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
+        if (user) {
+            return Str.get_string('removecontactconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    button.removeClass('hidden');
+                    text.text(string);
+                    return showConfirmDialogue(root);
+                });
+        } else {
+            hideConfirmDialogue(root);
+            button.addClass('hidden');
+            text.text('');
+            return true;
+        }
+    };
+
     var render = function(root, patch) {
         var configs = [
             {
                 // Any async rendering (stuff that required templates) should
                 // go in here.
                 conversation: renderConversation,
-                header: renderHeader
+                header: renderHeader,
+                confirmBlockUser: renderConfirmBlockUser,
+                confirmUnblockUser: renderConfirmUnblockUser,
+                confirmAddContact: renderConfirmAddContact,
+                confirmRemoveContact: renderConfirmRemoveContact,
             },
             {
                 loadingMembers: renderLoadingMembers,

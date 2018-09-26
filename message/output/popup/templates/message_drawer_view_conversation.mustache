@@ -44,7 +44,7 @@
 >
     <div class="h-100 d-flex flex-column">
         <div class="hidden" data-region="view-conversation-header"></div>
-        <div class="hidden" data-region="content-container" style="flex: 1; overflow-y: auto">
+        <div class="hidden position-relative" data-region="content-container" style="flex: 1; overflow-y: auto">
             <div class="h-100 d-flex flex-column">
                 <div
                     class="px-2 pb-2 pt-0 position-relative"
@@ -73,6 +73,18 @@
                             <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
                             <span class="sr-only">{{#str}}send, core_message{{/str}}</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 w-100 h-100 hidden position-absolute" data-region="confirm-dialogue-container" style="top: 0; background: rgba(0,0,0,0.3);">
+                <div class="p-3 bg-white" data-region="confirm-dialogue">
+                    <p class="text-muted" data-region="dialogue-text"></p>
+                    <div class="d-flex justify-content-around">
+                        <button type="button" class="btn btn-secondary" data-action="cancel-confirm">Cancel</button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-block">Block</button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-unblock">Unblock</button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-remove-contact">Remove</button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-add-contact">Add</button>
                     </div>
                 </div>
             </div>
