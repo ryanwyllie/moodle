@@ -160,15 +160,22 @@ function(
     };
 
     var requestBlockUser = function(root, userId) {
-        var newState = StateManager.addPendingBlockUsers(viewState, [userId]);
-        return render(root, newState);
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.addPendingBlockUsers(viewState, [userId]);
+            return render(root, newState);
+        });
     };
 
     var blockUser = function(root, userId) {
-        var loggedInUserId = viewState.loggedInUserId;
-        return Repository.blockContacts(loggedInUserId, [userId])
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.blockContacts(viewState.loggedInUserId, [userId])
+            })
             .then(function() {
                 var newState = StateManager.blockUsers(viewState, [userId]);
+                newState = StateManager.removePendingBlockUsers(newState, [userId]);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_BLOCKED, [userId]);
                 return render(root, newState);
@@ -176,15 +183,22 @@ function(
     };
 
     var requestUnblockUser = function(root, userId) {
-        var newState = StateManager.addPendingUnblockUsers(viewState, [userId]);
-        return render(root, newState);
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.addPendingUnblockUsers(viewState, [userId]);
+            return render(root, newState);
+        });
     };
 
     var unblockUser = function(root, userId) {
-        var loggedInUserId = viewState.loggedInUserId;
-        return Repository.unblockContacts(loggedInUserId, [userId])
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.unblockContacts(viewState.loggedInUserId, [userId])
+            })
             .then(function() {
                 var newState = StateManager.unblockUsers(viewState, [userId]);
+                newState = StateManager.removePendingUnblockUsers(newState, [userId]);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_UNBLOCKED, [userId]);
                 return render(root, newState);
@@ -192,15 +206,22 @@ function(
     };
 
     var requestRemoveContact = function(root, userId) {
-        var newState = StateManager.addPendingRemoveContacts(viewState, [userId]);
-        return render(root, newState);
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.addPendingRemoveContacts(viewState, [userId]);
+            return render(root, newState);
+        });
     };
 
     var removeContact = function(root, userId) {
-        var loggedInUserId = viewState.loggedInUserId;
-        return Repository.deleteContacts(loggedInUserId, [userId])
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.deleteContacts(viewState.loggedInUserId, [userId])
+            })
             .then(function() {
                 var newState = StateManager.removeContacts(viewState, [userId]);
+                newState = StateManager.removePendingRemoveContacts(newState, [userId]);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_REMOVED, [userId]);
                 return render(root, newState);
@@ -208,16 +229,22 @@ function(
     };
 
     var requestAddContact = function(root, userId) {
-        var newState = StateManager.addPendingAddContacts(viewState, [userId]);
-        return render(root, newState);
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.addPendingAddContacts(viewState, [userId]);
+            return render(root, newState);
+        });
     };
 
     var addContact = function(root, userId) {
-        var loggedInUserId = viewState.loggedInUserId;
-
-        return Repository.createContacts(loggedInUserId, [userId])
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.createContacts(viewState.loggedInUserId, [userId])
+            })
             .then(function() {
                 var newState = StateManager.addContacts(viewState, [userId]);
+                newState = StateManager.removePendingAddContacts(newState, [userId]);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
                 return render(root, newState);
@@ -285,47 +312,65 @@ function(
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_BLOCK, function(e, data) {
-            requestBlockUser(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                requestBlockUser(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_UNBLOCK, function(e, data) {
-            requestUnblockUser(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                requestUnblockUser(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_ADD_CONTACT, function(e, data) {
-            requestAddContact(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                requestAddContact(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, function(e, data) {
-            requestRemoveContact(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                requestRemoveContact(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_CANCEL_CONFIRM, function(e, data) {
-            cancelRequest(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                cancelRequest(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_BLOCK, function(e, data) {
-            blockUser(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                blockUser(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_UNBLOCK, function(e, data) {
-            unblockUser(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                unblockUser(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, function(e, data) {
-            addContact(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                addContact(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 
         root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, function(e, data) {
-            removeContact(root, getOtherUserId());
+            if (!viewState.loadingConfirmAction) {
+                removeContact(root, getOtherUserId());
+            }
             data.originalEvent.preventDefault();
         });
 

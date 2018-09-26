@@ -80,11 +80,23 @@
                 <div class="p-3 bg-white" data-region="confirm-dialogue">
                     <p class="text-muted" data-region="dialogue-text"></p>
                     <div class="d-flex justify-content-around">
-                        <button type="button" class="btn btn-secondary" data-action="cancel-confirm">Cancel</button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-block">Block</button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-unblock">Unblock</button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-remove-contact">Remove</button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-add-contact">Add</button>
+                        <button type="button" class="btn btn-secondary" data-action="cancel-confirm">{{#str}} cancel, core {{/str}}</button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-block">
+                            <span data-region="dialogue-button-text">{{#str}} block, core {{/str}}</span>
+                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+                        </button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-unblock">
+                            <span data-region="dialogue-button-text">{{#str}} unblock, core_message {{/str}}</span>
+                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+                        </button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-remove-contact">
+                            <span data-region="dialogue-button-text">{{#str}} remove, core {{/str}}</span>
+                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+                        </button>
+                        <button type="button" class="btn btn-primary hidden" data-action="confirm-add-contact">
+                            <span data-region="dialogue-button-text">{{#str}} add, core {{/str}}</span>
+                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+                        </button>
                     </div>
                 </div>
             </div>

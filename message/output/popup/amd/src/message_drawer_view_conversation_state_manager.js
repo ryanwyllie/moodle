@@ -436,6 +436,16 @@ define([], function() {
         }
     };
 
+    var buildLoadingConfirmationAction = function(state, newState) {
+        if (!state.loadingConfirmAction && newState.loadingConfirmAction) {
+            return true;
+        } else if (state.loadingConfirmAction && !newState.loadingConfirmAction) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
     var buildPatch = function(state, newState) {
         var config = {
             conversation: buildConversationPatch,
@@ -450,7 +460,8 @@ define([], function() {
             confirmAddContact: buildConfirmAddContact,
             confirmRemoveContact: buildConfirmRemoveContact,
             isBlocked: buildIsBlocked,
-            isContact: buildIsContact
+            isContact: buildIsContact,
+            loadingConfirmAction: buildLoadingConfirmationAction
         }
 
         return Object.keys(config).reduce(function(patch, key) {
@@ -476,6 +487,7 @@ define([], function() {
             loadingMessages: true,
             sendingMessage: false,
             loadingMembers: true,
+            loadingConfirmAction: false,
             pendingBlockUsers: [],
             pendingUnblockUsers: [],
             pendingRemoveContacts: [],
@@ -528,6 +540,12 @@ define([], function() {
     var setLoadingMembers = function(state, value) {
         var newState = cloneState(state);
         newState.loadingMembers = value;
+        return newState;
+    };
+
+    var setLoadingConfirmAction = function(state, value) {
+        var newState = cloneState(state);
+        newState.loadingConfirmAction = value;
         return newState;
     };
 
@@ -602,6 +620,7 @@ define([], function() {
                 newState.members[id].isblocked = true;
             }
         });
+        return newState;
     };
 
     var unblockUsers = function(state, userIds) {
@@ -611,6 +630,7 @@ define([], function() {
                 newState.members[id].isblocked = false;
             }
         });
+        return newState;
     };
 
     var removeContacts = function(state, userIds) {
@@ -620,6 +640,7 @@ define([], function() {
                 newState.members[id].iscontact = false;
             }
         });
+        return newState;
     };
 
     var addContacts = function(state, userIds) {
@@ -629,6 +650,7 @@ define([], function() {
                 newState.members[id].iscontact = true;
             }
         });
+        return newState;
     };
 
     return {
@@ -639,6 +661,7 @@ define([], function() {
         setLoadingMessages: setLoadingMessages,
         setSendingMessage: setSendingMessage,
         setLoadingMembers: setLoadingMembers,
+        setLoadingConfirmAction: setLoadingConfirmAction,
         addPendingBlockUsers: addPendingBlockUsers,
         addPendingRemoveContacts: addPendingRemoveContacts,
         addPendingUnblockUsers: addPendingUnblockUsers,
