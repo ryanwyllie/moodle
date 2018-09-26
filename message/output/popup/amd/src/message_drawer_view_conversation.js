@@ -46,7 +46,9 @@ function(
 
     var viewState = {};
     var loadedAllMessages = false;
+    var messagesOffset = 0;
     var NEWEST_FIRST = true;
+    var LOAD_MESSAGE_LIMIT = 100;
 
     var SELECTORS = {
         ACTION_CANCEL_CONFIRM: '[data-action="cancel-confirm"]',
@@ -378,9 +380,10 @@ function(
             var hasMembers = Object.keys(viewState.members).length > 1;
 
             if (!isLoadingMoreMessages && !loadedAllMessages && hasMembers) {
-                loadMessages(root, loggedInUserId, getOtherUserId(), viewState.limit, viewState.offset, NEWEST_FIRST)
+                loadMessages(root, loggedInUserId, getOtherUserId(), LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST)
                     .then(function() {
                         isLoadingMoreMessages = false;
+                        messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
                         return;
                     })
                     .catch(function(error) {
@@ -397,15 +400,19 @@ function(
         var loggedInUserId = getLoggedInUserId(root);
         var midnight = parseInt(root.attr('data-midnight'), 10);
         viewState = StateManager.buildInitialState(midnight, loggedInUserId);
+        messagesOffset = 0;
 
         return loadProfile(root, loggedInUserId, otherUserId)
             .then(function() {
-                return loadMessages(root, loggedInUserId, otherUserId, viewState.limit, viewState.offset, NEWEST_FIRST);
+                return loadMessages(root, loggedInUserId, otherUserId, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
+            })
+            .then(function() {
+                return messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
             })
             .catch(Notification.exception);;
     };
 
-    var show = function(root, otherUserId) {
+    var show = function(root, otherUserId, action) {
         root = $(root);
 
         if (!root.attr('data-init')) {
@@ -417,6 +424,21 @@ function(
             if (currentOtherUserId && currentOtherUserId != otherUserId) {
                 reset(root, otherUserId);
             }
+        }
+
+        switch(action) {
+            case 'block':
+                requestBlockUser(root, otherUserId);
+                break;
+            case 'unblock':
+                requestUnblockUser(root, otherUserId);
+                break;
+            case 'add-contact':
+                requestAddContact(root, otherUserId);
+                break;
+            case 'remove-contact':
+                requestRemoveContact(root, otherUserId);
+                break;
         }
     };
 

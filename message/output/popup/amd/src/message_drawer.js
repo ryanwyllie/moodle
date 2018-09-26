@@ -78,12 +78,39 @@ function(
 
     var registerEventListeners = function(root) {
         CustomEvents.define(root, [CustomEvents.events.activate]);
+        var paramRegex = /^data-route-param-?(\d*)$/;
 
         root.on(CustomEvents.events.activate, SELECTORS.ROUTES, function(e, data) {
             var element = $(e.target).closest(SELECTORS.ROUTES);
             var route = element.attr('data-route');
-            var param = element.attr('data-route-param');
-            Router.go(route, param);
+            var attributes = [];
+            for (var i = 0; i < element[0].attributes.length; i++) {
+                attributes.push(element[0].attributes[i]);
+            }
+            var paramAttributes = attributes.filter(function(attribute) {
+                var name = attribute.nodeName;
+                var match = paramRegex.test(name);
+                return match;
+            });
+            paramAttributes.sort(function(a, b) {
+                var aParts = paramRegex.exec(a.nodeName);
+                var bParts = paramRegex.exec(b.nodeName);
+                var aIndex = aParts.length > 1 ? aParts[1] : 0;
+                var bIndex = bParts.length > 1 ? bParts[1] : 0;
+
+                if (aIndex < bIndex) {
+                    return -1;
+                } else if (bIndex < aIndex) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            var params = paramAttributes.map(function(attribute) {
+                return attribute.nodeValue;
+            });
+
+            Router.go.apply(null, [route].concat(params));
 
             data.originalEvent.preventDefault();
         });

@@ -25,26 +25,18 @@
 define(
 [
     'jquery',
-    'core/custom_interaction_events',
     'core/notification',
     'core/templates',
     'core_message/message_repository',
-    'message_popup/message_drawer_events',
 ],
 function(
     $,
-    CustomEvents,
     Notification,
     Templates,
     Repository,
-    Events
 ) {
 
     var SELECTORS = {
-        ACTION_ADD_CONTACT: '[data-action="add-contact"]',
-        ACTION_REMOVE_CONTACT: '[data-action="remove-contact"]',
-        ACTION_BLOCK: '[data-action="block"]',
-        ACTION_UNBLOCK: '[data-action="unblock"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER_CONTAINER: '[data-region="loading-placeholder-container"]',
@@ -83,38 +75,6 @@ function(
         root.find(SELECTORS.LOADING_PLACEHOLDER_CONTAINER).addClass('hidden');
     };
 
-    var showAddContactButton = function(root) {
-        root.find(SELECTORS.ACTION_ADD_CONTACT).removeClass('hidden');
-    }
-
-    var hideAddContactButton = function(root) {
-        root.find(SELECTORS.ACTION_ADD_CONTACT).addClass('hidden');
-    }
-
-    var showRemoveContactButton = function(root) {
-        root.find(SELECTORS.ACTION_REMOVE_CONTACT).removeClass('hidden');
-    }
-
-    var hideRemoveContactButton = function(root) {
-        root.find(SELECTORS.ACTION_REMOVE_CONTACT).addClass('hidden');
-    }
-
-    var showBlockButton = function(root) {
-        root.find(SELECTORS.ACTION_BLOCK).removeClass('hidden');
-    }
-
-    var hideBlockButton = function(root) {
-        root.find(SELECTORS.ACTION_BLOCK).addClass('hidden');
-    }
-
-    var showUnblockButton = function(root) {
-        root.find(SELECTORS.ACTION_UNBLOCK).removeClass('hidden');
-    }
-
-    var hideUnblockButton = function(root) {
-        root.find(SELECTORS.ACTION_UNBLOCK).addClass('hidden');
-    }
-
     var startFullLoading = function(root) {
         showLoadingIcon(root);
         showLoadingPlaceholder(root);
@@ -137,105 +97,8 @@ function(
             });
     };
 
-    var addContact = function(root, loggedInUserId, profileUserId) {
-        return Repository.createContacts(loggedInUserId, [profileUserId])
-            .then(function() {
-                hideAddContactButton(root);
-                showRemoveContactButton(root);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(Events.CONTACT_ADDED, [profileUserId]);
-                return;
-            });
-    };
-
-    var removeContact = function(root, loggedInUserId, profileUserId) {
-        return Repository.deleteContacts(loggedInUserId, [profileUserId])
-            .then(function() {
-                showAddContactButton(root);
-                hideRemoveContactButton(root);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(Events.CONTACT_REMOVED, [profileUserId]);
-                return;
-            });
-    };
-
-    var blockUser = function(root, loggedInUserId, profileUserId) {
-        return Repository.blockContacts(loggedInUserId, [profileUserId])
-            .then(function() {
-                hideBlockButton(root);
-                showUnblockButton(root);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(Events.CONTACT_BLOCKED, [profileUserId]);
-                return;
-            });
-    };
-
-    var unblockUser = function(root, loggedInUserId, profileUserId) {
-        return Repository.unblockContacts(loggedInUserId, [profileUserId])
-            .then(function() {
-                showBlockButton(root);
-                hideUnblockButton(root);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(Events.CONTACT_UNBLOCKED, [profileUserId]);
-                return;
-            });
-    };
-
-    var registerEventListeners = function(root) {
-        var loggedInUserId = getLoggedInUserId(root);
-        var generateHandler = function(selector, callback) {
-            return function(e, data) {
-                var target = $(e.target).closest(selector);
-                var profileUserId = target.attr('data-user-id');
-
-                showLoadingIcon(target);
-                callback(root, loggedInUserId, profileUserId)
-                    .then(function() {
-                        hideLoadingIcon(target);
-                    })
-                    .catch(function(error) {
-                        Notification.exception(error);
-                        hideLoadingIcon(target);
-                    });
-
-                data.originalEvent.preventDefault();
-            }
-        };
-
-        CustomEvents.define(root, [CustomEvents.events.activate]);
-
-        root.on(
-            CustomEvents.events.activate,
-            SELECTORS.ACTION_ADD_CONTACT,
-            generateHandler(SELECTORS.ACTION_ADD_CONTACT, addContact)
-        );
-
-        root.on(
-            CustomEvents.events.activate,
-            SELECTORS.ACTION_REMOVE_CONTACT,
-            generateHandler(SELECTORS.ACTION_REMOVE_CONTACT, removeContact)
-        );
-
-        root.on(
-            CustomEvents.events.activate,
-            SELECTORS.ACTION_BLOCK,
-            generateHandler(SELECTORS.ACTION_BLOCK, blockUser)
-        );
-
-        root.on(
-            CustomEvents.events.activate,
-            SELECTORS.ACTION_UNBLOCK,
-            generateHandler(SELECTORS.ACTION_UNBLOCK, unblockUser)
-        );
-    };
-
     var show = function(root, contactUserId) {
         root = $(root);
-
-        if (!root.attr('data-init')) {
-            registerEventListeners(root);
-            root.attr('data-init', true);
-        }
 
         getContentContainer(root).empty();
         startFullLoading(root);
