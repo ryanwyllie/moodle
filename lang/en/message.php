@@ -65,6 +65,7 @@ $string['guestnoeditmessageother'] = 'Guest user can not edit other user messagi
 $string['hidemessagewindow'] = 'Hide message window';
 $string['hidenotificationwindow'] = 'Hide notification window';
 $string['info'] = 'Info';
+$string['loadmore'] = 'Load more';
 $string['loggedin'] = 'Online';
 $string['loggedin_help'] = 'Configure how you would like to receive notifications when you are logged into Moodle';
 $string['loggedindescription'] = 'When you are logged into Moodle';
