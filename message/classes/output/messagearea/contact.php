@@ -117,6 +117,7 @@ class contact implements templatable, renderable {
         $this->messageid = $contact->messageid;
         $this->ismessaging = $contact->ismessaging;
         $this->lastmessage = $contact->lastmessage;
+        $this->lastmessagedate = $contact->lastmessagedate;
         $this->isonline = $contact->isonline;
         $this->isblocked = $contact->isblocked;
         $this->isread = $contact->isread;
@@ -137,6 +138,7 @@ class contact implements templatable, renderable {
                 $contact->sentfromcurrentuser = true;
             }
             $contact->lastmessage = shorten_text($this->lastmessage, self::MAX_MSG_LENGTH);
+            $contact->lastmessagedate = $this->lastmessagedate;
         } else {
             $contact->lastmessage = null;
         }

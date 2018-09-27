@@ -52,14 +52,19 @@
             <span class="contact-status {{#isonline}}online{{/isonline}}"></span>
         {{/showonlinestatus}}
         <div class="w-100 text-truncate ml-2">
-            <strong class="m-0">
-                {{fullname}}
+            <div class="d-flex">
+                <strong class="m-0">
+                    {{fullname}}
+                </strong>
                 {{#isblocked}}
                     <span data-region="contact-icon-blocked">
                         {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
                     </span>
                 {{/isblocked}}
-            </strong>
+                <div class="ml-auto small">
+                    {{#userdate}} {{lastmessagedate}}, {{#str}} strftimetime24, core_langconfig  {{/str}} {{/userdate}}
+                </div>
+            </div>
             <p class="m-0 font-weight-light text-truncate" data-region="searchable">
                 {{#sentfromcurrentuser}}{{#str}} you, core_message {{/str}}{{/sentfromcurrentuser}}
                 {{lastmessage}}

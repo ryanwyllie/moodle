@@ -375,6 +375,7 @@ class api {
             $conversation->messageid = $message->id;
             $conversation->smallmessage = $message->smallmessage;
             $conversation->useridfrom = $message->useridfrom;
+            $conversation->lastmessagedate = $message->timecreated;
 
             // Only consider it unread if $user has unread messages.
             if (isset($unreadcounts[$otheruserid])) {
@@ -386,7 +387,6 @@ class api {
 
             $arrconversations[$otheruserid] = helper::create_contact($conversation);
         }
-
         return $arrconversations;
     }
 
