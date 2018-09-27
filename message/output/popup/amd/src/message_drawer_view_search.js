@@ -317,6 +317,8 @@ function(
             var searchText = searchInput.val().trim();
 
             if (searchText !== '') {
+                root.attr('data-max-users', (LOADMORE / 2));
+                root.attr('data-max-messages', LOADMORE);
                 setSearchText(root, searchText);
                 search(root, searchText)
                     .then(function() {
