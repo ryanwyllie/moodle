@@ -1178,6 +1178,50 @@
     }
 }
 
+.message-drawer {
+    * {
+        box-sizing: border-box;
+    }
+    position: fixed;
+    top: 52px;
+    right: 0;
+    height: ~"calc(100% - 52px)";
+    width: 320px;
+    z-index: 1030;
+    background-color: @white;
+    box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
+
+    .badge-round {
+        padding: 2px 5px;
+    }
+
+    // button[data-toggle="collapse"] i:before {
+    //     content: $fa-var-caret-down;
+    // }
+
+    // button[data-toggle="collapse"].collapsed i:before {
+    //     content: $fa-var-caret-right;
+    // }
+
+    .matchtext {
+        background-color: lighten(@blue, 40%);
+        color: @textColor;
+        height: 1.5rem;
+    }
+    .contact-status {
+        position: absolute;
+        left: 39px;
+        top: 39px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        &.online {
+            border: 1px solid @green;
+            background-color: $green;
+        }
+    }
+}
+
 @media (max-width: 480px) {
     .messaging-area-container {
         .messaging-area {

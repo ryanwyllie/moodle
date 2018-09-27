@@ -1203,12 +1203,16 @@
     background-color: $white;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
 
-    button[data-toggle="collapse"] i:before{
+    button[data-toggle="collapse"] i:before {
         content: $fa-var-caret-down;
     }
 
-    button[data-toggle="collapse"].collapsed i:before{
+    button[data-toggle="collapse"].collapsed i:before {
         content: $fa-var-caret-right;
+    }
+
+    .badge-round {
+        padding: 0.25rem 0.3rem;
     }
 
     .matchtext {

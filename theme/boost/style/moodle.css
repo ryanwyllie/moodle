@@ -14070,6 +14070,34 @@ a.ygtvspacer:hover {
       visibility: visible;
       transition: right 0.25s; } }
 
+.message-drawer {
+  position: fixed;
+  top: 50px;
+  right: 0;
+  height: calc(100% - 50px);
+  width: 320px;
+  z-index: 1030;
+  background-color: #fff;
+  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.08); }
+  .message-drawer button[data-toggle="collapse"] i:before {
+    content: ""; }
+  .message-drawer button[data-toggle="collapse"].collapsed i:before {
+    content: ""; }
+  .message-drawer .matchtext {
+    background-color: #b5d9f9;
+    color: #373a3c;
+    height: 1.5rem; }
+  .message-drawer .contact-status {
+    position: absolute;
+    left: 39px;
+    top: 39px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%; }
+    .message-drawer .contact-status.online {
+      border: 1px solid #fff;
+      background-color: #5cb85c; }
+
 @media (max-width: 480px) {
   .messaging-area-container .messaging-area .messages-area.editing .messages-header {
     height: 80px; }
