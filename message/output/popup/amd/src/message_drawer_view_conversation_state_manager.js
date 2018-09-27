@@ -121,7 +121,7 @@ define([], function() {
             } else {
                 // If we couldn't find it in the next messages then it means
                 // it needs to be added.
-                missingFromB.push(dayCurrent);
+                missingFromB.push(current);
             }
         });
 
@@ -253,6 +253,11 @@ define([], function() {
         var otherUserIds = newMemberIds.filter(function(id) {
             return id != loggedInUserId;
         });
+
+        if (!otherUserIds.length) {
+            return null;
+        }
+
         var context = {};
         var isGroupMessage = otherUserIds.length > 1;
 
@@ -304,9 +309,11 @@ define([], function() {
     };
 
     var buildLoadingFirstMessages = function(state, newState) {
-        if (state.messages.length < 1 && newState.loadingMessages) {
+        if (state.hasTriedToLoadMessages === newState.hasTriedToLoadMessages) {
+            return null;
+        } else if (!newState.hasTriedToLoadMessages && newState.loadingMessages) {
             return true;
-        } else if (state.messages.length < 1 && state.loadingMessages && !newState.loadingMessages) {
+        } else if (newState.hasTriedToLoadMessages && !newState.loadingMessages) {
             return false;
         } else {
             return null;
@@ -481,6 +488,7 @@ define([], function() {
             loggedInUserId: loggedInUserId,
             members: {},
             messages: [],
+            hasTriedToLoadMessages: false,
             loadingMessages: true,
             sendingMessage: false,
             loadingMembers: true,
@@ -492,7 +500,7 @@ define([], function() {
         };
     };
 
-    var addMessagesToState = function(state, messages) {
+    var addMessages = function(state, messages) {
         var newState = cloneState(state);
         var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
         var allMessages = state.messages.concat(formattedMessages);
@@ -512,7 +520,19 @@ define([], function() {
         return newState;
     };
 
-    var addMembersToSate = function(state, members) {
+    var removeMessages = function(state, messages) {
+        var newState = cloneState(state);
+        var removeMessageIds = messages.map(function(message) {
+            return message.id;
+        });
+        newState.messages = newState.messages.filter(function(message) {
+            return removeMessageIds.indexOf(message.id) < 0;
+        });
+
+        return newState;
+    };
+
+    var addMembers = function(state, members) {
         var newState = cloneState(state);
         members.forEach(function(member) {
             newState.members[member.userid] = member;
@@ -520,9 +540,22 @@ define([], function() {
         return newState;
     };
 
+    var removeMembers = function(state, members) {
+        var newState = cloneState(state);
+        members.forEach(function(member) {
+            delete newState.members[member.userid];
+        });
+        return newState;
+    };
+
     var setLoadingMessages = function(state, value) {
         var newState = cloneState(state);
         newState.loadingMessages = value;
+        if (state.loadingMessages && !value) {
+            // If we're going from loading to not loading then
+            // it means we've tried to load.
+            newState.hasTriedToLoadMessages = true;
+        }
         return newState;
     };
 
@@ -651,8 +684,10 @@ define([], function() {
     return {
         buildPatch: buildPatch,
         buildInitialState: buildInitialState,
-        addMessagesToState: addMessagesToState,
-        addMembersToSate: addMembersToSate,
+        addMessages: addMessages,
+        removeMessages: removeMessages,
+        addMembers: addMembers,
+        removeMembers: removeMembers,
         setLoadingMessages: setLoadingMessages,
         setSendingMessage: setSendingMessage,
         setLoadingMembers: setLoadingMembers,

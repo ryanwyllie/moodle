@@ -104,6 +104,9 @@ function(
 
     var render = function(root, newState) {
         var patch = StateManager.buildPatch(viewState, newState);
+        console.log("PREV STATE:", viewState);
+        console.log("NEXT STATE:", newState);
+        console.log("PATCH: ", patch);
         return Renderer.render(root, patch)
             .then(function() {
                 viewState = newState;
@@ -118,7 +121,7 @@ function(
                 return Repository.getProfile(loggedInUserId, otherUserId);
             })
             .then(function(profile) {
-                var newState = StateManager.addMembersToSate(viewState, [profile, loggedInUserProfile]);
+                var newState = StateManager.addMembers(viewState, [profile, loggedInUserProfile]);
                 newState = StateManager.setLoadingMembers(newState, false);
                 return render(root, newState)
                     .then(function() {
@@ -150,7 +153,7 @@ function(
                 return messages;
             })
             .then(function(messages) {
-                var newState = StateManager.addMessagesToState(viewState, messages);
+                var newState = StateManager.addMessages(viewState, messages);
                 newState = StateManager.setLoadingMessages(newState, false);
                 return render(root, newState);
             })
@@ -280,7 +283,7 @@ function(
                 };
             })
             .then(function(message) {
-                var newState = StateManager.addMessagesToState(viewState, [message]);
+                var newState = StateManager.addMessages(viewState, [message]);
                 newState = StateManager.setSendingMessage(newState, false);
                 return render(root, newState);
             });
@@ -399,10 +402,17 @@ function(
     var reset = function(root, otherUserId) {
         var loggedInUserId = getLoggedInUserId(root);
         var midnight = parseInt(root.attr('data-midnight'), 10);
-        viewState = StateManager.buildInitialState(midnight, loggedInUserId);
+        var newState = StateManager.buildInitialState(midnight, loggedInUserId);
         messagesOffset = 0;
 
-        return loadProfile(root, loggedInUserId, otherUserId)
+        if (!Object.keys(viewState).length) {
+            viewState = newState;
+        }
+
+        return render(root, newState)
+            .then(function() {
+                return loadProfile(root, loggedInUserId, otherUserId)
+            })
             .then(function() {
                 return loadMessages(root, loggedInUserId, otherUserId, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
             })

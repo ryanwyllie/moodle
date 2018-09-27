@@ -234,7 +234,7 @@ function(
 
     var renderRemoveDays = function(root, days) {
         days.forEach(function(data) {
-            getDayElement(root, data.timecreated).remove();
+            getDayElement(root, data.timestamp).remove();
         });
     };
 
