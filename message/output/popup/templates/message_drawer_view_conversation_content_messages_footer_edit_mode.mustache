@@ -33,27 +33,17 @@
     {}
 
 }}
+
 <div class="d-flex">
-    <div
-        class="bg-light align-self-center"
-        style="height: 16px; width: 16px"
+    <button
+        class="btn btn-link"
+        data-action="delete-selected-messages"
+        data-toggle="tooltip"
+        data-placement="top"
+        title="{{#str}} deleteselectedmessages, core_message {{/str}}"
     >
-    </div>
-    <div
-        class="ml-2 my-1 rounded-circle bg-light align-self-center"
-        style="height: 40px; width: 40px"
-    >
-    </div>
-    <div class="ml-2 " style="flex: 1">
-        <div
-            class="mt-1 bg-light w-75"
-            style="height: 16px;"
-        >
-        </div>
-    </div>
-    <div
-        class="ml-2 bg-light align-self-center"
-        style="height: 16px; width: 20px"
-    >
-    </div>
+        <span data-region="icon-container">{{#pix}} i/delete, core {{/pix}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        <span class="sr-only">{{#str}} deleteselectedmessages, core_message {{/str}}</span>
+    </button>
 </div>

@@ -33,27 +33,23 @@
     {}
 
 }}
+
 <div class="d-flex">
-    <div
-        class="bg-light align-self-center"
-        style="height: 16px; width: 16px"
-    >
-    </div>
-    <div
-        class="ml-2 my-1 rounded-circle bg-light align-self-center"
-        style="height: 40px; width: 40px"
-    >
-    </div>
-    <div class="ml-2 " style="flex: 1">
-        <div
-            class="mt-1 bg-light w-75"
-            style="height: 16px;"
-        >
-        </div>
-    </div>
-    <div
-        class="ml-2 bg-light align-self-center"
-        style="height: 16px; width: 20px"
-    >
-    </div>
+    <textarea
+        data-region="send-message-txt"
+        class="form-control bg-light"
+        rows="1"
+        data-auto-rows
+        data-min-rows="1"
+        data-max-rows="5"
+        role="textbox"
+        aria-label="{{#str}} writeamessage, core_message {{/str}}"
+        placeholder="{{#str}} writeamessage, core_message {{/str}}"
+        style="resize: none"
+    ></textarea>
+    <button class="btn btn-link" data-action="send-message">
+        <span data-region="send-icon-container"><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        <span class="sr-only">{{#str}}send, core_message{{/str}}</span>
+    </button>
 </div>

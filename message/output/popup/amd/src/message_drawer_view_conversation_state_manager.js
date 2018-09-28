@@ -289,9 +289,9 @@ define([], function() {
         var previousOldest = oldMessages[0];
         var currentOldest = newMessages[0];
 
-        if (previousNewest != currentNewest) {
+        if (previousNewest.id != currentNewest.id) {
             return currentNewest.id;
-        } else if (previousOldest != currentOldest) {
+        } else if (previousOldest.id != currentOldest.id) {
             return previousOldest.id;
         }
 
@@ -452,6 +452,38 @@ define([], function() {
         }
     };
 
+    var buildInEditMode = function(state, newState) {
+        var oldHasSelectedMessages = state.selectedMessages.length > 0;
+        var newHasSelectedMessages = newState.selectedMessages.length > 0;
+
+        if (!oldHasSelectedMessages && newHasSelectedMessages) {
+            return true;
+        } else if (oldHasSelectedMessages && !newHasSelectedMessages) {
+            return false;
+        } else {
+            return null;
+        }
+    };
+
+    var buildSelectedMessages = function(state, newState) {
+        var oldSelectedMessages = state.selectedMessages;
+        var newSelectedMessages = newState.selectedMessages;
+
+        if (isArrayEqual(oldSelectedMessages, newSelectedMessages)) {
+            return null;
+        }
+
+        var diff = diffArrays(oldSelectedMessages, newSelectedMessages, function(a, b) {
+            return a == b;
+        })
+
+        return {
+            count: newSelectedMessages.length,
+            add: diff.missingFromA,
+            remove: diff.missingFromB
+        }
+    };
+
     var buildPatch = function(state, newState) {
         var config = {
             conversation: buildConversationPatch,
@@ -467,7 +499,9 @@ define([], function() {
             confirmRemoveContact: buildConfirmRemoveContact,
             isBlocked: buildIsBlocked,
             isContact: buildIsContact,
-            loadingConfirmAction: buildLoadingConfirmationAction
+            loadingConfirmAction: buildLoadingConfirmationAction,
+            inEditMode: buildInEditMode,
+            selectedMessages: buildSelectedMessages
         }
 
         return Object.keys(config).reduce(function(patch, key) {
@@ -496,7 +530,8 @@ define([], function() {
             pendingBlockUsers: [],
             pendingUnblockUsers: [],
             pendingRemoveContacts: [],
-            pendingAddContacts: []
+            pendingAddContacts: [],
+            selectedMessages: []
         };
     };
 
@@ -681,6 +716,20 @@ define([], function() {
         return newState;
     };
 
+    var addSelectedMessages = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.selectedMessages = newState.selectedMessages.concat(messageIds);
+        return newState;
+    };
+
+    var removeSelectedMessages = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.selectedMessages = newState.selectedMessages.filter(function(id) {
+            return messageIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
     return {
         buildPatch: buildPatch,
         buildInitialState: buildInitialState,
@@ -703,6 +752,8 @@ define([], function() {
         blockUsers: blockUsers,
         unblockUsers: unblockUsers,
         removeContacts: removeContacts,
-        addContacts: addContacts
+        addContacts: addContacts,
+        addSelectedMessages: addSelectedMessages,
+        removeSelectedMessages: removeSelectedMessages
     };
 });

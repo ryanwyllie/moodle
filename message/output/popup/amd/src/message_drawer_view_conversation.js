@@ -52,6 +52,7 @@ function(
 
     var SELECTORS = {
         ACTION_CANCEL_CONFIRM: '[data-action="cancel-confirm"]',
+        ACTION_CANCEL_EDIT_MODE: '[data-action="cancel-edit-mode"]',
         ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
         ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
@@ -60,6 +61,7 @@ function(
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
+        MESSAGE: '[data-region="message"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
@@ -289,6 +291,23 @@ function(
             });
     };
 
+    var toggleSelectMessage = function(root, messageId) {
+        var newState = viewState;
+
+        if (viewState.selectedMessages.indexOf(messageId) > -1) {
+            newState = StateManager.removeSelectedMessages(viewState, [messageId]);
+        } else {
+            newState = StateManager.addSelectedMessages(viewState, [messageId]);
+        }
+
+        return render(root, newState);
+    };
+
+    var cancelEditMode = function(root) {
+        var newState = StateManager.removeSelectedMessages(viewState, viewState.selectedMessages);
+        return render(root, newState);
+    };
+
     var registerEventListeners = function(root) {
         var loggedInUserId = getLoggedInUserId(root);
         var isLoadingMoreMessages = false;
@@ -376,6 +395,20 @@ function(
             if (!viewState.loadingConfirmAction) {
                 removeContact(root, getOtherUserId());
             }
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.MESSAGE, function(e, data) {
+            var element = $(e.target).closest(SELECTORS.MESSAGE);
+            var messageId = element.attr('data-message-id');
+
+            toggleSelectMessage(root, messageId);
+
+            data.originalEvent.preventDefault();
+        });
+
+        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CANCEL_EDIT_MODE, function(e, data) {
+            cancelEditMode(root);
             data.originalEvent.preventDefault();
         });
 

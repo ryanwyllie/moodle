@@ -43,15 +43,23 @@ function(
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
         CONFIRM_DIALOGUE_TEXT: '[data-region="dialogue-text"]',
-        HEADER: '[data-region="view-conversation-header"]',
+        HEADER: '[data-region="header-content"]',
+        HEADER_EDIT_MODE: '[data-region="header-edit-mode"]',
         HEADER_PLACEHOLDER_CONTAINER: '[data-region="header-placeholder"]',
+        MESSAGE: '[data-region="message"]',
+        MESSAGE_NOT_SELECTED_ICON: '[data-region="not-selected-icon"]',
+        MESSAGE_SELECTED_ICON: '[data-region="selected-icon"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
+        MESSAGES_SELECTED_COUNT: '[data-region="message-selected-court"]',
         CONTENT_PLACEHOLDER_CONTAINER: '[data-region="content-placeholder"]',
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
         SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
         DAY_MESSAGES_CONTAINER: '[data-region="day-messages-container"]',
         CONTENT_CONTAINER: '[data-region="content-container"]',
+        CONTENT_MESSAGES_CONTAINER: '[data-region="content-message-container"]',
+        CONTENT_MESSAGES_FOOTER_CONTAINER: '[data-region="content-messages-footer-container"]',
+        CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER: '[data-region="content-messages-footer-edit-mode-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         RESPONSE_CONTAINER: '[data-region="response"]',
@@ -67,16 +75,40 @@ function(
         ADDCONTACT: 'message_popup/message_drawer_add_contact'
     };
 
-    var getContentContainer = function(root) {
-        return root.find(SELECTORS.CONTENT_CONTAINER);
+    var getContentMessagesContainer = function(root) {
+        return root.find(SELECTORS.CONTENT_MESSAGES_CONTAINER);
     };
 
-    var showContentContainer = function(root) {
-        getContentContainer(root).removeClass('hidden');
+    var showContentMessagesContainer = function(root) {
+        getContentMessagesContainer(root).removeClass('hidden');
     };
 
-    var hideContentContainer = function(root) {
-        getContentContainer(root).addClass('hidden');
+    var hideContentMessagesContainer = function(root) {
+        getContentMessagesContainer(root).addClass('hidden');
+    };
+
+    var getContentMessagesFooterContainer = function(root) {
+        return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_CONTAINER);
+    };
+
+    var showContentMessagesFooterContainer = function(root) {
+        getContentMessagesFooterContainer(root).removeClass('hidden');
+    };
+
+    var hideContentMessagesFooterContainer = function(root) {
+        getContentMessagesFooterContainer(root).addClass('hidden');
+    };
+
+    var getContentMessagesFooterEditModeContainer = function(root) {
+        return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER);
+    };
+
+    var showContentMessagesFooterEditModeContainer = function(root) {
+        getContentMessagesFooterEditModeContainer(root).removeClass('hidden');
+    };
+
+    var hideContentMessagesFooterEditModeContainer = function(root) {
+        getContentMessagesFooterEditModeContainer(root).addClass('hidden');
     };
 
     var getContentPlaceholderContainer = function(root) {
@@ -91,16 +123,28 @@ function(
         getContentPlaceholderContainer(root).addClass('hidden');
     };
 
-    var getHeaderContainer = function(root) {
+    var getHeaderContent = function(root) {
         return root.find(SELECTORS.HEADER);
     };
 
-    var showHeaderContainer = function(root) {
-        getHeaderContainer(root).removeClass('hidden');
+    var showHeaderContent = function(root) {
+        getHeaderContent(root).removeClass('hidden');
     };
 
-    var hideHeaderContainer = function(root) {
-        getHeaderContainer(root).addClass('hidden');
+    var hideHeaderContent = function(root) {
+        getHeaderContent(root).addClass('hidden');
+    };
+
+    var getHeaderEditMode = function(root) {
+        return root.find(SELECTORS.HEADER_EDIT_MODE);
+    };
+
+    var showHeaderEditMode = function(root) {
+        getHeaderEditMode(root).removeClass('hidden');
+    };
+
+    var hideHeaderEditMode = function(root) {
+        getHeaderEditMode(root).addClass('hidden');
     };
 
     var getHeaderPlaceholderContainer = function(root) {
@@ -187,6 +231,10 @@ function(
         getConfirmDialogueContainer(root).addClass('hidden');
     };
 
+    var setMessagesSelectedCount = function(root, value) {
+        getHeaderEditMode(root).find(SELECTORS.MESSAGES_SELECTED_COUNT).text(value);
+    };
+
     var renderAddDays = function(root, days) {
         var messagesContainer = getMessagesContainer(root);
         var daysRenderPromises = days.map(function(data) {
@@ -267,7 +315,7 @@ function(
     };
 
     var renderHeader = function(root, data) {
-        var headerContainer = getHeaderContainer(root);
+        var headerContainer = getHeaderContent(root);
         return Templates.render(TEMPLATES.HEADER, data.context)
             .then(function(html, js) {
                 Templates.replaceNodeContents(headerContainer, html, js);
@@ -284,20 +332,20 @@ function(
 
     var renderLoadingMembers = function(root, isLoadingMembers) {
         if (isLoadingMembers) {
-            hideHeaderContainer(root);
+            hideHeaderContent(root);
             showHeaderPlaceholder(root);
         } else {
-            showHeaderContainer(root);
+            showHeaderContent(root);
             hideHeaderPlaceholder(root);
         }
     };
 
     var renderLoadingFirstMessages = function(root, isLoadingFirstMessages) {
         if (isLoadingFirstMessages) {
-            hideContentContainer(root);
+            hideContentMessagesContainer(root);
             showContentPlaceholder(root);
         } else {
-            showContentContainer(root);
+            showContentMessagesContainer(root);
             hideContentPlaceholder(root);
         }
     };
@@ -391,10 +439,55 @@ function(
         }
     };
 
+    var renderInEditMode = function(root, inEditMode) {
+        var messages = root.find(SELECTORS.MESSAGE);
+
+        if (inEditMode) {
+            messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
+            hideHeaderContent(root);
+            showHeaderEditMode(root);
+            hideContentMessagesFooterContainer(root);
+            showContentMessagesFooterEditModeContainer(root);
+        } else {
+            messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
+            messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
+            showHeaderContent(root);
+            hideHeaderEditMode(root);
+            showContentMessagesFooterContainer(root);
+            hideContentMessagesFooterEditModeContainer(root);
+        }
+    };
+
+    var renderSelectedMessages = function(root, data) {
+        var hasSelectedMessages = data.count > 0;
+
+        if (data.add.length) {
+            data.add.forEach(function(messageId) {
+                var message = getMessageElement(root, messageId);
+                message.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
+                message.find(SELECTORS.MESSAGE_SELECTED_ICON).removeClass('hidden');
+            });
+        }
+
+        if (data.remove.length) {
+            data.remove.forEach(function(messageId) {
+                var message = getMessageElement(root, messageId);
+
+                if (hasSelectedMessages) {
+                    message.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
+                }
+
+                message.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
+            });
+        }
+
+        setMessagesSelectedCount(root, data.count);
+    };
+
     var render = function(root, patch) {
         var configs = [
             {
-                // Any async rendering (stuff that required templates) should
+                // Any async rendering (stuff that requires templates) should
                 // go in here.
                 conversation: renderConversation,
                 header: renderHeader,
@@ -410,12 +503,14 @@ function(
                 sendingMessage: renderSendingMessage,
                 isBlocked: renderIsBlocked,
                 isContact: renderIsContact,
-                loadingConfirmAction: renderLoadingConfirmAction
+                loadingConfirmAction: renderLoadingConfirmAction,
+                inEditMode: renderInEditMode
             },
             {
                 // Scrolling should be last to make sure everything
                 // on the page is visible.
-                scrollToMessage: renderScrollToMessage
+                scrollToMessage: renderScrollToMessage,
+                selectedMessages: renderSelectedMessages
             }
         ];
         // Helper function to process each of the configs above.

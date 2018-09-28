@@ -43,72 +43,25 @@
     data-midnight="{{loggedinuser.midnight}}"
 >
     <div class="h-100 d-flex flex-column">
-        <div class="hidden" data-region="view-conversation-header"></div>
-        <div class="hidden position-relative" data-region="content-container" style="flex: 1; overflow-y: auto">
-            <div class="h-100 d-flex flex-column">
-                <div
-                    class="px-2 pb-2 pt-0 position-relative"
-                    data-region="view-conversation-messages"
-                    style="overflow-y: auto"
-                >
-                    <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
-                </div>
-
-                <div class="mt-auto w-100 p-2 border-top bg-white" data-region="response">
-                    <div class="d-flex">
-                        <textarea
-                            data-region="send-message-txt"
-                            class="form-control bg-light"
-                            rows="1"
-                            data-auto-rows
-                            data-min-rows="1"
-                            data-max-rows="5"
-                            role="textbox"
-                            aria-label="{{#str}} writeamessage, core_message {{/str}}"
-                            placeholder="{{#str}} writeamessage, core_message {{/str}}"
-                            style="resize: none"
-                        ></textarea>
-                        <button class="btn btn-link" data-action="send-message">
-                            <span data-region="send-icon-container"><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
-                            <span class="sr-only">{{#str}}send, core_message{{/str}}</span>
-                        </button>
-                    </div>
-                </div>
+        <div class="border-bottom bg-white p-2" data-region="header-container">
+            <div class="hidden" data-region="header-content"></div>
+            <div class="hidden" data-region="header-edit-mode">
+                {{> message_popup/message_drawer_view_conversation_header_edit_mode }}
+            </div>
+            <div data-region="header-placeholder">
+                {{> message_popup/message_drawer_view_conversation_header_placeholder }}
+            </div>
+        </div>
+        <div class="position-relative" data-region="content-container" style="flex: 1; overflow-y: auto">
+            <div class="hidden h-100" data-region="content-message-container">
+                {{> message_popup/message_drawer_view_conversation_content_messages }}
             </div>
             <div class="p-4 w-100 h-100 hidden position-absolute" data-region="confirm-dialogue-container" style="top: 0; background: rgba(0,0,0,0.3);">
-                <div class="p-3 bg-white" data-region="confirm-dialogue">
-                    <p class="text-muted" data-region="dialogue-text"></p>
-                    <div class="d-flex justify-content-around">
-                        <button type="button" class="btn btn-secondary" data-action="cancel-confirm">{{#str}} cancel, core {{/str}}</button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-block">
-                            <span data-region="dialogue-button-text">{{#str}} block, core {{/str}}</span>
-                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
-                        </button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-unblock">
-                            <span data-region="dialogue-button-text">{{#str}} unblock, core_message {{/str}}</span>
-                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
-                        </button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-remove-contact">
-                            <span data-region="dialogue-button-text">{{#str}} remove, core {{/str}}</span>
-                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
-                        </button>
-                        <button type="button" class="btn btn-primary hidden" data-action="confirm-add-contact">
-                            <span data-region="dialogue-button-text">{{#str}} add, core {{/str}}</span>
-                            <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
-                        </button>
-                    </div>
-                </div>
+                {{> message_popup/message_drawer_view_conversation_confirm_dialogue }}
+            </div>
+            <div class="h-100" data-region="content-placeholder">
+                {{> message_popup/message_drawer_view_conversation_content_placeholder }}
             </div>
         </div>
-
-        <div data-region="header-placeholder">
-            {{> message_popup/message_drawer_view_conversation_header_placeholder }}
-        </div>
-        <div data-region="content-placeholder" style="flex: 1; overflow-y: auto">
-            {{> message_popup/message_drawer_view_conversation_content_placeholder }}
-        </div>
     </div>
-
-
 </div>
