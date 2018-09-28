@@ -388,6 +388,16 @@ define([], function() {
         return null;
     };
 
+    var buildConfirmDeleteSelectedMessages = function(state, newState) {
+        if (newState.pendingDeleteMessages.length) {
+            return true;
+        } else if (state.pendingDeleteMessages.length) {
+            return false;
+        }
+
+        return null;
+    };
+
     var buildIsBlocked = function(state, newState) {
         var oldMemberIds = Object.keys(state.members);
         var newMemberIds = Object.keys(newState.members);
@@ -497,6 +507,7 @@ define([], function() {
             confirmUnblockUser: buildConfirmUnblockUser,
             confirmAddContact: buildConfirmAddContact,
             confirmRemoveContact: buildConfirmRemoveContact,
+            confirmDeleteSelectedMessages: buildConfirmDeleteSelectedMessages,
             isBlocked: buildIsBlocked,
             isContact: buildIsContact,
             loadingConfirmAction: buildLoadingConfirmationAction,
@@ -531,6 +542,7 @@ define([], function() {
             pendingUnblockUsers: [],
             pendingRemoveContacts: [],
             pendingAddContacts: [],
+            pendingDeleteMessages: [],
             selectedMessages: []
         };
     };
@@ -562,6 +574,15 @@ define([], function() {
         });
         newState.messages = newState.messages.filter(function(message) {
             return removeMessageIds.indexOf(message.id) < 0;
+        });
+
+        return newState;
+    };
+
+    var removeMessagesById = function(state, messagesIds) {
+        var newState = cloneState(state);
+        newState.messages = newState.messages.filter(function(message) {
+            return messagesIds.indexOf(message.id) < 0;
         });
 
         return newState;
@@ -644,6 +665,14 @@ define([], function() {
         return newState;
     };
 
+    var addPendingDeleteMessages = function(state, messageIds) {
+        var newState = cloneState(state);
+        messageIds.forEach(function(id) {
+            newState.pendingDeleteMessages.push(id);
+        });
+        return newState;
+    };
+
     var removePendingBlockUsers = function(state, userIds) {
         var newState = cloneState(state);
         newState.pendingBlockUsers = newState.pendingBlockUsers.filter(function(id) {
@@ -672,6 +701,14 @@ define([], function() {
         var newState = cloneState(state);
         newState.pendingAddContacts = newState.pendingAddContacts.filter(function(id) {
             return userIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    var removePendingDeleteMessages = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.pendingDeleteMessages = newState.pendingDeleteMessages.filter(function(id) {
+            return messageIds.indexOf(id) < 0;
         });
         return newState;
     };
@@ -735,6 +772,7 @@ define([], function() {
         buildInitialState: buildInitialState,
         addMessages: addMessages,
         removeMessages: removeMessages,
+        removeMessagesById: removeMessagesById,
         addMembers: addMembers,
         removeMembers: removeMembers,
         setLoadingMessages: setLoadingMessages,
@@ -745,10 +783,12 @@ define([], function() {
         addPendingRemoveContacts: addPendingRemoveContacts,
         addPendingUnblockUsers: addPendingUnblockUsers,
         addPendingAddContacts: addPendingAddContacts,
+        addPendingDeleteMessages: addPendingDeleteMessages,
         removePendingBlockUsers: removePendingBlockUsers,
         removePendingRemoveContacts: removePendingRemoveContacts,
         removePendingUnblockUsers: removePendingUnblockUsers,
         removePendingAddContacts: removePendingAddContacts,
+        removePendingDeleteMessages: removePendingDeleteMessages,
         blockUsers: blockUsers,
         unblockUsers: unblockUsers,
         removeContacts: removeContacts,

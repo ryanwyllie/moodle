@@ -57,6 +57,8 @@ function(
         ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
+        ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
+        ACTION_REQUEST_DELETE_SELECTED_MESSAGES: '[data-action="delete-selected-messages"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
@@ -258,11 +260,39 @@ function(
             });
     };
 
+    var requestDeleteSelectedMessages = function(root, userId) {
+        var selectedMessageIds = viewState.selectedMessages;
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.addPendingDeleteMessages(viewState, selectedMessageIds);
+            return render(root, newState);
+        });
+    };
+
+    var deleteSelectedMessages = function(root) {
+        var messageIds = viewState.pendingDeleteMessages;
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.deleteMessages(viewState.loggedInUserId, messageIds)
+            })
+            .then(function() {
+                var newState = StateManager.removeMessagesById(viewState, messageIds);
+                newState = StateManager.removePendingDeleteMessages(newState, messageIds);
+                newState = StateManager.removeSelectedMessages(newState, messageIds);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
+                // TODO: Use proper pubsub thing.
+                //$('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+                return render(root, newState);
+            });
+    };
+
     var cancelRequest = function(root, userId) {
+        var pendingDeleteMessageIds = viewState.pendingDeleteMessages;
         var newState = StateManager.removePendingAddContacts(viewState, [userId]);
         newState = StateManager.removePendingRemoveContacts(newState, [userId]);
         newState = StateManager.removePendingUnblockUsers(newState, [userId]);
         newState = StateManager.removePendingBlockUsers(newState, [userId]);
+        newState = StateManager.removePendingDeleteMessages(newState, pendingDeleteMessageIds);
         return render(root, newState);
     };
 
@@ -308,6 +338,67 @@ function(
         return render(root, newState);
     };
 
+    var generateActivateHandler = function(handlerFunc) {
+        return function(root) {
+            return function(e, data) {
+                return handlerFunc(root, e, data);
+            }
+        };
+    }
+
+    var generateConfirmActionHandler = function(actionCallback) {
+        return generateActivateHandler(function(root, e, data) {
+            if (!viewState.loadingConfirmAction) {
+                actionCallback(root, getOtherUserId());
+            }
+            data.originalEvent.preventDefault();
+        });
+    };
+
+    var handleSendMessage = function(root, e, data) {
+        var textArea = getMessageTextArea(root);
+        var text = textArea.val().trim();
+        var otherUserId = getOtherUserId();
+
+        if (text !== '') {
+            sendMessage(root, otherUserId, text)
+                .catch(Notification.exception);
+        }
+
+        data.originalEvent.preventDefault();
+    };
+
+    var handleSelectMessage = function(root, e, data) {
+        var element = $(e.target).closest(SELECTORS.MESSAGE);
+        var messageId = parseInt(element.attr('data-message-id'), 10);
+
+        toggleSelectMessage(root, messageId);
+
+        data.originalEvent.preventDefault();
+    };
+
+    var handleCancelEditMode = function(root, e, data) {
+        cancelEditMode(root);
+        data.originalEvent.preventDefault();
+    };
+
+    var activateHandlers = [
+        [SELECTORS.SEND_MESSAGE_BUTTON, generateActivateHandler(handleSendMessage)],
+        [SELECTORS.ACTION_REQUEST_BLOCK, generateConfirmActionHandler(requestBlockUser)],
+        [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
+        [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
+        [SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, generateConfirmActionHandler(requestRemoveContact)],
+        [SELECTORS.ACTION_REQUEST_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(requestDeleteSelectedMessages)],
+        [SELECTORS.ACTION_CANCEL_CONFIRM, generateConfirmActionHandler(cancelRequest)],
+        [SELECTORS.ACTION_CONFIRM_BLOCK, generateConfirmActionHandler(blockUser)],
+        [SELECTORS.ACTION_CONFIRM_UNBLOCK, generateConfirmActionHandler(unblockUser)],
+        [SELECTORS.ACTION_CONFIRM_ADD_CONTACT, generateConfirmActionHandler(addContact)],
+        [SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, generateConfirmActionHandler(removeContact)],
+        [SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(deleteSelectedMessages)],
+        [SELECTORS.MESSAGE, generateActivateHandler(handleSelectMessage)],
+        [SELECTORS.ACTION_CANCEL_EDIT_MODE, generateActivateHandler(handleCancelEditMode)],
+    ];
+
     var registerEventListeners = function(root) {
         var loggedInUserId = getLoggedInUserId(root);
         var isLoadingMoreMessages = false;
@@ -321,96 +412,6 @@ function(
             CustomEvents.events.scrollTop,
             CustomEvents.events.scrollLock,
         ]);
-
-        root.on(CustomEvents.events.activate, SELECTORS.SEND_MESSAGE_BUTTON, function(e, data) {
-            var textArea = getMessageTextArea(root);
-            var text = textArea.val().trim();
-            var otherUserId = getOtherUserId();
-
-            if (text !== '') {
-                sendMessage(root, otherUserId, text)
-                    .catch(Notification.exception);
-            }
-
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_BLOCK, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                requestBlockUser(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_UNBLOCK, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                requestUnblockUser(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_ADD_CONTACT, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                requestAddContact(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                requestRemoveContact(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CANCEL_CONFIRM, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                cancelRequest(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_BLOCK, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                blockUser(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_UNBLOCK, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                unblockUser(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                addContact(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, function(e, data) {
-            if (!viewState.loadingConfirmAction) {
-                removeContact(root, getOtherUserId());
-            }
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.MESSAGE, function(e, data) {
-            var element = $(e.target).closest(SELECTORS.MESSAGE);
-            var messageId = element.attr('data-message-id');
-
-            toggleSelectMessage(root, messageId);
-
-            data.originalEvent.preventDefault();
-        });
-
-        root.on(CustomEvents.events.activate, SELECTORS.ACTION_CANCEL_EDIT_MODE, function(e, data) {
-            cancelEditMode(root);
-            data.originalEvent.preventDefault();
-        });
 
         messagesContainer.on(CustomEvents.events.scrollTop, function(e, data) {
             var hasMembers = Object.keys(viewState.members).length > 1;
@@ -429,6 +430,12 @@ function(
             }
 
             data.originalEvent.preventDefault();
+        });
+
+        activateHandlers.forEach(function(handler) {
+            var selector = handler[0];
+            var handlerFunction = handler[1];
+            root.on(CustomEvents.events.activate, selector, handlerFunction(root));
         });
     };
 

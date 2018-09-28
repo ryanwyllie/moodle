@@ -38,6 +38,7 @@ function(
         ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
+        ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
@@ -367,13 +368,12 @@ function(
         }
     };
 
-    var renderConfirmDialogue = function(root, user, buttonSelector, stringName) {
+    var renderConfirmDialogue = function(root, show, buttonSelector, stringPromise) {
         var dialogue = getConfirmDialogueContainer(root);
         var button = dialogue.find(buttonSelector);
         var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
-        if (user) {
-            return Str.get_string(stringName, 'core_message', user.fullname)
-                .then(function(string) {
+        if (show) {
+            return stringPromise.then(function(string) {
                     button.removeClass('hidden');
                     text.text(string);
                     return showConfirmDialogue(root);
@@ -387,19 +387,32 @@ function(
     };
 
     var renderConfirmBlockUser = function(root, user) {
-        return renderConfirmDialogue(root, user, SELECTORS.ACTION_CONFIRM_BLOCK, 'blockuserconfirm');
+        var show = user ? true : false;
+        var stringPromise = show ? Str.get_string('blockuserconfirm', 'core_message', user.fullname) : null;
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_BLOCK, stringPromise);
     };
 
     var renderConfirmUnblockUser = function(root, user) {
-        return renderConfirmDialogue(root, user, SELECTORS.ACTION_CONFIRM_UNBLOCK, 'unblockuserconfirm');
+        var show = user ? true : false;
+        var stringPromise = show ? Str.get_string('unblockuserconfirm', 'core_message', user.fullname) : null;
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_UNBLOCK, stringPromise);
     };
 
     var renderConfirmAddContact = function(root, user) {
-        return renderConfirmDialogue(root, user, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, 'addcontactconfirm');
+        var show = user ? true : false;
+        var stringPromise = show ? Str.get_string('addcontactconfirm', 'core_message', user.fullname) : null;
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, stringPromise);
     };
 
     var renderConfirmRemoveContact = function(root, user) {
-        return renderConfirmDialogue(root, user, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, 'removecontactconfirm');
+        var show = user ? true : false;
+        var stringPromise = show ? Str.get_string('removecontactconfirm', 'core_message', user.fullname) : null;
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, stringPromise);
+    };
+
+    var renderConfirmDeleteSelectedMessages = function(root, show) {
+        var stringPromise = Str.get_string('deleteselectedmessagesconfirm', 'core_message');
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, stringPromise);
     };
 
     var renderIsBlocked = function(root, isBlocked) {
@@ -495,6 +508,7 @@ function(
                 confirmUnblockUser: renderConfirmUnblockUser,
                 confirmAddContact: renderConfirmAddContact,
                 confirmRemoveContact: renderConfirmRemoveContact,
+                confirmDeleteSelectedMessages: renderConfirmDeleteSelectedMessages,
             },
             {
                 loadingMembers: renderLoadingMembers,

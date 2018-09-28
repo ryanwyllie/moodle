@@ -42,6 +42,7 @@ $string['deleteallconfirm'] = "Are you sure you would like to delete this entire
 $string['deleteallmessages'] = "Delete all messages";
 $string['deleteconversation'] = "Delete conversation";
 $string['deleteselectedmessages'] = 'Delete selected messages';
+$string['deleteselectedmessagesconfirm'] = 'Are you sure you would like to delete the selected messages?';
 $string['disableall'] = 'Disable notifications';
 $string['disabled'] = 'Messaging is disabled on this site';
 $string['disallowed'] = 'Disallowed';

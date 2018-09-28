@@ -263,34 +263,38 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             });
     };
 
-    var savePreferences = function(UserId, preferences) {
+    var savePreferences = function(userId, preferences) {
         var request = {
             methodname: 'core_user_update_user_preferences',
             args: {
-                userid: UserId,
+                userid: userId,
                 preferences: preferences
             }
         };
-        var promise = Ajax.call([request])[0];
-
-        promise.fail(Notification.exception);
-
-        return promise;
+        return Ajax.call([request])[0];
     }
 
-    var getPreferences = function(UserId) {
+    var getPreferences = function(userId) {
         var request = {
             methodname: 'core_user_get_user_preferences',
             args: {
-                userid: UserId
+                userid: userId
             }
         };
-        var promise = Ajax.call([request])[0];
-
-        promise.fail(Notification.exception);
-
-        return promise;
+        return Ajax.call([request])[0];
     }
+
+    var deleteMessages = function(userId, messageIds) {
+        return Ajax.call(messageIds.map(function(messageId) {
+            return {
+                methodname: 'core_message_delete_message',
+                args: {
+                    messageid: messageId,
+                    userid: userId
+                }
+            }
+        }));
+    };
 
     return {
         query: query,
@@ -308,6 +312,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         sendMessages: sendMessages,
         sendMessage: sendMessage,
         savePreferences: savePreferences,
-        getPreferences: getPreferences
+        getPreferences: getPreferences,
+        deleteMessages: deleteMessages
     };
 });
