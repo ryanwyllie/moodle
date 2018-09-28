@@ -191,6 +191,8 @@ class helper {
         $data->ismessaging = false;
         $data->lastmessage = null;
         $data->messageid = null;
+        $data->lastmessagedate = isset($contact->lastmessagedate) ? $contact->lastmessagedate : 0;
+
         if (isset($contact->smallmessage)) {
             $data->ismessaging = true;
             // Strip the HTML tags from the message for displaying in the contact area.

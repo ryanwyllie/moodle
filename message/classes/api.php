@@ -104,6 +104,7 @@ class api {
                 $message->blocked = $message->$blockedcol;
 
                 $message->messageid = $message->id;
+                $message->lastmessagedate = $message->timecreated;
                 $conversations[] = helper::create_contact($message, $prefix);
             }
         }
@@ -375,6 +376,7 @@ class api {
             $conversation->messageid = $message->id;
             $conversation->smallmessage = $message->smallmessage;
             $conversation->useridfrom = $message->useridfrom;
+            $conversation->lastmessagedate = $message->timecreated;
 
             // Only consider it unread if $user has unread messages.
             if (isset($unreadcounts[$otheruserid])) {

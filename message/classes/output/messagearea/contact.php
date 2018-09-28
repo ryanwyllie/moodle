@@ -84,6 +84,11 @@ class contact implements templatable, renderable {
     public $lastmessage;
 
     /**
+     * @var int lastmessage date.
+     */
+    public $lastmessagedate;
+
+    /**
      * @var bool Is the user online?
      */
     public $isonline;
@@ -117,6 +122,7 @@ class contact implements templatable, renderable {
         $this->messageid = $contact->messageid;
         $this->ismessaging = $contact->ismessaging;
         $this->lastmessage = $contact->lastmessage;
+        $this->lastmessagedate = $contact->lastmessagedate;
         $this->isonline = $contact->isonline;
         $this->isblocked = $contact->isblocked;
         $this->isread = $contact->isread;
@@ -132,6 +138,7 @@ class contact implements templatable, renderable {
         $contact->messageid = $this->messageid;
         $contact->ismessaging = $this->ismessaging;
         $contact->sentfromcurrentuser = false;
+        $contact->lastmessagedate = $this->lastmessagedate;
         if ($this->lastmessage) {
             if ($this->userid !== $this->useridfrom) {
                 $contact->sentfromcurrentuser = true;
@@ -139,6 +146,7 @@ class contact implements templatable, renderable {
             $contact->lastmessage = shorten_text($this->lastmessage, self::MAX_MSG_LENGTH);
         } else {
             $contact->lastmessage = null;
+            $contact->lastmessagedate = 0;
         }
         $contact->showonlinestatus = is_null($this->isonline) ? false : true;
         $contact->isonline = $this->isonline;
