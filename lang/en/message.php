@@ -67,6 +67,7 @@ $string['hidemessagewindow'] = 'Hide message window';
 $string['hidenotificationwindow'] = 'Hide notification window';
 $string['info'] = 'Info';
 $string['isnotinyourcontacts'] = '{$a} is not in your contacts';
+$string['loadmore'] = 'Load more';
 $string['loggedin'] = 'Online';
 $string['loggedin_help'] = 'Configure how you would like to receive notifications when you are logged into Moodle';
 $string['loggedindescription'] = 'When you are logged into Moodle';

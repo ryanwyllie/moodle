@@ -40,7 +40,7 @@ function(
     Events
 ) {
 
-    var RESULT_LIMIT = 20;
+    var LOADMORE = 10;
 
     var SELECTORS = {
         BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
@@ -55,11 +55,29 @@ function(
         SEARCH_ICON_CONTAINER: '[data-region="search-icon-container"]',
         SEARCH_ACTION: '[data-action="search"]',
         SEARCH_INPUT: '[data-region="search-input"]',
-        SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]'
+        SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]',
+        LOADMOREUSERS: '[data-action="loadmoreusers"]',
+        LOADMORECONTACTS: '[data-action="loadmorecontacts"]'
     };
 
     var TEMPLATES = {
         SEARCH_RESULTS: 'message_popup/message_drawer_view_search_results_content'
+    };
+
+    var getMaxUsers = function(root) {
+        return parseInt(root.attr('data-max-users'));
+    };
+
+    var getMaxMessages = function(root) {
+        return parseInt(root.attr('data-max-messages'));
+    };
+
+    var setSearchText = function(root, searchText) {
+        root.attr('data-searchtext', searchText);
+    };
+
+    var getSearchText = function(root) {
+        return root.attr('data-searchtext');
     };
 
     var getLoggedInUserId = function(root) {
@@ -237,6 +255,12 @@ function(
         var hasmessages = (results.messages.length > 0);
         var hasresults = hascontacts || hasnoncontacts || hasmessages;
 
+        var numusers = results.contacts.length + results.noncontacts.length;
+        var nummessages = results.messages.length;
+
+        var loadmoremessages = (nummessages > (getMaxMessages(root) - 1)) ? true : false;
+        var loadmoreusers = (numusers > (getMaxUsers(root) - 1)) ? true : false;
+
         var context = {
             hascontacts: hascontacts,
             contacts: results.contacts,
@@ -245,6 +269,8 @@ function(
             hasmessages: hasmessages,
             messages: results.messages,
             hasresults: hasresults,
+            loadmoreusers: loadmoreusers,
+            loadmoremessages: loadmoremessages,
         };
 
         return Templates.render(TEMPLATES.SEARCH_RESULTS, context)
@@ -257,9 +283,13 @@ function(
     var search = function(root, searchText) {
         var loggedInUserId = getLoggedInUserId(root);
         startLoading(root);
+
+        var maxUsers = getMaxUsers(root);
+        var maxMessages = getMaxMessages(root);
+
         return $.when(
-            Repository.searchUsers(loggedInUserId, searchText, RESULT_LIMIT),
-            Repository.searchMessages(loggedInUserId, searchText, RESULT_LIMIT)
+            Repository.searchUsers(loggedInUserId, searchText, maxUsers),
+            Repository.searchMessages(loggedInUserId, searchText, maxMessages)
         )
         .then(function(usersResults, messagesResults) {
             usersResults.messages = messagesResults.contacts;
@@ -294,6 +324,16 @@ function(
 
             data.originalEvent.preventDefault();
         });
+
+        root.on(CustomEvents.events.activate, SELECTORS.LOADMORECONTACTS, function() {
+            root.attr('data-max-users', getMaxUsers(root) + LOADMORE);
+            search(root, getSearchText(root))
+        })
+
+        root.on(CustomEvents.events.activate, SELECTORS.LOADMOREUSERS, function() {
+            root.attr('data-max-messages', getMaxMessages(root) + LOADMORE);
+            search(root, getSearchText(root))
+        })
 
         root.on(CustomEvents.events.activate, SELECTORS.CANCEL_SEARCH_BUTTON, function() {
             clearSearchInput(root);
@@ -341,6 +381,10 @@ function(
         searchInput.focus();
 
         if (typeof searchText !== 'undefined') {
+            root.attr('data-max-users', (LOADMORE / 2));
+            root.attr('data-max-messages', LOADMORE);
+            
+            setSearchText(searchText);
             searchInput.val(searchText);
             search(root, searchText);
         }
