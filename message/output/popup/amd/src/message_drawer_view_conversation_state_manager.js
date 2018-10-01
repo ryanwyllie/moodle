@@ -341,11 +341,11 @@ define([], function() {
     };
 
     var buildConfirmBlockUser = function(state, newState) {
-        if (newState.pendingBlockUsers.length) {
+        if (newState.pendingBlockUserIds.length) {
             // We currently only support a single user;
-            var userId = newState.pendingBlockUsers[0];
+            var userId = newState.pendingBlockUserIds[0];
             return newState.members[userId];
-        } else if (state.pendingBlockUsers.length) {
+        } else if (state.pendingBlockUserIds.length) {
             return false;
         }
 
@@ -353,11 +353,11 @@ define([], function() {
     };
 
     var buildConfirmUnblockUser = function(state, newState) {
-        if (newState.pendingUnblockUsers.length) {
+        if (newState.pendingUnblockUserIds.length) {
             // We currently only support a single user;
-            var userId = newState.pendingUnblockUsers[0];
+            var userId = newState.pendingUnblockUserIds[0];
             return newState.members[userId];
-        } else if (state.pendingUnblockUsers.length) {
+        } else if (state.pendingUnblockUserIds.length) {
             return false;
         }
 
@@ -365,11 +365,11 @@ define([], function() {
     };
 
     var buildConfirmAddContact = function(state, newState) {
-        if (newState.pendingAddContacts.length) {
+        if (newState.pendingAddContactIds.length) {
             // We currently only support a single user;
-            var userId = newState.pendingAddContacts[0];
+            var userId = newState.pendingAddContactIds[0];
             return newState.members[userId];
-        } else if (state.pendingAddContacts.length) {
+        } else if (state.pendingAddContactIds.length) {
             return false;
         }
 
@@ -377,11 +377,11 @@ define([], function() {
     };
 
     var buildConfirmRemoveContact = function(state, newState) {
-        if (newState.pendingRemoveContacts.length) {
+        if (newState.pendingRemoveContactIds.length) {
             // We currently only support a single user;
-            var userId = newState.pendingRemoveContacts[0];
+            var userId = newState.pendingRemoveContactIds[0];
             return newState.members[userId];
-        } else if (state.pendingRemoveContacts.length) {
+        } else if (state.pendingRemoveContactIds.length) {
             return false;
         }
 
@@ -389,9 +389,19 @@ define([], function() {
     };
 
     var buildConfirmDeleteSelectedMessages = function(state, newState) {
-        if (newState.pendingDeleteMessages.length) {
+        if (newState.pendingDeleteMessageIds.length) {
             return true;
-        } else if (state.pendingDeleteMessages.length) {
+        } else if (state.pendingDeleteMessageIds.length) {
+            return false;
+        }
+
+        return null;
+    };
+
+    var buildConfirmDeleteConversation = function(state, newState) {
+        if (!state.pendingDeleteConversation && newState.pendingDeleteConversation) {
+            return true;
+        } else if (state.pendingDeleteConversation && !newState.pendingDeleteConversation) {
             return false;
         }
 
@@ -463,8 +473,8 @@ define([], function() {
     };
 
     var buildInEditMode = function(state, newState) {
-        var oldHasSelectedMessages = state.selectedMessages.length > 0;
-        var newHasSelectedMessages = newState.selectedMessages.length > 0;
+        var oldHasSelectedMessages = state.selectedMessageIds.length > 0;
+        var newHasSelectedMessages = newState.selectedMessageIds.length > 0;
 
         if (!oldHasSelectedMessages && newHasSelectedMessages) {
             return true;
@@ -476,8 +486,8 @@ define([], function() {
     };
 
     var buildSelectedMessages = function(state, newState) {
-        var oldSelectedMessages = state.selectedMessages;
-        var newSelectedMessages = newState.selectedMessages;
+        var oldSelectedMessages = state.selectedMessageIds;
+        var newSelectedMessages = newState.selectedMessageIds;
 
         if (isArrayEqual(oldSelectedMessages, newSelectedMessages)) {
             return null;
@@ -508,6 +518,7 @@ define([], function() {
             confirmAddContact: buildConfirmAddContact,
             confirmRemoveContact: buildConfirmRemoveContact,
             confirmDeleteSelectedMessages: buildConfirmDeleteSelectedMessages,
+            confirmDeleteConversation: buildConfirmDeleteConversation,
             isBlocked: buildIsBlocked,
             isContact: buildIsContact,
             loadingConfirmAction: buildLoadingConfirmationAction,
@@ -538,12 +549,13 @@ define([], function() {
             sendingMessage: false,
             loadingMembers: true,
             loadingConfirmAction: false,
-            pendingBlockUsers: [],
-            pendingUnblockUsers: [],
-            pendingRemoveContacts: [],
-            pendingAddContacts: [],
-            pendingDeleteMessages: [],
-            selectedMessages: []
+            pendingBlockUserIds: [],
+            pendingUnblockUserIds: [],
+            pendingRemoveContactIds: [],
+            pendingAddContactIds: [],
+            pendingDeleteMessageIds: [],
+            pendingDeleteConversation: false,
+            selectedMessageIds: []
         };
     };
 
@@ -633,87 +645,93 @@ define([], function() {
         return newState;
     };
 
-    var addPendingBlockUsers = function(state, userIds) {
+    var setPendingDeleteConversation = function(state, value) {
+        var newState = cloneState(state);
+        newState.pendingDeleteConversation = value;
+        return newState;
+    };
+
+    var addPendingBlockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
-            newState.pendingBlockUsers.push(id);
+            newState.pendingBlockUserIds.push(id);
         });
         return newState;
     };
 
-    var addPendingRemoveContacts = function(state, userIds) {
+    var addPendingRemoveContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
-            newState.pendingRemoveContacts.push(id);
+            newState.pendingRemoveContactIds.push(id);
         });
         return newState;
     };
 
-    var addPendingUnblockUsers = function(state, userIds) {
+    var addPendingUnblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
-            newState.pendingUnblockUsers.push(id);
+            newState.pendingUnblockUserIds.push(id);
         });
         return newState;
     };
 
-    var addPendingAddContacts = function(state, userIds) {
+    var addPendingAddContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
-            newState.pendingAddContacts.push(id);
+            newState.pendingAddContactIds.push(id);
         });
         return newState;
     };
 
-    var addPendingDeleteMessages = function(state, messageIds) {
+    var addPendingDeleteMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         messageIds.forEach(function(id) {
-            newState.pendingDeleteMessages.push(id);
+            newState.pendingDeleteMessageIds.push(id);
         });
         return newState;
     };
 
-    var removePendingBlockUsers = function(state, userIds) {
+    var removePendingBlockUsersById = function(state, userIds) {
         var newState = cloneState(state);
-        newState.pendingBlockUsers = newState.pendingBlockUsers.filter(function(id) {
+        newState.pendingBlockUserIds = newState.pendingBlockUserIds.filter(function(id) {
             return userIds.indexOf(id) < 0;
         });
         return newState;
     };
 
-    var removePendingRemoveContacts = function(state, userIds) {
+    var removePendingRemoveContactsById = function(state, userIds) {
         var newState = cloneState(state);
-        newState.pendingRemoveContacts = newState.pendingRemoveContacts.filter(function(id) {
+        newState.pendingRemoveContactIds = newState.pendingRemoveContactIds.filter(function(id) {
             return userIds.indexOf(id) < 0;
         });
         return newState;
     };
 
-    var removePendingUnblockUsers = function(state, userIds) {
+    var removePendingUnblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
-        newState.pendingUnblockUsers = newState.pendingUnblockUsers.filter(function(id) {
+        newState.pendingUnblockUserIds = newState.pendingUnblockUserIds.filter(function(id) {
             return userIds.indexOf(id) < 0;
         });
         return newState;
     };
 
-    var removePendingAddContacts = function(state, userIds) {
+    var removePendingAddContactsById = function(state, userIds) {
         var newState = cloneState(state);
-        newState.pendingAddContacts = newState.pendingAddContacts.filter(function(id) {
+        newState.pendingAddContactIds = newState.pendingAddContactIds.filter(function(id) {
             return userIds.indexOf(id) < 0;
         });
         return newState;
     };
 
-    var removePendingDeleteMessages = function(state, messageIds) {
+    var removePendingDeleteMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
-        newState.pendingDeleteMessages = newState.pendingDeleteMessages.filter(function(id) {
+        newState.pendingDeleteMessageIds = newState.pendingDeleteMessageIds.filter(function(id) {
             return messageIds.indexOf(id) < 0;
         });
         return newState;
     };
 
-    var blockUsers = function(state, userIds) {
+    var blockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
             if (newState.members.hasOwnProperty(id)) {
@@ -723,7 +741,7 @@ define([], function() {
         return newState;
     };
 
-    var unblockUsers = function(state, userIds) {
+    var unblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
             if (newState.members.hasOwnProperty(id)) {
@@ -733,7 +751,7 @@ define([], function() {
         return newState;
     };
 
-    var removeContacts = function(state, userIds) {
+    var removeContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
             if (newState.members.hasOwnProperty(id)) {
@@ -743,7 +761,7 @@ define([], function() {
         return newState;
     };
 
-    var addContacts = function(state, userIds) {
+    var addContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
             if (newState.members.hasOwnProperty(id)) {
@@ -753,15 +771,15 @@ define([], function() {
         return newState;
     };
 
-    var addSelectedMessages = function(state, messageIds) {
+    var addSelectedMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
-        newState.selectedMessages = newState.selectedMessages.concat(messageIds);
+        newState.selectedMessageIds = newState.selectedMessageIds.concat(messageIds);
         return newState;
     };
 
-    var removeSelectedMessages = function(state, messageIds) {
+    var removeSelectedMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
-        newState.selectedMessages = newState.selectedMessages.filter(function(id) {
+        newState.selectedMessageIds = newState.selectedMessageIds.filter(function(id) {
             return messageIds.indexOf(id) < 0;
         });
         return newState;
@@ -779,21 +797,22 @@ define([], function() {
         setSendingMessage: setSendingMessage,
         setLoadingMembers: setLoadingMembers,
         setLoadingConfirmAction: setLoadingConfirmAction,
-        addPendingBlockUsers: addPendingBlockUsers,
-        addPendingRemoveContacts: addPendingRemoveContacts,
-        addPendingUnblockUsers: addPendingUnblockUsers,
-        addPendingAddContacts: addPendingAddContacts,
-        addPendingDeleteMessages: addPendingDeleteMessages,
-        removePendingBlockUsers: removePendingBlockUsers,
-        removePendingRemoveContacts: removePendingRemoveContacts,
-        removePendingUnblockUsers: removePendingUnblockUsers,
-        removePendingAddContacts: removePendingAddContacts,
-        removePendingDeleteMessages: removePendingDeleteMessages,
-        blockUsers: blockUsers,
-        unblockUsers: unblockUsers,
-        removeContacts: removeContacts,
-        addContacts: addContacts,
-        addSelectedMessages: addSelectedMessages,
-        removeSelectedMessages: removeSelectedMessages
+        setPendingDeleteConversation: setPendingDeleteConversation,
+        addPendingBlockUsersById: addPendingBlockUsersById,
+        addPendingRemoveContactsById: addPendingRemoveContactsById,
+        addPendingUnblockUsersById: addPendingUnblockUsersById,
+        addPendingAddContactsById: addPendingAddContactsById,
+        addPendingDeleteMessagesById: addPendingDeleteMessagesById,
+        removePendingBlockUsersById: removePendingBlockUsersById,
+        removePendingRemoveContactsById: removePendingRemoveContactsById,
+        removePendingUnblockUsersById: removePendingUnblockUsersById,
+        removePendingAddContactsById: removePendingAddContactsById,
+        removePendingDeleteMessagesById: removePendingDeleteMessagesById,
+        blockUsersById: blockUsersById,
+        unblockUsersById: unblockUsersById,
+        removeContactsById: removeContactsById,
+        addContactsById: addContactsById,
+        addSelectedMessagesById: addSelectedMessagesById,
+        removeSelectedMessagesById: removeSelectedMessagesById
     };
 });

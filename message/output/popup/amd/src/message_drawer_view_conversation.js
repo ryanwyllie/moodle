@@ -58,6 +58,8 @@ function(
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
         ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
+        ACTION_CONFIRM_DELETE_CONVERSATION: '[data-action="confirm-delete-conversation"]',
+        ACTION_REQUEST_DELETE_CONVERSATION: '[data-action="request-delete-conversation"]',
         ACTION_REQUEST_DELETE_SELECTED_MESSAGES: '[data-action="delete-selected-messages"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
@@ -170,7 +172,7 @@ function(
 
     var requestBlockUser = function(root, userId) {
         return cancelRequest(root, userId).then(function() {
-            var newState = StateManager.addPendingBlockUsers(viewState, [userId]);
+            var newState = StateManager.addPendingBlockUsersById(viewState, [userId]);
             return render(root, newState);
         });
     };
@@ -182,8 +184,8 @@ function(
                 return Repository.blockContacts(viewState.loggedInUserId, [userId])
             })
             .then(function() {
-                var newState = StateManager.blockUsers(viewState, [userId]);
-                newState = StateManager.removePendingBlockUsers(newState, [userId]);
+                var newState = StateManager.blockUsersById(viewState, [userId]);
+                newState = StateManager.removePendingBlockUsersById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_BLOCKED, [userId]);
@@ -193,7 +195,7 @@ function(
 
     var requestUnblockUser = function(root, userId) {
         return cancelRequest(root, userId).then(function() {
-            var newState = StateManager.addPendingUnblockUsers(viewState, [userId]);
+            var newState = StateManager.addPendingUnblockUsersById(viewState, [userId]);
             return render(root, newState);
         });
     };
@@ -205,8 +207,8 @@ function(
                 return Repository.unblockContacts(viewState.loggedInUserId, [userId])
             })
             .then(function() {
-                var newState = StateManager.unblockUsers(viewState, [userId]);
-                newState = StateManager.removePendingUnblockUsers(newState, [userId]);
+                var newState = StateManager.unblockUsersById(viewState, [userId]);
+                newState = StateManager.removePendingUnblockUsersById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_UNBLOCKED, [userId]);
@@ -216,7 +218,7 @@ function(
 
     var requestRemoveContact = function(root, userId) {
         return cancelRequest(root, userId).then(function() {
-            var newState = StateManager.addPendingRemoveContacts(viewState, [userId]);
+            var newState = StateManager.addPendingRemoveContactsById(viewState, [userId]);
             return render(root, newState);
         });
     };
@@ -228,8 +230,8 @@ function(
                 return Repository.deleteContacts(viewState.loggedInUserId, [userId])
             })
             .then(function() {
-                var newState = StateManager.removeContacts(viewState, [userId]);
-                newState = StateManager.removePendingRemoveContacts(newState, [userId]);
+                var newState = StateManager.removeContactsById(viewState, [userId]);
+                newState = StateManager.removePendingRemoveContactsById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_REMOVED, [userId]);
@@ -239,7 +241,7 @@ function(
 
     var requestAddContact = function(root, userId) {
         return cancelRequest(root, userId).then(function() {
-            var newState = StateManager.addPendingAddContacts(viewState, [userId]);
+            var newState = StateManager.addPendingAddContactsById(viewState, [userId]);
             return render(root, newState);
         });
     };
@@ -251,8 +253,8 @@ function(
                 return Repository.createContacts(viewState.loggedInUserId, [userId])
             })
             .then(function() {
-                var newState = StateManager.addContacts(viewState, [userId]);
-                newState = StateManager.removePendingAddContacts(newState, [userId]);
+                var newState = StateManager.addContactsById(viewState, [userId]);
+                newState = StateManager.removePendingAddContactsById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 $('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
@@ -261,15 +263,15 @@ function(
     };
 
     var requestDeleteSelectedMessages = function(root, userId) {
-        var selectedMessageIds = viewState.selectedMessages;
+        var selectedMessageIds = viewState.selectedMessageIds;
         return cancelRequest(root, userId).then(function() {
-            var newState = StateManager.addPendingDeleteMessages(viewState, selectedMessageIds);
+            var newState = StateManager.addPendingDeleteMessagesById(viewState, selectedMessageIds);
             return render(root, newState);
         });
     };
 
     var deleteSelectedMessages = function(root) {
-        var messageIds = viewState.pendingDeleteMessages;
+        var messageIds = viewState.pendingDeleteMessageIds;
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(root, newState)
             .then(function() {
@@ -277,8 +279,32 @@ function(
             })
             .then(function() {
                 var newState = StateManager.removeMessagesById(viewState, messageIds);
-                newState = StateManager.removePendingDeleteMessages(newState, messageIds);
-                newState = StateManager.removeSelectedMessages(newState, messageIds);
+                newState = StateManager.removePendingDeleteMessagesById(newState, messageIds);
+                newState = StateManager.removeSelectedMessagesById(newState, messageIds);
+                newState = StateManager.setLoadingConfirmAction(newState, false);
+                // TODO: Use proper pubsub thing.
+                //$('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+                return render(root, newState);
+            });
+    };
+
+    var requestDeleteConversation = function(root, userId) {
+        return cancelRequest(root, userId).then(function() {
+            var newState = StateManager.setPendingDeleteConversation(viewState, true);
+            return render(root, newState);
+        });
+    };
+
+    var deleteConversation = function(root) {
+        var newState = StateManager.setLoadingConfirmAction(viewState, true);
+        return render(root, newState)
+            .then(function() {
+                return Repository.deleteCoversation(viewState.loggedInUserId, getOtherUserId())
+            })
+            .then(function() {
+                var newState = StateManager.removeMessages(viewState, viewState.messages);
+                newState = StateManager.removeSelectedMessagesById(newState, viewState.selectedMessageIds);
+                newState = StateManager.setPendingDeleteConversation(newState, false);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
                 // TODO: Use proper pubsub thing.
                 //$('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
@@ -287,12 +313,13 @@ function(
     };
 
     var cancelRequest = function(root, userId) {
-        var pendingDeleteMessageIds = viewState.pendingDeleteMessages;
-        var newState = StateManager.removePendingAddContacts(viewState, [userId]);
-        newState = StateManager.removePendingRemoveContacts(newState, [userId]);
-        newState = StateManager.removePendingUnblockUsers(newState, [userId]);
-        newState = StateManager.removePendingBlockUsers(newState, [userId]);
-        newState = StateManager.removePendingDeleteMessages(newState, pendingDeleteMessageIds);
+        var pendingDeleteMessageIds = viewState.pendingDeleteMessageIds;
+        var newState = StateManager.removePendingAddContactsById(viewState, [userId]);
+        newState = StateManager.removePendingRemoveContactsById(newState, [userId]);
+        newState = StateManager.removePendingUnblockUsersById(newState, [userId]);
+        newState = StateManager.removePendingBlockUsersById(newState, [userId]);
+        newState = StateManager.removePendingDeleteMessagesById(newState, pendingDeleteMessageIds);
+        newState = StateManager.setPendingDeleteConversation(newState, false);
         return render(root, newState);
     };
 
@@ -324,18 +351,21 @@ function(
     var toggleSelectMessage = function(root, messageId) {
         var newState = viewState;
 
-        if (viewState.selectedMessages.indexOf(messageId) > -1) {
-            newState = StateManager.removeSelectedMessages(viewState, [messageId]);
+        if (viewState.selectedMessageIds.indexOf(messageId) > -1) {
+            newState = StateManager.removeSelectedMessagesById(viewState, [messageId]);
         } else {
-            newState = StateManager.addSelectedMessages(viewState, [messageId]);
+            newState = StateManager.addSelectedMessagesById(viewState, [messageId]);
         }
 
         return render(root, newState);
     };
 
     var cancelEditMode = function(root) {
-        var newState = StateManager.removeSelectedMessages(viewState, viewState.selectedMessages);
-        return render(root, newState);
+        return cancelRequest(root, getOtherUserId())
+            .then(function() {
+                var newState = StateManager.removeSelectedMessagesById(viewState, viewState.selectedMessageIds);
+                return render(root, newState);
+            });
     };
 
     var generateActivateHandler = function(handlerFunc) {
@@ -349,7 +379,7 @@ function(
     var generateConfirmActionHandler = function(actionCallback) {
         return generateActivateHandler(function(root, e, data) {
             if (!viewState.loadingConfirmAction) {
-                actionCallback(root, getOtherUserId());
+                actionCallback(root, getOtherUserId()).catch(Notification.exception);
             }
             data.originalEvent.preventDefault();
         });
@@ -372,13 +402,13 @@ function(
         var element = $(e.target).closest(SELECTORS.MESSAGE);
         var messageId = parseInt(element.attr('data-message-id'), 10);
 
-        toggleSelectMessage(root, messageId);
+        toggleSelectMessage(root, messageId).catch(Notification.exception);
 
         data.originalEvent.preventDefault();
     };
 
     var handleCancelEditMode = function(root, e, data) {
-        cancelEditMode(root);
+        cancelEditMode(root).catch(Notification.exception);
         data.originalEvent.preventDefault();
     };
 
@@ -389,12 +419,14 @@ function(
         [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
         [SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, generateConfirmActionHandler(requestRemoveContact)],
         [SELECTORS.ACTION_REQUEST_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(requestDeleteSelectedMessages)],
+        [SELECTORS.ACTION_REQUEST_DELETE_CONVERSATION, generateConfirmActionHandler(requestDeleteConversation)],
         [SELECTORS.ACTION_CANCEL_CONFIRM, generateConfirmActionHandler(cancelRequest)],
         [SELECTORS.ACTION_CONFIRM_BLOCK, generateConfirmActionHandler(blockUser)],
         [SELECTORS.ACTION_CONFIRM_UNBLOCK, generateConfirmActionHandler(unblockUser)],
         [SELECTORS.ACTION_CONFIRM_ADD_CONTACT, generateConfirmActionHandler(addContact)],
         [SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, generateConfirmActionHandler(removeContact)],
         [SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(deleteSelectedMessages)],
+        [SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, generateConfirmActionHandler(deleteConversation)],
         [SELECTORS.MESSAGE, generateActivateHandler(handleSelectMessage)],
         [SELECTORS.ACTION_CANCEL_EDIT_MODE, generateActivateHandler(handleCancelEditMode)],
     ];

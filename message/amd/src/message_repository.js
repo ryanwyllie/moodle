@@ -296,6 +296,17 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         }));
     };
 
+    var deleteCoversation = function(loggedInUserId, otherUserId) {
+        var request = {
+            methodname: 'core_message_delete_conversation',
+            args: {
+                userid: loggedInUserId,
+                otheruserid: otherUserId
+            }
+        };
+        return Ajax.call([request])[0];
+    };
+
     return {
         query: query,
         countUnreadConversations: countUnreadConversations,
@@ -313,6 +324,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         sendMessage: sendMessage,
         savePreferences: savePreferences,
         getPreferences: getPreferences,
-        deleteMessages: deleteMessages
+        deleteMessages: deleteMessages,
+        deleteCoversation: deleteCoversation
     };
 });

@@ -39,6 +39,7 @@ function(
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
         ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
+        ACTION_CONFIRM_DELETE_CONVERSATION: '[data-action="confirm-delete-conversation"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
@@ -415,6 +416,11 @@ function(
         return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, stringPromise);
     };
 
+    var renderConfirmDeleteConversation = function(root, show) {
+        var stringPromise = Str.get_string('deleteallconfirm', 'core_message');
+        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, stringPromise);
+    };
+
     var renderIsBlocked = function(root, isBlocked) {
         if (isBlocked) {
             root.find(SELECTORS.ACTION_REQUEST_BLOCK).addClass('hidden');
@@ -509,6 +515,7 @@ function(
                 confirmAddContact: renderConfirmAddContact,
                 confirmRemoveContact: renderConfirmRemoveContact,
                 confirmDeleteSelectedMessages: renderConfirmDeleteSelectedMessages,
+                confirmDeleteConversation: renderConfirmDeleteConversation,
             },
             {
                 loadingMembers: renderLoadingMembers,
