@@ -27,6 +27,7 @@ define(
     'jquery',
     'core/notification',
     'core/templates',
+    'core/pubsub',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
     'message_popup/message_drawer_view_contacts_section'
@@ -35,6 +36,7 @@ function(
     $,
     Notification,
     Templates,
+    PubSub,
     MessageRepository,
     Events,
     Section
@@ -87,17 +89,15 @@ function(
     };
 
     var registerEventListeners = function(root) {
-        var body = $('body');
-
-        body.on(Events.CONTACT_REMOVED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
             removeContact(root, userId);
         });
 
-        body.on(Events.CONTACT_BLOCKED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_BLOCKED, function(userId) {
             blockContact(root, userId);
         });
 
-        body.on(Events.CONTACT_UNBLOCKED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
             unblockContact(root, userId);
         });
     };

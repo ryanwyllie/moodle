@@ -28,6 +28,7 @@ define(
     'core/auto_rows',
     'core/custom_interaction_events',
     'core/notification',
+    'core/pubsub',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
     'message_popup/message_drawer_view_conversation_renderer',
@@ -38,6 +39,7 @@ function(
     AutoRows,
     CustomEvents,
     Notification,
+    PubSub,
     Repository,
     MessageDrawerEvents,
     Renderer,
@@ -108,6 +110,16 @@ function(
         }
     };
 
+    var formatMessageForEvent = function(message) {
+        return Object.assign({
+            conversation: {
+                id: viewState.id,
+                title: viewState.title,
+                imageurl: viewState.members[getOtherUserId()].profileimageurl
+            }
+        }, message);
+    };
+
     var render = function(root, newState) {
         var patch = StateManager.buildPatch(viewState, newState);
         console.log("PREV STATE:", viewState);
@@ -129,6 +141,7 @@ function(
             .then(function(profile) {
                 var newState = StateManager.addMembers(viewState, [profile, loggedInUserProfile]);
                 newState = StateManager.setLoadingMembers(newState, false);
+                newState = StateManager.setTitle(newState, profile.fullname);
                 return render(root, newState)
                     .then(function() {
                         return profile;
@@ -141,11 +154,11 @@ function(
             });
     };
 
-    var loadMessages = function(root, currentUserId, otherUserId, limit, offset, newestFirst) {
+    var loadMessages = function(root, conversationId, limit, offset, newestFirst) {
         var newState = StateManager.setLoadingMessages(viewState, true);
         return render(root, newState)
             .then(function() {
-                return Repository.getMessages(currentUserId, otherUserId, limit + 1, offset, newestFirst)
+                return Repository.getMessages(viewState.loggedInUserId, conversationId, limit + 1, offset, newestFirst)
             })
             .then(function(result) {
                 return result.messages;
@@ -164,7 +177,7 @@ function(
                 return render(root, newState);
             })
             .catch(function(error) {
-                var newState = StateManager.setLoadingMessages(newState, false);
+                var newState = StateManager.setLoadingMessages(viewState, false);
                 render(root, newState);
                 return error;
             });
@@ -187,8 +200,7 @@ function(
                 var newState = StateManager.blockUsersById(viewState, [userId]);
                 newState = StateManager.removePendingBlockUsersById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(MessageDrawerEvents.CONTACT_BLOCKED, [userId]);
+                PubSub.publish(MessageDrawerEvents.CONTACT_BLOCKED, userId);
                 return render(root, newState);
             });
     };
@@ -210,8 +222,7 @@ function(
                 var newState = StateManager.unblockUsersById(viewState, [userId]);
                 newState = StateManager.removePendingUnblockUsersById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(MessageDrawerEvents.CONTACT_UNBLOCKED, [userId]);
+                PubSub.publish(MessageDrawerEvents.CONTACT_UNBLOCKED, userId);
                 return render(root, newState);
             });
     };
@@ -233,8 +244,7 @@ function(
                 var newState = StateManager.removeContactsById(viewState, [userId]);
                 newState = StateManager.removePendingRemoveContactsById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(MessageDrawerEvents.CONTACT_REMOVED, [userId]);
+                PubSub.publish(MessageDrawerEvents.CONTACT_REMOVED, userId);
                 return render(root, newState);
             });
     };
@@ -256,8 +266,7 @@ function(
                 var newState = StateManager.addContactsById(viewState, [userId]);
                 newState = StateManager.removePendingAddContactsById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                $('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+                PubSub.publish(MessageDrawerEvents.CONTACT_ADDED, userId);
                 return render(root, newState);
             });
     };
@@ -282,8 +291,17 @@ function(
                 newState = StateManager.removePendingDeleteMessagesById(newState, messageIds);
                 newState = StateManager.removeSelectedMessagesById(newState, messageIds);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                //$('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+
+                var prevLastMessage = viewState.messages[viewState.messages.length - 1];
+                var newLastMessage = newState.messages.length ? newState.messages[newState.messages.length - 1] : null;
+
+                if (newLastMessage && newLastMessage.id != prevLastMessage.id) {
+                    var formattedMessage = formatMessageForEvent(newLastMessage);
+                    PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, formattedMessage);
+                } else {
+                    PubSub.publish(MessageDrawerEvents.CONVERSATION_DELETED, newState.id);
+                }
+
                 return render(root, newState);
             });
     };
@@ -306,8 +324,7 @@ function(
                 newState = StateManager.removeSelectedMessagesById(newState, viewState.selectedMessageIds);
                 newState = StateManager.setPendingDeleteConversation(newState, false);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                // TODO: Use proper pubsub thing.
-                //$('body').trigger(MessageDrawerEvents.CONTACT_ADDED, [userId]);
+                PubSub.publish(MessageDrawerEvents.CONVERSATION_DELETED, newState.id);
                 return render(root, newState);
             });
     };
@@ -331,7 +348,7 @@ function(
             })
             .then(function(result) {
                 return {
-                    id: result.msgid,
+                    id: parseInt(result.msgid, 10),
                     fullname: getLoggedInUserFullName(root),
                     profileimageurl: getLoggedInUserProfileUrl(root),
                     text: result.text,
@@ -344,6 +361,14 @@ function(
             .then(function(message) {
                 var newState = StateManager.addMessages(viewState, [message]);
                 newState = StateManager.setSendingMessage(newState, false);
+
+                var lastMessage = newState.messages.filter(function(candidate) {
+                    return candidate.id === message.id;
+                });
+                formattedMessage = formatMessageForEvent(lastMessage[0]);
+
+                PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, formattedMessage);
+
                 return render(root, newState);
             });
     };
@@ -388,10 +413,9 @@ function(
     var handleSendMessage = function(root, e, data) {
         var textArea = getMessageTextArea(root);
         var text = textArea.val().trim();
-        var otherUserId = getOtherUserId();
 
         if (text !== '') {
-            sendMessage(root, otherUserId, text)
+            sendMessage(root, viewState.id, text)
                 .catch(Notification.exception);
         }
 
@@ -432,7 +456,6 @@ function(
     ];
 
     var registerEventListeners = function(root) {
-        var loggedInUserId = getLoggedInUserId(root);
         var isLoadingMoreMessages = false;
         var messagesContainer = getMessagesContainer(root);
         AutoRows.init(root);
@@ -449,7 +472,7 @@ function(
             var hasMembers = Object.keys(viewState.members).length > 1;
 
             if (!isLoadingMoreMessages && !loadedAllMessages && hasMembers) {
-                loadMessages(root, loggedInUserId, getOtherUserId(), LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST)
+                loadMessages(root, viewState.id, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST)
                     .then(function() {
                         isLoadingMoreMessages = false;
                         messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
@@ -474,7 +497,7 @@ function(
     var reset = function(root, otherUserId) {
         var loggedInUserId = getLoggedInUserId(root);
         var midnight = parseInt(root.attr('data-midnight'), 10);
-        var newState = StateManager.buildInitialState(midnight, loggedInUserId);
+        var newState = StateManager.buildInitialState(midnight, loggedInUserId, otherUserId, '');
         messagesOffset = 0;
 
         if (!Object.keys(viewState).length) {
@@ -486,7 +509,7 @@ function(
                 return loadProfile(root, loggedInUserId, otherUserId)
             })
             .then(function() {
-                return loadMessages(root, loggedInUserId, otherUserId, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
+                return loadMessages(root, viewState.id, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
             })
             .then(function() {
                 return messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
@@ -502,8 +525,8 @@ function(
             root.attr('data-init', true);
             reset(root, otherUserId);
         } else {
-            var currentOtherUserId = getOtherUserId();
-            if (currentOtherUserId && currentOtherUserId != otherUserId) {
+            var currentConversationId = viewState.id;
+            if (currentConversationId != otherUserId) {
                 reset(root, otherUserId);
             }
         }

@@ -37,9 +37,10 @@
 {{#messages}}
     <a
         href="#"
-        class="p-2 d-flex list-group-item list-group-item-action border-0"
+        class="p-2 d-flex list-group-item list-group-item-action border-0 align-items-center"
         data-route="view-conversation"
         data-route-param="{{userid}}"
+        data-conversation-id="{{userid}}"
     >
         <img
             class="rounded-circle"
@@ -55,29 +56,32 @@
             <div class="d-flex">
                 <strong class="m-0">
                     {{fullname}}
-                    {{#isblocked}}
-                        <span data-region="contact-icon-blocked">
-                            {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
-                        </span>
-                    {{/isblocked}}
+
+                    <span class="{{^isblocked}}hidden{{/isblocked}}" data-region="contact-icon-blocked">
+                        {{#pix}} t/block, core, {{#str}} contactblocked, message {{/str}} {{/pix}}
+                    </span>
                 </strong>
-                {{#lastmessagedate}}
-                <div class="ml-auto small">
+                <div
+                    class="ml-auto small {{^lastmessagedate}}hidden{{/lastmessagedate}}"
+                    data-region="last-message-date"
+                >
                     {{#userdate}} {{lastmessagedate}}, {{#str}} strftimetime24, core_langconfig  {{/str}} {{/userdate}}
                 </div>
-                {{/lastmessagedate}}
             </div>
-            <p class="m-0 font-weight-light text-truncate" data-region="searchable">
+            <p class="m-0 font-weight-light text-truncate" data-region="last-message">
                 {{#sentfromcurrentuser}}{{#str}} you, core_message {{/str}}{{/sentfromcurrentuser}}
                 {{lastmessage}}
             </p>
         </div>
-        {{#unreadcount}}
-        <div class="align-self-center">
-            <span class="badge badge-pill badge-primary bg-primary rounded-circle">{{.}}</span>
-        </div>
-        {{/unreadcount}}
-        <div class="align-self-center text-muted icon-no-margin">
+
+        <span
+            class="badge badge-pill badge-primary bg-primary rounded-circle {{^unreadcount}}hidden{{/unreadcount}}"
+            data-region="unread-count"
+        >
+            {{unreadcount}}
+        </span>
+
+        <div class="text-muted icon-no-margin">
             <!-- TODO: FIX THIS ICON -->
             {{#pix}} e/left_to_right, core {{/pix}}
         </div>

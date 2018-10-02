@@ -237,10 +237,26 @@ function(
         getHeaderEditMode(root).find(SELECTORS.MESSAGES_SELECTED_COUNT).text(value);
     };
 
+    var formatMessagesForTemplate = function(messages) {
+        return messages.map(function(message) {
+            return {
+                id: message.id,
+                isread: message.isRead,
+                fromloggedinuser: message.fromLoggedInUser,
+                useridfrom: message.userIdFrom,
+                text: message.text,
+                timecreated: parseInt(message.timeCreated, 10)
+            };
+        });
+    };
+
     var renderAddDays = function(root, days) {
         var messagesContainer = getMessagesContainer(root);
         var daysRenderPromises = days.map(function(data) {
-            return Templates.render(TEMPLATES.DAY, data.value);
+            return Templates.render(TEMPLATES.DAY, {
+                timestamp: data.value.timestamp,
+                messages: formatMessagesForTemplate(data.value.messages)
+            });
         });
 
         return $.when.apply($, daysRenderPromises).then(function() {
@@ -261,7 +277,8 @@ function(
 
     var renderAddMessages = function(root, messages) {
         var messagesRenderPromises = messages.map(function(data) {
-            return Templates.render(TEMPLATES.MESSAGE, data.value);
+            var formattedMessages = formatMessagesForTemplate([data.value]);
+            return Templates.render(TEMPLATES.MESSAGE, formattedMessages[0]);
         });
 
         return $.when.apply($, messagesRenderPromises).then(function() {

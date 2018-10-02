@@ -26,17 +26,34 @@ define(
     [
         'jquery',
         'core/notification',
+        'core/pubsub',
+        'core/str',
         'core/templates',
+        'core/user_date',
         'core_message/message_repository',
+        'message_popup/message_drawer_events',
         'message_popup/message_drawer_view_overview_section'
     ],
     function(
         $,
         Notification,
+        PubSub,
+        Str,
         Templates,
+        UserDate,
         MessageRepository,
+        MessageDrawerEvents,
         Section
     ) {
+
+        var SELECTORS = {
+            BLOCKED_ICON_CONTAINER: '[data-region="contact-icon-blocked"]',
+            CONTENT_CONTAINER: '[data-region="content-container"]',
+            LAST_MESSAGE: '[data-region="last-message"]',
+            LAST_MESSAGE_DATE: '[data-region="last-message-date"]',
+            UNREAD_COUNT: '[data-region="unread-count"]',
+            SECTION_TOTAL_COUNT: '[data-region="section-total-count"]'
+        };
 
         var TEMPLATES = {
             MESSAGES_LIST: 'message_popup/message_drawer_messages_list'
@@ -58,8 +75,122 @@ define(
                 .catch(Notification.exception);
         };
 
+        var getTotalConversationCountElement = function(root) {
+            return root.find(SELECTORS.SECTION_TOTAL_COUNT);
+        };
+
+        var incrementTotalConversationCount = function(root) {
+            var element = getTotalConversationCountElement(root);
+            var count = parseInt(element.text());
+            count = count + 1;
+            element.text(count);
+        };
+
+        var decrementTotalConversationCount = function(root) {
+            var element = getTotalConversationCountElement(root);
+            var count = parseInt(element.text());
+            count = count - 1;
+            element.text(count);
+        };
+
+        var getConversationElement = function(root, conversationId) {
+            return root.find('[data-conversation-id="' + conversationId + '"]');
+        };
+
+        var blockContact = function(root, userId) {
+            // TODO: This will need to change when we have actual conversations.
+            getConversationElement(root, userId).find(SELECTORS.BLOCKED_ICON_CONTAINER).removeClass('hidden');
+        };
+
+        var unblockContact = function(root, userId) {
+            // TODO: This will need to change when we have actual conversations.
+            getConversationElement(root, userId).find(SELECTORS.BLOCKED_ICON_CONTAINER).addClass('hidden');
+        };
+
+        var updateLastMessage = function(element, message) {
+            var youString = '';
+            var stringRequests = [
+                {key: 'you', component: 'core_message'},
+                {key: 'strftimetime24', component: 'core_langconfig'},
+            ];
+            return Str.get_strings(stringRequests)
+                .then(function(strings) {
+                    youString = strings[0];
+                    return UserDate.get([{timestamp: message.timeCreated, format: strings[1]}])
+                })
+                .then(function(dates) {
+                    return dates[0];
+                })
+                .then(function(dateString) {
+                    var lastMessage = $(message.text).text();
+
+                    if (message.fromLoggedInUser) {
+                        lastMessage = youString + ' ' + lastMessage;
+                    }
+
+                    element.find(SELECTORS.LAST_MESSAGE).html(lastMessage);
+                    element.find(SELECTORS.LAST_MESSAGE_DATE).text(dateString).removeClass('hidden');
+                })
+                .catch(Notification.exception);
+        };
+
+        var createNewConversation = function(root, message) {
+            var formattedMessage = Object.assign({
+                fullname: message.conversation.title,
+                lastmessagedate: message.timeCreated,
+                sentfromcurrentuser: message.fromLoggedInUser,
+                lastmessage: $(message.text).text(),
+                profileimageurl: message.conversation.imageurl,
+                userid: message.conversation.id
+            }, message);
+            return Templates.render(TEMPLATES.MESSAGES_LIST, {messages: [formattedMessage]})
+                .then(function(html) {
+                    var contentContainer = root.find(SELECTORS.CONTENT_CONTAINER);
+                    return contentContainer.prepend(html);
+                })
+                .then(function() {
+                    return incrementTotalConversationCount(root);
+                })
+                .catch(Notification.exception);
+        };
+
+        var deleteConversation = function(root, conversationId) {
+            getConversationElement(root, conversationId).remove();
+            decrementTotalConversationCount(root);
+        };
+
+        var registerEventListeners = function(root) {
+            PubSub.subscribe(MessageDrawerEvents.CONTACT_BLOCKED, function(userId) {
+                blockContact(root, userId);
+            });
+
+            PubSub.subscribe(MessageDrawerEvents.CONTACT_UNBLOCKED, function(userId) {
+                unblockContact(root, userId);
+            });
+
+            PubSub.subscribe(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, function(message) {
+                var conversationId = message.conversation.id;
+                var element = getConversationElement(root, conversationId);
+                if (element.length) {
+                    updateLastMessage(element, message);
+                } else {
+                    createNewConversation(root, message);
+                }
+            });
+
+            PubSub.subscribe(MessageDrawerEvents.CONVERSATION_DELETED, function(conversationId) {
+                deleteConversation(root, conversationId);
+            });
+        };
+
         var show = function(root) {
             root = $(root);
+
+            if (!root.attr('data-messages-init')) {
+                registerEventListeners(root);
+                root.attr('data-messages-init', true);
+            }
+
             Section.show(root, load, render);
         };
 

@@ -22,7 +22,14 @@
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function() {
+define(
+    [
+        'core/user_date'
+    ],
+    function(
+        UserDate
+    )
+{
     var SECONDS_IN_DAY = 86400;
 
     var cloneState = function(state) {
@@ -37,42 +44,23 @@ define([], function() {
         return newState;
     };
 
-    /**
-     * Calculated the midnight timestamp of a given timestamp using the user's
-     * midnight timestamp. Calculations are based on the user's midnight so that
-     * timezone's are preserved.
-     *
-     * @param {int} timestamp The timestamp to calculate from
-     * @param {int} midnight The user's midnight timestamp
-     * @return {int} The midnight value of the user's timestamp
-     */
-    var getDayTimestamp = function(timestamp, midnight) {
-        var future = timestamp > midnight;
-        var diffSeconds = Math.abs(timestamp - midnight);
-        var diffDays = future ? Math.floor(diffSeconds / SECONDS_IN_DAY) : Math.ceil(diffSeconds / SECONDS_IN_DAY);
-        var diffDaysInSeconds = diffDays * SECONDS_IN_DAY;
-        // Is the timestamp in the future or past?
-        var dayTimestamp = future ? midnight + diffDaysInSeconds : midnight - diffDaysInSeconds;
-        return dayTimestamp;
-    };
-
-    var formatMessages = function(messages, loggedInUserId, members) {
+    var formatMessages = function(messages, loggedInUserId) {
         return messages.map(function(message) {
+            var fromLoggedInUser = message.useridfrom == loggedInUserId;
             return {
-                id: message.id,
-                isread: message.isread,
-                fromloggedinuser: message.useridfrom == loggedInUserId,
-                userfrom: members[message.useridfrom],
-                userto: members[message.useridto],
+                id: parseInt(message.id, 10),
+                isRead: message.isread,
+                fromLoggedInUser: fromLoggedInUser,
+                userIdFrom: parseInt(message.useridfrom, 10),
                 text: message.text,
-                timecreated: parseInt(message.timecreated, 10)
+                timeCreated: parseInt(message.timecreated, 10)
             };
         });
     };
 
     var sortMessagesByDay = function(messages, midnight) {
         var messagesByDay = messages.reduce(function(carry, message) {
-            var dayTimestamp = getDayTimestamp(message.timecreated, midnight)
+            var dayTimestamp = UserDate.getUserMidnightForTimestamp(message.timeCreated, midnight)
 
             if (carry.hasOwnProperty(dayTimestamp)) {
                 carry[dayTimestamp].push(message);
@@ -538,10 +526,12 @@ define([], function() {
         }, {});
     };
 
-    var buildInitialState = function(midnight, loggedInUserId) {
+    var buildInitialState = function(midnight, loggedInUserId, id, title) {
         return {
             midnight: midnight,
             loggedInUserId: loggedInUserId,
+            id: id,
+            title: title,
             members: {},
             messages: [],
             hasTriedToLoadMessages: false,
@@ -561,7 +551,7 @@ define([], function() {
 
     var addMessages = function(state, messages) {
         var newState = cloneState(state);
-        var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
+        var formattedMessages = formatMessages(messages, state.loggedInUserId);
         var allMessages = state.messages.concat(formattedMessages);
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {
@@ -636,6 +626,12 @@ define([], function() {
     var setLoadingMembers = function(state, value) {
         var newState = cloneState(state);
         newState.loadingMembers = value;
+        return newState;
+    };
+
+    var setTitle = function(state, value) {
+        var newState = cloneState(state);
+        newState.title = value;
         return newState;
     };
 
@@ -796,6 +792,7 @@ define([], function() {
         setLoadingMessages: setLoadingMessages,
         setSendingMessage: setSendingMessage,
         setLoadingMembers: setLoadingMembers,
+        setTitle: setTitle,
         setLoadingConfirmAction: setLoadingConfirmAction,
         setPendingDeleteConversation: setPendingDeleteConversation,
         addPendingBlockUsersById: addPendingBlockUsersById,
