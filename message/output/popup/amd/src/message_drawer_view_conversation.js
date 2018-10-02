@@ -183,6 +183,20 @@ function(
             });
     };
 
+    var markConversationAsRead = function(root, conversationId) {
+        var loggedInUserId = viewState.loggedInUserId;
+
+        return Repository.markAllAsRead({
+                useridto: loggedInUserId,
+                useridfrom: conversationId
+            })
+            .then(function() {
+                var newState = StateManager.markMessagesAsRead(viewState, viewState.messages);
+                PubSub.publish(MessageDrawerEvents.CONVERSATION_READ, conversationId);
+                return render(root, newState);
+            });
+    };
+
     var requestBlockUser = function(root, userId) {
         return cancelRequest(root, userId).then(function() {
             var newState = StateManager.addPendingBlockUsersById(viewState, [userId]);
@@ -266,7 +280,7 @@ function(
                 var newState = StateManager.addContactsById(viewState, [userId]);
                 newState = StateManager.removePendingAddContactsById(newState, [userId]);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                PubSub.publish(MessageDrawerEvents.CONTACT_ADDED, userId);
+                PubSub.publish(MessageDrawerEvents.CONTACT_ADDED, newState.members[userId]);
                 return render(root, newState);
             });
     };
@@ -513,6 +527,9 @@ function(
             })
             .then(function() {
                 return messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
+            })
+            .then(function() {
+                return markConversationAsRead(root, viewState.id);
             })
             .catch(Notification.exception);;
     };

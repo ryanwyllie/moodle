@@ -29,6 +29,7 @@ define([],function() {
         CONTACT_ADDED: 'message-drawer-contact-added',
         CONTACT_REMOVED: 'message-drawer-contact-removed',
         CONVERSATION_NEW_LAST_MESSAGE: 'message-drawer-conversation-new-last-message',
-        CONVERSATION_DELETED: 'message-drawer-conversation-deleted'
+        CONVERSATION_DELETED: 'message-drawer-conversation-deleted',
+        CONVERSATION_READ: 'message-drawer-conversation-read'
     };
 });

@@ -781,6 +781,21 @@ define(
         return newState;
     };
 
+    var markMessagesAsRead = function(state, readMessages) {
+        var newState = cloneState(state);
+        var readMessageIds = readMessages.map(function(message) {
+            return message.id;
+        });
+        newState.messages = newState.messages.map(function(message) {
+            if (readMessageIds.indexOf(message.id) >= 0) {
+                message.isRead = true;
+            }
+
+            return message;
+        });
+        return newState;
+    };
+
     return {
         buildPatch: buildPatch,
         buildInitialState: buildInitialState,
@@ -810,6 +825,7 @@ define(
         removeContactsById: removeContactsById,
         addContactsById: addContactsById,
         addSelectedMessagesById: addSelectedMessagesById,
-        removeSelectedMessagesById: removeSelectedMessagesById
+        removeSelectedMessagesById: removeSelectedMessagesById,
+        markMessagesAsRead: markMessagesAsRead
     };
 });

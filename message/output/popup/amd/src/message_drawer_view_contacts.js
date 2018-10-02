@@ -89,6 +89,10 @@ function(
     };
 
     var registerEventListeners = function(root) {
+        PubSub.subscribe(Events.CONTACT_ADDED, function(contact) {
+            render(root, [contact]);
+        });
+
         PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
             removeContact(root, userId);
         });
