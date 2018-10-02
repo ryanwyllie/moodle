@@ -52,7 +52,8 @@ define(
             LAST_MESSAGE: '[data-region="last-message"]',
             LAST_MESSAGE_DATE: '[data-region="last-message-date"]',
             UNREAD_COUNT: '[data-region="unread-count"]',
-            SECTION_TOTAL_COUNT: '[data-region="section-total-count"]'
+            SECTION_TOTAL_COUNT: '[data-region="section-total-count"]',
+            SECTION_UNREAD_COUNT: '[data-region="section-unread-count"]'
         };
 
         var TEMPLATES = {
@@ -79,6 +80,10 @@ define(
             return root.find(SELECTORS.SECTION_TOTAL_COUNT);
         };
 
+        var getTotalUnreadConversationCountElement = function(root) {
+            return root.find(SELECTORS.SECTION_UNREAD_COUNT);
+        };
+
         var incrementTotalConversationCount = function(root) {
             var element = getTotalConversationCountElement(root);
             var count = parseInt(element.text());
@@ -91,6 +96,24 @@ define(
             var count = parseInt(element.text());
             count = count - 1;
             element.text(count);
+        };
+
+        var incrementTotalUnreadConversationCount = function(root) {
+            var element = getTotalUnreadConversationCountElement(root);
+            var count = parseInt(element.text());
+            count = count + 1;
+            element.text(count);
+        };
+
+        var decrementTotalUnreadConversationCount = function(root) {
+            var element = getTotalUnreadConversationCountElement(root);
+            var count = parseInt(element.text());
+            count = count - 1;
+            element.text(count);
+
+            if (count < 1) {
+                element.addClass('hidden');
+            }
         };
 
         var getConversationElement = function(root, conversationId) {
@@ -159,6 +182,13 @@ define(
             decrementTotalConversationCount(root);
         };
 
+        var markConversationAsRead = function(root, conversationId) {
+            var unreadCount = getConversationElement(root, conversationId).find(SELECTORS.UNREAD_COUNT);
+            unreadCount.text('0');
+            unreadCount.addClass('hidden');
+            decrementTotalUnreadConversationCount(root);
+        };
+
         var registerEventListeners = function(root) {
             PubSub.subscribe(MessageDrawerEvents.CONTACT_BLOCKED, function(userId) {
                 blockContact(root, userId);
@@ -180,6 +210,10 @@ define(
 
             PubSub.subscribe(MessageDrawerEvents.CONVERSATION_DELETED, function(conversationId) {
                 deleteConversation(root, conversationId);
+            });
+
+            PubSub.subscribe(MessageDrawerEvents.CONVERSATION_READ, function(conversationId) {
+                markConversationAsRead(root, conversationId);
             });
         };
 
