@@ -58,6 +58,8 @@
         <div class="text-right p-2 border-bottom">
             <i class="fa fa-user mr-1"></i><a href="#" data-route="view-contacts">{{#str}} contacts, core_message {{/str}}</a>
         </div>
-        {{> message_popup/message_drawer_view_overview_messages }}
+        {{#overview.messages}}
+            {{> message_popup/message_drawer_view_overview_messages }}
+        {{/overview.messages}}
     </div>
 </div>

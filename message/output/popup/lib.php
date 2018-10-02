@@ -90,6 +90,8 @@ function message_popup_before_standard_top_of_body_html() {
     $renderer = $PAGE->get_renderer('core');
     $profileurl = (new \user_picture($USER))->get_url($PAGE)->out(false);
     $fullname = fullname($USER);
+    $unreadconversationcount = \core_message\api::count_unread_conversations($USER);
+    $totalconversationcount = \core_message\api::count_conversations($USER);
 
     return $renderer->render_from_template('message_popup/message_drawer', [
         'loggedinuser' => [
@@ -97,6 +99,15 @@ function message_popup_before_standard_top_of_body_html() {
             'fullname' => $fullname,
             'profileurl' => $profileurl,
             'midnight' => usergetmidnight(time())
+        ],
+        'overview' => [
+            'messages' => [
+                'expanded' => true,
+                'count' => [
+                    'unread' => $unreadconversationcount,
+                    'total' => $totalconversationcount
+                ]
+            ]
         ]
     ]);
 }

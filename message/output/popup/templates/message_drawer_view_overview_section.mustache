@@ -41,22 +41,25 @@
 >
     <div id="{{$region}}{{/region}}-toggle" class="card-header p-0">
         <button
-            class="btn btn-link w-100 text-left p-2 collapsed"
+            class="btn btn-link w-100 text-left p-2 d-flex align-items-center {{^expanded}}collapsed{{/expanded}}"
             data-toggle="collapse"
             data-target="#{{$region}}{{/region}}-target"
-            aria-expanded="false"
+            aria-expanded="{{#expanded}}true{{/expanded}}{{^expanded}}false{{/expanded}}"
             aria-controls="{{$region}}{{/region}}-target"
             style="text-align: left;"
         >
-            <i class="fa fa-caret-right mr-1"></i> {{$title}}{{/title}}
+            <i class="fa fa-caret-right mr-1"></i> {{$title}}{{/title}} (<span data-region="section-total-count">{{count.total}}</span>)
              <span class="hidden" data-region="loading-icon-container">
                 {{> core/loading }}
+            </span>
+            <span class="{{^count.unread}}hidden{{/count.unread}} badge badge-pill badge-primary ml-auto" data-region="section-unread-count">
+                {{count.unread}}
             </span>
         </button>
     </div>
     <div
         id="{{$region}}{{/region}}-target"
-        class="collapse border-bottom"
+        class="collapse border-bottom {{#expanded}}show{{/expanded}}"
         aria-labelledby="{{$region}}{{/region}}-toggle"
         data-parent="#message-drawer-view-overview-container"
         data-region="collapse-region"

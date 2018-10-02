@@ -707,6 +707,32 @@ class api {
     }
 
     /**
+     * Returns the count of conversations (collection of messages from a single user) for
+     * the given user.
+     *
+     * @param \stdClass $user the user who's conversations should be counted
+     * @return int the count of the user's unread conversations
+     */
+    public static function count_conversations($user = null) {
+        global $USER, $DB;
+
+        if (empty($user)) {
+            $user = $USER;
+        }
+
+        $sql = "SELECT COUNT(DISTINCT(m.conversationid))
+                  FROM {messages} m
+             LEFT JOIN {message_user_actions} ma
+                    ON ma.messageid = m.id
+             LEFT JOIN {message_conversation_members} mcm
+                    ON m.conversationid = mcm.conversationid
+                 WHERE (ma.action is null OR ma.action != ? OR ma.userid != ?)
+                   AND mcm.userid = ?";
+
+        return $DB->count_records_sql($sql, [self::MESSAGE_ACTION_DELETED, $user->id, $user->id]);
+    }
+
+    /**
      * Marks all messages being sent to a user in a particular conversation.
      *
      * If $conversationdid is null then it marks all messages as read sent to $userid.
