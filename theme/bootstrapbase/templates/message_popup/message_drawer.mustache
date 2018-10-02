@@ -34,22 +34,15 @@
 
 }}
 
-<div class="d-flex">
-    <textarea
-        data-region="send-message-txt"
-        class="form-control bg-light"
-        rows="1"
-        data-auto-rows
-        data-min-rows="1"
-        data-max-rows="5"
-        role="textbox"
-        aria-label="{{#str}} writeamessage, core_message {{/str}}"
-        placeholder="{{#str}} writeamessage, core_message {{/str}}"
-        style="resize: none"
-    ></textarea>
-    <button class="btn btn-link" data-action="send-message">
-        <span data-region="send-icon-container"><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-        <span class="hidden icon-no-margin" data-region="loading-icon-container">{{> core/loading }}</span>
-        <span class="sr-only">{{#str}}send, core_message{{/str}}</span>
-    </button>
+<div id="message-drawer" class="message-drawer bg-light hidden" aria-expanded="false">
+    {{> message_popup/message_drawer_view_contacts }}
+    {{> message_popup/message_drawer_view_contact }}
+    {{> message_popup/message_drawer_view_conversation }}
+    {{> message_popup/message_drawer_view_group_conversation }}
+    {{> message_popup/message_drawer_view_group_favourites }}
+    {{> message_popup/message_drawer_view_group_info }}
+    {{> message_popup/message_drawer_view_overview }}
+    {{> message_popup/message_drawer_view_requests }}
+    {{> message_popup/message_drawer_view_search }}
+    {{> message_popup/message_drawer_view_settings }}
 </div>

@@ -46,6 +46,7 @@
             data-target="#{{$region}}{{/region}}-target"
             aria-expanded="{{#expanded}}true{{/expanded}}{{^expanded}}false{{/expanded}}"
             aria-controls="{{$region}}{{/region}}-target"
+            style="text-align: left;"
         >
             <i class="fa fa-caret-right mr-1"></i> {{$title}}{{/title}} (<span data-region="section-total-count">{{count.total}}</span>)
              <span class="hidden" data-region="loading-icon-container">

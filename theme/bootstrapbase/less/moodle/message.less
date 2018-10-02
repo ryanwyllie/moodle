@@ -1179,15 +1179,12 @@
 }
 
 .message-drawer {
-    * {
-        box-sizing: border-box;
-    }
     position: fixed;
     top: 52px;
     right: 0;
     height: ~"calc(100% - 52px)";
     width: 320px;
-    z-index: 1030;
+    z-index: 999;
     background-color: @white;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
 
@@ -1209,9 +1206,14 @@
             background-color: @green;
         }
     }
-    .input-group,
-    .input-group * {
-        box-sizing: initial;
+
+    a {
+        text-decoration: none;
+        color: @textColor;
+    }
+    h6, .h6 {
+        font-size: 14px;
+        font-weight: normal;
     }
 }
 

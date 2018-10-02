@@ -51,7 +51,7 @@
         >
             {{> message_popup/message_drawer_icon_back }}
         </a>
-        <div class="input-group">
+        <div class="input-append m-0">
             <input
                 type="text"
                 class="form-control"
@@ -59,9 +59,8 @@
                 aria-label="{{#str}} search, core_search {{/str}}"
                 data-region="search-input"
             >
-            <div class="input-group-append ">
                 <button
-                    class="btn btn-outline-secondary"
+                    class="btn m-0"
                     type="button"
                     data-action="search"
                 >
@@ -72,7 +71,6 @@
                         {{> core/loading }}
                     </span>
                 </button>
-            </div>
         </div>
     </div>
     <div class="h-100 hidden pb-5" data-region="search-results-container" style="overflow-y: scroll;"></div>
