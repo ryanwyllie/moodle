@@ -1,0 +1,32 @@
+<div
+    class="message clickable d-flex flex-column p-2 {{#fromloggedinuser}}bg-secondary{{/fromloggedinuser}}{{^fromloggedinuser}}bg-white{{/fromloggedinuser}} rounded mb-2"
+    data-region="message"
+    data-message-id="{{id}}"
+    aria-checked="false"
+>
+    <div class="d-flex align-items-center {{^fromloggedinuser}}pb-2{{/fromloggedinuser}}">
+        {{^fromloggedinuser}}
+        <div>
+            <img
+                class="rounded-circle"
+                src="{{{userfrom.profileimageurl}}}"
+                alt="{{userfrom.fullname}}"
+                aria-hidden="true"
+                style="height: 30px"
+            >
+        </div>
+        <div class="pl-2 pr-2">
+            <h6 class="text-truncate m-0">{{userfrom.fullname}}</h6>
+        </div>
+        {{/fromloggedinuser}}
+        <div
+            class="ml-auto small text-right text-muted"
+            style="flex-shrink: 0"
+        >
+            {{#userdate}} {{timecreated}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
+        </div>
+        <span class="hidden ml-2 small text-primary" data-region="not-selected-icon">{{#pix}} i/completion-manual-n, core {{/pix}}</span>
+        <span class="hidden ml-2 small text-primary" data-region="selected-icon">{{#pix}} i/checked, core {{/pix}}</span>
+    </div>
+    <div>{{{text}}}</div>
+</div>
