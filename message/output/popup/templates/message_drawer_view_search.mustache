@@ -42,9 +42,9 @@
     data-max-messages="10"
     data-searchtext=""
 >
-    <div class="d-flex p-2 border-bottom">
+    <div class="d-flex p-2 border-bottom align-items-center">
         <a
-            class="align-self-center"
+            class="mr-2 align-self-stretch d-flex align-items-center"
             href="#"
             data-route-back
             data-action="cancel-search"
@@ -65,10 +65,10 @@
                     type="button"
                     data-action="search"
                 >
-                    <span class="icon-no-margin" data-region="search-icon-container">
+                    <span data-region="search-icon-container">
                         {{#pix}} a/search, core {{/pix}}
                     </span>
-                    <span class="hidden icon-no-margin" data-region="loading-icon-container">
+                    <span class="hidden" data-region="loading-icon-container">
                         {{> core/loading }}
                     </span>
                 </button>

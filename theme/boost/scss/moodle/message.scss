@@ -1202,13 +1202,11 @@
     z-index: $zindex-fixed;
     background-color: $white;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
+    @include transition();
 
-    button[data-toggle="collapse"] i:before{
-        content: $fa-var-caret-down;
-    }
-
-    button[data-toggle="collapse"].collapsed i:before{
-        content: $fa-var-caret-right;
+    &.hidden {
+        display: block;
+        right: -330px;
     }
 
     .matchtext {
@@ -1226,6 +1224,54 @@
         &.online {
             border: 1px solid $body-bg;
             background-color: $green;
+        }
+    }
+
+    .message {
+        p {
+            margin: 0;
+        }
+    }
+
+    .clickable{
+        cursor: pointer;
+
+        &:hover {
+            box-shadow: 2px 2px 10px 0 rgba(0, 0, 0, 0.05), 3px 3px 5px -2px rgba(0, 0, 0, .1), 1px 1px 5px 0 rgba(0, 0, 0, 0.03);
+        }
+    }
+
+    a, .btn-link {
+        color: inherit;
+    }
+
+    .icon {
+        margin-right: 0;
+    }
+
+    .dropdown {
+        .btn-minimal {
+            @include hover-focus {
+                border: $border-width solid $border-color;
+            }
+        }
+    }
+
+    .overview-section-toggle {
+        .collapsed-icon-container {
+            display: none;
+        }
+        .expanded-icon-container {
+            display: inline-block;
+        }
+
+        &.collapsed {
+            .collapsed-icon-container {
+                display: inline-block;
+            }
+            .expanded-icon-container {
+                display: none;
+            }
         }
     }
 }

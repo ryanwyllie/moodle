@@ -27,11 +27,7 @@ define([],function() {
         VIEW_CONTACT: 'view-contact',
         VIEW_CONTACTS: 'view-contacts',
         VIEW_CONVERSATION: 'view-conversation',
-        VIEW_GROUP_CONVERSATION: 'view-group-conversation',
-        VIEW_GROUP_FAVOURITES: 'view-group-favourites',
-        VIEW_GROUP_INFO: 'view-group-info',
         VIEW_OVERVIEW: 'view-overview',
-        VIEW_REQUESTS: 'view-requests',
         VIEW_SEARCH: 'view-search',
         VIEW_SETTINGS: 'view-settings'
     };

@@ -1,10 +1,10 @@
 <div
-    class="d-flex flex-column p-2 {{#fromloggedinuser}}bg-secondary{{/fromloggedinuser}}{{^fromloggedinuser}}bg-white{{/fromloggedinuser}} rounded mb-2"
+    class="message clickable d-flex flex-column p-2 {{#fromloggedinuser}}bg-secondary{{/fromloggedinuser}}{{^fromloggedinuser}}bg-white{{/fromloggedinuser}} rounded mb-2"
     data-region="message"
     data-message-id="{{id}}"
     aria-checked="false"
 >
-    <div class="d-flex align-items-center {{^fromloggedinuser}}mb-1{{/fromloggedinuser}}">
+    <div class="d-flex align-items-center {{^fromloggedinuser}}pb-2{{/fromloggedinuser}}">
         {{^fromloggedinuser}}
         <div>
             <img
@@ -12,11 +12,11 @@
                 src="{{{userfrom.profileimageurl}}}"
                 alt="{{userfrom.fullname}}"
                 aria-hidden="true"
-                style="height: 35px"
+                style="height: 30px"
             >
         </div>
         <div class="pl-2 pr-2">
-            <strong class="text-truncate">{{userfrom.fullname}}</strong>
+            <h6 class="text-truncate m-0">{{userfrom.fullname}}</h6>
         </div>
         {{/fromloggedinuser}}
         <div
@@ -25,8 +25,8 @@
         >
             {{#userdate}} {{timecreated}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
         </div>
-        <i class="hidden ml-2 fa fa-circle-thin" data-region="not-selected-icon"></i>
-        <i class="hidden ml-2 fa fa-check-circle" data-region="selected-icon"></i>
+        <span class="hidden ml-2 small text-primary" data-region="not-selected-icon">{{#pix}} i/unchecked, core {{/pix}}</span>
+        <span class="hidden ml-2 small text-primary" data-region="selected-icon">{{#pix}} i/checked, core {{/pix}}</span>
     </div>
-    <div class="text-muted">{{{text}}}</div>
+    <div>{{{text}}}</div>
 </div>

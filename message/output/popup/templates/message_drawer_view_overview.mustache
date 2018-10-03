@@ -38,7 +38,7 @@
     <div class="d-flex p-2">
         <div class="input-group">
             <div class="input-group-prepend">
-                <span class="input-group-text pr-0 bg-white icon-no-margin">
+                <span class="input-group-text pr-0 bg-white">
                     {{#pix}} a/search, core {{/pix}}
                 </span>
             </div>
@@ -52,7 +52,6 @@
         </div>
         <div class="align-self-center ml-2">
             <a
-                class="icon-no-margin"
                 href="#"
                 data-route="view-settings"
                 data-route-param="{{loggedinuser.id}}"
@@ -63,7 +62,7 @@
     </div>
     <div class="h-100" style="overflow-y: auto">
         <div class="text-right p-2 border-bottom">
-            <i class="fa fa-user mr-1"></i><a href="#" data-route="view-contacts">{{#str}} contacts, core_message {{/str}}</a>
+            <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
         </div>
         {{#overview.messages}}
             {{> message_popup/message_drawer_view_overview_messages }}

@@ -41,14 +41,20 @@
 >
     <div id="{{$region}}{{/region}}-toggle" class="card-header p-0">
         <button
-            class="btn btn-link w-100 text-left p-2 d-flex align-items-center {{^expanded}}collapsed{{/expanded}}"
+            class="btn btn-link w-100 text-left p-2 d-flex align-items-center overview-section-toggle {{^expanded}}collapsed{{/expanded}}"
             data-toggle="collapse"
             data-target="#{{$region}}{{/region}}-target"
             aria-expanded="{{#expanded}}true{{/expanded}}{{^expanded}}false{{/expanded}}"
             aria-controls="{{$region}}{{/region}}-target"
         >
-            <i class="fa fa-caret-right mr-1"></i> {{$title}}{{/title}} (<span data-region="section-total-count">{{count.total}}</span>)
-             <span class="hidden" data-region="loading-icon-container">
+            <span class="collapsed-icon-container">
+                {{#pix}} t/collapsedcaret, core {{/pix}}
+            </span>
+            <span class="expanded-icon-container">
+                {{#pix}} t/expanded, core {{/pix}}
+            </span>
+            {{$title}}{{/title}} (<span data-region="section-total-count">{{count.total}}</span>)
+            <span class="hidden" data-region="loading-icon-container">
                 {{> core/loading }}
             </span>
             <span class="{{^count.unread}}hidden{{/count.unread}} badge badge-pill badge-primary ml-auto" data-region="section-unread-count">

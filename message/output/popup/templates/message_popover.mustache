@@ -66,6 +66,7 @@ function(
         drawer.toggleClass('hidden');
         var expanded = drawer.attr('aria-expanded') === 'true';
         drawer.attr('aria-expanded', !expanded);
+        drawer.attr('aria-hidden', expanded)
 
         if (!hasInitialised) {
             MessageDrawer.init(drawer);
