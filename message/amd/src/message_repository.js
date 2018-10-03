@@ -177,7 +177,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return Ajax.call([request])[0];
     };
 
-    var getMessages = function(currentUserId, otherUserid, limit, offset, newestFirst) {
+    var getMessages = function(currentUserId, otherUserid, limit, offset, newestFirst, timeFrom) {
         var args = {
             currentuserid: currentUserId,
             otheruserid: otherUserid,
@@ -190,6 +190,10 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
 
         if (typeof offset !== 'undefined') {
             args.limitfrom = offset;
+        }
+
+        if (typeof timeFrom !== 'undefined') {
+            args.timefrom = timeFrom;
         }
 
         var request = {

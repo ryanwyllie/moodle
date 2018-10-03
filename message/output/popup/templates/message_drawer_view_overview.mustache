@@ -38,7 +38,7 @@
     <div class="d-flex p-2">
         <div class="input-group">
             <div class="input-group-prepend">
-                <span class="input-group-text pr-0 bg-white">
+                <span class="input-group-text pr-0 bg-white icon-no-margin">
                     {{#pix}} a/search, core {{/pix}}
                 </span>
             </div>
@@ -51,7 +51,14 @@
             >
         </div>
         <div class="align-self-center ml-2">
-            <a href="#" data-route="view-settings" data-route-param="{{loggedinuser.id}}">{{#pix}} t/edit, core {{/pix}}</a>
+            <a
+                class="icon-no-margin"
+                href="#"
+                data-route="view-settings"
+                data-route-param="{{loggedinuser.id}}"
+            >
+                {{#pix}} t/edit, core {{/pix}}
+            </a>
         </div>
     </div>
     <div class="h-100" style="overflow-y: auto">

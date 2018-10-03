@@ -49,6 +49,7 @@ function(
         HEADER_EDIT_MODE: '[data-region="header-edit-mode"]',
         HEADER_PLACEHOLDER_CONTAINER: '[data-region="header-placeholder"]',
         MESSAGE: '[data-region="message"]',
+        MESSAGE_NOT_SELECTED: '[data-region="message"][aria-checked="false"]',
         MESSAGE_NOT_SELECTED_ICON: '[data-region="not-selected-icon"]',
         MESSAGE_SELECTED_ICON: '[data-region="selected-icon"]',
         MESSAGES: '[data-region="view-conversation-messages"]',
@@ -243,7 +244,7 @@ function(
                 id: message.id,
                 isread: message.isRead,
                 fromloggedinuser: message.fromLoggedInUser,
-                useridfrom: message.userIdFrom,
+                userfrom: message.userFrom,
                 text: message.text,
                 timecreated: parseInt(message.timeCreated, 10)
             };
@@ -476,15 +477,15 @@ function(
     };
 
     var renderInEditMode = function(root, inEditMode) {
-        var messages = root.find(SELECTORS.MESSAGE);
-
         if (inEditMode) {
+            var messages = root.find(SELECTORS.MESSAGE_NOT_SELECTED);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
             hideHeaderContent(root);
             showHeaderEditMode(root);
             hideContentMessagesFooterContainer(root);
             showContentMessagesFooterEditModeContainer(root);
         } else {
+            var messages = root.find(SELECTORS.MESSAGE);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
             messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
             showHeaderContent(root);
@@ -502,6 +503,7 @@ function(
                 var message = getMessageElement(root, messageId);
                 message.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
                 message.find(SELECTORS.MESSAGE_SELECTED_ICON).removeClass('hidden');
+                message.attr('aria-checked', true);
             });
         }
 
@@ -514,6 +516,7 @@ function(
                 }
 
                 message.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
+                message.attr('aria-checked', false);
             });
         }
 

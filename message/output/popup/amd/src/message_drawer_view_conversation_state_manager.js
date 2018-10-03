@@ -44,14 +44,14 @@ define(
         return newState;
     };
 
-    var formatMessages = function(messages, loggedInUserId) {
+    var formatMessages = function(messages, loggedInUserId, members) {
         return messages.map(function(message) {
             var fromLoggedInUser = message.useridfrom == loggedInUserId;
             return {
                 id: parseInt(message.id, 10),
                 isRead: message.isread,
                 fromLoggedInUser: fromLoggedInUser,
-                userIdFrom: parseInt(message.useridfrom, 10),
+                userFrom: members[message.useridfrom],
                 text: message.text,
                 timeCreated: parseInt(message.timecreated, 10)
             };
@@ -463,11 +463,14 @@ define(
     var buildInEditMode = function(state, newState) {
         var oldHasSelectedMessages = state.selectedMessageIds.length > 0;
         var newHasSelectedMessages = newState.selectedMessageIds.length > 0;
+        var numberOfMessagesHasChanged = state.messages.length != newState.messages.length;
 
         if (!oldHasSelectedMessages && newHasSelectedMessages) {
             return true;
         } else if (oldHasSelectedMessages && !newHasSelectedMessages) {
             return false;
+        } else if (oldHasSelectedMessages && numberOfMessagesHasChanged) {
+            return true;
         } else {
             return null;
         }
@@ -551,7 +554,7 @@ define(
 
     var addMessages = function(state, messages) {
         var newState = cloneState(state);
-        var formattedMessages = formatMessages(messages, state.loggedInUserId);
+        var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
         var allMessages = state.messages.concat(formattedMessages);
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {

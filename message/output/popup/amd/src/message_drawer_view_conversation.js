@@ -26,31 +26,37 @@ define(
 [
     'jquery',
     'core/auto_rows',
+    'core/backoff_timer',
     'core/custom_interaction_events',
     'core/notification',
     'core/pubsub',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
     'message_popup/message_drawer_view_conversation_renderer',
-    'message_popup/message_drawer_view_conversation_state_manager'
+    'message_popup/message_drawer_view_conversation_state_manager',
+    'message_popup/message_drawer_routes',
 ],
 function(
     $,
     AutoRows,
+    BackOffTimer,
     CustomEvents,
     Notification,
     PubSub,
     Repository,
     MessageDrawerEvents,
     Renderer,
-    StateManager
+    StateManager,
+    MessageDrawerRoutes
 ) {
 
     var viewState = {};
     var loadedAllMessages = false;
     var messagesOffset = 0;
+    var newMessagesPollTimer = null;
     var NEWEST_FIRST = true;
     var LOAD_MESSAGE_LIMIT = 100;
+    var INITIAL_NEW_MESSAGE_POLL_TIMEOUT = 1000;
 
     var SELECTORS = {
         ACTION_CANCEL_CONFIRM: '[data-action="cancel-confirm"]',
@@ -181,6 +187,68 @@ function(
                 render(root, newState);
                 return error;
             });
+    };
+
+    var getLoadNewMessagesCallback = function(root, conversationId, newestFirst) {
+        return function() {
+            var messages = viewState.messages;
+            var mostRecentMessage = messages.length ? messages[messages.length - 1] : null;
+
+            if (mostRecentMessage) {
+                // There may be multiple messages with the same time created value since
+                // the accuracy is only down to the second. The server will include these
+                // messages in the result (since it does a >= comparison on time from) so
+                // we need to filter them back out of the result so that we're left only
+                // with the new messages.
+                var ignoreMessageIds = [];
+                for (var i = messages.length - 1; i > 0; i--) {
+                    var message = messages[i];
+                    if (message.timeCreated === mostRecentMessage.timeCreated) {
+                        ignoreMessageIds.push(message.id);
+                    } else {
+                        // Since the messages are ordered in ascending order of time created
+                        // we can break as soon as we hit a message with a different time created
+                        // because we know all other messages will have lower values.
+                        break;
+                    }
+                }
+
+                Repository.getMessages(
+                    viewState.loggedInUserId,
+                    conversationId,
+                    0,
+                    0,
+                    newestFirst,
+                    mostRecentMessage.timeCreated
+                )
+                .then(function(result) {
+                    if (result.messages.length) {
+                        return result.messages.filter(function(message) {
+                            // Skip any messages in our ignore list.
+                            return ignoreMessageIds.indexOf(parseInt(message.id, 10)) < 0;
+                        });
+                    } else {
+                        return [];
+                    }
+                })
+                .then(function(messages) {
+                    if (messages.length) {
+                        var newState = StateManager.addMessages(viewState, messages);
+                        return render(root, newState)
+                            .then(function() {
+                                // If we found some results then restart the polling timer
+                                // because the other user might be sending messages.
+                                newMessagesPollTimer.restart();
+                            })
+                            .then(function() {
+                                return markConversationAsRead(root, conversationId);
+                            });
+                    } else {
+                        return [];
+                    }
+                });
+            }
+        };
     };
 
     var markConversationAsRead = function(root, conversationId) {
@@ -506,21 +574,48 @@ function(
             var handlerFunction = handler[1];
             root.on(CustomEvents.events.activate, selector, handlerFunction(root));
         });
+
+        PubSub.subscribe(MessageDrawerEvents.ROUTE_CHANGED, function(newRouteData) {
+            if (newMessagesPollTimer) {
+                if (newRouteData.route == MessageDrawerRoutes.VIEW_CONVERSATION) {
+                    newMessagesPollTimer.restart();
+                } else {
+                    newMessagesPollTimer.stop();
+                }
+            }
+        });
     };
 
-    var reset = function(root, otherUserId) {
+    var reset = function(root, conversationId) {
         var loggedInUserId = getLoggedInUserId(root);
         var midnight = parseInt(root.attr('data-midnight'), 10);
-        var newState = StateManager.buildInitialState(midnight, loggedInUserId, otherUserId, '');
+        var newState = StateManager.buildInitialState(midnight, loggedInUserId, conversationId, '');
         messagesOffset = 0;
 
         if (!Object.keys(viewState).length) {
             viewState = newState;
         }
 
+        if (newMessagesPollTimer) {
+            newMessagesPollTimer.stop();
+        }
+
+        newMessagesPollTimer = new BackOffTimer(
+            getLoadNewMessagesCallback(root, conversationId, NEWEST_FIRST),
+            function(time) {
+                if (!time) {
+                    return INITIAL_NEW_MESSAGE_POLL_TIMEOUT;
+                }
+
+                return time * 2;
+            }
+        );
+
+        newMessagesPollTimer.start();
+
         return render(root, newState)
             .then(function() {
-                return loadProfile(root, loggedInUserId, otherUserId)
+                return loadProfile(root, loggedInUserId, conversationId)
             })
             .then(function() {
                 return loadMessages(root, viewState.id, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
@@ -534,32 +629,32 @@ function(
             .catch(Notification.exception);;
     };
 
-    var show = function(root, otherUserId, action) {
+    var show = function(root, conversationId, action) {
         root = $(root);
 
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
-            reset(root, otherUserId);
+            reset(root, conversationId);
         } else {
             var currentConversationId = viewState.id;
-            if (currentConversationId != otherUserId) {
-                reset(root, otherUserId);
+            if (currentConversationId != conversationId) {
+                reset(root, conversationId);
             }
         }
 
         switch(action) {
             case 'block':
-                requestBlockUser(root, otherUserId);
+                requestBlockUser(root, conversationId);
                 break;
             case 'unblock':
-                requestUnblockUser(root, otherUserId);
+                requestUnblockUser(root, conversationId);
                 break;
             case 'add-contact':
-                requestAddContact(root, otherUserId);
+                requestAddContact(root, conversationId);
                 break;
             case 'remove-contact':
-                requestRemoveContact(root, otherUserId);
+                requestRemoveContact(root, conversationId);
                 break;
         }
     };

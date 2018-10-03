@@ -24,10 +24,14 @@
  */
 define(
 [
-    'jquery'
+    'jquery',
+    'core/pubsub',
+    'message_popup/message_drawer_events'
 ],
 function(
-    $
+    $,
+    PubSub,
+    MessageDrawerEvents
 ) {
 
     var routes = {};
@@ -64,14 +68,17 @@ function(
             }
         }
 
-        history.push({
+        var record = {
             route: newRoute,
             params: args
-        });
+        };
+
+        history.push(record);
+        PubSub.publish(MessageDrawerEvents.ROUTE_CHANGED, record);
     };
 
     var back = function() {
-        if (history) {
+        if (history.length) {
             // Remove the current route.
             history.pop();
             var previous = history.pop();
