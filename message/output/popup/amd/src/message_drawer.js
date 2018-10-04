@@ -75,10 +75,13 @@ function(
         root.on(CustomEvents.events.activate, SELECTORS.ROUTES, function(e, data) {
             var element = $(e.target).closest(SELECTORS.ROUTES);
             var route = element.attr('data-route');
+            var skipHistory = element.attr('data-route-skip-history') !== undefined;
             var attributes = [];
+
             for (var i = 0; i < element[0].attributes.length; i++) {
                 attributes.push(element[0].attributes[i]);
             }
+
             var paramAttributes = attributes.filter(function(attribute) {
                 var name = attribute.nodeName;
                 var match = paramRegex.test(name);
@@ -98,11 +101,17 @@ function(
                     return 0;
                 }
             });
+
             var params = paramAttributes.map(function(attribute) {
                 return attribute.nodeValue;
             });
+            var routeParams = [route].concat(params);
 
-            Router.go.apply(null, [route].concat(params));
+            if (skipHistory) {
+                Router.goInSecret.apply(null, routeParams);
+            } else {
+                Router.go.apply(null, routeParams);
+            }
 
             data.originalEvent.preventDefault();
         });

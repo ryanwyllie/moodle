@@ -34,20 +34,20 @@
 
 }}
 
-<div class="d-flex">
+<div class="d-flex mt-1">
     <textarea
         data-region="send-message-txt"
         class="form-control bg-light"
-        rows="1"
+        rows="3"
         data-auto-rows
-        data-min-rows="1"
+        data-min-rows="3"
         data-max-rows="5"
         role="textbox"
         aria-label="{{#str}} writeamessage, core_message {{/str}}"
         placeholder="{{#str}} writeamessage, core_message {{/str}}"
         style="resize: none"
     ></textarea>
-    <button class="btn btn-link" data-action="send-message">
+    <button class="btn btn-link d-flex flex-column justify-content-end" data-action="send-message">
         <span data-region="send-icon-container">{{#pix}} i/sendmessage, core {{/pix}}</span>
         <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
         <span class="sr-only">{{#str}} send, core_message {{/str}}</span>

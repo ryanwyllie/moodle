@@ -34,52 +34,61 @@
 
 }}
 
-<div class="text-center">
-    <img
-        class="rounded-circle"
-        src="{{profileimageurl}}"
-        aria-hidden="true"
-        alt="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
-        title="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
-        style="height: 100px; width: 100px"
-    >
-</div>
-<h2 class="mt-2 text-center text-truncate">{{fullname}}</h2>
-<div class="px-4 mt-4">
-    <button
-        type="button"
-        class="btn btn-primary btn-block {{^isblocked}}hidden{{/isblocked}}"
-        data-route="view-conversation"
-        data-route-param-1="{{userid}}"
-        data-route-param-2="unblock"
-    >
-        {{#str}}unblockuser, message{{/str}}
-    </button>
-    <button
-        type="button"
-        class="btn btn-danger btn-block {{#isblocked}}hidden{{/isblocked}}"
-        data-route="view-conversation"
-        data-route-param-1="{{userid}}"
-        data-route-param-2="block"
-    >
-        {{#str}}blockuser, message{{/str}}
-    </button>
-    <button
-        type="button"
-        class="btn btn-danger btn-block {{^iscontact}}hidden{{/iscontact}}"
-        data-route="view-conversation"
-        data-route-param-1="{{userid}}"
-        data-route-param-2="remove-contact"
-    >
-        {{#str}}removefromyourcontacts, message{{/str}}
-    </button>
-    <button
-        type="button"
-        class="btn btn-primary btn-block {{#iscontact}}hidden{{/iscontact}}"
-        data-route="view-conversation"
-        data-route-param-1="{{userid}}"
-        data-route-param-2="add-contact"
-    >
-        {{#str}}addtoyourcontacts, message{{/str}}
-    </button>
+<a class="align-self-center" href="#" data-route-back>
+    {{> message_popup/message_drawer_icon_back }}
+</a>
+<div class="px-3 pb-3">
+    <div class="text-center">
+        <img
+            class="rounded-circle"
+            src="{{profileimageurl}}"
+            aria-hidden="true"
+            alt="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
+            title="{{#str}} pictureof, moodle, {{fullname}} {{/str}}"
+            style="height: 100px; width: 100px"
+        >
+    </div>
+    <h2 class="mt-2 text-center text-truncate">{{fullname}}</h2>
+    <div class="px-4 mt-4">
+        <button
+            type="button"
+            class="btn btn-primary btn-block {{^isblocked}}hidden{{/isblocked}}"
+            data-route="view-conversation"
+            data-route-skip-history
+            data-route-param-1="{{userid}}"
+            data-route-param-2="unblock"
+        >
+            {{#str}}unblockuser, message{{/str}}
+        </button>
+        <button
+            type="button"
+            class="btn btn-danger btn-block {{#isblocked}}hidden{{/isblocked}}"
+            data-route="view-conversation"
+            data-route-skip-history
+            data-route-param-1="{{userid}}"
+            data-route-param-2="block"
+        >
+            {{#str}}blockuser, message{{/str}}
+        </button>
+        <button
+            type="button"
+            class="btn btn-danger btn-block {{^iscontact}}hidden{{/iscontact}}"
+            data-route="view-conversation"
+            data-route-skip-history
+            data-route-param-1="{{userid}}"
+            data-route-param-2="remove-contact"
+        >
+            {{#str}}removefromyourcontacts, message{{/str}}
+        </button>
+        <button
+            type="button"
+            class="btn btn-primary btn-block {{#iscontact}}hidden{{/iscontact}}"
+            data-route="view-conversation"
+            data-route-skip-history
+            data-route-param-1="{{userid}}"
+            data-route-param-2="add-contact"
+        >
+            {{#str}}addtoyourcontacts, message{{/str}}
+        </button>
+    </div>
 </div>

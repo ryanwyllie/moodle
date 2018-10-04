@@ -44,7 +44,7 @@ function(
         };
     };
 
-    var go = function(newRoute) {
+    var goInSecret = function(newRoute) {
         var newConfig;
         // Get the rest of the arguments, if any.
         var args = [].slice.call(arguments, 1);
@@ -73,9 +73,33 @@ function(
             params: args
         };
 
-        history.push(record);
         PubSub.publish(MessageDrawerEvents.ROUTE_CHANGED, record);
+
+        return record;
+    }
+
+    var go = function() {
+        var record = goInSecret.apply(null, arguments);
+        var previousRecord = history.length ? history[history.length - 1] : null;
+
+        if (previousRecord) {
+            if (previousRecord.route === record.route) {
+                if (previousRecord.params.length === record.params.length) {
+                    paramsMatch = previousRecord.params.every(function(param, index) {
+                        return param === record.params[index];
+                    });
+
+                    if (paramsMatch) {
+                        return record;
+                    }
+                }
+            }
+        }
+
+        history.push(record);
+        return record;
     };
+
 
     var back = function() {
         if (history.length) {
@@ -93,6 +117,7 @@ function(
     return {
         add: add,
         go: go,
+        goInSecret: goInSecret,
         back: back
     };
 });
