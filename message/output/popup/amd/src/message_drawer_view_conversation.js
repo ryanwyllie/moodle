@@ -380,7 +380,7 @@ function(
                 if (newLastMessage && newLastMessage.id != prevLastMessage.id) {
                     var formattedMessage = formatMessageForEvent(newLastMessage);
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, formattedMessage);
-                } else {
+                } else if (!newState.messages.length) {
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_DELETED, newState.id);
                 }
 

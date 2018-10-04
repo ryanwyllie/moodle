@@ -567,7 +567,10 @@ define(
             }
         });
 
-        newState.messages = allMessages;
+        // Filter out any duplicate messages.
+        newState.messages = allMessages.filter(function(message, index, sortedMessages) {
+            return !index || message.id !== sortedMessages[index - 1].id;
+        });
 
         return newState;
     };

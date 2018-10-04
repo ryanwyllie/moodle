@@ -47,33 +47,40 @@
     </div>
 
     <div data-region="settings" class="p-3">
-        <div data-region="preference-control"
-             data-preference="blocknoncontacts"
-             class="custom-control custom-checkbox mb-3">
-            <input type="checkbox"
-                data-region="checkbox"
-                class="custom-control-input"
-                id="block-noncontacts"
-            >
-            <label class="custom-control-label" for="block-noncontacts">
-                {{#str}} blocknoncontacts, message {{/str}}
-            </label>
+        <div
+            data-region="preference-control"
+            data-preference="blocknoncontacts"
+            class="mb-3"
+        >
+            <span class="switch">
+                <input type="checkbox"
+                    data-region="checkbox"
+                    class="switch"
+                    id="block-noncontacts"
+                >
+                <label class="line-height-3" for="block-noncontacts">
+                    {{#str}} blocknoncontacts, message {{/str}}
+                </label>
+            </span>
             <span class="loading-icon hidden">
                 {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
             </span>
         </div>
 
-        <div data-region="preference-control"
-             data-preference="emailnotifications"
-             class="custom-control custom-checkbox">
-            <input type="checkbox"
-                data-region="checkbox"
-                class="custom-control-input"
-                id="email-alerts"
-            >
-            <label class="custom-control-label" for="email-alerts">
-                {{#str}} emailalert, hub {{/str}}
-            </label>
+        <div
+            data-region="preference-control"
+            data-preference="emailnotifications"
+        >
+            <span class="switch">
+                <input type="checkbox"
+                    data-region="checkbox"
+                    class="custom-control-input"
+                    id="email-alerts"
+                >
+                <label for="email-alerts">
+                    {{#str}} emailalert, hub {{/str}}
+                </label>
+            </span>
             <span class="loading-icon hidden">
                 {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
             </span>
