@@ -25,11 +25,13 @@
 define(
 [
     'jquery',
+    'core/notification',
     'core_message/message_repository',
     'core/custom_interaction_events',
 ],
 function(
     $,
+    Notification,
     Repository,
     CustomEvents
 ) {
@@ -37,112 +39,131 @@ function(
     var SELECTORS = {
         SETTINGS: '[data-region="settings"]',
         PREFERENCE_CONTROL: '[data-region="preference-control"]',
-        CHECKBOX: '[data-region="checkbox"]',
-        LOADINGICON: '.loading-icon'
+        CHECKBOX: 'input[type="checkbox"]',
+        LOADING_PLACEHOLDER: '[data-region="loading-placeholder"]'
     };
 
-    var PREFERENCES_ON = {
-        'blocknoncontacts': [
-                    {
-                        type: 'message_blocknoncontacts',
-                        value: "1",
-                    }],
+    var PREFERENCES = {
+        'message_blocknoncontacts': {
+            type: 'blocknoncontacts',
+            enabled: '1',
+            disabled: '0',
+        },
+        'message_provider_moodle_instantmessage_loggedoff': {
+            type: 'emailnotifications',
+            enabled: 'email',
+            disabled: 'none'
+        },
+        'message_provider_moodle_instantmessage_loggedin': {
+            type: 'emailnotifications',
+            enabled: 'email',
+            disabled: 'none'
+        }
+    };
 
-        'emailnotifications': [
-                    {
-                        type: 'message_provider_moodle_instantmessage_loggedoff',
-                        value: 'email'
-                    },
-                    {
-                        type: 'message_provider_moodle_instantmessage_loggedin',
-                        value: 'email'
-                    }]
-        };
+    var getPreferenceElement = function(root, preferenceName) {
+        return root.find('[data-preference="' + preferenceName + '"]');
+    };
 
-    var PREFERENCES_OFF = {
-        'blocknoncontacts': [
-                    {
-                        type: 'message_blocknoncontacts',
-                        value: "0",
-                    }],
+    var isPreferenceElementEnabled = function(preferenceElement) {
+        var checkbox = preferenceElement.find(SELECTORS.CHECKBOX);
+        return checkbox.prop('checked');
+    };
 
-        'emailnotifications': [
-                    {
-                        type: 'message_provider_moodle_instantmessage_loggedoff',
-                        value: 'none'
-                    },
-                    {
-                        type: 'message_provider_moodle_instantmessage_loggedin',
-                        value: 'none'
-                    }]
-        };
+    var updatePreference = function(preferenceElement, isEnabled) {
+        preferenceElement.find(SELECTORS.CHECKBOX).prop('checked', isEnabled);
+    };
 
     /**
      * Load Preferences and check boxes for preferences already set.
      *
      */
-    var loadPreferences = function(root, loggedInUserid) {
-        var SettingsContainer = root.find(SELECTORS.SETTINGS);
+    var loadPreferences = function(root, loggedInUserId) {
+        var settingsContainer = root.find(SELECTORS.SETTINGS);
+        var loadingPlaceholder = root.find(SELECTORS.LOADING_PLACEHOLDER);
 
-        var storedPreferences = Repository.getPreferences(loggedInUserid)
-            .then(function(allpreferences) {
+        Repository.getPreferences(loggedInUserId)
+            .then(function(result) {
+                // The server returns an array of all preferences with a name and value. We treat
+                // a few preferences as one so we need to group them by type and check each one is
+                // enabled / disabled.
+                // E.g.
+                // Input:
+                // [
+                //   {name: "message_provider_moodle_instantmessage_loggedoff", value: "email"},
+                //   {name: "message_provider_moodle_instantmessage_loggedin", value: "email"},
+                //   {name: "message_blocknoncontacts", value: "0"}
+                // ]
+                //
+                // Output:
+                // {
+                //      blocknoncontacts: [false],
+                //      emailnotifications: [true, true]
+                // }
+                var preferencesByType = result.preferences.reduce(function(carry, preference) {
+                    if (preference.name in PREFERENCES) {
+                        var config = PREFERENCES[preference.name];
+                        var value = preference.value;
+                        var isEnabled = value === config.enabled;
+                        var type = config.type;
 
-                SettingsContainer.find(SELECTORS.PREFERENCE_CONTROL)
-                    .each(function(index, setting) {
-                        var setting = $(setting);
-                        var checkbox = setting.find(SELECTORS.CHECKBOX);
-                        var preference = setting.attr('data-preference');
-
-                        if (preference in PREFERENCES_ON) {
-                            checkpreferences = PREFERENCES_ON[preference];
-                            var found = 0;
-                            checkpreferences.forEach(function(checkpreference) {
-                                setpreference = allpreferences.preferences.find(function(pref) {
-                                    if (pref.name === checkpreference.type &&
-                                        pref.value === checkpreference.value ) {
-                                        return true;
-                                    }
-                                })
-                                if (setpreference) {
-                                    found++;
-                                }
-                            });
-                            if (checkpreferences.length == found) {
-                                checkbox.prop('checked', true);
-                            }
+                        if (type in carry) {
+                            carry[type].push(isEnabled);
+                        } else {
+                            carry[type] = [isEnabled];
                         }
+                    }
+
+                    return carry;
+                }, {});
+
+                Object.keys(preferencesByType).forEach(function(type) {
+                    var isEnabled = preferencesByType[type].every(function(enabled) {
+                        return enabled;
                     });
-            });
+                    var preferenceElement = getPreferenceElement(root, type);
+                    updatePreference(preferenceElement, isEnabled);
+                });
+            })
+            .then(function() {
+                settingsContainer.removeClass('hidden');
+                loadingPlaceholder.addClass('hidden');
+            })
+            .catch(Notification.exception);
     }
     /**
      * Create all of the event listeners for the message preferences page.
      *
      * @method registerEventListeners
      */
-    var registerEventListeners = function(root, loggedInUserid) {
+    var registerEventListeners = function(root, loggedInUserId) {
 
-        var SettingsContainer = root.find(SELECTORS.SETTINGS);
+        var settingsContainer = root.find(SELECTORS.SETTINGS);
 
-        CustomEvents.define(SettingsContainer, [
+        CustomEvents.define(settingsContainer, [
             CustomEvents.events.activate
         ]);
 
-        SettingsContainer.on(CustomEvents.events.activate,
-            SELECTORS.PREFERENCE_CONTROL,
-            function(e) {
+        settingsContainer.on(CustomEvents.events.activate, SELECTORS.CHECKBOX, function(e) {
                 var setting = $(e.target).closest(SELECTORS.PREFERENCE_CONTROL);
-                var loadingicon = setting.find(SELECTORS.LOADINGICON);
-                var checkbox = setting.find(SELECTORS.CHECKBOX);
+                var type = setting.attr('data-preference');
+                var element = getPreferenceElement(root, type);
+                var isEnabled = isPreferenceElementEnabled(element);
+                var preferences = Object.keys(PREFERENCES).reduce(function(carry, preference) {
+                    var config = PREFERENCES[preference];
 
-                var preference = setting.attr('data-preference');
-                var ischecked = checkbox.prop('checked');
+                    if (config.type === type) {
+                        carry.push({
+                            type: preference,
+                            value: isEnabled ? config.enabled : config.disabled
+                        });
+                    }
 
-                var preferences = ischecked ? PREFERENCES_ON[preference] : PREFERENCES_OFF[preference];
+                    return carry;
+                }, []);
 
-                Repository.savePreferences(loggedInUserid, preferences)
-                    .then(function() {
-                        setting.closest(SELECTORS.LOADINGICON).toggleClass('hidden');
-                    });
+                Repository.savePreferences(loggedInUserId, preferences)
+                    .catch(Notification.exception);
             }
         );
     };
@@ -150,15 +171,17 @@ function(
     /**
      * Initialise the settings page by adding event listeners to
      * the checkboxes.
-     * 
+     *
      * @param {object} root The root element for the settings page
      */
-    var show = function(root, loggedInUserid) {
+    var show = function(root, loggedInUserId) {
         root = $(root);
 
-        loadPreferences(root, loggedInUserid);
-        
-        registerEventListeners(root, loggedInUserid);
+        if (!root.attr('data-init')) {
+            registerEventListeners(root, loggedInUserId);
+            loadPreferences(root, loggedInUserId);
+            root.attr('data-init', true);
+        }
     };
 
     return {

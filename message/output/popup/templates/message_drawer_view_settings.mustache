@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <div data-region="settings" class="p-3">
+    <div data-region="settings" class="p-3 hidden">
         <div
             data-region="preference-control"
             data-preference="blocknoncontacts"
@@ -54,16 +54,12 @@
         >
             <span class="switch">
                 <input type="checkbox"
-                    data-region="checkbox"
                     class="switch"
-                    id="block-noncontacts"
+                    id="block-noncontacts-{{uniqid}}"
                 >
-                <label class="line-height-3" for="block-noncontacts">
+                <label class="line-height-3" for="block-noncontacts-{{uniqid}}">
                     {{#str}} blocknoncontacts, message {{/str}}
                 </label>
-            </span>
-            <span class="loading-icon hidden">
-                {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
             </span>
         </div>
 
@@ -73,17 +69,23 @@
         >
             <span class="switch">
                 <input type="checkbox"
-                    data-region="checkbox"
                     class="custom-control-input"
-                    id="email-alerts"
+                    id="email-alerts-{{uniqid}}"
                 >
-                <label for="email-alerts">
+                <label for="email-alerts-{{uniqid}}">
                     {{#str}} emailalert, hub {{/str}}
                 </label>
             </span>
-            <span class="loading-icon hidden">
-                {{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}
-            </span>
+        </div>
+    </div>
+    <div data-region="loading-placeholder" class="p-3">
+        <div class="mb-3 d-flex">
+            <div class="bg-pulse-grey mr-2" style="height: 27px; width: 65px"></div>
+            <div class="bg-pulse-grey mr-2 w-100" style="height: 27px;"></div>
+        </div>
+        <div class="mb-3 d-flex">
+            <div class="bg-pulse-grey mr-2" style="height: 27px; width: 65px"></div>
+            <div class="bg-pulse-grey mr-2 w-100" style="height: 27px;"></div>
         </div>
     </div>
 </div>
