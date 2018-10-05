@@ -118,6 +118,7 @@ function(
                 }, {});
 
                 Object.keys(preferencesByType).forEach(function(type) {
+                    // Only consider this type enabled it all associated preferences are enabled.
                     var isEnabled = preferencesByType[type].every(function(enabled) {
                         return enabled;
                     });

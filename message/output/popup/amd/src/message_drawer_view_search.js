@@ -27,6 +27,7 @@ define(
     'jquery',
     'core/custom_interaction_events',
     'core/notification',
+    'core/pubsub',
     'core/templates',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
@@ -35,49 +36,55 @@ function(
     $,
     CustomEvents,
     Notification,
+    PubSub,
     Templates,
     Repository,
     Events
 ) {
 
-    var LOADMORE = 10;
+    var SEARCH_LIMIT = 5;
 
     var SELECTORS = {
         BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
         CANCEL_SEARCH_BUTTON: '[data-action="cancel-search"]',
         CONTACTS_CONTAINER: '[data-region="contacts-container"]',
+        CONTACTS_LIST: '[data-region="contacts-container"] [data-region="list"]',
         EMPTY_MESSAGE_CONTAINER: '[data-region="empty-message-container"]',
         LIST: '[data-region="list"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER: '[data-region="loading-placeholder"]',
         MESSAGES_CONTAINER: '[data-region="messages-container"]',
+        MESSAGES_LIST: '[data-region="messages-container"] [data-region="list"]',
         NON_CONTACTS_CONTAINER: '[data-region="non-contacts-container"]',
+        NON_CONTACTS_LIST: '[data-region="non-contacts-container"] [data-region="list"]',
         SEARCH_ICON_CONTAINER: '[data-region="search-icon-container"]',
         SEARCH_ACTION: '[data-action="search"]',
         SEARCH_INPUT: '[data-region="search-input"]',
         SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]',
-        LOADMOREUSERS: '[data-action="loadmoreusers"]',
-        LOADMORECONTACTS: '[data-action="loadmorecontacts"]'
+        LOAD_MORE_USERS: '[data-action="load-more-users"]',
+        LOAD_MORE_MESSAGES: '[data-action="load-more-messages"]'
     };
 
     var TEMPLATES = {
-        SEARCH_RESULTS: 'message_popup/message_drawer_view_search_results_content'
+        CONTACTS_LIST: 'message_popup/message_drawer_contacts_list',
+        NON_CONTACTS_LIST: 'message_popup/message_drawer_non_contacts_list',
+        MESSAGES_LIST: 'message_popup/message_drawer_messages_list'
     };
 
-    var getMaxUsers = function(root) {
-        return parseInt(root.attr('data-max-users'));
+    var getUsersOffset = function(root) {
+        return parseInt(root.attr('data-users-offset'), 10);
     };
 
-    var getMaxMessages = function(root) {
-        return parseInt(root.attr('data-max-messages'));
+    var getMessagesOffset = function(root) {
+        return parseInt(root.attr('data-max-messages'), 10);
     };
 
-    var setSearchText = function(root, searchText) {
-        root.attr('data-searchtext', searchText);
+    var setUsersOffset = function(root, value) {
+        return root.attr('data-users-offset', value);
     };
 
-    var getSearchText = function(root) {
-        return root.attr('data-searchtext');
+    var setMessagesOffset = function(root, value) {
+        return root.attr('data-max-messages', value);
     };
 
     var getLoggedInUserId = function(root) {
@@ -172,6 +179,12 @@ function(
         getSearchInput(root).val('');
     };
 
+    var clearAllSearchResults = function(root) {
+        root.find(SELECTORS.CONTACTS_LIST).empty();
+        root.find(SELECTORS.NON_CONTACTS_LIST).empty();
+        root.find(SELECTORS.MESSAGES_LIST).empty();
+    };
+
     var startLoading = function(root) {
         hideSearchIcon(root);
         hideEmptyMessage(root);
@@ -203,9 +216,9 @@ function(
         return root.find('[data-contact-user-id="' + userId + '"]');
     };
 
-    var addContact = function(root, userId) {
+    var addContact = function(root, contact) {
         var nonContactsContainer = getNonContactsContainer(root);
-        var nonContact = findContact(nonContactsContainer, userId);
+        var nonContact = findContact(nonContactsContainer, contact.userid);
 
         if (nonContact.length) {
             nonContact.remove();
@@ -249,52 +262,63 @@ function(
         }
     };
 
-    var renderSearchResults = function(root, results) {
-        var hascontacts = (results.contacts.length > 0);
-        var hasnoncontacts = (results.noncontacts.length > 0);
-        var hasmessages = (results.messages.length > 0);
-        var hasresults = hascontacts || hasnoncontacts || hasmessages;
-
-        var numusers = results.contacts.length + results.noncontacts.length;
-        var nummessages = results.messages.length;
-
-        var loadmoremessages = (nummessages > (getMaxMessages(root) - 1)) ? true : false;
-        var loadmoreusers = (numusers > (getMaxUsers(root) - 1)) ? true : false;
-
-        var context = {
-            hascontacts: hascontacts,
-            contacts: results.contacts,
-            hasnoncontacts: hasnoncontacts,
-            noncontacts: results.noncontacts,
-            hasmessages: hasmessages,
-            messages: results.messages,
-            hasresults: hasresults,
-            loadmoreusers: loadmoreusers,
-            loadmoremessages: loadmoremessages,
-        };
-
-        return Templates.render(TEMPLATES.SEARCH_RESULTS, context)
+    var renderContacts = function(root, contacts) {
+        return Templates.render(TEMPLATES.CONTACTS_LIST, { contacts: contacts })
             .then(function(html) {
-                getSearchResultsContainer(root).empty().append(html);
-                return html;
+                root.find(SELECTORS.CONTACTS_LIST).append(html);
+            });
+    };
+
+    var renderNonContacts = function(root, nonContacts) {
+        return Templates.render(TEMPLATES.NON_CONTACTS_LIST, { noncontacts: nonContacts })
+            .then(function(html) {
+                root.find(SELECTORS.NON_CONTACTS_LIST).append(html);
+            });
+    };
+
+    var renderMessages = function(root, messages) {
+        return Templates.render(TEMPLATES.MESSAGES_LIST, { messages: messages })
+            .then(function(html) {
+                root.find(SELECTORS.MESSAGES_LIST).append(html);
+            });
+    };
+
+    var loadMoreUsers = function(root, loggedInUserId, text) {
+        var offset = getUsersOffset(root);
+        return Repository.searchUsers(loggedInUserId, text, SEARCH_LIMIT, offset)
+            .then(function(results) {
+                return $.when(
+                    renderContacts(root, results.contacts),
+                    renderNonContacts(root, results.noncontacts)
+                );
+            })
+            .then(function() {
+                setUsersOffset(root, offset + SEARCH_LIMIT);
+            });
+    };
+
+    var loadMoreMessages = function(root, loggedInUserId, text) {
+        var offset = getMessagesOffset(root);
+        return Repository.searchMessages(loggedInUserId, text, SEARCH_LIMIT, offset)
+            .then(function(results) {
+                return renderMessages(root, results.contacts);
+            })
+            .then(function() {
+                setMessagesOffset(root, offset + SEARCH_LIMIT);
             });
     };
 
     var search = function(root, searchText) {
         var loggedInUserId = getLoggedInUserId(root);
         startLoading(root);
-
-        var maxUsers = getMaxUsers(root);
-        var maxMessages = getMaxMessages(root);
+        setUsersOffset(root, 0);
+        setMessagesOffset(root, 0);
+        clearAllSearchResults(root);
 
         return $.when(
-            Repository.searchUsers(loggedInUserId, searchText, maxUsers),
-            Repository.searchMessages(loggedInUserId, searchText, maxMessages)
+            loadMoreUsers(root, loggedInUserId, searchText),
+            loadMoreMessages(root, loggedInUserId, searchText)
         )
-        .then(function(usersResults, messagesResults) {
-            usersResults.messages = messagesResults.contacts;
-            return renderSearchResults(root, usersResults);
-        })
         .then(function() {
             stopLoading(root);
             highlightSearch(root, searchText);
@@ -306,13 +330,9 @@ function(
         });
     };
 
-    var registerEventListeners = function(root) {
-        var body = $('body');
-        var searchInput = getSearchInput(root);
-        CustomEvents.define(searchInput, [CustomEvents.events.enter]);
-        CustomEvents.define(root, [CustomEvents.events.activate]);
-
-        searchInput.on(CustomEvents.events.enter, function(e, data) {
+    var getSearchEventHandler = function(root) {
+        return function(e, data) {
+            var searchInput = getSearchInput(root);
             var searchText = searchInput.val().trim();
 
             if (searchText !== '') {
@@ -323,16 +343,45 @@ function(
             }
 
             data.originalEvent.preventDefault();
-        });
+        }
+    };
 
-        root.on(CustomEvents.events.activate, SELECTORS.LOADMORECONTACTS, function() {
-            root.attr('data-max-users', getMaxUsers(root) + LOADMORE);
-            search(root, getSearchText(root))
+    var registerEventListeners = function(root) {
+        var loggedInUserId = getLoggedInUserId(root);
+        var searchInput = getSearchInput(root);
+        var searchText = '';
+        var searchEventHandler = function(e, data) {
+            searchText = searchInput.val().trim();
+
+            if (searchText !== '') {
+                search(root, searchText)
+                    .then(function() {
+                        searchInput.focus();
+                    });
+            }
+
+            data.originalEvent.preventDefault();
+        };
+
+        CustomEvents.define(searchInput, [CustomEvents.events.enter]);
+        CustomEvents.define(root, [CustomEvents.events.activate]);
+
+        searchInput.on(CustomEvents.events.enter, searchEventHandler);
+
+        root.on(CustomEvents.events.activate, SELECTORS.SEARCH_ACTION, searchEventHandler);
+
+        root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_MESSAGES, function(e, data) {
+            if (searchText !== '') {
+                loadMoreMessages(root, loggedInUserId, searchText);
+            }
+            data.originalEvent.preventDefault();
         })
 
-        root.on(CustomEvents.events.activate, SELECTORS.LOADMOREUSERS, function() {
-            root.attr('data-max-messages', getMaxMessages(root) + LOADMORE);
-            search(root, getSearchText(root))
+        root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_USERS, function(e, data) {
+            if (searchText !== '') {
+                loadMoreUsers(root, loggedInUserId, searchText);
+            }
+            data.originalEvent.preventDefault();
         })
 
         root.on(CustomEvents.events.activate, SELECTORS.CANCEL_SEARCH_BUTTON, function() {
@@ -342,36 +391,28 @@ function(
             hideSearchResults(root);
             hideLoadingIcon(root);
             hideLoadingPlaceholder(root);
+            setUsersOffset(root, 0);
+            setMessagesOffset(root, 0);
         });
 
-        root.on(CustomEvents.events.activate, SELECTORS.SEARCH_ACTION, function(e, data) {
-            var searchText = searchInput.val().trim();
-
-            if (searchText !== '') {
-                search(root, searchText);
-            }
-
-            data.originalEvent.preventDefault();
-        });
-
-        body.on(Events.CONTACT_ADDED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_ADDED, function(userId) {
             addContact(root, userId);
         });
 
-        body.on(Events.CONTACT_REMOVED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
             removeContact(root, userId);
         });
 
-        body.on(Events.CONTACT_BLOCKED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_BLOCKED, function(userId) {
             blockContact(root, userId);
         });
 
-        body.on(Events.CONTACT_UNBLOCKED, function(e, userId) {
+        PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
             unblockContact(root, userId);
         });
     };
 
-    var show = function(root, searchText) {
+    var show = function(root) {
         if (!root.attr('data-init')) {
             registerEventListeners(root);
             root.attr('data-init', true);
@@ -379,15 +420,6 @@ function(
 
         var searchInput = getSearchInput(root);
         searchInput.focus();
-
-        if (typeof searchText !== 'undefined') {
-            root.attr('data-max-users', (LOADMORE / 2));
-            root.attr('data-max-messages', LOADMORE);
-            
-            setSearchText(searchText);
-            searchInput.val(searchText);
-            search(root, searchText);
-        }
     };
 
     return {

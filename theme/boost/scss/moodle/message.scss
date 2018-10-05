@@ -1249,14 +1249,6 @@
         margin-right: 0;
     }
 
-    .dropdown {
-        .btn-minimal {
-            @include hover-focus {
-                border: $border-width solid $border-color;
-            }
-        }
-    }
-
     .overview-section-toggle {
         .collapsed-icon-container {
             display: none;
@@ -1280,6 +1272,7 @@
         width: $icon-width;
         padding: 0;
         border-radius: 50%;
+        flex-shrink: 0;
 
         @include hover-focus {
             background-color: $gray-200;

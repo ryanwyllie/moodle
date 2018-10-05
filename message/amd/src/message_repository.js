@@ -204,14 +204,18 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         return Ajax.call([request])[0];
     };
 
-    var searchUsers = function(loggedInUserId, searchString, limit) {
+    var searchUsers = function(loggedInUserId, searchString, limit, offset) {
         var args = {
             userid: loggedInUserId,
             search: searchString
         };
 
         if (typeof limit !== 'undefined') {
-            args.limitnum = limit;
+            if (typeof offset !== 'undefined') {
+                args.limitnum = limit + offset;
+            } else {
+                args.limitnum = limit;
+            }
         }
 
         var request = {
@@ -219,7 +223,18 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             args: args
         };
 
-        return Ajax.call([request])[0];
+        return Ajax.call([request])[0].then(function(response) {
+            // TODO: Fix the webservice so that we don't need to do this hack.
+            if (offset) {
+                return {
+                    contacts: response.contacts.slice(offset, offset + limit),
+                    noncontacts: response.noncontacts.slice(offset, offset + limit),
+                    courses: response.courses.slice(offset, offset + limit)
+                };
+            } else {
+                return response;
+            }
+        });
     };
 
     var searchMessages = function(loggedInUserId, searchString, limit, offset) {

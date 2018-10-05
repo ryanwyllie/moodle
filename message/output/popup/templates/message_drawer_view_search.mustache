@@ -36,11 +36,10 @@
 
 <div
     data-region="view-search"
-    class="h-100"
+    class="h-100 d-flex flex-column"
     data-user-id="{{loggedinuser.id}}"
-    data-max-users="5"
-    data-max-messages="10"
-    data-searchtext=""
+    data-users-offset="0"
+    data-messages-offset="10"
 >
     <div class="d-flex p-2 border-bottom align-items-center">
         <a
@@ -75,7 +74,9 @@
             </div>
         </div>
     </div>
-    <div class="h-100 hidden pb-5" data-region="search-results-container" style="overflow-y: scroll;"></div>
+    <div class="hidden position-relative" data-region="search-results-container" style="flex: 1">
+        {{> message_popup/message_drawer_view_search_results_content }}
+    </div>
     <div class="hidden p-2" data-region="loading-placeholder">
         <div class="bg-light mb-3 w-50" style="height: 30px"></div>
         <div class="list-group mb-3">
