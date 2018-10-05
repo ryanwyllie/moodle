@@ -70,7 +70,7 @@ function(
         return checkbox.prop('checked');
     };
 
-    var updatePreference = function(preferenceElement, isEnabled) {
+    var updatePreferenceElement = function(preferenceElement, isEnabled) {
         preferenceElement.find(SELECTORS.CHECKBOX).prop('checked', isEnabled);
     };
 
@@ -122,7 +122,7 @@ function(
                         return enabled;
                     });
                     var preferenceElement = getPreferenceElement(root, type);
-                    updatePreference(preferenceElement, isEnabled);
+                    updatePreferenceElement(preferenceElement, isEnabled);
                 });
             })
             .then(function() {
