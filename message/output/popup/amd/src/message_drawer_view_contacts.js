@@ -26,48 +26,70 @@ define(
 [
     'jquery',
     'core/notification',
-    'core/templates',
     'core/pubsub',
+    'core/custom_interaction_events',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
-    'message_popup/message_drawer_view_contacts_section'
+    'message_popup/message_drawer_view_contacts_renderer'
 ],
 function(
     $,
     Notification,
-    Templates,
     PubSub,
+    CustomEvents,
     MessageRepository,
     Events,
-    Section
+    Renderer
 ) {
 
+    var LOAD_CONTACTS_LIMIT = 100;
+
+    var viewState = {
+        loadedAllContacts: false,
+        contacts: [],
+        contactsOffset: 0
+    }
+
     var SELECTORS = {
-        BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]'
+        BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
+        CONTACTS: '[data-region="view-contacts-container"]'
     };
 
-    var TEMPLATES = {
-        CONTACTS_LIST: 'message_popup/message_drawer_contacts_list'
-    };
-
-    var render = function(contentContainer, contacts) {
-        return Templates.render(TEMPLATES.CONTACTS_LIST, {contacts: contacts})
-            .then(function(html) {
-                contentContainer.append(html);
-            })
-            .catch(Notification.exception);
+    var render = function(root, viewState) {
+        return Renderer.render(root, viewState);
     };
 
     var loadContacts = function(root, userId) {
-        return MessageRepository.getContacts(userId)
+        return MessageRepository.getContacts(userId, LOAD_CONTACTS_LIMIT + 1, viewState.contactsOffset)
             .then(function(result) {
                 return result.contacts;
             })
+            .then(function(contacts) {
+                if (contacts.length > LOAD_CONTACTS_LIMIT) {
+                    contacts = contacts.slice(1);
+                } else {
+                    viewState.loadedAllContacts = true;
+                }
+                return contacts;
+            })
+            .then(function(contacts) {
+                viewState.contacts = contacts;
+                viewState.contactsOffset = viewState.contactsOffset + LOAD_CONTACTS_LIMIT;
+                return render(root, viewState);
+            })
             .catch(Notification.exception);
-    };
+    }
 
     var findContact = function(root, userId) {
         return root.find('[data-contact-user-id="' + userId + '"]');
+    };
+
+    var getUserId = function(root) {
+        return root.attr('data-user-id');
+    };
+
+    var getcontactsContainer = function(root) {
+        return root.find(SELECTORS.CONTACTS);
     };
 
     var removeContact = function(root, userId) {
@@ -89,8 +111,9 @@ function(
     };
 
     var registerEventListeners = function(root) {
+        // FIX THIS ONE
         PubSub.subscribe(Events.CONTACT_ADDED, function(contact) {
-            render(root, [contact]);
+            loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
         });
 
         PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
@@ -104,16 +127,38 @@ function(
         PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
             unblockContact(root, userId);
         });
+
+
+        var contactsContainer = getcontactsContainer(root);
+
+        // What is scrollLock for?
+        CustomEvents.define(contactsContainer, [
+            CustomEvents.events.scrollBottom,
+            CustomEvents.events.scrollLock
+        ]);
+
+        contactsContainer.on(CustomEvents.events.scrollBottom, function(e, data) {
+            hasContacts = Object.keys(viewState.contacts).length > 1;
+            if (!viewState.loadedAllContacts && hasContacts) {
+                loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+            }
+            data.originalEvent.preventDefault();
+        });
     };
 
     var show = function(root) {
         root = $(root);
+        viewState.contactsOffset = 0;
 
         if (!root.attr('data-contacts-init')) {
             registerEventListeners(root);
             root.attr('data-contacts-init', true);
         }
-        Section.show(root, loadContacts, render);
+
+        if (!viewState.loadedAllContacts) {
+            Renderer.showPlaceholder(root);
+            loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+        }
     };
 
     return {

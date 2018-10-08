@@ -102,7 +102,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         };
 
         if (typeof limit !== 'undefined') {
-            args.liminum = limit;
+            args.limitnum = limit;
         }
 
         if (typeof offset !== 'undefined') {

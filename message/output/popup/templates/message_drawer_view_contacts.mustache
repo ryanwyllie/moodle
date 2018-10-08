@@ -53,18 +53,28 @@
             </a>
         </div>
     </div>
-
-    {{< message_popup/message_drawer_view_contacts_section }}
-        {{$region}}contacts-list{{/region}}
-        {{$placeholder}}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        {{/placeholder}}
-        {{$emptymessage}}
-            <p class="text-muted mt-2">{{#str}} nocontactsgetstarted, core_message {{/str}}</p>
-        {{/emptymessage}}
-    {{/ message_popup/message_drawer_view_contacts_section }}
+    <div class="h-100 d-flex flex-column">
+        <div
+            class="px-2 pb-2 pt-0 position-relative"
+            data-region="view-contacts-container"
+            style="overflow-y: auto"
+        >
+        {{< message_popup/message_drawer_view_contacts_section }}
+            {{$region}}contacts-list{{/region}}
+            {{$placeholder}}
+                {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+                {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+                {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+                {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+                {{> message_popup/message_drawer_contacts_list_item_placeholder }}
+            {{/placeholder}}
+            {{$emptymessage}}
+                <p class="text-muted mt-2">{{#str}} nocontactsgetstarted, core_message {{/str}}</p>
+            {{/emptymessage}}
+        {{/ message_popup/message_drawer_view_contacts_section }}
+            <div class="w-100 text-center" data-region="loading-icon-container" >
+                {{> core/loading }}
+            </div>
+        </div>
+    </div>
 </div>

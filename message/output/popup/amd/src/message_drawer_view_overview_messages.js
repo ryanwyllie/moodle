@@ -122,11 +122,13 @@ define(
 
         var blockContact = function(root, userId) {
             // TODO: This will need to change when we have actual conversations.
+            getConversationElement(root, userId).attr('data-route-param-2', 'unblock');
             getConversationElement(root, userId).find(SELECTORS.BLOCKED_ICON_CONTAINER).removeClass('hidden');
         };
 
         var unblockContact = function(root, userId) {
             // TODO: This will need to change when we have actual conversations.
+            getConversationElement(root, userId).attr('data-route-param-2', '');
             getConversationElement(root, userId).find(SELECTORS.BLOCKED_ICON_CONTAINER).addClass('hidden');
         };
 

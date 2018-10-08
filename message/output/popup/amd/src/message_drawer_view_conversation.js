@@ -128,9 +128,9 @@ function(
 
     var render = function(root, newState) {
         var patch = StateManager.buildPatch(viewState, newState);
-        console.log("PREV STATE:", viewState);
-        console.log("NEXT STATE:", newState);
-        console.log("PATCH: ", patch);
+        // console.log("PREV STATE:", viewState);
+        // console.log("NEXT STATE:", newState);
+        // console.log("PATCH: ", patch);
         return Renderer.render(root, patch)
             .then(function() {
                 viewState = newState;
