@@ -42,7 +42,9 @@ function(
     Events
 ) {
 
-    var SEARCH_LIMIT = 5;
+    var MESSAGE_SEARCH_LIMIT = 50;
+    var USERS_SEARCH_LIMIT = 50;
+    var USERS_INITIAL_SEARCH_LIMIT = 3;
 
     var SELECTORS = {
         BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
@@ -62,7 +64,8 @@ function(
         SEARCH_INPUT: '[data-region="search-input"]',
         SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]',
         LOAD_MORE_USERS: '[data-action="load-more-users"]',
-        LOAD_MORE_MESSAGES: '[data-action="load-more-messages"]'
+        LOAD_MORE_MESSAGES: '[data-action="load-more-messages"]',
+        BUTTON_TEXT: '[data-region="button-text"]'
     };
 
     var TEMPLATES = {
@@ -203,6 +206,42 @@ function(
         enableSearchInput(root);
     };
 
+    var showUsersLoadingIcon = function(root) {
+        var button = root.find(SELECTORS.LOAD_MORE_USERS);
+        button.prop('disabled', true);
+        button.find(SELECTORS.BUTTON_TEXT).addClass('hidden');
+        button.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    };
+
+    var hideUsersLoadingIcon = function(root) {
+        var button = root.find(SELECTORS.LOAD_MORE_USERS);
+        button.prop('disabled', false);
+        button.find(SELECTORS.BUTTON_TEXT).removeClass('hidden');
+        button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    };
+
+    var hideLoadMoreUsersButton = function(root) {
+        root.find(SELECTORS.LOAD_MORE_USERS).addClass('hidden');
+    };
+
+    var showMessagesLoadingIcon = function(root) {
+        var button = root.find(SELECTORS.LOAD_MORE_MESSAGES);
+        button.prop('disabled', true);
+        button.find(SELECTORS.BUTTON_TEXT).addClass('hidden');
+        button.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    };
+
+    var hideMessagesLoadingIcon = function(root) {
+        var button = root.find(SELECTORS.LOAD_MORE_MESSAGES);
+        button.prop('disabled', false);
+        button.find(SELECTORS.BUTTON_TEXT).removeClass('hidden');
+        button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    };
+
+    var hideLoadMoreMessagesButton = function(root) {
+        root.find(SELECTORS.LOAD_MORE_MESSAGES).addClass('hidden');
+    };
+
     var highlightSearch = function(root, searchText) {
         root.find('[data-region="searchable"]').each(function() {
               var content = $(this).text();
@@ -283,9 +322,27 @@ function(
             });
     };
 
-    var loadMoreUsers = function(root, loggedInUserId, text) {
-        var offset = getUsersOffset(root);
-        return Repository.searchUsers(loggedInUserId, text, SEARCH_LIMIT, offset)
+    var loadMoreUsers = function(root, loggedInUserId, text, limit, offset) {
+        var loadedAll = false;
+        showUsersLoadingIcon(root);
+        return Repository.searchUsers(loggedInUserId, text, limit + 1, offset)
+            .then(function(results) {
+                var contacts = results.contacts;
+                var noncontacts = results.noncontacts;
+
+                if (contacts.length <= limit && noncontacts.length <= limit) {
+                    loadedAll = true;
+                    return {
+                        contacts: contacts,
+                        noncontacts: noncontacts
+                    };
+                } else {
+                    return {
+                        contacts: contacts.slice(0, limit),
+                        noncontacts: noncontacts.slice(0, limit)
+                    };
+                }
+            })
             .then(function(results) {
                 return $.when(
                     renderContacts(root, results.contacts),
@@ -293,18 +350,49 @@ function(
                 );
             })
             .then(function() {
-                setUsersOffset(root, offset + SEARCH_LIMIT);
+                setUsersOffset(root, offset + limit);
+                hideUsersLoadingIcon(root);
+
+                if (loadedAll) {
+                    hideLoadMoreUsersButton(root);
+                }
+
+                return;
+            })
+            .catch(function() {
+                hideUsersLoadingIcon(root);
             });
     };
 
-    var loadMoreMessages = function(root, loggedInUserId, text) {
-        var offset = getMessagesOffset(root);
-        return Repository.searchMessages(loggedInUserId, text, SEARCH_LIMIT, offset)
+    var loadMoreMessages = function(root, loggedInUserId, text, limit, offset) {
+        var loadedAll = false;
+        showMessagesLoadingIcon(root);
+        return Repository.searchMessages(loggedInUserId, text, limit + 1, offset)
             .then(function(results) {
-                return renderMessages(root, results.contacts);
+                var messages = results.contacts;
+
+                if (messages.length <= limit) {
+                    loadedAll = true;
+                    return messages;
+                } else {
+                    return messages.slice(0, limit);
+                }
+            })
+            .then(function(messages) {
+                return renderMessages(root, messages);
             })
             .then(function() {
-                setMessagesOffset(root, offset + SEARCH_LIMIT);
+                setMessagesOffset(root, offset + limit);
+                hideMessagesLoadingIcon(root);
+
+                if (loadedAll) {
+                    hideLoadMoreMessagesButton(root);
+                }
+
+                return;
+            })
+            .catch(function() {
+                hideMessagesLoadingIcon(root);
             });
     };
 
@@ -316,8 +404,8 @@ function(
         clearAllSearchResults(root);
 
         return $.when(
-            loadMoreUsers(root, loggedInUserId, searchText),
-            loadMoreMessages(root, loggedInUserId, searchText)
+            loadMoreUsers(root, loggedInUserId, searchText, USERS_INITIAL_SEARCH_LIMIT, 0),
+            loadMoreMessages(root, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, 0)
         )
         .then(function() {
             stopLoading(root);
@@ -328,22 +416,6 @@ function(
             Notification.exception(error);
             stopLoading(root);
         });
-    };
-
-    var getSearchEventHandler = function(root) {
-        return function(e, data) {
-            var searchInput = getSearchInput(root);
-            var searchText = searchInput.val().trim();
-
-            if (searchText !== '') {
-                search(root, searchText)
-                    .then(function() {
-                        searchInput.focus();
-                    });
-            }
-
-            data.originalEvent.preventDefault();
-        }
     };
 
     var registerEventListeners = function(root) {
@@ -372,14 +444,16 @@ function(
 
         root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_MESSAGES, function(e, data) {
             if (searchText !== '') {
-                loadMoreMessages(root, loggedInUserId, searchText);
+                var offset = getMessagesOffset(root);
+                loadMoreMessages(root, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, offset);
             }
             data.originalEvent.preventDefault();
         })
 
         root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_USERS, function(e, data) {
             if (searchText !== '') {
-                loadMoreUsers(root, loggedInUserId, searchText);
+                var offset = getUsersOffset(root);
+                loadMoreUsers(root, loggedInUserId, searchText, USERS_SEARCH_LIMIT, offset);
             }
             data.originalEvent.preventDefault();
         })

@@ -36,12 +36,13 @@
 
 <div
     data-region="view-search"
-    class="h-100 d-flex flex-column"
+    class="h-100 hidden"
     data-user-id="{{loggedinuser.id}}"
     data-users-offset="0"
     data-messages-offset="10"
+    style="overflow-y: auto"
 >
-    <div class="d-flex p-2 border-bottom align-items-center">
+    <div class="d-flex p-2 border-bottom align-items-center" style="flex-shrink: 0">
         <a
             class="mr-2 align-self-stretch d-flex align-items-center"
             href="#"
@@ -58,7 +59,7 @@
                 aria-label="{{#str}} search, core_search {{/str}}"
                 data-region="search-input"
             >
-            <div class="input-group-append ">
+            <div class="input-group-append">
                 <button
                     class="btn btn-outline-secondary"
                     type="button"
@@ -74,34 +75,11 @@
             </div>
         </div>
     </div>
-    <div class="hidden position-relative" data-region="search-results-container" style="flex: 1">
+    <div class="hidden" data-region="search-results-container" style="overflow-y: auto">
         {{> message_popup/message_drawer_view_search_results_content }}
     </div>
-    <div class="hidden p-2" data-region="loading-placeholder">
-        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
-        <div class="list-group mb-3">
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        </div>
-        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
-        <div class="list-group mb-3">
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-        </div>
-        <div class="bg-light mb-3 w-50" style="height: 30px"></div>
-        <div class="list-group">
-            {{> message_popup/message_drawer_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_messages_list_item_placeholder }}
-            {{> message_popup/message_drawer_messages_list_item_placeholder }}
-        </div>
+    <div class="hidden" data-region="loading-placeholder">
+        {{> message_popup/message_drawer_view_search_results_content_placeholder }}
     </div>
     <div class="p-2" data-region="empty-message-container">
         <p>{{#str}} searchcombined, core_message {{/str}}</p>
