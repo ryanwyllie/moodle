@@ -41,27 +41,17 @@
     data-full-name="{{loggedinuser.fullname}}"
     data-profile-url="{{loggedinuser.profileurl}}"
     data-midnight="{{loggedinuser.midnight}}"
+    style="overflow-y: auto"
 >
-    <div class="h-100 d-flex flex-column">
-        <div class="border-bottom bg-white p-2" data-region="header-container">
-            <div class="hidden" data-region="header-content"></div>
-            <div class="hidden" data-region="header-edit-mode">
-                {{> message_popup/message_drawer_view_conversation_header_edit_mode }}
-            </div>
-            <div data-region="header-placeholder">
-                {{> message_popup/message_drawer_view_conversation_header_placeholder }}
-            </div>
+    <div class="position-relative h-100" data-region="content-container" style="overflow-y: auto">
+        <div class="hidden h-100 px-2 pb-2 pt-0" data-region="content-message-container" style="overflow-y: auto">
+            <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
         </div>
-        <div class="position-relative" data-region="content-container" style="flex: 1; overflow-y: auto">
-            <div class="hidden h-100" data-region="content-message-container">
-                {{> message_popup/message_drawer_view_conversation_content_messages }}
-            </div>
-            <div class="p-4 w-100 h-100 hidden position-absolute" data-region="confirm-dialogue-container" style="top: 0; background: rgba(0,0,0,0.3);">
-                {{> message_popup/message_drawer_view_conversation_confirm_dialogue }}
-            </div>
-            <div class="h-100" data-region="content-placeholder">
-                {{> message_popup/message_drawer_view_conversation_content_placeholder }}
-            </div>
+        <div class="p-2 w-100 h-100 hidden position-absolute" data-region="confirm-dialogue-container" style="top: 0; background: rgba(0,0,0,0.3);">
+            {{> message_popup/message_drawer_view_conversation_body_confirm_dialogue }}
+        </div>
+        <div class="px-2 pb-2 pt-0" data-region="content-placeholder">
+            {{> message_popup/message_drawer_view_conversation_body_placeholder }}
         </div>
     </div>
 </div>

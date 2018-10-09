@@ -188,6 +188,8 @@ function(
         root.find(SELECTORS.NON_CONTACTS_LIST).empty();
         root.find(SELECTORS.MESSAGES_LIST).empty();
         root.find(SELECTORS.NO_RESULTS_CONTAINTER).addClass('hidden');
+        showLoadMoreUsersButton(root);
+        showLoadMoreMessagesButton(root);
     };
 
     var startLoading = function(root) {
@@ -222,6 +224,10 @@ function(
         button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    var showLoadMoreUsersButton = function(root) {
+        root.find(SELECTORS.LOAD_MORE_USERS).removeClass('hidden');
+    };
+
     var hideLoadMoreUsersButton = function(root) {
         root.find(SELECTORS.LOAD_MORE_USERS).addClass('hidden');
     };
@@ -238,6 +244,10 @@ function(
         button.prop('disabled', false);
         button.find(SELECTORS.BUTTON_TEXT).removeClass('hidden');
         button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    };
+
+    var showLoadMoreMessagesButton = function(root) {
+        root.find(SELECTORS.LOAD_MORE_MESSAGES).removeClass('hidden');
     };
 
     var hideLoadMoreMessagesButton = function(root) {
@@ -447,15 +457,15 @@ function(
         });
     };
 
-    var registerEventListeners = function(root) {
-        var loggedInUserId = getLoggedInUserId(root);
-        var searchInput = getSearchInput(root);
+    var registerEventListeners = function(header, body) {
+        var loggedInUserId = getLoggedInUserId(body);
+        var searchInput = getSearchInput(header);
         var searchText = '';
         var searchEventHandler = function(e, data) {
             searchText = searchInput.val().trim();
 
             if (searchText !== '') {
-                search(root, searchText)
+                search(body, searchText)
                     .then(function() {
                         searchInput.focus();
                     });
@@ -465,63 +475,64 @@ function(
         };
 
         CustomEvents.define(searchInput, [CustomEvents.events.enter]);
-        CustomEvents.define(root, [CustomEvents.events.activate]);
+        CustomEvents.define(header, [CustomEvents.events.activate]);
+        CustomEvents.define(body, [CustomEvents.events.activate]);
 
         searchInput.on(CustomEvents.events.enter, searchEventHandler);
 
-        root.on(CustomEvents.events.activate, SELECTORS.SEARCH_ACTION, searchEventHandler);
+        header.on(CustomEvents.events.activate, SELECTORS.SEARCH_ACTION, searchEventHandler);
 
-        root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_MESSAGES, function(e, data) {
+        body.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_MESSAGES, function(e, data) {
             if (searchText !== '') {
-                var offset = getMessagesOffset(root);
-                loadMoreMessages(root, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, offset);
+                var offset = getMessagesOffset(body);
+                loadMoreMessages(body, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, offset);
             }
             data.originalEvent.preventDefault();
         })
 
-        root.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_USERS, function(e, data) {
+        body.on(CustomEvents.events.activate, SELECTORS.LOAD_MORE_USERS, function(e, data) {
             if (searchText !== '') {
-                var offset = getUsersOffset(root);
-                loadMoreUsers(root, loggedInUserId, searchText, USERS_SEARCH_LIMIT, offset);
+                var offset = getUsersOffset(body);
+                loadMoreUsers(body, loggedInUserId, searchText, USERS_SEARCH_LIMIT, offset);
             }
             data.originalEvent.preventDefault();
         })
 
-        root.on(CustomEvents.events.activate, SELECTORS.CANCEL_SEARCH_BUTTON, function() {
-            clearSearchInput(root);
-            showEmptyMessage(root);
-            showSearchIcon(root);
-            hideSearchResults(root);
-            hideLoadingIcon(root);
-            hideLoadingPlaceholder(root);
-            setUsersOffset(root, 0);
-            setMessagesOffset(root, 0);
+        header.on(CustomEvents.events.activate, SELECTORS.CANCEL_SEARCH_BUTTON, function() {
+            clearSearchInput(header);
+            showEmptyMessage(body);
+            showSearchIcon(header);
+            hideSearchResults(body);
+            hideLoadingIcon(header);
+            hideLoadingPlaceholder(body);
+            setUsersOffset(body, 0);
+            setMessagesOffset(body, 0);
         });
 
         PubSub.subscribe(Events.CONTACT_ADDED, function(userId) {
-            addContact(root, userId);
+            addContact(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
-            removeContact(root, userId);
+            removeContact(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_BLOCKED, function(userId) {
-            blockContact(root, userId);
+            blockContact(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
-            unblockContact(root, userId);
+            unblockContact(body, userId);
         });
     };
 
-    var show = function(root) {
-        if (!root.attr('data-init')) {
-            registerEventListeners(root);
-            root.attr('data-init', true);
+    var show = function(header, body) {
+        if (!body.attr('data-init')) {
+            registerEventListeners(header, body);
+            body.attr('data-init', true);
         }
 
-        var searchInput = getSearchInput(root);
+        var searchInput = getSearchInput(header);
         searchInput.focus();
     };
 

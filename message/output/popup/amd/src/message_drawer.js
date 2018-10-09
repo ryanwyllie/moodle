@@ -56,16 +56,31 @@ function(
         VIEW_SEARCH: '[data-region="view-search"]',
         VIEW_SETTINGS: '[data-region="view-settings"]',
         ROUTES: '[data-route]',
-        ROUTES_BACK: '[data-route-back]'
+        ROUTES_BACK: '[data-route-back]',
+        HEADER_CONTAINER: '[data-region="header-container"]',
+        BODY_CONTAINER: '[data-region="body-container"]',
+        FOOTER_CONTAINER: '[data-region="footer-container"]',
+    };
+
+    var getElementsForRoute = function(root, selector) {
+        var candidates = root.children();
+        var header = candidates.filter(SELECTORS.HEADER_CONTAINER).find(selector);
+        var body = candidates.filter(SELECTORS.BODY_CONTAINER).find(selector);
+        var footer = candidates.filter(SELECTORS.FOOTER_CONTAINER).find(selector);
+        var elements = [header, body, footer].filter(function(element) {
+            return element.length;
+        });
+
+        return elements;
     };
 
     var createRoutes = function(root) {
-        Router.add(Routes.VIEW_CONTACT, root.find(SELECTORS.VIEW_CONTACT), ViewContact.show);
-        Router.add(Routes.VIEW_CONTACTS, root.find(SELECTORS.VIEW_CONTACTS), ViewContacts.show);
-        Router.add(Routes.VIEW_CONVERSATION, root.find(SELECTORS.VIEW_CONVERSATION), ViewConversation.show);
-        Router.add(Routes.VIEW_OVERVIEW, root.find(SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
-        Router.add(Routes.VIEW_SEARCH, root.find(SELECTORS.VIEW_SEARCH), ViewSearch.show);
-        Router.add(Routes.VIEW_SETTINGS, root.find(SELECTORS.VIEW_SETTINGS), ViewSettings.show);
+        Router.add(Routes.VIEW_CONTACT, getElementsForRoute(root, SELECTORS.VIEW_CONTACT), ViewContact.show);
+        Router.add(Routes.VIEW_CONTACTS, getElementsForRoute(root, SELECTORS.VIEW_CONTACTS), ViewContacts.show);
+        Router.add(Routes.VIEW_CONVERSATION, getElementsForRoute(root, SELECTORS.VIEW_CONVERSATION), ViewConversation.show);
+        Router.add(Routes.VIEW_OVERVIEW, getElementsForRoute(root, SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
+        Router.add(Routes.VIEW_SEARCH, getElementsForRoute(root, SELECTORS.VIEW_SEARCH), ViewSearch.show);
+        Router.add(Routes.VIEW_SETTINGS, getElementsForRoute(root, SELECTORS.VIEW_SETTINGS), ViewSettings.show);
     };
 
     var registerEventListeners = function(root) {

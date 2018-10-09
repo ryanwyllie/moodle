@@ -33,9 +33,8 @@
     {}
 
 }}
-
-<div class="h-100" data-region="view-overview" id="message-drawer-view-overview-container">
-    <div class="d-flex p-2">
+<div class="border-bottom px-2 py-3" data-region="view-overview">
+    <div class="d-flex align-items-center">
         <div class="input-group">
             <div class="input-group-prepend">
                 <span class="input-group-text pr-0 bg-white">
@@ -50,7 +49,7 @@
                 data-region="view-overview-search-input"
             >
         </div>
-        <div class="align-self-center ml-2">
+        <div class="ml-2">
             <a
                 href="#"
                 data-route="view-settings"
@@ -60,12 +59,7 @@
             </a>
         </div>
     </div>
-    <div class="h-100" style="overflow-y: auto">
-        <div class="text-right p-2 border-bottom">
-            <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
-        </div>
-        {{#overview.messages}}
-            {{> message_popup/message_drawer_view_overview_messages }}
-        {{/overview.messages}}
+    <div class="text-right mt-3">
+        <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
     </div>
 </div>

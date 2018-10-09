@@ -37,9 +37,9 @@ function(
     var routes = {};
     var history = [];
 
-    var add = function(route, element, onGo) {
+    var add = function(route, elements, onGo) {
         routes[route] = {
-            element: element,
+            elements: elements,
             onGo: onGo
         };
     };
@@ -56,15 +56,21 @@ function(
                 newConfig = config;
             }
 
-            $(config.element).addClass('hidden');
+            config.elements.forEach(function(element) {
+                $(element).addClass('hidden');
+            });
         });
 
         if (newConfig) {
-            var element = $(newConfig.element);
-            element.removeClass('hidden');
+            var elements = newConfig.elements.map(function(element) {
+                return $(element);
+            });
+            elements.forEach(function(element) {
+                element.removeClass('hidden');
+            });
 
             if (newConfig.onGo) {
-                newConfig.onGo.apply(undefined, [element].concat(args));
+                newConfig.onGo.apply(undefined, elements.concat(args));
             }
         }
 

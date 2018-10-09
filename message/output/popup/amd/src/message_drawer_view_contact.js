@@ -44,7 +44,7 @@ function(
     };
 
     var TEMPLATES = {
-        CONTENT: 'message_popup/message_drawer_view_contact_content'
+        CONTENT: 'message_popup/message_drawer_view_contact_body_content'
     };
 
     var getLoggedInUserId = function(root) {

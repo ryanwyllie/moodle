@@ -175,13 +175,11 @@ function(
      *
      * @param {object} root The root element for the settings page
      */
-    var show = function(root, loggedInUserId) {
-        root = $(root);
-
-        if (!root.attr('data-init')) {
-            registerEventListeners(root, loggedInUserId);
-            loadPreferences(root, loggedInUserId);
-            root.attr('data-init', true);
+    var show = function(header, body, loggedInUserId) {
+        if (!body.attr('data-init')) {
+            registerEventListeners(body, loggedInUserId);
+            loadPreferences(body, loggedInUserId);
+            body.attr('data-init', true);
         }
     };
 

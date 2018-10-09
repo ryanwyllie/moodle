@@ -146,18 +146,17 @@ function(
         });
     };
 
-    var show = function(root) {
-        root = $(root);
+    var show = function(header, body) {
         viewState.contactsOffset = 0;
 
-        if (!root.attr('data-contacts-init')) {
-            registerEventListeners(root);
-            root.attr('data-contacts-init', true);
+        if (!body.attr('data-contacts-init')) {
+            registerEventListeners(body);
+            body.attr('data-contacts-init', true);
         }
 
         if (!viewState.loadedAllContacts) {
-            Renderer.showPlaceholder(root);
-            loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+            Renderer.showPlaceholder(body);
+            loadContacts(body, getUserId(body), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
         }
     };
 

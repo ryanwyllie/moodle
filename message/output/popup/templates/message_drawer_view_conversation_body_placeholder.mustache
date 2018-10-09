@@ -33,16 +33,15 @@
     {}
 
 }}
-
-<div
-    class="hidden bg-white border-bottom px-2 py-3"
-    data-region="view-conversation"
->
-    <div class="hidden" data-region="header-content"></div>
-    <div class="hidden" data-region="header-edit-mode">
-        {{> message_popup/message_drawer_view_conversation_header_edit_mode }}
-    </div>
-    <div data-region="header-placeholder">
-        {{> message_popup/message_drawer_view_conversation_header_placeholder }}
+<div class="h-100 d-flex flex-column">
+    <div
+        class="px-2 pb-2 pt-0 bg-light h-100"
+        style="overflow-y: auto"
+    >
+        {{> message_popup/message_drawer_view_conversation_body_day_placeholder }}
+        {{> message_popup/message_drawer_view_conversation_body_day_placeholder }}
+        {{> message_popup/message_drawer_view_conversation_body_day_placeholder }}
+        {{> message_popup/message_drawer_view_conversation_body_day_placeholder }}
+        {{> message_popup/message_drawer_view_conversation_body_day_placeholder }}
     </div>
 </div>

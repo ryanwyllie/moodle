@@ -35,14 +35,16 @@
 }}
 
 <div
-    class="hidden bg-white border-bottom px-2 py-3"
+    class="hidden p-2 border-top bg-white"
     data-region="view-conversation"
 >
-    <div class="hidden" data-region="header-content"></div>
-    <div class="hidden" data-region="header-edit-mode">
-        {{> message_popup/message_drawer_view_conversation_header_edit_mode }}
+    <div class="hidden" data-region="content-messages-footer-container">
+        {{> message_popup/message_drawer_view_conversation_footer_content }}
     </div>
-    <div data-region="header-placeholder">
-        {{> message_popup/message_drawer_view_conversation_header_placeholder }}
+    <div class="hidden" data-region="content-messages-footer-edit-mode-container">
+        {{> message_popup/message_drawer_view_conversation_footer_edit_mode }}
+    </div>
+    <div data-region="placeholder-container">
+        {{> message_popup/message_drawer_view_conversation_footer_placeholder }}
     </div>
 </div>

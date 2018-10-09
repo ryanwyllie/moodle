@@ -34,21 +34,15 @@
 
 }}
 
-<div class="h-100 d-flex flex-column">
-    <div
-        class="px-2 pb-2 pt-0 position-relative"
-        data-region="view-conversation-messages"
-        style="overflow-y: auto"
-    >
-        <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
-    </div>
-
-    <div class="mt-auto w-100 p-2 border-top bg-white" data-region="response">
-        <div data-region="content-messages-footer-container">
-            {{> message_popup/message_drawer_view_conversation_content_messages_footer }}
+<div class="hidden border-bottom px-2 py-3" data-region="view-settings">
+    <div class="d-flex align-items-center">
+        <div class="align-self-stretch" >
+            <a class="h-100 d-flex mr-2 align-items-center" href="#" data-route-back>
+                {{> message_popup/message_drawer_icon_back }}
+            </a>
         </div>
-        <div class="hidden" data-region="content-messages-footer-edit-mode-container">
-            {{> message_popup/message_drawer_view_conversation_content_messages_footer_edit_mode }}
+        <div>
+            {{#str}} settings, core {{/str}}
         </div>
     </div>
 </div>

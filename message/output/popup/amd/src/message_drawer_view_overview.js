@@ -24,13 +24,11 @@
  */
 define(
 [
-    'jquery',
     'message_popup/message_drawer_view_overview_messages',
     'message_popup/message_drawer_router',
     'message_popup/message_drawer_routes'
 ],
 function(
-    $,
     Messages,
     Router,
     Routes
@@ -41,26 +39,25 @@ function(
         SEARCH_INPUT: '[data-region="view-overview-search-input"]',
     };
 
-    var getSearchInput = function(root) {
-        return root.find(SELECTORS.SEARCH_INPUT);
+    var getSearchInput = function(header) {
+        return header.find(SELECTORS.SEARCH_INPUT);
     };
 
-    var registerEventListeners = function(root) {
-        var searchInput = getSearchInput(root);
+    var registerEventListeners = function(header) {
+        var searchInput = getSearchInput(header);
         searchInput.on('focus', function() {
             Router.go(Routes.VIEW_SEARCH);
         });
     };
 
-    var show = function(root) {
-        root = $(root);
-        if (!root.attr('data-init')) {
-            registerEventListeners(root);
-            root.attr('data-init', true);
+    var show = function(header, body) {
+        if (!header.attr('data-init')) {
+            registerEventListeners(header);
+            header.attr('data-init', true);
         }
 
-        getSearchInput(root).val('');
-        Messages.show(root.find(SELECTORS.MESSAGES));
+        getSearchInput(header).val('');
+        Messages.show(body.find(SELECTORS.MESSAGES));
     };
 
     return {

@@ -52,7 +52,7 @@ function(
         MESSAGE_NOT_SELECTED: '[data-region="message"][aria-checked="false"]',
         MESSAGE_NOT_SELECTED_ICON: '[data-region="not-selected-icon"]',
         MESSAGE_SELECTED_ICON: '[data-region="selected-icon"]',
-        MESSAGES: '[data-region="view-conversation-messages"]',
+        MESSAGES: '[data-region="content-message-container"]',
         MESSAGES_SELECTED_COUNT: '[data-region="message-selected-court"]',
         CONTENT_PLACEHOLDER_CONTAINER: '[data-region="content-placeholder"]',
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
@@ -65,53 +65,60 @@ function(
         CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER: '[data-region="content-messages-footer-edit-mode-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
-        RESPONSE_CONTAINER: '[data-region="response"]',
         CONFIRM_DIALOGUE_CONTAINER: '[data-region="confirm-dialogue-container"]',
-        CONFIRM_DIALOGUE_BUTTON_TEXT: '[data-region="dialogue-button-text"]'
+        CONFIRM_DIALOGUE_BUTTON_TEXT: '[data-region="dialogue-button-text"]',
+        PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]'
 
     };
     var TEMPLATES = {
-        HEADER: 'message_popup/message_drawer_view_conversation_header',
-        DAY: 'message_popup/message_drawer_view_conversation_day',
-        MESSAGE: 'message_popup/message_drawer_view_conversation_message',
-        MESSAGES: 'message_popup/message_drawer_view_conversation_messages',
-        ADDCONTACT: 'message_popup/message_drawer_add_contact'
+        HEADER: 'message_popup/message_drawer_view_conversation_header_content',
+        DAY: 'message_popup/message_drawer_view_conversation_body_day',
+        MESSAGE: 'message_popup/message_drawer_view_conversation_body_message',
+        MESSAGES: 'message_popup/message_drawer_view_conversation_body_messages'
     };
 
-    var getContentMessagesContainer = function(root) {
+    var getMessagesContainer = function(root) {
         return root.find(SELECTORS.CONTENT_MESSAGES_CONTAINER);
     };
 
-    var showContentMessagesContainer = function(root) {
-        getContentMessagesContainer(root).removeClass('hidden');
+    var showMessagesContainer = function(root) {
+        getMessagesContainer(root).removeClass('hidden');
     };
 
-    var hideContentMessagesContainer = function(root) {
-        getContentMessagesContainer(root).addClass('hidden');
+    var hideMessagesContainer = function(root) {
+        getMessagesContainer(root).addClass('hidden');
     };
 
-    var getContentMessagesFooterContainer = function(root) {
+    var getFooterContentContainer = function(root) {
         return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_CONTAINER);
     };
 
-    var showContentMessagesFooterContainer = function(root) {
-        getContentMessagesFooterContainer(root).removeClass('hidden');
+    var showFooterContent = function(root) {
+        getFooterContentContainer(root).removeClass('hidden');
     };
 
-    var hideContentMessagesFooterContainer = function(root) {
-        getContentMessagesFooterContainer(root).addClass('hidden');
+    var hideFooterContent = function(root) {
+        getFooterContentContainer(root).addClass('hidden');
     };
 
-    var getContentMessagesFooterEditModeContainer = function(root) {
+    var getFooterEditModeContainer = function(root) {
         return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER);
     };
 
-    var showContentMessagesFooterEditModeContainer = function(root) {
-        getContentMessagesFooterEditModeContainer(root).removeClass('hidden');
+    var showFooterEditMode = function(root) {
+        getFooterEditModeContainer(root).removeClass('hidden');
     };
 
-    var hideContentMessagesFooterEditModeContainer = function(root) {
-        getContentMessagesFooterEditModeContainer(root).addClass('hidden');
+    var hideFooterEditMode = function(root) {
+        getFooterEditModeContainer(root).addClass('hidden');
+    };
+
+    var showFooterPlaceholder = function(footer) {
+        footer.find(SELECTORS.PLACEHOLDER_CONTAINER).removeClass('hidden');
+    };
+
+    var hideFooterPlaceholder = function(footer) {
+        footer.find(SELECTORS.PLACEHOLDER_CONTAINER).addClass('hidden');
     };
 
     var getContentPlaceholderContainer = function(root) {
@@ -204,16 +211,14 @@ function(
 
     var startSendMessageLoading = function(root) {
         disableSendMessage(root);
-        var responseContainer = root.find(SELECTORS.RESPONSE_CONTAINER);
-        responseContainer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
-        responseContainer.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
     var stopSendMessageLoading = function(root) {
         enableSendMessage(root);
-        var responseContainer = root.find(SELECTORS.RESPONSE_CONTAINER);
-        responseContainer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
-        responseContainer.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
+        root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
     var hasSentMessage = function(root) {
@@ -251,8 +256,8 @@ function(
         });
     };
 
-    var renderAddDays = function(root, days) {
-        var messagesContainer = getMessagesContainer(root);
+    var renderAddDays = function(header, body, footer, days) {
+        var messagesContainer = getMessagesContainer(body);
         var daysRenderPromises = days.map(function(data) {
             return Templates.render(TEMPLATES.DAY, {
                 timestamp: data.value.timestamp,
@@ -266,17 +271,20 @@ function(
             days.forEach(function(data, index) {
                 daysRenderPromises[index].then(function(html) {
                     if (data.before) {
-                        var element = getDayElement(root, data.before.timestamp);
+                        var element = getDayElement(body, data.before.timestamp);
                         return $(html).insertBefore(element);
                     } else {
                         return messagesContainer.append(html);
                     }
                 });
             });
+        })
+        .catch(function(error) {
+            console.log(error);
         });
     };
 
-    var renderAddMessages = function(root, messages) {
+    var renderAddMessages = function(header, body, footer, messages) {
         var messagesRenderPromises = messages.map(function(data) {
             var formattedMessages = formatMessagesForTemplate([data.value]);
             return Templates.render(TEMPLATES.MESSAGE, formattedMessages[0]);
@@ -288,10 +296,10 @@ function(
             messages.forEach(function(data, index) {
                 messagesRenderPromises[index].then(function(html) {
                     if (data.before) {
-                        var element = getMessageElement(root, data.before.id);
+                        var element = getMessageElement(body, data.before.id);
                         return $(html).insertBefore(element);
                     } else {
-                        var dayContainer = getDayElement(root, data.day.timestamp);
+                        var dayContainer = getDayElement(body, data.day.timestamp);
                         var dayMessagesContainer = dayContainer.find(SELECTORS.DAY_MESSAGES_CONTAINER);
                         return dayMessagesContainer.append(html);
                     }
@@ -300,167 +308,171 @@ function(
         });
     };
 
-    var renderRemoveDays = function(root, days) {
+    var renderRemoveDays = function(header, body, footer, days) {
         days.forEach(function(data) {
-            getDayElement(root, data.timestamp).remove();
+            getDayElement(body, data.timestamp).remove();
         });
     };
 
-    var renderRemoveMessages = function(root, messages) {
+    var renderRemoveMessages = function(header, body, footer, messages) {
         messages.forEach(function(data) {
-            getMessageElement(root, data.id).remove();
+            getMessageElement(body, data.id).remove();
         });
     };
 
-    var renderConversation = function(root, data) {
+    var renderConversation = function(header, body, footer, data) {
         var renderingPromises = [];
 
         if (data.days.add.length > 0) {
-            renderingPromises = renderingPromises.concat(renderAddDays(root, data.days.add));
+            renderingPromises = renderingPromises.concat(renderAddDays(header, body, footer, data.days.add));
         }
 
         if (data.messages.add.length > 0) {
-            renderingPromises = renderingPromises.concat(renderAddMessages(root, data.messages.add));
+            renderingPromises = renderingPromises.concat(renderAddMessages(header, body, footer, data.messages.add));
         }
 
         if (data.days.remove.length > 0) {
-            renderRemoveDays(root, data.days.remove);
+            renderRemoveDays(header, body, footer, data.days.remove);
         }
 
         if (data.messages.remove.length > 0) {
-            renderRemoveMessages(root, data.messages.remove);
+            renderRemoveMessages(header, body, footer, data.messages.remove);
         }
 
         return $.when.apply($, renderingPromises);
     };
 
-    var renderHeader = function(root, data) {
-        var headerContainer = getHeaderContent(root);
+    var renderHeader = function(header, body, footer, data) {
+        var headerContainer = getHeaderContent(header);
         return Templates.render(TEMPLATES.HEADER, data.context)
             .then(function(html, js) {
                 Templates.replaceNodeContents(headerContainer, html, js);
             });
     };
 
-    var renderScrollToMessage = function(root, messageId) {
-        var messagesContainer = getMessagesContainer(root);
-        var messageElement = getMessageElement(root, messageId);
+    var renderScrollToMessage = function(header, body, footer, messageId) {
+        var messagesContainer = getMessagesContainer(body);
+        var messageElement = getMessageElement(body, messageId);
         // Scroll the message container down to the top of the message element.
         var scrollTop = messagesContainer.scrollTop() + messageElement.position().top;
         messagesContainer.scrollTop(scrollTop);
     };
 
-    var renderLoadingMembers = function(root, isLoadingMembers) {
+    var renderLoadingMembers = function(header, body, footer, isLoadingMembers) {
         if (isLoadingMembers) {
-            hideHeaderContent(root);
-            showHeaderPlaceholder(root);
+            hideHeaderContent(header);
+            showHeaderPlaceholder(header);
         } else {
-            showHeaderContent(root);
-            hideHeaderPlaceholder(root);
+            showHeaderContent(header);
+            hideHeaderPlaceholder(header);
         }
     };
 
-    var renderLoadingFirstMessages = function(root, isLoadingFirstMessages) {
+    var renderLoadingFirstMessages = function(header, body, footer, isLoadingFirstMessages) {
         if (isLoadingFirstMessages) {
-            hideContentMessagesContainer(root);
-            showContentPlaceholder(root);
+            hideMessagesContainer(body);
+            hideFooterContent(footer);
+            showContentPlaceholder(body);
+            showFooterPlaceholder(footer);
         } else {
-            showContentMessagesContainer(root);
-            hideContentPlaceholder(root);
+            showMessagesContainer(body);
+            showFooterContent(footer);(footer);
+            hideContentPlaceholder(body);
+            hideFooterPlaceholder(footer);
         }
     };
 
-    var renderLoadingMessages = function(root, isLoading) {
+    var renderLoadingMessages = function(header, body, footer, isLoading) {
         if (isLoading) {
-            showMoreMessagesLoadingIcon(root);
+            showMoreMessagesLoadingIcon(body);
         } else {
-            hideMoreMessagesLoadingIcon(root);
+            hideMoreMessagesLoadingIcon(body);
         }
     };
 
-    var renderSendingMessage = function(root, isSending) {
+    var renderSendingMessage = function(header, body, footer, isSending) {
         if (isSending) {
-            startSendMessageLoading(root);
+            startSendMessageLoading(footer);
         } else {
-            stopSendMessageLoading(root);
-            hasSentMessage(root);
+            stopSendMessageLoading(footer);
+            hasSentMessage(footer);
         }
     };
 
-    var renderConfirmDialogue = function(root, show, buttonSelector, stringPromise) {
-        var dialogue = getConfirmDialogueContainer(root);
+    var renderConfirmDialogue = function(header, body, footer, show, buttonSelector, stringPromise) {
+        var dialogue = getConfirmDialogueContainer(body);
         var button = dialogue.find(buttonSelector);
         var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
         if (show) {
             return stringPromise.then(function(string) {
                     button.removeClass('hidden');
                     text.text(string);
-                    return showConfirmDialogue(root);
+                    return showConfirmDialogue(body);
                 });
         } else {
-            hideConfirmDialogue(root);
+            hideConfirmDialogue(body);
             button.addClass('hidden');
             text.text('');
             return true;
         }
     };
 
-    var renderConfirmBlockUser = function(root, user) {
+    var renderConfirmBlockUser = function(header, body, footer, user) {
         var show = user ? true : false;
         var stringPromise = show ? Str.get_string('blockuserconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_BLOCK, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_BLOCK, stringPromise);
     };
 
-    var renderConfirmUnblockUser = function(root, user) {
+    var renderConfirmUnblockUser = function(header, body, footer, user) {
         var show = user ? true : false;
         var stringPromise = show ? Str.get_string('unblockuserconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_UNBLOCK, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_UNBLOCK, stringPromise);
     };
 
-    var renderConfirmAddContact = function(root, user) {
+    var renderConfirmAddContact = function(header, body, footer, user) {
         var show = user ? true : false;
         var stringPromise = show ? Str.get_string('addcontactconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, stringPromise);
     };
 
-    var renderConfirmRemoveContact = function(root, user) {
+    var renderConfirmRemoveContact = function(header, body, footer, user) {
         var show = user ? true : false;
         var stringPromise = show ? Str.get_string('removecontactconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, stringPromise);
     };
 
-    var renderConfirmDeleteSelectedMessages = function(root, show) {
+    var renderConfirmDeleteSelectedMessages = function(header, body, footer, show) {
         var stringPromise = Str.get_string('deleteselectedmessagesconfirm', 'core_message');
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, stringPromise);
     };
 
-    var renderConfirmDeleteConversation = function(root, show) {
+    var renderConfirmDeleteConversation = function(header, body, footer, show) {
         var stringPromise = Str.get_string('deleteallconfirm', 'core_message');
-        return renderConfirmDialogue(root, show, SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, stringPromise);
+        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, stringPromise);
     };
 
-    var renderIsBlocked = function(root, isBlocked) {
+    var renderIsBlocked = function(header, body, footer, isBlocked) {
         if (isBlocked) {
-            root.find(SELECTORS.ACTION_REQUEST_BLOCK).addClass('hidden');
-            root.find(SELECTORS.ACTION_REQUEST_UNBLOCK).removeClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_BLOCK).addClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_UNBLOCK).removeClass('hidden');
         } else {
-            root.find(SELECTORS.ACTION_REQUEST_BLOCK).removeClass('hidden');
-            root.find(SELECTORS.ACTION_REQUEST_UNBLOCK).addClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_BLOCK).removeClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_UNBLOCK).addClass('hidden');
         }
     };
 
-    var renderIsContact = function(root, isContact) {
+    var renderIsContact = function(header, body, footer, isContact) {
         if (isContact) {
-            root.find(SELECTORS.ACTION_REQUEST_ADD_CONTACT).addClass('hidden');
-            root.find(SELECTORS.ACTION_REQUEST_REMOVE_CONTACT).removeClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_ADD_CONTACT).addClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_REMOVE_CONTACT).removeClass('hidden');
         } else {
-            root.find(SELECTORS.ACTION_REQUEST_ADD_CONTACT).removeClass('hidden');
-            root.find(SELECTORS.ACTION_REQUEST_REMOVE_CONTACT).addClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_ADD_CONTACT).removeClass('hidden');
+            header.find(SELECTORS.ACTION_REQUEST_REMOVE_CONTACT).addClass('hidden');
         }
     };
 
-    var renderLoadingConfirmAction = function(root, isLoading) {
-        var dialogue = getConfirmDialogueContainer(root);
+    var renderLoadingConfirmAction = function(header, body, footer, isLoading) {
+        var dialogue = getConfirmDialogueContainer(body);
         var buttons = dialogue.find('button');
         var buttonText = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_BUTTON_TEXT);
         var loadingIcon = dialogue.find(SELECTORS.LOADING_ICON_CONTAINER);
@@ -476,31 +488,31 @@ function(
         }
     };
 
-    var renderInEditMode = function(root, inEditMode) {
+    var renderInEditMode = function(header, body, footer, inEditMode) {
         if (inEditMode) {
-            var messages = root.find(SELECTORS.MESSAGE_NOT_SELECTED);
+            var messages = body.find(SELECTORS.MESSAGE_NOT_SELECTED);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
-            hideHeaderContent(root);
-            showHeaderEditMode(root);
-            hideContentMessagesFooterContainer(root);
-            showContentMessagesFooterEditModeContainer(root);
+            hideHeaderContent(header);
+            showHeaderEditMode(header);
+            hideFooterContent(footer);
+            showFooterEditMode(footer);
         } else {
-            var messages = root.find(SELECTORS.MESSAGE);
+            var messages = body.find(SELECTORS.MESSAGE);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
             messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
-            showHeaderContent(root);
-            hideHeaderEditMode(root);
-            showContentMessagesFooterContainer(root);
-            hideContentMessagesFooterEditModeContainer(root);
+            showHeaderContent(header);
+            hideHeaderEditMode(header);
+            showFooterContent(footer);
+            hideFooterEditMode(footer);
         }
     };
 
-    var renderSelectedMessages = function(root, data) {
+    var renderSelectedMessages = function(header, body, footer, data) {
         var hasSelectedMessages = data.count > 0;
 
         if (data.add.length) {
             data.add.forEach(function(messageId) {
-                var message = getMessageElement(root, messageId);
+                var message = getMessageElement(body, messageId);
                 message.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
                 message.find(SELECTORS.MESSAGE_SELECTED_ICON).removeClass('hidden');
                 message.attr('aria-checked', true);
@@ -509,7 +521,7 @@ function(
 
         if (data.remove.length) {
             data.remove.forEach(function(messageId) {
-                var message = getMessageElement(root, messageId);
+                var message = getMessageElement(body, messageId);
 
                 if (hasSelectedMessages) {
                     message.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
@@ -520,10 +532,10 @@ function(
             });
         }
 
-        setMessagesSelectedCount(root, data.count);
+        setMessagesSelectedCount(header, data.count);
     };
 
-    var render = function(root, patch) {
+    var render = function(header, body, footer, patch) {
         var configs = [
             {
                 // Any async rendering (stuff that requires templates) should
@@ -562,7 +574,7 @@ function(
                 if (config.hasOwnProperty(key)) {
                     var renderFunc = config[key];
                     var patchValue = patch[key];
-                    results.push(renderFunc(root, patchValue));
+                    results.push(renderFunc(header, body, footer, patchValue));
                 }
             }
 
