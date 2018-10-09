@@ -39,10 +39,16 @@
         <div data-region="contacts-container">
             <h4 class="h6">{{#str}} contacts, core_message {{/str}}</h4>
             <div class="list-group" data-region="list"></div>
+            <p class="hidden" data-region="no-results-container">
+                {{#str}} searchnocontactsfound, core_message {{/str}}
+            </p>
         </div>
         <div data-region="non-contacts-container">
             <h4 class="h6">{{#str}} noncontacts, core_message {{/str}}</h4>
             <div class="list-group" data-region="list"></div>
+            <p class="hidden" data-region="no-results-container">
+                {{#str}} searchnononcontactsfound, core_message {{/str}}
+            </p>
         </div>
         <div class="text-right">
             <button class="btn btn-link text-primary" data-action="load-more-users">
@@ -55,6 +61,9 @@
         <div data-region="messages-container">
             <h4 class="h6">{{#str}} messages, core_message {{/str}}</h4>
             <div class="list-group" data-region="list"></div>
+            <p class="hidden" data-region="no-results-container">
+                {{#str}} searchnomessagesfound, core_message {{/str}}
+            </p>
         </div>
         <div class="text-right">
             <button class="btn btn-link text-primary" data-action="load-more-messages">

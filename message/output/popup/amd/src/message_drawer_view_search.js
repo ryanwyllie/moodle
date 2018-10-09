@@ -55,8 +55,8 @@ function(
         LIST: '[data-region="list"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         LOADING_PLACEHOLDER: '[data-region="loading-placeholder"]',
-        MESSAGES_CONTAINER: '[data-region="messages-container"]',
         MESSAGES_LIST: '[data-region="messages-container"] [data-region="list"]',
+        MESSAGES_CONTAINER: '[data-region="messages-container"]',
         NON_CONTACTS_CONTAINER: '[data-region="non-contacts-container"]',
         NON_CONTACTS_LIST: '[data-region="non-contacts-container"] [data-region="list"]',
         SEARCH_ICON_CONTAINER: '[data-region="search-icon-container"]',
@@ -65,7 +65,8 @@ function(
         SEARCH_RESULTS_CONTAINER: '[data-region="search-results-container"]',
         LOAD_MORE_USERS: '[data-action="load-more-users"]',
         LOAD_MORE_MESSAGES: '[data-action="load-more-messages"]',
-        BUTTON_TEXT: '[data-region="button-text"]'
+        BUTTON_TEXT: '[data-region="button-text"]',
+        NO_RESULTS_CONTAINTER: '[data-region="no-results-container"]',
     };
 
     var TEMPLATES = {
@@ -79,7 +80,7 @@ function(
     };
 
     var getMessagesOffset = function(root) {
-        return parseInt(root.attr('data-max-messages'), 10);
+        return parseInt(root.attr('data-messages-offset'), 10);
     };
 
     var setUsersOffset = function(root, value) {
@@ -87,7 +88,7 @@ function(
     };
 
     var setMessagesOffset = function(root, value) {
-        return root.attr('data-max-messages', value);
+        return root.attr('data-messages-offset', value);
     };
 
     var getLoggedInUserId = function(root) {
@@ -186,6 +187,7 @@ function(
         root.find(SELECTORS.CONTACTS_LIST).empty();
         root.find(SELECTORS.NON_CONTACTS_LIST).empty();
         root.find(SELECTORS.MESSAGES_LIST).empty();
+        root.find(SELECTORS.NO_RESULTS_CONTAINTER).addClass('hidden');
     };
 
     var startLoading = function(root) {
@@ -242,6 +244,7 @@ function(
         root.find(SELECTORS.LOAD_MORE_MESSAGES).addClass('hidden');
     };
 
+    // TODO: Stop this from changing the DOM.
     var highlightSearch = function(root, searchText) {
         root.find('[data-region="searchable"]').each(function() {
               var content = $(this).text();
@@ -302,24 +305,51 @@ function(
     };
 
     var renderContacts = function(root, contacts) {
-        return Templates.render(TEMPLATES.CONTACTS_LIST, { contacts: contacts })
-            .then(function(html) {
-                root.find(SELECTORS.CONTACTS_LIST).append(html);
-            });
+        var container = getContactsContainer(root);
+        var list = container.find(SELECTORS.LIST);
+
+        if (!contacts.length && !list.children().length) {
+            var noResultsContainer = container.find(SELECTORS.NO_RESULTS_CONTAINTER);
+            noResultsContainer.removeClass('hidden');
+            return $.Deferred().resolve('').promise();
+        } else {
+            return Templates.render(TEMPLATES.CONTACTS_LIST, { contacts: contacts })
+                .then(function(html) {
+                    list.append(html);
+                });
+        }
     };
 
     var renderNonContacts = function(root, nonContacts) {
-        return Templates.render(TEMPLATES.NON_CONTACTS_LIST, { noncontacts: nonContacts })
-            .then(function(html) {
-                root.find(SELECTORS.NON_CONTACTS_LIST).append(html);
-            });
+        var container = getNonContactsContainer(root);
+        var list = container.find(SELECTORS.LIST);
+
+        if (!nonContacts.length && !list.children().length) {
+            var noResultsContainer = container.find(SELECTORS.NO_RESULTS_CONTAINTER);
+            noResultsContainer.removeClass('hidden');
+            return $.Deferred().resolve('').promise();
+        } else {
+            return Templates.render(TEMPLATES.NON_CONTACTS_LIST, { noncontacts: nonContacts })
+                .then(function(html) {
+                    list.append(html);
+                });
+        }
     };
 
     var renderMessages = function(root, messages) {
-        return Templates.render(TEMPLATES.MESSAGES_LIST, { messages: messages })
-            .then(function(html) {
-                root.find(SELECTORS.MESSAGES_LIST).append(html);
-            });
+        var container = getMessagesContainer(root);
+        var list = container.find(SELECTORS.LIST);
+
+        if (!messages.length && !list.children().length) {
+            var noResultsContainer = container.find(SELECTORS.NO_RESULTS_CONTAINTER);
+            noResultsContainer.removeClass('hidden');
+            return $.Deferred().resolve('').promise();
+        } else {
+            return Templates.render(TEMPLATES.MESSAGES_LIST, { messages: messages })
+                .then(function(html) {
+                    list.append(html);
+                });
+        }
     };
 
     var loadMoreUsers = function(root, loggedInUserId, text, limit, offset) {
@@ -409,7 +439,6 @@ function(
         )
         .then(function() {
             stopLoading(root);
-            highlightSearch(root, searchText);
             return;
         })
         .catch(function(error) {
