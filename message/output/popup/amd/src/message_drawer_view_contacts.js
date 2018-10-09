@@ -27,109 +27,164 @@ define(
     'jquery',
     'core/notification',
     'core/pubsub',
+    'core/templates',
     'core/custom_interaction_events',
     'core_message/message_repository',
-    'message_popup/message_drawer_events',
-    'message_popup/message_drawer_view_contacts_renderer'
+    'message_popup/message_drawer_events'
 ],
 function(
     $,
     Notification,
     PubSub,
+    Templates,
     CustomEvents,
     MessageRepository,
-    Events,
-    Renderer
+    Events
 ) {
 
-    var LOAD_CONTACTS_LIMIT = 100;
+    var LOAD_CONTACTS_LIMIT = 10;
 
-    var viewState = {
-        loadedAllContacts: false,
-        contacts: [],
-        contactsOffset: 0
-    }
+    var numContacts = 0;
+    var contactsOffset = 0;
+    var loadedAllContacts = false;
+    var numLoads = 0;
+    var waitForScrollLoad = false;
 
     var SELECTORS = {
         BLOCK_ICON_CONTAINER: '[data-region="block-icon-container"]',
-        CONTACTS: '[data-region="view-contacts-container"]'
+        CONTACTS: '[data-region="contacts-container"]',
+        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
+        CONTENT_CONTAINER: '[data-region="contacts-content-container"]',
+        EMPTY_MESSAGE: '[data-region="empty-message-container"]',
+        PLACEHOLDER: '[data-region="placeholder-container"]'
     };
 
-    var render = function(root, viewState) {
-        return Renderer.render(root, viewState);
+    var TEMPLATES = {
+        CONTACTS_LIST: 'message_popup/message_drawer_contacts_list'
     };
 
-    var loadContacts = function(root, userId) {
-        return MessageRepository.getContacts(userId, LOAD_CONTACTS_LIMIT + 1, viewState.contactsOffset)
+    var startLoading = function(body) {
+        body.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    };
+
+    var stopLoading = function(body) {
+        body.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    };
+
+    var getContentContainer = function(body) {
+        return body.find(SELECTORS.CONTENT_CONTAINER);
+    };
+
+    var getcontactsContainer = function(body) {
+        return body.find(SELECTORS.CONTACTS);
+    };
+
+    var showEmptyMessage = function(body) {
+        getContentContainer(body).addClass('hidden');
+        body.find(SELECTORS.EMPTY_MESSAGE).removeClass('hidden');
+    };
+
+    var showPlaceholder = function(body) {
+        body.find(SELECTORS.PLACEHOLDER).removeClass('hidden');
+    };
+
+    var hidePlaceholder = function(body) {
+        body.find(SELECTORS.PLACEHOLDER).addClass('hidden');
+    };
+
+    var showContent = function(body) {
+        getContentContainer(body).removeClass('hidden');
+    };
+
+    var findContact = function(body, userId) {
+        return body.find('[data-contact-user-id="' + userId + '"]');
+    };
+
+    var getUserId = function(body) {
+        return body.attr('data-user-id');
+    };
+
+    var render = function(body, contacts) {
+        var contentContainer = getContentContainer(body);
+        return Templates.render(TEMPLATES.CONTACTS_LIST, {contacts: contacts})
+            .then(function(html) {
+                hidePlaceholder(body);
+                contentContainer.append(html);
+                showContent(body);
+            })
+            .catch(Notification.exception);
+    };
+
+    var loadContacts = function(body) {
+        var userId = getUserId(body);
+        return MessageRepository.getContacts(userId, (LOAD_CONTACTS_LIMIT + 1), contactsOffset)
             .then(function(result) {
                 return result.contacts;
             })
             .then(function(contacts) {
                 if (contacts.length > LOAD_CONTACTS_LIMIT) {
-                    contacts = contacts.slice(1);
+                    contacts.pop();
                 } else {
-                    viewState.loadedAllContacts = true;
+                    loadedAllContacts = true;
                 }
                 return contacts;
             })
             .then(function(contacts) {
-                viewState.contacts = contacts;
-                viewState.contactsOffset = viewState.contactsOffset + LOAD_CONTACTS_LIMIT;
-                return render(root, viewState);
+                if (contactsOffset == 0 && contacts.length == 0) {
+                    hidePlaceholder(body);
+                    showEmptyMessage(body);
+                }
+
+                numContacts = numContacts + contacts.length;
+
+                contactsOffset = contactsOffset + LOAD_CONTACTS_LIMIT;
+                if (contacts.length > 0) {
+                    return render(body, contacts);
+                } 
             })
             .catch(Notification.exception);
     }
 
-    var findContact = function(root, userId) {
-        return root.find('[data-contact-user-id="' + userId + '"]');
+    var removeContact = function(body, userId) {
+        findContact(body, userId).remove();
     };
 
-    var getUserId = function(root) {
-        return root.attr('data-user-id');
-    };
-
-    var getcontactsContainer = function(root) {
-        return root.find(SELECTORS.CONTACTS);
-    };
-
-    var removeContact = function(root, userId) {
-        findContact(root, userId).remove();
-    };
-
-    var blockContact = function(root, userId) {
-        var contact = findContact(root, userId);
+    var blockContact = function(body, userId) {
+        var contact = findContact(body, userId);
         if (contact.length) {
             contact.find(SELECTORS.BLOCK_ICON_CONTAINER).removeClass('hidden');
         }
     };
 
-    var unblockContact = function(root, userId) {
-        var contact = findContact(root, userId);
+    var unblockContact = function(body, userId) {
+        var contact = findContact(body, userId);
         if (contact.length) {
             contact.find(SELECTORS.BLOCK_ICON_CONTAINER).addClass('hidden');
         }
     };
 
-    var registerEventListeners = function(root) {
+    var registerEventListeners = function(body) {
         // FIX THIS ONE
         PubSub.subscribe(Events.CONTACT_ADDED, function(contact) {
-            loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+            contactsOffset = 0;
+            loadedAllContacts = false;
+            getContentContainer(body).empty();
+            loadContacts(body);
         });
 
         PubSub.subscribe(Events.CONTACT_REMOVED, function(userId) {
-            removeContact(root, userId);
+            removeContact(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_BLOCKED, function(userId) {
-            blockContact(root, userId);
+            blockContact(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
-            unblockContact(root, userId);
+            unblockContact(body, userId);
         });
 
-
-        var contactsContainer = getcontactsContainer(root);
+        var contactsContainer = getcontactsContainer(body);
 
         // What is scrollLock for?
         CustomEvents.define(contactsContainer, [
@@ -138,25 +193,30 @@ function(
         ]);
 
         contactsContainer.on(CustomEvents.events.scrollBottom, function(e, data) {
-            hasContacts = Object.keys(viewState.contacts).length > 1;
-            if (!viewState.loadedAllContacts && hasContacts) {
-                loadContacts(root, getUserId(root), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+            hasContacts = numContacts > 1;
+            if (!loadedAllContacts && hasContacts && !waitForScrollLoad) {
+                waitForScrollLoad = true;
+                startLoading(body);
+                loadContacts(body).then(function() {
+                    stopLoading(body);
+                    return waitForScrollLoad = false;
+                });
             }
             data.originalEvent.preventDefault();
         });
     };
 
     var show = function(header, body) {
-        viewState.contactsOffset = 0;
+        body = $(body);
+        contactsOffset = 0;
 
         if (!body.attr('data-contacts-init')) {
             registerEventListeners(body);
             body.attr('data-contacts-init', true);
         }
 
-        if (!viewState.loadedAllContacts) {
-            Renderer.showPlaceholder(body);
-            loadContacts(body, getUserId(body), LOAD_CONTACTS_LIMIT, viewState.contactsOffset);
+        if (!loadedAllContacts) {
+            loadContacts(body);
         }
     };
 

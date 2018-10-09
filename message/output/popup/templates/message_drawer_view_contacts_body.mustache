@@ -33,27 +33,27 @@
     {}
 
 }}
-<div class="hidden" data-region="view-contacts" data-user-id="{{loggedinuser.id}}" >
-    <div class="d-flex flex-column">
-        <div
-            class="px-2 pb-2 pt-0 position-relative"
-            data-region="view-contacts-container"
-            style="overflow-y: auto"
-        >
-        {{< message_popup/message_drawer_view_contacts_section }}
-            {{$region}}contacts-list{{/region}}
-            {{$placeholder}}
+<div class="hidden h-100" data-region="view-contacts" data-user-id="{{loggedinuser.id}}" >
+    <div
+        class="position-relative h-100"
+        data-region="contacts-container"
+        style="overflow-y: auto"
+    >
+        <div class="h-100">
+            <div class="hidden text-center p-2" data-region="empty-message-container">
+                 <p class="text-muted mt-2">{{#str}} nocontactsgetstarted, core_message {{/str}}</p>
+            </div>
+            <div class="hidden list-group" data-region="contacts-content-container">
+                {{$content}}{{/content}}
+            </div>
+            <div class="list-group" data-region="placeholder-container">
                 {{> message_popup/message_drawer_contacts_list_item_placeholder }}
                 {{> message_popup/message_drawer_contacts_list_item_placeholder }}
                 {{> message_popup/message_drawer_contacts_list_item_placeholder }}
                 {{> message_popup/message_drawer_contacts_list_item_placeholder }}
                 {{> message_popup/message_drawer_contacts_list_item_placeholder }}
-            {{/placeholder}}
-            {{$emptymessage}}
-                <p class="text-muted mt-2">{{#str}} nocontactsgetstarted, core_message {{/str}}</p>
-            {{/emptymessage}}
-        {{/ message_popup/message_drawer_view_contacts_section }}
-            <div class="w-100 text-center" data-region="loading-icon-container" >
+            </div>
+            <div class="w-100 text-center p-3 hidden" data-region="loading-icon-container" >
                 {{> core/loading }}
             </div>
         </div>
