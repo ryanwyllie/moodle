@@ -42,7 +42,7 @@ function(
     Events
 ) {
 
-    var LOAD_CONTACTS_LIMIT = 10;
+    var LOAD_CONTACTS_LIMIT = 100;
 
     var numContacts = 0;
     var contactsOffset = 0;
