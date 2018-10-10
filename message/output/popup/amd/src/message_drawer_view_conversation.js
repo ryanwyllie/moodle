@@ -405,6 +405,13 @@ function(
                 return Repository.sendMessage(toUserId, text);
             })
             .then(function(result) {
+                if (result.errormessage) {
+                    throw new Error(result.errormessage);
+                }
+
+                return result;
+            })
+            .then(function(result) {
                 return {
                     id: parseInt(result.msgid, 10),
                     fullname: loggedInUser.fullname,
@@ -428,6 +435,11 @@ function(
                 PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, formattedMessage);
 
                 return render(newState);
+            })
+            .catch(function(error) {
+                var newState = StateManager.setSendingMessage(viewState, false);
+                render(newState);
+                Notification.exception(error);
             });
     };
 
@@ -480,8 +492,7 @@ function(
         var text = textArea.val().trim();
 
         if (text !== '') {
-            sendMessage(viewState.id, text)
-                .catch(Notification.exception);
+            sendMessage(viewState.id, text);
         }
 
         data.originalEvent.preventDefault();

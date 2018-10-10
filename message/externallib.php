@@ -188,8 +188,8 @@ class core_message_external extends external_api {
                     'msgid' => new external_value(PARAM_INT, 'test this to know if it succeeds:  id of the created message if it succeeded, -1 when failed'),
                     'clientmsgid' => new external_value(PARAM_ALPHANUMEXT, 'your own id for the message', VALUE_OPTIONAL),
                     'errormessage' => new external_value(PARAM_TEXT, 'error message - if it failed', VALUE_OPTIONAL),
-                    'text' => new external_value(PARAM_RAW, 'The text of the message'),
-                    'timecreated' => new external_value(PARAM_INT, 'The timecreated timestamp for the message'),
+                    'text' => new external_value(PARAM_RAW, 'The text of the message', VALUE_OPTIONAL),
+                    'timecreated' => new external_value(PARAM_INT, 'The timecreated timestamp for the message', VALUE_OPTIONAL),
                 )
             )
         );

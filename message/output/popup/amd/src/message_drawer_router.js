@@ -121,16 +121,6 @@ function(
             if (previous) {
                 // If we have a previous route then show it.
                 go.apply(undefined, [previous.route].concat(previous.params));
-                /*
-                var currentElements = routes[current.route].elements;
-                currentElements.forEach(function(element) {
-                    element.addClass('previous');
-                });
-                var previousElements = routes[previous.route].elements;
-                previousElements.forEach(function(element) {
-                    element.removeClass('forward');
-                });
-                */
             }
         }
     };
