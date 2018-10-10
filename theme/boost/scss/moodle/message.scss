@@ -1213,7 +1213,6 @@ $message-drawer-width: 320px;
 
     .header-container {
         flex-shrink: 0;
-        overflow: hidden;
     }
 
     .body-container {
@@ -1246,10 +1245,9 @@ $message-drawer-width: 320px;
 
     .footer-container {
         flex-shrink: 0;
-        overflow: hidden;
 
         & > * {
-            max-height: fit-content;
+            max-height: 2000px;
             opacity: 1;
             @include transition();
 
@@ -1261,8 +1259,7 @@ $message-drawer-width: 320px;
                 border: 0 !important; /* stylelint-disable-line declaration-no-important */
                 visibility: hidden;
                 transform: translate(#{$message-drawer-width});
-                overflow: hidden;
-                transition: max-height .2s .2s ease-in-out;
+                transition: all .2s ease-in-out, max-height .2s .2s ease-in-out;
 
                 &.previous {
                     transform: translate(#{($message-drawer-width * -1)});
