@@ -35,16 +35,21 @@
 }}
 
 <div
-    class="hidden p-2 border-top bg-white"
+    class="hidden border-top bg-white position-relative"
     data-region="view-conversation"
 >
-    <div class="hidden" data-region="content-messages-footer-container">
+    <div class="hidden p-2" data-region="content-messages-footer-container">
         {{> message_popup/message_drawer_view_conversation_footer_content }}
     </div>
-    <div class="hidden" data-region="content-messages-footer-edit-mode-container">
+    <div class="hidden p-2" data-region="content-messages-footer-edit-mode-container">
         {{> message_popup/message_drawer_view_conversation_footer_edit_mode }}
     </div>
-    <div data-region="placeholder-container">
+    <div class="p-2" data-region="placeholder-container">
         {{> message_popup/message_drawer_view_conversation_footer_placeholder }}
     </div>
+    <div
+        class="hidden position-absolute"
+        data-region="confirm-dialogue-container"
+        style="top: -1px; bottom: 0; right: 0; left: 0; background: rgba(0,0,0,0.3);"
+    ></div>
 </div>

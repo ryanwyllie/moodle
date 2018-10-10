@@ -1192,13 +1192,14 @@
 }
 
 // New styles for the messaging UI. Once MDL-63303 is done all CSS above this line should be removed.
+$message-drawer-width: 320px;
 
 .message-drawer {
     position: fixed;
     top: $navbar-height;
     right: 0;
     height: calc(100% - #{$navbar-height});
-    width: 320px;
+    width: $message-drawer-width;
     z-index: $zindex-fixed;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
     display: flex;
@@ -1207,20 +1208,67 @@
 
     &.hidden {
         display: block;
-        right: -330px;
+        right: $message-drawer-width * -1;
     }
 
     .header-container {
         flex-shrink: 0;
+        overflow: hidden;
     }
 
     .body-container {
         flex: 1;
         overflow-y: auto;
+
+        & > * {
+            position: absolute;
+            right: 0;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 1;
+            @include transition();
+
+            &.hidden {
+                display: block;
+                left: $message-drawer-width;
+                right: $message-drawer-width * -1;
+                opacity: 0;
+                visibility: hidden;
+
+                &.previous {
+                    left: $message-drawer-width * -1;
+                    right: $message-drawer-width;
+                }
+            }
+        }
     }
 
     .footer-container {
         flex-shrink: 0;
+        overflow: hidden;
+
+        & > * {
+            max-height: fit-content;
+            opacity: 1;
+            @include transition();
+
+            &.hidden {
+                display: block;
+                max-height: 0;
+                opacity: 0;
+                padding: 0 !important; /* stylelint-disable-line declaration-no-important */
+                border: 0 !important; /* stylelint-disable-line declaration-no-important */
+                visibility: hidden;
+                transform: translate(#{$message-drawer-width});
+                overflow: hidden;
+                transition: max-height .2s .2s ease-in-out;
+
+                &.previous {
+                    transform: translate(#{($message-drawer-width * -1)});
+                }
+            }
+        }
     }
 
     .matchtext {

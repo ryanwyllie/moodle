@@ -188,7 +188,7 @@ define(
 
             messagesDiff.missingFromA.forEach(function(message) {
                 var before = findPositionInArray(dayCurrent.messages, function(candidate) {
-                    return message.timecreated < candidate.timecreated;
+                    return message.timeCreated < candidate.timeCreated;
                 });
 
                 add.push({
@@ -558,9 +558,9 @@ define(
         var allMessages = state.messages.concat(formattedMessages);
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {
-            if (a.timecreated < b.timecreated) {
+            if (a.timeCreated < b.timeCreated) {
                 return -1;
-            } else if (a.timecreated > b.timecreated) {
+            } else if (a.timeCreated > b.timeCreated) {
                 return 1;
             } else {
                 return 0;

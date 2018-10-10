@@ -51,26 +51,26 @@ function(
 
         Object.keys(routes).forEach(function(route) {
             var config = routes[route];
+            var isMatch = route === newRoute;
 
-            if (route === newRoute) {
+            if (isMatch) {
                 newConfig = config;
             }
 
             config.elements.forEach(function(element) {
-                $(element).addClass('hidden');
+                element.removeClass('previous');
+
+                if (isMatch) {
+                    element.removeClass('hidden');
+                } else {
+                    element.addClass('hidden');
+                }
             });
         });
 
         if (newConfig) {
-            var elements = newConfig.elements.map(function(element) {
-                return $(element);
-            });
-            elements.forEach(function(element) {
-                element.removeClass('hidden');
-            });
-
             if (newConfig.onGo) {
-                newConfig.onGo.apply(undefined, elements.concat(args));
+                newConfig.onGo.apply(undefined, newConfig.elements.concat(args));
             }
         }
 
@@ -100,9 +100,14 @@ function(
                     }
                 }
             }
+
+            routes[previousRecord.route].elements.forEach(function(element) {
+                element.addClass('previous');
+            });
         }
 
         history.push(record);
+        console.log('HISTORY', history);
         return record;
     };
 
@@ -110,12 +115,22 @@ function(
     var back = function() {
         if (history.length) {
             // Remove the current route.
-            history.pop();
+            var current = history.pop();
             var previous = history.pop();
 
             if (previous) {
                 // If we have a previous route then show it.
                 go.apply(undefined, [previous.route].concat(previous.params));
+                /*
+                var currentElements = routes[current.route].elements;
+                currentElements.forEach(function(element) {
+                    element.addClass('previous');
+                });
+                var previousElements = routes[previous.route].elements;
+                previousElements.forEach(function(element) {
+                    element.removeClass('forward');
+                });
+                */
             }
         }
     };

@@ -56,7 +56,7 @@ function(
     var newMessagesPollTimer = null;
     var render = null;
     var NEWEST_FIRST = true;
-    var LOAD_MESSAGE_LIMIT = 5;
+    var LOAD_MESSAGE_LIMIT = 100;
     var INITIAL_NEW_MESSAGE_POLL_TIMEOUT = 1000;
 
     var SELECTORS = {
@@ -541,7 +541,7 @@ function(
         ]);
         CustomEvents.define(messagesContainer, [
             CustomEvents.events.scrollTop,
-            CustomEvents.events.scrollLock,
+            //CustomEvents.events.scrollLock,
         ]);
 
         messagesContainer.on(CustomEvents.events.scrollTop, function(e, data) {

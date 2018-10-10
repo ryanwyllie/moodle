@@ -407,10 +407,12 @@ function(
             return stringPromise.then(function(string) {
                     button.removeClass('hidden');
                     text.text(string);
+                    showConfirmDialogue(footer);
                     return showConfirmDialogue(body);
                 });
         } else {
             hideConfirmDialogue(body);
+            hideConfirmDialogue(footer);
             button.addClass('hidden');
             text.text('');
             return true;
