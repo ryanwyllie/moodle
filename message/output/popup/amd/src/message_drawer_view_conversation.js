@@ -32,6 +32,7 @@ define(
     'core/pubsub',
     'core_message/message_repository',
     'message_popup/message_drawer_events',
+    'message_popup/message_drawer_view_conversation_patcher',
     'message_popup/message_drawer_view_conversation_renderer',
     'message_popup/message_drawer_view_conversation_state_manager',
     'message_popup/message_drawer_routes',
@@ -45,6 +46,7 @@ function(
     PubSub,
     Repository,
     MessageDrawerEvents,
+    Patcher,
     Renderer,
     StateManager,
     MessageDrawerRoutes
@@ -465,10 +467,10 @@ function(
 
     var generateRenderFunction = function(header, body, footer) {
         return function(newState) {
-            var patch = StateManager.buildPatch(viewState, newState);
-            // console.log("PREV STATE:", viewState);
-            // console.log("NEXT STATE:", newState);
-            // console.log("PATCH: ", patch);
+            var patch = Patcher.buildPatch(viewState, newState);
+            console.log("PREV STATE:", viewState);
+            console.log("NEXT STATE:", newState);
+            console.log("PATCH: ", patch);
             return Renderer.render(header, body, footer, patch)
                 .then(function() {
                     viewState = newState;

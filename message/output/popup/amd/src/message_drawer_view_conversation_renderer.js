@@ -37,14 +37,16 @@ function(
         ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
         ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
-        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
+        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"][data-region="add-contact"]',
         ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
         ACTION_CONFIRM_DELETE_CONVERSATION: '[data-action="confirm-delete-conversation"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
+        ACTION_REQUIRE_CONTACT: '[data-action="confirm-add-contact"][data-region="require-contact"]',
         CONFIRM_DIALOGUE_TEXT: '[data-region="dialogue-text"]',
+        CONFIRM_DIALOGUE_HEADER: '[data-region="dialogue-header"]',
         HEADER: '[data-region="header-content"]',
         HEADER_EDIT_MODE: '[data-region="header-edit-mode"]',
         HEADER_PLACEHOLDER_CONTAINER: '[data-region="header-placeholder"]',
@@ -63,12 +65,15 @@ function(
         CONTENT_MESSAGES_CONTAINER: '[data-region="content-message-container"]',
         CONTENT_MESSAGES_FOOTER_CONTAINER: '[data-region="content-messages-footer-container"]',
         CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER: '[data-region="content-messages-footer-edit-mode-container"]',
+        CONTENT_MESSAGES_FOOTER_REQUIRE_CONTACT_CONTAINER: '[data-region="content-messages-footer-require-contact-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         CONFIRM_DIALOGUE_CONTAINER: '[data-region="confirm-dialogue-container"]',
         CONFIRM_DIALOGUE_BUTTON_TEXT: '[data-region="dialogue-button-text"]',
-        PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]'
-
+        CONFIRM_DIALOGUE_CANCEL_BUTTON: '[data-action="cancel-confirm"]',
+        PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]',
+        TITLE: '[data-region="title"]',
+        TEXT: '[data-region="text"]'
     };
     var TEMPLATES = {
         HEADER: 'message_popup/message_drawer_view_conversation_header_content',
@@ -113,12 +118,35 @@ function(
         getFooterEditModeContainer(root).addClass('hidden');
     };
 
+    var getFooterPlaceholderContainer = function(footer) {
+        return footer.find(SELECTORS.PLACEHOLDER_CONTAINER);
+    };
+
     var showFooterPlaceholder = function(footer) {
-        footer.find(SELECTORS.PLACEHOLDER_CONTAINER).removeClass('hidden');
+        getFooterPlaceholderContainer(footer).removeClass('hidden');
     };
 
     var hideFooterPlaceholder = function(footer) {
-        footer.find(SELECTORS.PLACEHOLDER_CONTAINER).addClass('hidden');
+        getFooterPlaceholderContainer(footer).addClass('hidden');
+    };
+
+    var getFooterRequireContactContainer = function(footer) {
+        return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_REQUIRE_CONTACT_CONTAINER);
+    };
+
+    var showFooterRequireContact = function(footer) {
+        getFooterRequireContactContainer(footer).removeClass('hidden');
+    };
+
+    var hideFooterRequireContact = function(footer) {
+        getFooterRequireContactContainer(footer).addClass('hidden');
+    };
+
+    var hideAllFooterElements = function(footer) {
+        hideFooterContent(footer);
+        hideFooterEditMode(footer);
+        hideFooterPlaceholder(footer);
+        hideFooterRequireContact(footer);
     };
 
     var getContentPlaceholderContainer = function(root) {
@@ -231,11 +259,11 @@ function(
         return root.find(SELECTORS.CONFIRM_DIALOGUE_CONTAINER);
     };
 
-    var showConfirmDialogue = function(root) {
+    var showConfirmDialogueContainer = function(root) {
         getConfirmDialogueContainer(root).removeClass('hidden');
     };
 
-    var hideConfirmDialogue = function(root) {
+    var hideConfirmDialogueContainer = function(root) {
         getConfirmDialogueContainer(root).addClass('hidden');
     };
 
@@ -371,14 +399,19 @@ function(
     var renderLoadingFirstMessages = function(header, body, footer, isLoadingFirstMessages) {
         if (isLoadingFirstMessages) {
             hideMessagesContainer(body);
-            hideFooterContent(footer);
             showContentPlaceholder(body);
+            hideAllFooterElements(footer);
             showFooterPlaceholder(footer);
         } else {
             showMessagesContainer(body);
-            showFooterContent(footer);(footer);
             hideContentPlaceholder(body);
-            hideFooterPlaceholder(footer);
+
+            var footerPlaceholderContainer = getFooterPlaceholderContainer(footer);
+            if (!footerPlaceholderContainer.hasClass('hidden')) {
+                // Only do this if something else hasn't shown the footer already.
+                hideAllFooterElements(footer);
+                showFooterContent(footer);
+            }
         }
     };
 
@@ -399,58 +432,120 @@ function(
         }
     };
 
-    var renderConfirmDialogue = function(header, body, footer, show, buttonSelector, stringPromise) {
+    var showConfirmDialogue = function(
+        body,
+        footer,
+        buttonSelector,
+        bodyText,
+        headerText,
+        canCancel
+    ) {
         var dialogue = getConfirmDialogueContainer(body);
         var button = dialogue.find(buttonSelector);
+        var cancelButton = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_CANCEL_BUTTON);
         var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
-        if (show) {
-            return stringPromise.then(function(string) {
-                    button.removeClass('hidden');
-                    text.text(string);
-                    showConfirmDialogue(footer);
-                    return showConfirmDialogue(body);
-                });
+        var header = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_HEADER);
+
+        if (canCancel) {
+            cancelButton.removeClass('hidden');
         } else {
-            hideConfirmDialogue(body);
-            hideConfirmDialogue(footer);
-            button.addClass('hidden');
-            text.text('');
-            return true;
+            cancelButton.addClass('hidden');
         }
+
+        if (headerText) {
+            header.removeClass('hidden');
+            header.text(headerText);
+        } else {
+            header.addClass('hidden');
+            header.text('');
+        }
+
+        button.removeClass('hidden');
+        text.text(bodyText);
+        showConfirmDialogueContainer(footer);
+        showConfirmDialogueContainer(body);
+    };
+
+    var hideConfirmDialogue = function(body, footer) {
+        var dialogue = getConfirmDialogueContainer(body);
+        var cancelButton = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_CANCEL_BUTTON);
+        var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
+        var header = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_HEADER);
+
+        hideConfirmDialogueContainer(body);
+        hideConfirmDialogueContainer(footer);
+        dialogue.find('button').addClass('hidden');
+        cancelButton.removeClass('hidden');
+        text.text('');
+        header.addClass('hidden');
+        header.text('');
+        return true;
     };
 
     var renderConfirmBlockUser = function(header, body, footer, user) {
-        var show = user ? true : false;
-        var stringPromise = show ? Str.get_string('blockuserconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_BLOCK, stringPromise);
+        if (user) {
+            return Str.get_string('blockuserconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    return showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_BLOCK, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderConfirmUnblockUser = function(header, body, footer, user) {
-        var show = user ? true : false;
-        var stringPromise = show ? Str.get_string('unblockuserconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_UNBLOCK, stringPromise);
+        if (user) {
+            return Str.get_string('unblockuserconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_UNBLOCK, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderConfirmAddContact = function(header, body, footer, user) {
-        var show = user ? true : false;
-        var stringPromise = show ? Str.get_string('addcontactconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, stringPromise);
+        if (user) {
+            return Str.get_string('addcontactconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    return showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_ADD_CONTACT, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderConfirmRemoveContact = function(header, body, footer, user) {
-        var show = user ? true : false;
-        var stringPromise = show ? Str.get_string('removecontactconfirm', 'core_message', user.fullname) : null;
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, stringPromise);
+        if (user) {
+            return Str.get_string('removecontactconfirm', 'core_message', user.fullname)
+                .then(function(string) {
+                    return showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderConfirmDeleteSelectedMessages = function(header, body, footer, show) {
-        var stringPromise = Str.get_string('deleteselectedmessagesconfirm', 'core_message');
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, stringPromise);
+        if (show) {
+            return Str.get_string('deleteselectedmessagesconfirm', 'core_message')
+                .then(function(string) {
+                    return showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderConfirmDeleteConversation = function(header, body, footer, show) {
-        var stringPromise = Str.get_string('deleteallconfirm', 'core_message');
-        return renderConfirmDialogue(header, body, footer, show, SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, stringPromise);
+        if (show) {
+            return Str.get_string('deleteallconfirm', 'core_message')
+                .then(function(string) {
+                    return showConfirmDialogue(body, footer, SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, string, '', true);
+                });
+        } else {
+            return hideConfirmDialogue(body, footer);
+        }
     };
 
     var renderIsBlocked = function(header, body, footer, isBlocked) {
@@ -496,7 +591,7 @@ function(
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
             hideHeaderContent(header);
             showHeaderEditMode(header);
-            hideFooterContent(footer);
+            hideAllFooterElements(footer);
             showFooterEditMode(footer);
         } else {
             var messages = body.find(SELECTORS.MESSAGE);
@@ -504,8 +599,8 @@ function(
             messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
             showHeaderContent(header);
             hideHeaderEditMode(header);
+            hideAllFooterElements(footer);
             showFooterContent(footer);
-            hideFooterEditMode(footer);
         }
     };
 
@@ -537,10 +632,51 @@ function(
         setMessagesSelectedCount(header, data.count);
     };
 
+    var renderRequireAddContact = function(header, body, footer, data) {
+        var footerContainer = getFooterRequireContactContainer(footer);
+        if (data.show) {
+            return Str.get_strings([
+                    {
+                        key: 'requirecontacttomessage',
+                        component: 'core_message',
+                        param: data.user.fullname
+                    },
+                    {
+                        key: 'isnotinyourcontacts',
+                        component: 'core_message',
+                        param: data.user.fullname
+                    }
+                ])
+                .then(function(strings) {
+                    var title = strings[1];
+                    var text = strings[0];
+                    if (data.hasMessages) {
+                        footerContainer.find(SELECTORS.TEXT).text(text);
+                        footerContainer.find(SELECTORS.TITLE).text(title);
+                        hideAllFooterElements(footer);
+                        showFooterRequireContact(footer);
+                    } else {
+                        showConfirmDialogue(
+                            body,
+                            footer,
+                            SELECTORS.ACTION_REQUIRE_CONTACT,
+                            text,
+                            title,
+                            false
+                        );
+                    }
+                });
+        } else {
+            hideAllFooterElements(footer);
+            showFooterContent(footer);
+            return hideConfirmDialogue(body, footer);
+        }
+    };
+
     var render = function(header, body, footer, patch) {
         var configs = [
             {
-                // Any async rendering (stuff that requires templates) should
+                // Any async rendering (stuff that requires templates, strings etc) should
                 // go in here.
                 conversation: renderConversation,
                 header: renderHeader,
@@ -550,6 +686,7 @@ function(
                 confirmRemoveContact: renderConfirmRemoveContact,
                 confirmDeleteSelectedMessages: renderConfirmDeleteSelectedMessages,
                 confirmDeleteConversation: renderConfirmDeleteConversation,
+                requireAddContact: renderRequireAddContact
             },
             {
                 loadingMembers: renderLoadingMembers,
