@@ -2142,7 +2142,7 @@ div.editor_atto_toolbar button .icon {
     }
 }
 
-$switch-height: (($input-height-inner + $input-height-border) * .8) !default;
+$switch-height: ($input-height-inner * .8) !default;
 $switch-height-half: ($switch-height / 2) !default;
 $switch-border-radius: $switch-height !default;
 $switch-bg: $custom-control-indicator-bg !default;
