@@ -378,6 +378,42 @@ function(
             });
     };
 
+    var renderFooter = function(header, body, footer, data) {
+        hideAllFooterElements(footer);
+
+        switch (data.type) {
+            case 'placeholder':
+                return showFooterPlaceholder(footer);
+            case 'add-contact':
+                return Str.get_strings([
+                        {
+                            key: 'requirecontacttomessage',
+                            component: 'core_message',
+                            param: data.user.fullname
+                        },
+                        {
+                            key: 'isnotinyourcontacts',
+                            component: 'core_message',
+                            param: data.user.fullname
+                        }
+                    ])
+                    .then(function(strings) {
+                        var title = strings[1];
+                        var text = strings[0];
+                        var footerContainer = getFooterRequireContactContainer(footer);
+                        footerContainer.find(SELECTORS.TITLE).text(title);
+                        footerContainer.find(SELECTORS.TEXT).text(text);
+                        showFooterRequireContact(footer);
+                    });
+            case 'edit-mode':
+                return showFooterEditMode(footer);
+            case 'content':
+                return showFooterContent(footer);
+        }
+
+        return true;
+    };
+
     var renderScrollToMessage = function(header, body, footer, messageId) {
         var messagesContainer = getMessagesContainer(body);
         var messageElement = getMessageElement(body, messageId);
@@ -400,18 +436,9 @@ function(
         if (isLoadingFirstMessages) {
             hideMessagesContainer(body);
             showContentPlaceholder(body);
-            hideAllFooterElements(footer);
-            showFooterPlaceholder(footer);
         } else {
             showMessagesContainer(body);
             hideContentPlaceholder(body);
-
-            var footerPlaceholderContainer = getFooterPlaceholderContainer(footer);
-            if (!footerPlaceholderContainer.hasClass('hidden')) {
-                // Only do this if something else hasn't shown the footer already.
-                hideAllFooterElements(footer);
-                showFooterContent(footer);
-            }
         }
     };
 
@@ -591,16 +618,12 @@ function(
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).removeClass('hidden');
             hideHeaderContent(header);
             showHeaderEditMode(header);
-            hideAllFooterElements(footer);
-            showFooterEditMode(footer);
         } else {
             var messages = body.find(SELECTORS.MESSAGE);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
             messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
             showHeaderContent(header);
             hideHeaderEditMode(header);
-            hideAllFooterElements(footer);
-            showFooterContent(footer);
         }
     };
 
@@ -633,8 +656,7 @@ function(
     };
 
     var renderRequireAddContact = function(header, body, footer, data) {
-        var footerContainer = getFooterRequireContactContainer(footer);
-        if (data.show) {
+        if (data.show && !data.hasMessages) {
             return Str.get_strings([
                     {
                         key: 'requirecontacttomessage',
@@ -650,25 +672,16 @@ function(
                 .then(function(strings) {
                     var title = strings[1];
                     var text = strings[0];
-                    if (data.hasMessages) {
-                        footerContainer.find(SELECTORS.TEXT).text(text);
-                        footerContainer.find(SELECTORS.TITLE).text(title);
-                        hideAllFooterElements(footer);
-                        showFooterRequireContact(footer);
-                    } else {
-                        showConfirmDialogue(
-                            body,
-                            footer,
-                            SELECTORS.ACTION_REQUIRE_CONTACT,
-                            text,
-                            title,
-                            false
-                        );
-                    }
+                    showConfirmDialogue(
+                        body,
+                        footer,
+                        SELECTORS.ACTION_REQUIRE_CONTACT,
+                        text,
+                        title,
+                        false
+                    );
                 });
         } else {
-            hideAllFooterElements(footer);
-            showFooterContent(footer);
             return hideConfirmDialogue(body, footer);
         }
     };
@@ -680,6 +693,7 @@ function(
                 // go in here.
                 conversation: renderConversation,
                 header: renderHeader,
+                footer: renderFooter,
                 confirmBlockUser: renderConfirmBlockUser,
                 confirmUnblockUser: renderConfirmUnblockUser,
                 confirmAddContact: renderConfirmAddContact,

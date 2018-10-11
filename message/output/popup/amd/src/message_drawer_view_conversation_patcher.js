@@ -232,6 +232,10 @@ define(
         }
     };
 
+    var buildFooterPatch = function(state, newState) {
+
+    };
+
     var buildScrollToMessagePatch = function(state, newState) {
         var oldMessages = state.messages;
         var newMessages = newState.messages;
@@ -482,6 +486,7 @@ define(
         var newOtherUser = getOtherUserFromState(newState);
         var hadMessages = state.messages.length > 0;
         var hasMessages = newState.messages.length > 0;
+        var inEditMode = buildInEditMode(state, newState);
 
         // Still doing first load.
         if (!state.hasTriedToLoadMessages && !newState.hasTriedToLoadMessages) {
@@ -517,6 +522,17 @@ define(
             }
         }
 
+        // Leaving edit mode.
+        if (inEditMode !== null && !inEditMode) {
+            if (!newOtherUser.iscontact) {
+                return {
+                    show: true,
+                    hasMessages: hasMessages,
+                    user: newOtherUser
+                };
+            }
+        }
+
         // Being reset.
         if (state.hasTriedToLoadMessages && !newState.hasTriedToLoadMessages) {
             if (!oldOtherUser.iscontact) {
@@ -530,10 +546,63 @@ define(
         return null;
     };
 
+    var buildFooterPatch = function(state, newState) {
+        var loadingFirstMessages = buildLoadingFirstMessages(state, newState);
+        var inEditMode = buildInEditMode(state, newState);
+        var requireAddContact = buildRequireAddContact(state, newState);
+        var showContent = !inEditMode && !requireAddContact;
+        var showRequireAddContact = requireAddContact !== null ? requireAddContact.show && requireAddContact.hasMessages : false;
+
+        if (loadingFirstMessages === null && inEditMode === null && requireAddContact === null) {
+            return null;
+        }
+
+        if (loadingFirstMessages !== null) {
+            if (loadingFirstMessages) {
+                return {
+                    type: 'placeholder'
+                };
+            } else if (showContent) {
+                return {
+                    type: 'content'
+                };
+            }
+        }
+
+        if (inEditMode !== null) {
+            if (inEditMode) {
+                return {
+                    type: 'edit-mode'
+                };
+            } else {
+                return {
+                    type: showRequireAddContact ? 'add-contact' : 'content',
+                    user: showRequireAddContact ? requireAddContact.user : null
+                };
+            }
+        }
+
+        if (requireAddContact !== null) {
+            if (showRequireAddContact) {
+                return {
+                    type: 'add-contact',
+                    user: requireAddContact.user
+                };
+            } else {
+                return {
+                    type: 'content'
+                };
+            }
+        }
+
+        return null;
+    };
+
     var buildPatch = function(state, newState) {
         var config = {
             conversation: buildConversationPatch,
             header: buildHeaderPatch,
+            footer: buildFooterPatch,
             scrollToMessage: buildScrollToMessagePatch,
             loadingMembers: buildLoadingMembersPatch,
             loadingFirstMessages: buildLoadingFirstMessages,
