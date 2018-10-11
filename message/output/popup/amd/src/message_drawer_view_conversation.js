@@ -536,7 +536,8 @@ function(
     var footerActivateHandlers = [
         [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
         [SELECTORS.ACTION_REQUEST_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(requestDeleteSelectedMessages)],
-        [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)]
+        [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
+        [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
     ];
 
     var registerEventListeners = function(header, body, footer) {

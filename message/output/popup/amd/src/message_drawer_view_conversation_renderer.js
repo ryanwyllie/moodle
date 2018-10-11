@@ -44,7 +44,6 @@ function(
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
-        ACTION_REQUIRE_CONTACT: '[data-action="request-add-contact"]',
         CONFIRM_DIALOGUE_TEXT: '[data-region="dialogue-text"]',
         CONFIRM_DIALOGUE_HEADER: '[data-region="dialogue-header"]',
         HEADER: '[data-region="header-content"]',
@@ -66,6 +65,7 @@ function(
         CONTENT_MESSAGES_FOOTER_CONTAINER: '[data-region="content-messages-footer-container"]',
         CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER: '[data-region="content-messages-footer-edit-mode-container"]',
         CONTENT_MESSAGES_FOOTER_REQUIRE_CONTACT_CONTAINER: '[data-region="content-messages-footer-require-contact-container"]',
+        CONTENT_MESSAGES_FOOTER_REQUIRE_UNBLOCK_CONTAINER: '[data-region="content-messages-footer-require-unblock-container"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         CONFIRM_DIALOGUE_CONTAINER: '[data-region="confirm-dialogue-container"]',
@@ -142,11 +142,24 @@ function(
         getFooterRequireContactContainer(footer).addClass('hidden');
     };
 
+    var getFooterRequireUnblockContainer = function(footer) {
+        return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_REQUIRE_UNBLOCK_CONTAINER);
+    };
+
+    var showFooterRequireUnblock = function(footer) {
+        getFooterRequireUnblockContainer(footer).removeClass('hidden');
+    };
+
+    var hideFooterRequireUnblock = function(footer) {
+        getFooterRequireUnblockContainer(footer).addClass('hidden');
+    };
+
     var hideAllFooterElements = function(footer) {
         hideFooterContent(footer);
         hideFooterEditMode(footer);
         hideFooterPlaceholder(footer);
         hideFooterRequireContact(footer);
+        hideFooterRequireUnblock(footer);
     };
 
     var getContentPlaceholderContainer = function(root) {
@@ -409,6 +422,8 @@ function(
                 return showFooterEditMode(footer);
             case 'content':
                 return showFooterContent(footer);
+            case 'unblock':
+                return showFooterRequireUnblock(footer);
         }
 
         return true;
@@ -677,7 +692,7 @@ function(
                     showConfirmDialogue(
                         body,
                         footer,
-                        SELECTORS.ACTION_REQUIRE_CONTACT,
+                        SELECTORS.ACTION_REQUEST_ADD_CONTACT,
                         text,
                         title,
                         false

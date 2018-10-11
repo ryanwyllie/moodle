@@ -201,6 +201,7 @@ $string['viewnotificationresource'] = 'Go to: {$a}';
 $string['viewunreadmessageswith'] = 'View unread messages with {$a}';
 $string['writeamessage'] = 'Write a message...';
 $string['you'] = 'You:';
+$string['youhaveblockeduser'] = 'You have blocked this user in the past';
 
 // Deprecated since Moodle 3.6.
 $string['messagingdisabled'] = 'Messaging is disabled on this site, emails will be sent instead';

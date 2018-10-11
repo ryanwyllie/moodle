@@ -486,11 +486,23 @@ define(
         var newOtherUser = getOtherUserFromState(newState);
         var hadMessages = state.messages.length > 0;
         var hasMessages = newState.messages.length > 0;
-        var inEditMode = buildInEditMode(state, newState);
 
         // Still doing first load.
         if (!state.hasTriedToLoadMessages && !newState.hasTriedToLoadMessages) {
             return null;
+        }
+
+        // No users yet.
+        if (!oldOtherUser && !newOtherUser) {
+            return null;
+        }
+
+        if (!oldOtherUser && newOtherUser && !newOtherUser.iscontact) {
+            return {
+                show: true,
+                hasMessages: hasMessages,
+                user: newOtherUser
+            }
         }
 
         // Everything is loaded.
@@ -503,7 +515,7 @@ define(
                 }
             }
 
-            if (!oldOtherUser.isContact && newOtherUser.iscontact) {
+            if (!oldOtherUser.iscontact && newOtherUser.iscontact) {
                 return {
                     show: false,
                     hasMessages: hasMessages
@@ -514,17 +526,6 @@ define(
         // First load just completed.
         if (!state.hasTriedToLoadMessages && newState.hasTriedToLoadMessages) {
             if (newOtherUser && !newOtherUser.iscontact) {
-                return {
-                    show: true,
-                    hasMessages: hasMessages,
-                    user: newOtherUser
-                };
-            }
-        }
-
-        // Leaving edit mode.
-        if (inEditMode !== null && !inEditMode) {
-            if (!newOtherUser.iscontact) {
                 return {
                     show: true,
                     hasMessages: hasMessages,
@@ -546,56 +547,75 @@ define(
         return null;
     };
 
+    var buildRequireUnblock = function(state, newState) {
+        var oldOtherUser = getOtherUserFromState(state);
+        var newOtherUser = getOtherUserFromState(newState);
+
+        if (!oldOtherUser && !newOtherUser) {
+            return null;
+        } else if (oldOtherUser && !newOtherUser) {
+            return oldOtherUser.isblocked ? false : null;
+        } else if (!oldOtherUser && newOtherUser) {
+            return newOtherUser.isblocked ? true : null;
+        } else if (!oldOtherUser.isblocked && newOtherUser.isblocked) {
+            return true;
+        } else if (oldOtherUser.isblocked && !newOtherUser.isblocked) {
+            return false;
+        }
+
+        return null;
+    };
+
     var buildFooterPatch = function(state, newState) {
         var loadingFirstMessages = buildLoadingFirstMessages(state, newState);
         var inEditMode = buildInEditMode(state, newState);
         var requireAddContact = buildRequireAddContact(state, newState);
-        var showContent = !inEditMode && !requireAddContact;
-        var showRequireAddContact = requireAddContact !== null ? requireAddContact.show && requireAddContact.hasMessages : false;
+        var requireUnblock = buildRequireUnblock(state, newState);
+        var showRequireAddContact = requireAddContact !== null ? requireAddContact.show && requireAddContact.hasMessages : null;
+        var otherUser = getOtherUserFromState(newState);
+        var generateReturnValue = function(checkValue, successReturn) {
+            if (checkValue) {
+                return successReturn;
+            } else if (checkValue !== null && !checkValue) {
+                if (!otherUser) {
+                    return {type: 'content'}
+                } else if (otherUser.isblocked) {
+                    return {type: 'unblock'};
+                } else if (newState.messages.length && !otherUser.iscontact) {
+                    return {
+                        type: 'add-contact',
+                        user: otherUser
+                    };
+                }
+            }
 
-        if (loadingFirstMessages === null && inEditMode === null && requireAddContact === null) {
+            return null;
+        };
+
+        if (loadingFirstMessages === null && inEditMode === null && requireAddContact === null && requireUnblock === null) {
             return null;
         }
 
-        if (loadingFirstMessages !== null) {
-            if (loadingFirstMessages) {
-                return {
-                    type: 'placeholder'
-                };
-            } else if (showContent) {
-                return {
-                    type: 'content'
-                };
+        var checks = [
+            [loadingFirstMessages, {type: 'placeholder'}],
+            [inEditMode, {type: 'edit-mode'}],
+            [requireUnblock, {type: 'unblock'}],
+            [showRequireAddContact, {type: 'add-contact', user: otherUser}]
+        ];
+
+        for (var i = 0; i < checks.length; i++) {
+            var checkValue = checks[i][0];
+            var successReturn = checks[i][1];
+            var result = generateReturnValue(checkValue, successReturn);
+
+            if (result !== null) {
+                return result;
             }
         }
 
-        if (inEditMode !== null) {
-            if (inEditMode) {
-                return {
-                    type: 'edit-mode'
-                };
-            } else {
-                return {
-                    type: showRequireAddContact ? 'add-contact' : 'content',
-                    user: showRequireAddContact ? requireAddContact.user : null
-                };
-            }
-        }
-
-        if (requireAddContact !== null) {
-            if (showRequireAddContact) {
-                return {
-                    type: 'add-contact',
-                    user: requireAddContact.user
-                };
-            } else {
-                return {
-                    type: 'content'
-                };
-            }
-        }
-
-        return null;
+        return {
+            type: 'content'
+        };
     };
 
     var buildPatch = function(state, newState) {
