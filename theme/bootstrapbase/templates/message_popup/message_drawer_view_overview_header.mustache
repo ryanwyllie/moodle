@@ -33,13 +33,32 @@
     {}
 
 }}
-
-<div class="d-flex py-2 align-items-center">
-    <h6 class="h6 m-0">
-            {{#str}} messagesselected:, core_message {{/str}}
-            <span class="ml-1" data-region="message-selected-court">1</span>
-    </h6>
-    <button type="button" class=" m-0 ml-auto btn-link" aria-label="" data-action="cancel-edit-mode">
-        <span aria-hidden="true">&times;</span>
-    </button>
+<div class="border-bottom px-2 py-3" data-region="view-overview">
+    <div class="d-flex align-items-center">
+        <div class="input-prepend m-0">
+            <span class="add-on bg-white pr-0">
+                {{#pix}} a/search, core {{/pix}}
+            </span>
+            <input
+                type="text"
+                class="form-control border-left-0 searchinput"
+                placeholder="{{#str}} search, core_search {{/str}}"
+                aria-label="{{#str}} search, core_search {{/str}}"
+                data-region="view-overview-search-input"
+            >
+        </div>
+        <div class="ml-auto">
+            <a
+                href="#"
+                data-route="view-settings"
+                data-route-param="{{loggedinuser.id}}"
+            >
+                {{#pix}} t/edit, core {{/pix}}
+            </a>
+        </div>
+    </div>
+    <div class="text-right mt-3">
+        <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
+    </div>
 </div>
+{{ > message_popup/icons }}

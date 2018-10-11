@@ -34,30 +34,36 @@
 
 }}
 
-<div class="h-100" data-region="view-overview" id="message-drawer-view-overview-container">
-    <div class="d-flex p-2">
-        <div class="input-prepend m-0">
-            <span class="add-on bg-white pr-0">
-                {{#pix}} a/search, core {{/pix}}
-            </span>
+<div class="hidden border-bottom px-2 py-3 view-search" data-region="view-search">
+    <div class="d-flex align-items-center">
+        <a
+            class="mr-2 align-self-stretch d-flex align-items-center"
+            href="#"
+            data-route-back
+            data-action="cancel-search"
+        >
+            {{> message_popup/message_drawer_icon_back }}
+        </a>
+        <div class="input-append m-0 d-flex flex-grow">
             <input
                 type="text"
-                class="form-control border-left-0"
+                class="form-control border-right-0 searchinput"
                 placeholder="{{#str}} search, core_search {{/str}}"
                 aria-label="{{#str}} search, core_search {{/str}}"
-                data-region="view-overview-search-input"
+                data-region="search-input"
             >
+                <button
+                    class="btn m-0"
+                    type="button"
+                    data-action="search"
+                >
+                    <span data-region="search-icon-container">
+                        {{#pix}} a/search, core {{/pix}}
+                    </span>
+                    <span class="hidden" data-region="loading-icon-container">
+                        {{> core/loading }}
+                    </span>
+                </button>
         </div>
-        <div class="align-self-center ml-2">
-            <a href="#" data-route="view-settings" data-route-param="{{loggedinuser.id}}">{{#pix}} t/edit, core {{/pix}}</a>
-        </div>
-    </div>
-    <div class="h-100" style="overflow-y: auto">
-        <div class="text-right p-2 border-bottom">
-            <i class="fa fa-user mr-1"></i><a href="#" data-route="view-contacts">{{#str}} contacts, core_message {{/str}}</a>
-        </div>
-        {{#overview.messages}}
-            {{> message_popup/message_drawer_view_overview_messages }}
-        {{/overview.messages}}
     </div>
 </div>

@@ -46,17 +46,15 @@
             data-target="#{{$region}}{{/region}}-target"
             aria-expanded="{{#expanded}}true{{/expanded}}{{^expanded}}false{{/expanded}}"
             aria-controls="{{$region}}{{/region}}-target"
-            style="text-align: left;"
         >
             <span class="collapsed-icon-container">
                 {{#pix}} t/collapsed, core {{/pix}}
             </span>
             <span class="expanded-icon-container">
                 {{#pix}} t/expanded, core {{/pix}}
-            </span> 
-
+            </span>
             {{$title}}{{/title}} (<span data-region="section-total-count">{{count.total}}</span>)
-             <span class="hidden" data-region="loading-icon-container">
+            <span class="hidden ml-2" data-region="loading-icon-container">
                 {{> core/loading }}
             </span>
             <span class="{{^count.unread}}hidden{{/count.unread}} badge badge-pill badge-primary ml-auto" data-region="section-unread-count">
@@ -64,6 +62,7 @@
             </span>
         </button>
     </div>
+
     <div
         id="{{$region}}{{/region}}-target"
         class="collapse border-bottom {{#expanded}}show in{{/expanded}}"

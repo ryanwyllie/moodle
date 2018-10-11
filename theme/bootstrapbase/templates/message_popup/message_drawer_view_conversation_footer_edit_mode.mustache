@@ -34,21 +34,16 @@
 
 }}
 
-<div class="h-100 d-flex flex-column">
-    <div
-        class="px-2 pb-2 pt-0 position-relative"
-        data-region="view-conversation-messages"
-        style="overflow-y: auto"
+<div class="d-flex p-3">
+    <button
+        class="btn btn-link btn-icon my-1 icon-size-4"
+        data-action="delete-selected-messages"
+        data-toggle="tooltip"
+        data-placement="top"
+        title="{{#str}} deleteselectedmessages, core_message {{/str}}"
     >
-        <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
-    </div>
-
-    <div class="mt-auto p-2 border-top bg-white" data-region="response">
-        <div data-region="content-messages-footer-container">
-            {{> message_popup/message_drawer_view_conversation_content_messages_footer }}
-        </div>
-        <div class="hidden" data-region="content-messages-footer-edit-mode-container">
-            {{> message_popup/message_drawer_view_conversation_content_messages_footer_edit_mode }}
-        </div>
-    </div>
+        <span data-region="icon-container">{{#pix}} i/trash, core {{/pix}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        <span class="sr-only">{{#str}} deleteselectedmessages, core_message {{/str}}</span>
+    </button>
 </div>

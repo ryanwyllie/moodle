@@ -33,17 +33,34 @@
     {}
 
 }}
+<div
+    id="message-drawer"
+    class="message-drawer bg-light hidden"
+    aria-expanded="false"
+    aria-hidden="true"
+>
+    <div class="drawer-top p-2 border-bottom bg-secondary text-right">
+        <a id="message-drawer-close" class="" href="#">
+            {{#pix}} i/window_close, core, {{#str}} togglemessagemenu, message {{/str}} {{/pix}}
+        </a>
+    </div>
+    <div class="header-container position-relative" data-region="header-container">
+        {{> message_popup/message_drawer_view_contacts_header }}
+        {{> message_popup/message_drawer_view_conversation_header }}
+        {{> message_popup/message_drawer_view_overview_header }}
+        {{> message_popup/message_drawer_view_search_header }}
+        {{> message_popup/message_drawer_view_settings_header }}
+    </div>
+    <div class="body-container position-relative" data-region="body-container">
 
-<div id="message-drawer" class="message-drawer bg-light hidden" aria-expanded="false" aria-hidden="true">
-    {{> message_popup/message_drawer_view_contacts }}
-    {{> message_popup/message_drawer_view_contacts }}
-    {{> message_popup/message_drawer_view_contact }}
-    {{> message_popup/message_drawer_view_conversation }}
-    {{> message_popup/message_drawer_view_group_conversation }}
-    {{> message_popup/message_drawer_view_group_favourites }}
-    {{> message_popup/message_drawer_view_group_info }}
-    {{> message_popup/message_drawer_view_overview }}
-    {{> message_popup/message_drawer_view_requests }}
-    {{> message_popup/message_drawer_view_search }}
-    {{> message_popup/message_drawer_view_settings }}
+        {{> message_popup/message_drawer_view_contact_body }}
+        {{> message_popup/message_drawer_view_contacts_body }}
+        {{> message_popup/message_drawer_view_conversation_body }}
+        {{> message_popup/message_drawer_view_overview_body }}
+        {{> message_popup/message_drawer_view_search_body }}
+        {{> message_popup/message_drawer_view_settings_body }}
+    </div>
+    <div class="footer-container position-relative" data-region="footer-container">
+        {{> message_popup/message_drawer_view_conversation_footer }}
+    </div>
 </div>

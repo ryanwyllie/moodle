@@ -1178,21 +1178,96 @@
     }
 }
 
+@message-drawer-width: 320px;
+
 .message-drawer {
     position: fixed;
-    top: 52px;
+    top: 0;
+    height: 100%;
     right: 0;
-    height: ~"calc(100% - 52px)";
-    width: 320px;
+    width: @message-drawer-width;
     z-index: 999;
     background-color: @white;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, .08);
+    display: flex;
+    flex-direction: column;
+
+    @media (min-width: 980px) {
+        .drawer-top {
+            display: none;
+        }
+        height: ~"calc(100% - 42px)";
+        top: 42px;
+    }
 
     .transition(all .2s ease-in-out);
 
     &.hidden {
         display: block;
-        right: -330px;
+        right: @message-drawer-width * -1;
+    }
+
+    .header-container {
+        flex-shrink: 0;
+    }
+
+    .searchinput {
+        box-shadow: none;
+        width: 100%;
+    }
+
+    .body-container {
+        flex: 1;
+        overflow-y: auto;
+
+        & > * {
+            position: absolute;
+            right: 0;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 1;
+            .transition(all .2s ease-in-out);
+
+            &.hidden {
+                display: block;
+                left: @message-drawer-width;
+                right: @message-drawer-width * -1;
+                opacity: 0;
+                visibility: hidden;
+
+                &.previous {
+                    left: @message-drawer-width * -1;
+                    right: @message-drawer-width;
+                }
+            }
+        }
+    }
+
+    .footer-container {
+        flex-shrink: 0;
+        overflow-x: hidden;
+
+        & > * {
+            max-height: 2000px;
+            opacity: 1;
+            .transition(all .2s ease-in-out);
+
+            &.hidden {
+                display: block;
+                max-height: 0;
+                opacity: 0;
+                padding: 0 !important; /* stylelint-disable-line declaration-no-important */
+                border: 0 !important; /* stylelint-disable-line declaration-no-important */
+                visibility: hidden;
+                transform: translate(@message-drawer-width);
+                transition: all .2s ease-in-out, max-height .2s .2s ease-in-out;
+
+                &.previous {
+                    transform: translate(@message-drawer-width * -1);
+                }
+            }
+        }
     }
 
     .matchtext {
