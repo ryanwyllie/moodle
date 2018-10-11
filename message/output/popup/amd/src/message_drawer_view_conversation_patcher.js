@@ -566,11 +566,31 @@ define(
         return null;
     };
 
+    var buildUnableToMessage = function(state, newState) {
+        var oldOtherUser = getOtherUserFromState(state);
+        var newOtherUser = getOtherUserFromState(newState);
+
+        if (!oldOtherUser && !newOtherUser) {
+            return null;
+        } else if (oldOtherUser && !newOtherUser) {
+            return oldOtherUser.canmessage ? null : true;
+        } else if (!oldOtherUser && newOtherUser) {
+            return newOtherUser.canmessage ? null : true;
+        } else if (!oldOtherUser.canmessage && newOtherUser.canmessage) {
+            return false;
+        } else if (oldOtherUser.canmessage && !newOtherUser.canmessage) {
+            return true;
+        }
+
+        return null;
+    };
+
     var buildFooterPatch = function(state, newState) {
         var loadingFirstMessages = buildLoadingFirstMessages(state, newState);
         var inEditMode = buildInEditMode(state, newState);
         var requireAddContact = buildRequireAddContact(state, newState);
         var requireUnblock = buildRequireUnblock(state, newState);
+        var unableToMessage = buildUnableToMessage(state, newState);
         var showRequireAddContact = requireAddContact !== null ? requireAddContact.show && requireAddContact.hasMessages : null;
         var otherUser = getOtherUserFromState(newState);
         var generateReturnValue = function(checkValue, successReturn) {
@@ -579,6 +599,8 @@ define(
             } else if (checkValue !== null && !checkValue) {
                 if (!otherUser) {
                     return {type: 'content'}
+                } else if (!otherUser.canmessage) {
+                    return {type: 'unable-to-message'};
                 } else if (otherUser.isblocked) {
                     return {type: 'unblock'};
                 } else if (newState.messages.length && !otherUser.iscontact) {
@@ -599,6 +621,7 @@ define(
         var checks = [
             [loadingFirstMessages, {type: 'placeholder'}],
             [inEditMode, {type: 'edit-mode'}],
+            [unableToMessage, {type: 'unable-to-message'}],
             [requireUnblock, {type: 'unblock'}],
             [showRequireAddContact, {type: 'add-contact', user: otherUser}]
         ];

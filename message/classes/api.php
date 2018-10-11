@@ -590,13 +590,29 @@ class api {
         }
 
         // Check if the contact has been blocked.
-        $contact = $DB->get_record('message_contacts', array('userid' => $userid, 'contactid' => $otheruserid));
-        if ($contact) {
-            $data->isblocked = (bool) $contact->blocked;
-            $data->iscontact = true;
+        $params = [$userid, $otheruserid, $otheruserid, $userid];
+        $where = '(userid = ? AND contactid =?) OR (userid = ? AND contactid = ?)';
+        $results = $DB->get_records_select('message_contacts', $where, $params);
+        if (!empty($results)) {
+            $contact = null;
+            $otherusercontact = null;
+
+            foreach ($results as $record) {
+                if ($record->userid == $userid) {
+                    $contact = $record;
+                } else if ($record->userid == $otheruserid) {
+                    $otherusercontact = $record;
+                }
+            }
+
+            $data->isblocked = !empty($contact) ? (bool) $contact->blocked : false;
+            $data->iscontact = !empty($contact);
+            $data->canmessage = empty($otherusercontact) ? true : !$otherusercontact->blocked;
         } else {
+            $blocknoncontacts = get_user_preferences('message_blocknoncontacts', NULL, $otheruserid);
             $data->isblocked = false;
             $data->iscontact = false;
+            $data->canmessage = false;
         }
 
         return $data;

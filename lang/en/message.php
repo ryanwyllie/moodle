@@ -185,6 +185,7 @@ $string['shownotificationwindowwithcount'] = 'Show notification window with {$a}
 $string['togglenotificationmenu'] = 'Toggle notifications menu';
 $string['togglemessagemenu'] = 'Toggle messages menu';
 $string['touserdoesntexist'] = 'You can not send a message to a user id ({$a}) that doesn\'t exist';
+$string['unabletomessage'] = 'You are unable to message this user';
 $string['unblock'] = 'Unblock';
 $string['unblockcontact'] = 'Unblock contact';
 $string['unblockuser'] = 'Unblock user';

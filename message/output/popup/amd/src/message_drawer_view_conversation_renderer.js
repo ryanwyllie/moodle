@@ -66,6 +66,7 @@ function(
         CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER: '[data-region="content-messages-footer-edit-mode-container"]',
         CONTENT_MESSAGES_FOOTER_REQUIRE_CONTACT_CONTAINER: '[data-region="content-messages-footer-require-contact-container"]',
         CONTENT_MESSAGES_FOOTER_REQUIRE_UNBLOCK_CONTAINER: '[data-region="content-messages-footer-require-unblock-container"]',
+        CONTENT_MESSAGES_FOOTER_UNABLE_TO_MESSAGE_CONTAINER: '[data-region="content-messages-footer-unable-to-message"]',
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         CONFIRM_DIALOGUE_CONTAINER: '[data-region="confirm-dialogue-container"]',
@@ -154,12 +155,25 @@ function(
         getFooterRequireUnblockContainer(footer).addClass('hidden');
     };
 
+    var getFooterUnableToMessageContainer = function(footer) {
+        return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_UNABLE_TO_MESSAGE_CONTAINER);
+    };
+
+    var showFooterUnableToMessage = function(footer) {
+        getFooterUnableToMessageContainer(footer).removeClass('hidden');
+    };
+
+    var hideFooterUnableToMessage = function(footer) {
+        getFooterUnableToMessageContainer(footer).addClass('hidden');
+    };
+
     var hideAllFooterElements = function(footer) {
         hideFooterContent(footer);
         hideFooterEditMode(footer);
         hideFooterPlaceholder(footer);
         hideFooterRequireContact(footer);
         hideFooterRequireUnblock(footer);
+        hideFooterUnableToMessage(footer);
     };
 
     var getContentPlaceholderContainer = function(root) {
@@ -424,6 +438,8 @@ function(
                 return showFooterContent(footer);
             case 'unblock':
                 return showFooterRequireUnblock(footer);
+            case 'unable-to-message':
+                return showFooterUnableToMessage(footer);
         }
 
         return true;

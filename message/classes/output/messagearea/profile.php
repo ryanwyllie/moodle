@@ -89,6 +89,11 @@ class profile implements templatable, renderable {
     public $iscontact;
 
     /**
+     * @var bool Can the user message this user?
+     */
+    public $canmessage;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $profile
@@ -104,6 +109,7 @@ class profile implements templatable, renderable {
         $this->profileimageurlsmall = $profile->profileimageurlsmall;
         $this->isblocked = $profile->isblocked;
         $this->iscontact = $profile->iscontact;
+        $this->canmessage = $profile->canmessage;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -123,6 +129,7 @@ class profile implements templatable, renderable {
         $data->profileimageurlsmall = $this->profileimageurlsmall;
         $data->isblocked = $this->isblocked;
         $data->iscontact = $this->iscontact;
+        $data->canmessage = $this->canmessage;
 
         return $data;
     }

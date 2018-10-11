@@ -133,7 +133,7 @@ function(
             .catch(function(error) {
                 var newState = StateManager.setLoadingMembers(viewState, false);
                 render(newState);
-                return error;
+                Notification.exception(error);
             });
     };
 
