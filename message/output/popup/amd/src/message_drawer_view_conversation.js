@@ -520,7 +520,7 @@ function(
         [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
         [SELECTORS.ACTION_REQUEST_REMOVE_CONTACT, generateConfirmActionHandler(requestRemoveContact)],
         [SELECTORS.ACTION_REQUEST_DELETE_CONVERSATION, generateConfirmActionHandler(requestDeleteConversation)],
-        [SELECTORS.ACTION_CANCEL_EDIT_MODE, handleCancelEditMode],
+        [SELECTORS.ACTION_CANCEL_EDIT_MODE, handleCancelEditMode]
     ];
     var bodyActivateHandlers = [
         [SELECTORS.ACTION_CANCEL_CONFIRM, generateConfirmActionHandler(cancelRequest)],
@@ -530,11 +530,13 @@ function(
         [SELECTORS.ACTION_CONFIRM_REMOVE_CONTACT, generateConfirmActionHandler(removeContact)],
         [SELECTORS.ACTION_CONFIRM_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(deleteSelectedMessages)],
         [SELECTORS.ACTION_CONFIRM_DELETE_CONVERSATION, generateConfirmActionHandler(deleteConversation)],
-        [SELECTORS.MESSAGE, handleSelectMessage],
+        [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
+        [SELECTORS.MESSAGE, handleSelectMessage]
     ];
     var footerActivateHandlers = [
         [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
         [SELECTORS.ACTION_REQUEST_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(requestDeleteSelectedMessages)],
+        [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)]
     ];
 
     var registerEventListeners = function(header, body, footer) {

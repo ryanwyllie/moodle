@@ -37,14 +37,14 @@ function(
         ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
         ACTION_CONFIRM_UNBLOCK: '[data-action="confirm-unblock"]',
         ACTION_CONFIRM_REMOVE_CONTACT: '[data-action="confirm-remove-contact"]',
-        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"][data-region="add-contact"]',
+        ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
         ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
         ACTION_CONFIRM_DELETE_CONVERSATION: '[data-action="confirm-delete-conversation"]',
         ACTION_REQUEST_BLOCK: '[data-action="request-block"]',
         ACTION_REQUEST_UNBLOCK: '[data-action="request-unblock"]',
         ACTION_REQUEST_REMOVE_CONTACT: '[data-action="request-remove-contact"]',
         ACTION_REQUEST_ADD_CONTACT: '[data-action="request-add-contact"]',
-        ACTION_REQUIRE_CONTACT: '[data-action="confirm-add-contact"][data-region="require-contact"]',
+        ACTION_REQUIRE_CONTACT: '[data-action="request-add-contact"]',
         CONFIRM_DIALOGUE_TEXT: '[data-region="dialogue-text"]',
         CONFIRM_DIALOGUE_HEADER: '[data-region="dialogue-header"]',
         HEADER: '[data-region="header-content"]',
@@ -472,6 +472,8 @@ function(
         var cancelButton = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_CANCEL_BUTTON);
         var text = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_TEXT);
         var header = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_HEADER);
+
+        dialogue.find('button').addClass('hidden');
 
         if (canCancel) {
             cancelButton.removeClass('hidden');
