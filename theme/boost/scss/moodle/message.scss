@@ -1293,7 +1293,7 @@ $message-drawer-width: 320px;
         }
     }
 
-    .clickable{
+    .clickable {
         cursor: pointer;
 
         &:hover {
@@ -1301,7 +1301,8 @@ $message-drawer-width: 320px;
         }
     }
 
-    a, .btn-link {
+    a,
+    .btn-link {
         color: inherit;
     }
 
