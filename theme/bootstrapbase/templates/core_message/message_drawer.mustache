@@ -34,7 +34,7 @@
 
 }}
 <div
-    id="message-drawer"
+    id="message-drawer-{{uniqid}}"
     class="message-drawer bg-light hidden"
     aria-expanded="false"
     aria-hidden="true"
@@ -64,3 +64,40 @@
         {{> core_message/message_drawer_view_conversation_footer }}
     </div>
 </div>
+
+{{#js}}
+require(
+[
+    'jquery',
+    'core_message/message_drawer',
+    'core/custom_interaction_events',
+    'core/pubsub',
+    'core_message/message_drawer_events'
+],
+function(
+    $,
+    MessageDrawer,
+    CustomEvents,
+    PubSub,
+    MessageDrawerEvents
+) {
+    var hideMessageDrawer = function() {
+        PubSub.publish(MessageDrawerEvents.HIDE);
+    };
+
+    var registerEventListeners = function(root) {
+        CustomEvents.define(root, [CustomEvents.events.activate]);
+
+        root.on(CustomEvents.events.activate, function(e, data) {
+            hideMessageDrawer();
+            data.originalEvent.preventDefault();
+        });
+    };
+
+    var root = $('#message-drawer-{{uniqid}}');
+    MessageDrawer.init(root);
+
+    var toggle = $('#message-drawer-close-{{uniqid}}');
+    registerEventListeners(root);
+});
+{{/js}}
