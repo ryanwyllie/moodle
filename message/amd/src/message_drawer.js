@@ -26,6 +26,7 @@ define(
 [
     'jquery',
     'core/custom_interaction_events',
+    'core/pubsub',
     'core_message/message_drawer_view_contact',
     'core_message/message_drawer_view_contacts',
     'core_message/message_drawer_view_overview',
@@ -33,11 +34,13 @@ define(
     'core_message/message_drawer_view_search',
     'core_message/message_drawer_view_settings',
     'core_message/message_drawer_router',
-    'core_message/message_drawer_routes'
+    'core_message/message_drawer_routes',
+    'core_message/message_drawer_events'
 ],
 function(
     $,
     CustomEvents,
+    PubSub,
     ViewContact,
     ViewContacts,
     ViewOverview,
@@ -45,7 +48,8 @@ function(
     ViewSearch,
     ViewSettings,
     Router,
-    Routes
+    Routes,
+    Events
 ) {
 
     var SELECTORS = {
@@ -81,6 +85,23 @@ function(
         Router.add(Routes.VIEW_OVERVIEW, getElementsForRoute(root, SELECTORS.VIEW_OVERVIEW), ViewOverview.show);
         Router.add(Routes.VIEW_SEARCH, getElementsForRoute(root, SELECTORS.VIEW_SEARCH), ViewSearch.show);
         Router.add(Routes.VIEW_SETTINGS, getElementsForRoute(root, SELECTORS.VIEW_SETTINGS), ViewSettings.show);
+    };
+
+    var show = function(root) {
+        if (!root.attr('data-shown')) {
+            Router.go(Routes.VIEW_OVERVIEW);
+            root.attr('data-shown', true);
+        }
+
+        root.removeClass('hidden');
+        root.attr('aria-expanded', true);
+        root.attr('aria-hidden', false);
+    };
+
+    var hide = function(root) {
+        root.addClass('hidden');
+        root.attr('aria-expanded', false);
+        root.attr('aria-hidden', true);
     };
 
     var registerEventListeners = function(root) {
@@ -136,13 +157,20 @@ function(
 
             data.originalEvent.preventDefault();
         });
+
+        PubSub.subscribe(Events.SHOW, function() {
+            show(root);
+        });
+
+        PubSub.subscribe(Events.HIDE, function() {
+            hide(root);
+        });
     };
 
     var init = function(root) {
         root = $(root);
         createRoutes(root);
         registerEventListeners(root);
-        Router.go(Routes.VIEW_OVERVIEW);
     };
 
     return {

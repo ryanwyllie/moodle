@@ -49,43 +49,13 @@
 require(
 [
     'jquery',
-    'core/custom_interaction_events',
-    'core_message/message_drawer'
+    'core_message/message_popover'
 ],
 function(
     $,
-    CustomEvents,
-    MessageDrawer
+    Popover
 ) {
-    var hasInitialised = false;
     var toggle = $('#message-drawer-toggle-{{uniqid}}');
-    var drawerClose = $('#message-drawer-close');
-    var drawer = $('#message-drawer');
-
-    CustomEvents.define(toggle, [CustomEvents.events.activate]);
-    toggle.on(CustomEvents.events.activate, function(e, data) {
-        drawer.toggleClass('hidden');
-        var expanded = drawer.attr('aria-expanded') === 'true';
-        drawer.attr('aria-expanded', !expanded);
-        drawer.attr('aria-hidden', expanded)
-
-        if (!hasInitialised) {
-            MessageDrawer.init(drawer);
-            hasInitialised = true;
-        }
-
-        data.originalEvent.preventDefault();
-    });
-
-    CustomEvents.define(drawerClose, [CustomEvents.events.activate]);
-    drawerClose.on(CustomEvents.events.activate, function(e, data) {
-        drawer.toggleClass('hidden');
-        console.log('clickme');
-        var expanded = drawer.attr('aria-expanded') === 'true';
-        drawer.attr('aria-expanded', !expanded);
-        drawer.attr('aria-hidden', expanded)
-
-        data.originalEvent.preventDefault();
-    });
+    Popover.init(toggle, false);
 });
 {{/js}}

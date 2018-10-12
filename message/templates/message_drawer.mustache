@@ -35,7 +35,7 @@
 }}
 
 <div
-    id="message-drawer"
+    id="message-drawer-{{uniqid}}"
     class="message-drawer bg-light hidden"
     aria-expanded="false"
     aria-hidden="true"
@@ -59,3 +59,9 @@
         {{> core_message/message_drawer_view_conversation_footer }}
     </div>
 </div>
+{{#js}}
+require(['jquery', 'core_message/message_drawer'], function($, MessageDrawer) {
+    var root = $('#message-drawer-{{uniqid}}');
+    MessageDrawer.init(root);
+});
+{{/js}}

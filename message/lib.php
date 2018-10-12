@@ -917,12 +917,7 @@ function core_message_render_navbar_output(\renderer_base $renderer) {
         $unreadcount = \core_message\api::count_unread_conversations($USER);
         $context = [
             'userid' => $USER->id,
-            'unreadcount' => $unreadcount,
-            'urls' => [
-                'seeall' => (new moodle_url('/message/index.php'))->out(),
-                'writeamessage' => (new moodle_url('/message/index.php', ['contactsfirst' => 1]))->out(),
-                'preferences' => (new moodle_url('/message/edit.php', ['id' => $USER->id]))->out(),
-            ],
+            'unreadcount' => $unreadcount
         ];
         $output .= $renderer->render_from_template('core_message/message_popover', $context);
     }

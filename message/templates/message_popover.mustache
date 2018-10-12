@@ -49,31 +49,13 @@
 require(
 [
     'jquery',
-    'core/custom_interaction_events',
-    'core_message/message_drawer'
+    'core_message/message_popover'
 ],
 function(
     $,
-    CustomEvents,
-    MessageDrawer
+    Popover
 ) {
-    var hasInitialised = false;
     var toggle = $('#message-drawer-toggle-{{uniqid}}');
-    var drawer = $('#message-drawer');
-
-    CustomEvents.define(toggle, [CustomEvents.events.activate]);
-    toggle.on(CustomEvents.events.activate, function(e, data) {
-        drawer.toggleClass('hidden');
-        var expanded = drawer.attr('aria-expanded') === 'true';
-        drawer.attr('aria-expanded', !expanded);
-        drawer.attr('aria-hidden', expanded)
-
-        if (!hasInitialised) {
-            MessageDrawer.init(drawer);
-            hasInitialised = true;
-        }
-
-        data.originalEvent.preventDefault();
-    });
+    Popover.init(toggle, false);
 });
 {{/js}}

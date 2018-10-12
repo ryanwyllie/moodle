@@ -30,6 +30,9 @@ define([],function() {
         CONVERSATION_NEW_LAST_MESSAGE: 'message-drawer-conversation-new-last-message',
         CONVERSATION_DELETED: 'message-drawer-conversation-deleted',
         CONVERSATION_READ: 'message-drawer-conversation-read',
-        ROUTE_CHANGED: 'message-drawer-route-change'
+        ROUTE_CHANGED: 'message-drawer-route-change',
+        SHOW: 'message-drawer-show',
+        HIDE: 'message-drawer-hide',
+        SHOW_CONVERSATION: 'message-drawer-show-conversation'
     };
 });
