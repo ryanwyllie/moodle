@@ -33,32 +33,16 @@
     {}
 
 }}
-<div class="border-bottom px-2 py-3" data-region="view-overview">
+
+<div class="hidden border-bottom px-2 py-3" data-region="view-settings">
     <div class="d-flex align-items-center">
-        <div class="input-prepend m-0">
-            <span class="add-on bg-white pr-0">
-                {{#pix}} a/search, core {{/pix}}
-            </span>
-            <input
-                type="text"
-                class="form-control border-left-0 searchinput"
-                placeholder="{{#str}} search, core_search {{/str}}"
-                aria-label="{{#str}} search, core_search {{/str}}"
-                data-region="view-overview-search-input"
-            >
-        </div>
-        <div class="ml-auto">
-            <a
-                href="#"
-                data-route="view-settings"
-                data-route-param="{{loggedinuser.id}}"
-            >
-                {{#pix}} t/edit, core {{/pix}}
+        <div class="align-self-stretch" >
+            <a class="h-100 d-flex mr-2 align-items-center" href="#" data-route-back>
+                {{> core_message/message_drawer_icon_back }}
             </a>
         </div>
-    </div>
-    <div class="text-right mt-3">
-        <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
+        <div>
+            {{#str}} settings, core {{/str}}
+        </div>
     </div>
 </div>
-{{ > core_message/icons }}

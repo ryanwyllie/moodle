@@ -33,32 +33,25 @@
     {}
 
 }}
-<div class="border-bottom px-2 py-3" data-region="view-overview">
-    <div class="d-flex align-items-center">
-        <div class="input-prepend m-0">
-            <span class="add-on bg-white pr-0">
-                {{#pix}} a/search, core {{/pix}}
-            </span>
-            <input
-                type="text"
-                class="form-control border-left-0 searchinput"
-                placeholder="{{#str}} search, core_search {{/str}}"
-                aria-label="{{#str}} search, core_search {{/str}}"
-                data-region="view-overview-search-input"
-            >
+
+<div
+    class="hidden h-100"
+    data-region="view-conversation"
+    data-user-id="{{loggedinuser.id}}"
+    data-full-name="{{loggedinuser.fullname}}"
+    data-profile-url="{{loggedinuser.profileurl}}"
+    data-midnight="{{loggedinuser.midnight}}"
+    style="overflow-y: auto"
+>
+    <div class="position-relative h-100" data-region="content-container" style="overflow-y: auto">
+        <div class="hidden h-100 px-2 pb-2 pt-0" data-region="content-message-container" style="overflow-y: auto">
+            <div class="hidden text-center p-3" data-region="more-messages-loading-icon-container">{{> core/loading }}</div>
         </div>
-        <div class="ml-auto">
-            <a
-                href="#"
-                data-route="view-settings"
-                data-route-param="{{loggedinuser.id}}"
-            >
-                {{#pix}} t/edit, core {{/pix}}
-            </a>
+        <div class="p-4 w-100 h-100 hidden position-absolute" data-region="confirm-dialogue-container" style="top: 0; background: rgba(0,0,0,0.3);">
+            {{> core_message/message_drawer_view_conversation_body_confirm_dialogue }}
         </div>
-    </div>
-    <div class="text-right mt-3">
-        <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
+        <div class="px-2 pb-2 pt-0" data-region="content-placeholder">
+            {{> core_message/message_drawer_view_conversation_body_placeholder }}
+        </div>
     </div>
 </div>
-{{ > core_message/icons }}

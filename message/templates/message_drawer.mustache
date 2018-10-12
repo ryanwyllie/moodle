@@ -33,17 +33,13 @@
     {}
 
 }}
+
 <div
     id="message-drawer"
     class="message-drawer bg-light hidden"
     aria-expanded="false"
     aria-hidden="true"
 >
-    <div class="drawer-top p-2 border-bottom bg-secondary text-right">
-        <a id="message-drawer-close" class="" href="#">
-            {{#pix}} i/window_close, core, {{#str}} togglemessagemenu, message {{/str}} {{/pix}}
-        </a>
-    </div>
     <div class="header-container position-relative" data-region="header-container">
         {{> core_message/message_drawer_view_contacts_header }}
         {{> core_message/message_drawer_view_conversation_header }}
@@ -52,7 +48,6 @@
         {{> core_message/message_drawer_view_settings_header }}
     </div>
     <div class="body-container position-relative" data-region="body-container">
-
         {{> core_message/message_drawer_view_contact_body }}
         {{> core_message/message_drawer_view_contacts_body }}
         {{> core_message/message_drawer_view_conversation_body }}

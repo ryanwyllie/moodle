@@ -7583,6 +7583,7 @@ function get_plugins_with_function($function, $file = 'lib.php', $include = true
 
         // We need to include files here.
         $pluginswithfile = \core_component::get_plugin_list_with_file($plugintype, $file, true);
+
         $installedplugins = $pluginmanager->get_installed_plugins($plugintype);
         foreach ($pluginswithfile as $plugin => $notused) {
 

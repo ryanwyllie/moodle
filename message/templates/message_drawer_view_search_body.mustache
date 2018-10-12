@@ -33,32 +33,22 @@
     {}
 
 }}
-<div class="border-bottom px-2 py-3" data-region="view-overview">
-    <div class="d-flex align-items-center">
-        <div class="input-prepend m-0">
-            <span class="add-on bg-white pr-0">
-                {{#pix}} a/search, core {{/pix}}
-            </span>
-            <input
-                type="text"
-                class="form-control border-left-0 searchinput"
-                placeholder="{{#str}} search, core_search {{/str}}"
-                aria-label="{{#str}} search, core_search {{/str}}"
-                data-region="view-overview-search-input"
-            >
-        </div>
-        <div class="ml-auto">
-            <a
-                href="#"
-                data-route="view-settings"
-                data-route-param="{{loggedinuser.id}}"
-            >
-                {{#pix}} t/edit, core {{/pix}}
-            </a>
-        </div>
+
+<div
+    data-region="view-search"
+    class="h-100 hidden"
+    data-user-id="{{loggedinuser.id}}"
+    data-users-offset="0"
+    data-messages-offset="0"
+    style="overflow-y: auto"
+>
+    <div class="hidden" data-region="search-results-container" style="overflow-y: auto">
+        {{> core_message/message_drawer_view_search_results_content }}
     </div>
-    <div class="text-right mt-3">
-        <a href="#" data-route="view-contacts">{{#pix}} i/user, core {{/pix}} {{#str}} contacts, core_message {{/str}}</a>
+    <div class="hidden" data-region="loading-placeholder">
+        {{> core_message/message_drawer_view_search_results_content_placeholder }}
+    </div>
+    <div class="p-2" data-region="empty-message-container">
+        <p>{{#str}} searchcombined, core_message {{/str}}</p>
     </div>
 </div>
-{{ > core_message/icons }}

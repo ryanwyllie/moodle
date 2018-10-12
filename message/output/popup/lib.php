@@ -43,21 +43,6 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
 
     $output = '';
 
-    // Add the messages popover.
-    if (!empty($CFG->messaging)) {
-        $unreadcount = \core_message\api::count_unread_conversations($USER);
-        $context = [
-            'userid' => $USER->id,
-            'unreadcount' => $unreadcount,
-            'urls' => [
-                'seeall' => (new moodle_url('/message/index.php'))->out(),
-                'writeamessage' => (new moodle_url('/message/index.php', ['contactsfirst' => 1]))->out(),
-                'preferences' => (new moodle_url('/message/edit.php', ['id' => $USER->id]))->out(),
-            ],
-        ];
-        $output .= $renderer->render_from_template('message_popup/message_popover', $context);
-    }
-
     // Add the notifications popover.
     $enabled = \core_message\api::is_processor_enabled("popup");
     if ($enabled) {
@@ -74,40 +59,4 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
     }
 
     return $output;
-}
-
-function message_popup_before_standard_top_of_body_html() {
-    global $USER, $CFG, $PAGE;
-
-    // Early bail out conditions.
-    if (empty($CFG->messaging) || !isloggedin() || isguestuser() || user_not_fully_set_up($USER) ||
-        get_user_preferences('auth_forcepasswordchange') ||
-        (!$USER->policyagreed && !is_siteadmin() &&
-            ($manager = new \core_privacy\local\sitepolicy\manager()) && $manager->is_defined())) {
-        return '';
-    }
-
-    $renderer = $PAGE->get_renderer('core');
-    $profileurl = (new \user_picture($USER))->get_url($PAGE)->out(false);
-    $fullname = fullname($USER);
-    $unreadconversationcount = \core_message\api::count_unread_conversations($USER);
-    $totalconversationcount = \core_message\api::count_conversations($USER);
-
-    return $renderer->render_from_template('message_popup/message_drawer', [
-        'loggedinuser' => [
-            'id' => $USER->id,
-            'fullname' => $fullname,
-            'profileurl' => $profileurl,
-            'midnight' => usergetmidnight(time())
-        ],
-        'overview' => [
-            'messages' => [
-                'expanded' => true,
-                'count' => [
-                    'unread' => $unreadconversationcount,
-                    'total' => $totalconversationcount
-                ]
-            ]
-        ]
-    ]);
 }
