@@ -83,6 +83,11 @@ function(
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
     };
 
+    /**
+     * Get the other user userid.
+     * 
+     * @return {Number} Userid.
+     */
     var getOtherUserId = function() {
         var loggedInUserId = viewState.loggedInUserId;
         var otherUserIds = Object.keys(viewState.members).filter(function(userId) {
@@ -92,18 +97,35 @@ function(
         return otherUserIds.length ? otherUserIds[0] : null;
     };
 
+    /**
+     * Get profile info for logged in user.
+     *
+     * @param {Object} body Conversation body container element.
+     */
     var getLoggedInUserProfile = function(body) {
         return {
             userid: body.attr('data-user-id'),
             fullname: body.attr('data-full-name'),
             profileimageurl: body.attr('data-profile-url'),
-        }
+        };
     };
 
+    /**
+     * Get the messages container element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @return {Object} The messages container element.
+     */
     var getMessagesContainer = function(body) {
         return body.find(SELECTORS.MESSAGES_CONTAINER);
     };
 
+    /**
+     * Reformat the message for rendering event.
+     * 
+     * @param  {Object} message Raw message stored in statemanager.
+     * @return {Object} New formatted message with additional attributs.
+     */
     var formatMessageForEvent = function(message) {
         return Object.assign({
             conversation: {
@@ -114,6 +136,13 @@ function(
         }, message);
     };
 
+    /**
+     * Get the other user profile.
+     *
+     * @param  {Object} loggedInUserProfile The logged in user profile.
+     * @param  {Number} otherUserId The other user id.
+     * @return {Object} Profile returned from repository.
+     */
     var loadProfile = function(loggedInUserProfile, otherUserId) {
         var loggedInUserId = loggedInUserProfile.userid;
         var newState = StateManager.setLoadingMembers(viewState, true);
@@ -137,11 +166,20 @@ function(
             });
     };
 
+    /**
+     * Load messages for this conversation and pass them to the renderer.
+     *
+     * @param  {Number} conversationId Conversation id.
+     * @param  {Number} limit Number of messages to load.
+     * @param  {Number} offset get messages from offset.
+     * @param  {Bool} newestFirst get newest messages first.
+     * @return {Promise} renderer promise.
+     */
     var loadMessages = function(conversationId, limit, offset, newestFirst) {
         var newState = StateManager.setLoadingMessages(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.getMessages(viewState.loggedInUserId, conversationId, limit + 1, offset, newestFirst)
+                return Repository.getMessages(viewState.loggedInUserId, conversationId, limit + 1, offset, newestFirst);
             })
             .then(function(result) {
                 return result.messages;
@@ -166,6 +204,13 @@ function(
             });
     };
 
+    /**
+     * Create a callback function for getting new messages for this conversation.
+     * 
+     * @param  {Number} conversationId Conversation id.
+     * @param  {Bool} newestFirst Show newest messages first
+     * @return {Function} Callback function that returns a renderer promise.
+     */
     var getLoadNewMessagesCallback = function(conversationId, newestFirst) {
         return function() {
             var messages = viewState.messages;
@@ -228,6 +273,12 @@ function(
         };
     };
 
+    /**
+     * Mark a conversation as read.
+     * 
+     * @param  {Number} conversationId The conversation id.
+     * @return {Promise} The renderer promise.
+     */
     var markConversationAsRead = function(conversationId) {
         var loggedInUserId = viewState.loggedInUserId;
 
@@ -242,6 +293,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is request to block a user and run the renderer
+     * to show the block user dialogue.
+     * 
+     * @param  {Number} userId User id.
+     * @return {Promise} Renderer promise.
+     */
     var requestBlockUser = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.addPendingBlockUsersById(viewState, [userId]);
@@ -249,11 +307,18 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to block a user, update the statemanager and publish
+     * a contact has been blocked.
+     * 
+     * @param  {Number} userId User id of user to block.
+     * @return {Promise} Renderer promise.
+     */
     var blockUser = function(userId) {
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.blockContacts(viewState.loggedInUserId, [userId])
+                return Repository.blockContacts(viewState.loggedInUserId, [userId]);
             })
             .then(function() {
                 var newState = StateManager.blockUsersById(viewState, [userId]);
@@ -264,6 +329,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is a request to unblock a user and run the renderer
+     * to show the unblock user dialogue.
+     * 
+     * @param  {Number} userId User id of user to unblock.
+     * @return {Promise} Renderer promise.
+     */
     var requestUnblockUser = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.addPendingUnblockUsersById(viewState, [userId]);
@@ -271,11 +343,18 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to unblock a user, update the statemanager and publish
+     * a contact has been unblocked.
+     * 
+     * @param  {Number} userId User id of user to unblock.
+     * @return {Promise} Renderer promise.
+     */
     var unblockUser = function(userId) {
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.unblockContacts(viewState.loggedInUserId, [userId])
+                return Repository.unblockContacts(viewState.loggedInUserId, [userId]);
             })
             .then(function() {
                 var newState = StateManager.unblockUsersById(viewState, [userId]);
@@ -286,6 +365,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is a request to remove a user from the contact list
+     * and run the renderer to show the remove user from contacts dialogue.
+     * 
+     * @param  {Number} userId User id of user to remove from contacts.
+     * @return {Promise} Renderer promise.
+     */   
     var requestRemoveContact = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.addPendingRemoveContactsById(viewState, [userId]);
@@ -293,11 +379,18 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to remove a user from the contacts list. update the statemanager
+     * and publish a contact has been removed.
+     * 
+     * @param  {Number} userId User id of user to remove from contacts.
+     * @return {Promise} Renderer promise.
+     */
     var removeContact = function(userId) {
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.deleteContacts(viewState.loggedInUserId, [userId])
+                return Repository.deleteContacts(viewState.loggedInUserId, [userId]);
             })
             .then(function() {
                 var newState = StateManager.removeContactsById(viewState, [userId]);
@@ -308,6 +401,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is a request to add a user to the contact list
+     * and run the renderer to show the add user to contacts dialogue.
+     * 
+     * @param  {Number} userId User id of user to add to contacts.
+     * @return {Promise} Renderer promise.
+     */
     var requestAddContact = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.addPendingAddContactsById(viewState, [userId]);
@@ -315,11 +415,18 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to add a user to the contacts list. update the statemanager
+     * and publish a contact has been added.
+     * 
+     * @param  {Number} userId User id of user to add to contacts.
+     * @return {Promise} Renderer promise.
+     */
     var addContact = function(userId) {
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.createContacts(viewState.loggedInUserId, [userId])
+                return Repository.createContacts(viewState.loggedInUserId, [userId]);
             })
             .then(function() {
                 var newState = StateManager.addContactsById(viewState, [userId]);
@@ -330,6 +437,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is a request to delete the selected messages
+     * and run the renderer to show confirm delete messages dialogue.
+     * 
+     * @param  {Number} userId User id.
+     * @return {Promise} Renderer promise.
+     */
     var requestDeleteSelectedMessages = function(userId) {
         var selectedMessageIds = viewState.selectedMessageIds;
         return cancelRequest(userId).then(function() {
@@ -338,12 +452,18 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to delete the messages pending deletion. Update the statemanager
+     * and publish a message deletion event.
+     * 
+     * @return {Promise} Renderer promise.
+     */
     var deleteSelectedMessages = function() {
         var messageIds = viewState.pendingDeleteMessageIds;
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.deleteMessages(viewState.loggedInUserId, messageIds)
+                return Repository.deleteMessages(viewState.loggedInUserId, messageIds);
             })
             .then(function() {
                 var newState = StateManager.removeMessagesById(viewState, messageIds);
@@ -365,6 +485,13 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager there is a request to delete a conversation
+     * and run the renderer to show confirm delete conversation dialogue.
+     * 
+     * @param  {Number} userId User id of other user.
+     * @return {Promise} Renderer promise.
+     */
     var requestDeleteConversation = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.setPendingDeleteConversation(viewState, true);
@@ -372,11 +499,17 @@ function(
         });
     };
 
+    /**
+     * Send the repository a request to delete a conversation. Update the statemanager
+     * and publish a conversation deleted event.
+     * 
+     * @return {Promise} Renderer promise.
+     */
     var deleteConversation = function() {
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.deleteCoversation(viewState.loggedInUserId, getOtherUserId())
+                return Repository.deleteCoversation(viewState.loggedInUserId, getOtherUserId());
             })
             .then(function() {
                 var newState = StateManager.removeMessages(viewState, viewState.messages);
@@ -388,6 +521,12 @@ function(
             });
     };
 
+    /**
+     * Tell the statemanager to cancel all pending actions.
+     *
+     * @param  {Number} userId User id.
+     * @return {Promise} Renderer promise.
+     */
     var cancelRequest = function(userId) {
         var pendingDeleteMessageIds = viewState.pendingDeleteMessageIds;
         var newState = StateManager.removePendingAddContactsById(viewState, [userId]);
@@ -399,6 +538,14 @@ function(
         return render(newState);
     };
 
+    /**
+     * Send a message to the repository, update the statemanager publish a message send event
+     * and call the renderer.
+     * 
+     * @param  {Number} toUserId User id of user to send this message to.
+     * @param  {String} text Text to send.
+     * @return {Promise} Renderer promise.
+     */
     var sendMessage = function(toUserId, text) {
         var loggedInUser = viewState.members[viewState.loggedInUserId];
         var newState = StateManager.setSendingMessage(viewState, true);
@@ -432,7 +579,7 @@ function(
                 var lastMessage = newState.messages.filter(function(candidate) {
                     return candidate.id === message.id;
                 });
-                formattedMessage = formatMessageForEvent(lastMessage[0]);
+                var formattedMessage = formatMessageForEvent(lastMessage[0]);
 
                 PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, formattedMessage);
 
@@ -445,6 +592,12 @@ function(
             });
     };
 
+    /**
+     * Toggle the selected messages update the statemanager and render the result.
+     *
+     * @param  {Number} messageId The id of the message to be toggled
+     * @return {Promise} Renderer promise.
+     */
     var toggleSelectMessage = function(messageId) {
         var newState = viewState;
 
@@ -457,6 +610,10 @@ function(
         return render(newState);
     };
 
+    /**
+     * Cancel the delete messages request and.
+     * @return {Promise} Renderer promise.
+     */
     var cancelEditMode = function() {
         return cancelRequest(getOtherUserId())
             .then(function() {
@@ -465,6 +622,14 @@ function(
             });
     };
 
+    /**
+     * Create a function to render the Conversation.
+     *  
+     * @param  {Object} header The conversation header container element.
+     * @param  {Object} body The conversation body container element.
+     * @param  {Object} footer The conversation footer container element.
+     * @return {Promise} Renderer promise.
+     */
     var generateRenderFunction = function(header, body, footer) {
         return function(newState) {
             var patch = Patcher.buildPatch(viewState, newState);
@@ -478,6 +643,12 @@ function(
         };
     };
 
+    /**
+     * Create a confirm action function.
+     * 
+     * @callback actionCallback
+     * @return {Function} Confirm action handler.
+     */
     var generateConfirmActionHandler = function(actionCallback) {
         return function(e, data) {
             if (!viewState.loadingConfirmAction) {
@@ -487,6 +658,12 @@ function(
         };
     };
 
+    /**
+     * Send message event handler.
+     * 
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
     var handleSendMessage = function(e, data) {
         var target = $(e.target);
         var footerContainer = target.closest(SELECTORS.FOOTER_CONTAINER);
@@ -500,6 +677,12 @@ function(
         data.originalEvent.preventDefault();
     };
 
+    /**
+     * Select message event handler.
+     * 
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
     var handleSelectMessage = function(e, data) {
         var element = $(e.target).closest(SELECTORS.MESSAGE);
         var messageId = parseInt(element.attr('data-message-id'), 10);
@@ -509,6 +692,12 @@ function(
         data.originalEvent.preventDefault();
     };
 
+    /**
+     * Cancel edit mode event handler.
+     * 
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
     var handleCancelEditMode = function(e, data) {
         cancelEditMode().catch(Notification.exception);
         data.originalEvent.preventDefault();
@@ -540,6 +729,13 @@ function(
         [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
     ];
 
+    /**
+     * Listen to, and handle events for conversations.
+     *
+     * @param {Object} header Conversation header container element.
+     * @param {Object} body Conversation body container element.
+     * @param {Object} footer Conversation footer container element.
+     */
     var registerEventListeners = function(header, body, footer) {
         var isLoadingMoreMessages = false;
         var messagesContainer = getMessagesContainer(body);
@@ -608,6 +804,13 @@ function(
         });
     };
 
+    /**
+     * Load new messages into the conversation based on a time interval.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @param  {Number} conversationId The conversation id.
+     * @return {Promise} Renderer promise.
+     */
     var reset = function(body, conversationId) {
         var loggedInUserProfile = getLoggedInUserProfile(body);
         var loggedInUserId = loggedInUserProfile.userid;
@@ -638,20 +841,28 @@ function(
 
         return render(newState)
             .then(function() {
-                return loadProfile(loggedInUserProfile, conversationId)
+                return loadProfile(loggedInUserProfile, conversationId);
             })
             .then(function() {
                 return loadMessages(viewState.id, LOAD_MESSAGE_LIMIT, messagesOffset, NEWEST_FIRST);
             })
             .then(function() {
-                return messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
+                messagesOffset = messagesOffset + LOAD_MESSAGE_LIMIT;
+                return messagesOffset;
             })
             .then(function() {
                 return markConversationAsRead(viewState.id);
             })
-            .catch(Notification.exception);;
+            .catch(Notification.exception);
     };
 
+    /**
+     * Setup the conversation page.
+     *
+     * @param {Object} header Conversation header container element.
+     * @param {Object} body Conversation body container element.
+     * @param {Object} footer Conversation footer container element.
+     */
     var show = function(header, body, footer, conversationId, action) {
         if (!body.attr('data-init')) {
             render = generateRenderFunction(header, body, footer);

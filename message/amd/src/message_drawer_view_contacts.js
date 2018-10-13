@@ -47,7 +47,6 @@ function(
     var numContacts = 0;
     var contactsOffset = 0;
     var loadedAllContacts = false;
-    var numLoads = 0;
     var waitForScrollLoad = false;
 
     var SELECTORS = {
@@ -63,47 +62,95 @@ function(
         CONTACTS_LIST: 'core_message/message_drawer_contacts_list'
     };
 
+    /**
+     * Show the loading icon.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var startLoading = function(body) {
         body.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Hide the loading icon.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var stopLoading = function(body) {
         body.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Get the content container of the contacts body container element.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var getContentContainer = function(body) {
         return body.find(SELECTORS.CONTENT_CONTAINER);
     };
 
-    var getcontactsContainer = function(body) {
+    /**
+     * Get the contacts container of the contacts body container element.
+     *
+     * @param {Object} body Contacts body container element.
+     */
+    var getContactsContainer = function(body) {
         return body.find(SELECTORS.CONTACTS);
     };
 
+    /**
+     * Show a message when no contacts found.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var showEmptyMessage = function(body) {
         getContentContainer(body).addClass('hidden');
         body.find(SELECTORS.EMPTY_MESSAGE).removeClass('hidden');
     };
 
-    var showPlaceholder = function(body) {
-        body.find(SELECTORS.PLACEHOLDER).removeClass('hidden');
-    };
-
+    /**
+     * Hide the placeholder image.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var hidePlaceholder = function(body) {
         body.find(SELECTORS.PLACEHOLDER).addClass('hidden');
     };
 
+    /**
+     * Show the content container.
+     */
     var showContent = function(body) {
         getContentContainer(body).removeClass('hidden');
     };
 
+    /**
+     * Find a contact element.
+     *
+     * @param {Object} body Contacts body container element.
+     * @param {Number} userId User id of contact.
+     * @return {Object} contact element.
+     */
     var findContact = function(body, userId) {
         return body.find('[data-contact-user-id="' + userId + '"]');
     };
 
-    var getUserId = function(body) {
+    /**
+     * Get logged in userid.
+     *
+     * @param {Object} body Contacts body container element.
+     * @return {Number} Logged in userid.
+     */
+    var getLoggedInUserId = function(body) {
         return body.attr('data-user-id');
     };
 
+    /**
+     * Render the contacts in the content container.
+     *
+     * @param {Object} body Contacts body container element.
+     * @param {Array} contacts List of contacts.
+     */
     var render = function(body, contacts) {
         var contentContainer = getContentContainer(body);
         return Templates.render(TEMPLATES.CONTACTS_LIST, {contacts: contacts})
@@ -115,8 +162,11 @@ function(
             .catch(Notification.exception);
     };
 
+    /**
+     * Load the user contacts and call the renderer.
+     */
     var loadContacts = function(body) {
-        var userId = getUserId(body);
+        var userId = getLoggedInUserId(body);
         return MessageRepository.getContacts(userId, (LOAD_CONTACTS_LIMIT + 1), contactsOffset)
             .then(function(result) {
                 return result.contacts;
@@ -143,29 +193,51 @@ function(
                 }
             })
             .catch(Notification.exception);
-    }
+    };
 
+    /**
+     * Remove contact from view.
+     *
+     * @param {Object} body Contacts body container element.
+     * @param {Number} userId Contact userid.
+     */
     var removeContact = function(body, userId) {
         findContact(body, userId).remove();
     };
 
-    var blockContact = function(body, userId) {
+    /**
+     * Show the contact has been blocked.
+     *
+     * @param {Object} body Contacts body container element.
+     * @param {Number} userId Contact userid.
+     */
+    var showContactBlocked = function(body, userId) {
         var contact = findContact(body, userId);
         if (contact.length) {
             contact.find(SELECTORS.BLOCK_ICON_CONTAINER).removeClass('hidden');
         }
     };
 
-    var unblockContact = function(body, userId) {
+    /**
+     * Show the contact has been unblocked.
+     * 
+     * @param {Object} body Contacts body container element.
+     * @param {Number} userId Contact userid.
+     */
+    var showContactUnblocked = function(body, userId) {
         var contact = findContact(body, userId);
         if (contact.length) {
             contact.find(SELECTORS.BLOCK_ICON_CONTAINER).addClass('hidden');
         }
     };
 
+    /**
+     * Listen to and handle events for contacts.
+     *
+     * @param {Object} body Contacts body container element.
+     */
     var registerEventListeners = function(body) {
-        // FIX THIS ONE
-        PubSub.subscribe(Events.CONTACT_ADDED, function(contact) {
+        PubSub.subscribe(Events.CONTACT_ADDED, function() {
             contactsOffset = 0;
             loadedAllContacts = false;
             getContentContainer(body).empty();
@@ -177,35 +249,40 @@ function(
         });
 
         PubSub.subscribe(Events.CONTACT_BLOCKED, function(userId) {
-            blockContact(body, userId);
+            showContactBlocked(body, userId);
         });
 
         PubSub.subscribe(Events.CONTACT_UNBLOCKED, function(userId) {
-            unblockContact(body, userId);
+            showContactUnblocked(body, userId);
         });
 
-        var contactsContainer = getcontactsContainer(body);
+        var contactsContainer = getContactsContainer(body);
 
-        // What is scrollLock for?
         CustomEvents.define(contactsContainer, [
             CustomEvents.events.scrollBottom,
             CustomEvents.events.scrollLock
         ]);
 
         contactsContainer.on(CustomEvents.events.scrollBottom, function(e, data) {
-            hasContacts = numContacts > 1;
+            var hasContacts = numContacts > 1;
             if (!loadedAllContacts && hasContacts && !waitForScrollLoad) {
                 waitForScrollLoad = true;
                 startLoading(body);
                 loadContacts(body).then(function() {
                     stopLoading(body);
-                    return waitForScrollLoad = false;
+                    waitForScrollLoad = false;
                 });
             }
             data.originalEvent.preventDefault();
         });
     };
 
+    /**
+     * Setup the contact page.
+     *
+     * @param {Object} header Contacts header container element.
+     * @param {Object} body Contacts body container element.
+     */
     var show = function(header, body) {
         body = $(body);
         contactsOffset = 0;

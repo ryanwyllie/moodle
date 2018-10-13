@@ -66,6 +66,14 @@ function(
         FOOTER_CONTAINER: '[data-region="footer-container"]',
     };
 
+    /**
+     * Get elements for route.
+     *
+     * @param {Object} root The message drawer container.
+     * @param {string} selector The route container.
+     *
+     * @return {array} elements Found route container objects.
+    */
     var getElementsForRoute = function(root, selector) {
         var candidates = root.children();
         var header = candidates.filter(SELECTORS.HEADER_CONTAINER).find(selector);
@@ -78,6 +86,11 @@ function(
         return elements;
     };
 
+    /**
+     * Create routes.
+     *
+     * @param {Object} root The message drawer container.
+     */
     var createRoutes = function(root) {
         Router.add(Routes.VIEW_CONTACT, getElementsForRoute(root, SELECTORS.VIEW_CONTACT), ViewContact.show);
         Router.add(Routes.VIEW_CONTACTS, getElementsForRoute(root, SELECTORS.VIEW_CONTACTS), ViewContacts.show);
@@ -87,6 +100,11 @@ function(
         Router.add(Routes.VIEW_SETTINGS, getElementsForRoute(root, SELECTORS.VIEW_SETTINGS), ViewSettings.show);
     };
 
+    /**
+     * Show the message drawer.
+     *
+     * @param {Object} root The message drawer container.
+     */
     var show = function(root) {
         if (!root.attr('data-shown')) {
             Router.go(Routes.VIEW_OVERVIEW);
@@ -98,12 +116,22 @@ function(
         root.attr('aria-hidden', false);
     };
 
+    /**
+     * Hide the message drawer.
+     *
+     * @param {Object} root The message drawer container.
+     */
     var hide = function(root) {
         root.addClass('hidden');
         root.attr('aria-expanded', false);
         root.attr('aria-hidden', true);
     };
 
+    /**
+     * Listen to and handle events for routing, showing and hiding the message drawer.
+     *
+     * @param {Object} root The message drawer container.
+     */
     var registerEventListeners = function(root) {
         CustomEvents.define(root, [CustomEvents.events.activate]);
         var paramRegex = /^data-route-param-?(\d*)$/;
@@ -167,6 +195,11 @@ function(
         });
     };
 
+    /**
+     * Initialise the message drawer.
+     *
+     * @param {Object} root The message drawer container.
+     */
     var init = function(root) {
         root = $(root);
         createRoutes(root);

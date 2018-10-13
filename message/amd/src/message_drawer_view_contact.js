@@ -33,7 +33,7 @@ function(
     $,
     Notification,
     Templates,
-    Repository,
+    Repository
 ) {
 
     var SELECTORS = {
@@ -47,49 +47,102 @@ function(
         CONTENT: 'core_message/message_drawer_view_contact_body_content'
     };
 
+    /**
+     * Get the current logged in userid.
+     *
+     * @param {Object} root Contact container element.
+     * @return {Number} The logged in userid.
+     */
     var getLoggedInUserId = function(root) {
         return root.attr('data-user-id');
     };
 
+    /**
+     * Get the content container of the contact view container.
+     *
+     * @param {Object} root Contact container element.
+     */
     var getContentContainer = function(root) {
         return root.find(SELECTORS.CONTENT_CONTAINER);
     };
 
+    /**
+     * Loading actions.
+     *
+     * @param {Object} root Contact container element.
+     */
     var showLoadingIcon = function(root) {
         root.prop('disabled', true);
         root.find(SELECTORS.TEXT_CONTAINER).addClass('hidden');
         root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Stop loading actions.
+     *
+     * @param {Object} root Contact container element.
+     */
     var hideLoadingIcon = function(root) {
         root.prop('disabled', false);
         root.find(SELECTORS.TEXT_CONTAINER).removeClass('hidden');
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Show loading placeholder.
+     *
+     * @param {Object} root Contact container element.
+     */
     var showLoadingPlaceholder = function(root) {
         root.find(SELECTORS.LOADING_PLACEHOLDER_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Hide loading placeholder.
+     *
+     * @param {Object} root Contact container element.
+     */
     var hideLoadingPlaceholder = function(root) {
         root.find(SELECTORS.LOADING_PLACEHOLDER_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Start loading the contact page.
+     *
+     * @param {Object} root Contact container element.
+     */
     var startFullLoading = function(root) {
         showLoadingIcon(root);
         showLoadingPlaceholder(root);
     };
 
+    /**
+     * Stop loading the contact page.
+     *
+     * @param {Object} root Contact container element.
+     */
     var stopFullLoading = function(root) {
         hideLoadingIcon(root);
         hideLoadingPlaceholder(root);
     };
 
+    /**
+     * Load the contact info.
+     *
+     * @param {Object} root Contact container element.
+     * @param {Number} contactUserId Contact user id.
+     */
     var load = function(root, contactUserId) {
         var loggedInUserId =  getLoggedInUserId(root);
         return Repository.getProfile(loggedInUserId, contactUserId);
     };
 
+    /**
+     * Render the contact profile in the content container.
+     *
+     * @param {Object} root Contact container element.
+     * @param {Object} profile Contact profile details.
+     */
     var render = function(root, profile) {
         return Templates.render(TEMPLATES.CONTENT, profile)
             .then(function(html) {
@@ -97,6 +150,12 @@ function(
             });
     };
 
+    /**
+     * Setup the contact page.
+     *
+     * @param {Object} root Contact container element.
+     * @param {Number} contactUserId The contact userid.
+     */
     var show = function(root, contactUserId) {
         root = $(root);
 

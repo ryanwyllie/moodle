@@ -34,9 +34,19 @@ function(
     MessageDrawerEvents
 ) {
 
+    /* @var {object} routes Message drawer route elements and callbacks. */
     var routes = {};
+
+    /* @var {array} history Store for route objects history. */
     var history = [];
 
+    /**
+     * Add a route.
+     *
+     * @param {string} route Route config name.
+     * @param {array} elements Route container objects.
+     * @param {callback} onGo Route initialization function.
+     */
     var add = function(route, elements, onGo) {
         routes[route] = {
             elements: elements,
@@ -44,6 +54,12 @@ function(
         };
     };
 
+    /**
+     * Go to a defined route and run the route callbacks.
+     *
+     * @param {string} newRoute Route config name.
+     * @return {object} record Current route record with route config name and parameters.
+     */
     var goInSecret = function(newRoute) {
         var newConfig;
         // Get the rest of the arguments, if any.
@@ -82,8 +98,13 @@ function(
         PubSub.publish(MessageDrawerEvents.ROUTE_CHANGED, record);
 
         return record;
-    }
+    };
 
+    /**
+     * Go to a defined route and store the route history.
+     *
+     * @return {object} record Current route record with route config name and parameters.
+     */
     var go = function() {
         var record = goInSecret.apply(null, arguments);
         var previousRecord = history.length ? history[history.length - 1] : null;
@@ -91,7 +112,7 @@ function(
         if (previousRecord) {
             if (previousRecord.route === record.route) {
                 if (previousRecord.params.length === record.params.length) {
-                    paramsMatch = previousRecord.params.every(function(param, index) {
+                    var paramsMatch = previousRecord.params.every(function(param, index) {
                         return param === record.params[index];
                     });
 
@@ -111,7 +132,9 @@ function(
         return record;
     };
 
-
+    /**
+     * Go back to the previous route record stored in history.
+     */
     var back = function() {
         if (history.length) {
             // Remove the current route.
