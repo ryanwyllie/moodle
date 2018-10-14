@@ -83,90 +83,207 @@ function(
         MESSAGES: 'core_message/message_drawer_view_conversation_body_messages'
     };
 
-    var getMessagesContainer = function(root) {
-        return root.find(SELECTORS.CONTENT_MESSAGES_CONTAINER);
+    /**
+     * Get the messages container element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @return {Object} The messages container element.
+     */
+    var getMessagesContainer = function(body) {
+        return body.find(SELECTORS.CONTENT_MESSAGES_CONTAINER);
     };
 
-    var showMessagesContainer = function(root) {
-        getMessagesContainer(root).removeClass('hidden');
+    /**
+     * Show the messages container element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var showMessagesContainer = function(body) {
+        getMessagesContainer(body).removeClass('hidden');
     };
 
-    var hideMessagesContainer = function(root) {
-        getMessagesContainer(root).addClass('hidden');
+    /**
+     * Hide the messages container element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var hideMessagesContainer = function(body) {
+        getMessagesContainer(body).addClass('hidden');
     };
 
-    var getFooterContentContainer = function(root) {
-        return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_CONTAINER);
+    /**
+     * Get the footer container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer container element.
+     */
+    var getFooterContentContainer = function(footer) {
+        return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_CONTAINER);
     };
 
-    var showFooterContent = function(root) {
-        getFooterContentContainer(root).removeClass('hidden');
+    /**
+     * Show the footer container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var showFooterContent = function(footer) {
+        getFooterContentContainer(footer).removeClass('hidden');
     };
 
-    var hideFooterContent = function(root) {
-        getFooterContentContainer(root).addClass('hidden');
+    /**
+     * Hide the footer container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var hideFooterContent = function(footer) {
+        getFooterContentContainer(footer).addClass('hidden');
     };
 
-    var getFooterEditModeContainer = function(root) {
-        return root.find(SELECTORS.CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER);
+    /**
+     * Get the footer edit mode container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer container element.
+     */
+    var getFooterEditModeContainer = function(footer) {
+        return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_EDIT_MODE_CONTAINER);
     };
 
-    var showFooterEditMode = function(root) {
-        getFooterEditModeContainer(root).removeClass('hidden');
+    /**
+     * Show the footer edit mode container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var showFooterEditMode = function(footer) {
+        getFooterEditModeContainer(footer).removeClass('hidden');
     };
 
-    var hideFooterEditMode = function(root) {
-        getFooterEditModeContainer(root).addClass('hidden');
+    /**
+     * Hide the footer edit mode container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var hideFooterEditMode = function(footer) {
+        getFooterEditModeContainer(footer).addClass('hidden');
     };
 
+    /**
+     * Get the footer placeholder.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer placeholder container element.
+     */
     var getFooterPlaceholderContainer = function(footer) {
         return footer.find(SELECTORS.PLACEHOLDER_CONTAINER);
     };
 
+    /**
+     * Show the footer placeholder
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var showFooterPlaceholder = function(footer) {
         getFooterPlaceholderContainer(footer).removeClass('hidden');
     };
 
+    /**
+     * Hide the footer placeholder
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var hideFooterPlaceholder = function(footer) {
         getFooterPlaceholderContainer(footer).addClass('hidden');
     };
 
+    /**
+     * Get the footer Require add as contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer Require add as contact container element.
+     */
     var getFooterRequireContactContainer = function(footer) {
         return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_REQUIRE_CONTACT_CONTAINER);
     };
 
+    /**
+     * Show the footer add as contact dialogue.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var showFooterRequireContact = function(footer) {
         getFooterRequireContactContainer(footer).removeClass('hidden');
     };
 
+    /**
+     * Hide the footer add as contact dialogue.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var hideFooterRequireContact = function(footer) {
         getFooterRequireContactContainer(footer).addClass('hidden');
     };
 
+    /**
+     * Get the footer Required to unblock contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer Required to unblock contact container element.
+     */
     var getFooterRequireUnblockContainer = function(footer) {
         return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_REQUIRE_UNBLOCK_CONTAINER);
     };
 
+    /**
+     * Show the footer Required to unblock contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var showFooterRequireUnblock = function(footer) {
         getFooterRequireUnblockContainer(footer).removeClass('hidden');
     };
 
+    /**
+     * Hide the footer Required to unblock contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var hideFooterRequireUnblock = function(footer) {
         getFooterRequireUnblockContainer(footer).addClass('hidden');
     };
 
+    /**
+     * Get the footer Unable to message contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The footer Unable to message contact container element.
+     */
     var getFooterUnableToMessageContainer = function(footer) {
         return footer.find(SELECTORS.CONTENT_MESSAGES_FOOTER_UNABLE_TO_MESSAGE_CONTAINER);
     };
 
+    /**
+     * Show the footer Unable to message contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var showFooterUnableToMessage = function(footer) {
         getFooterUnableToMessageContainer(footer).removeClass('hidden');
     };
 
+    /**
+     * Hide the footer Unable to message contact container element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var hideFooterUnableToMessage = function(footer) {
         getFooterUnableToMessageContainer(footer).addClass('hidden');
     };
 
+    /**
+     * Hide all footer dialogues and messages.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
     var hideAllFooterElements = function(footer) {
         hideFooterContent(footer);
         hideFooterEditMode(footer);
@@ -176,128 +293,276 @@ function(
         hideFooterUnableToMessage(footer);
     };
 
-    var getContentPlaceholderContainer = function(root) {
-        return root.find(SELECTORS.CONTENT_PLACEHOLDER_CONTAINER);
+    /**
+     * Get the content placeholder container element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @return {Object} The body placeholder container element.
+     */
+    var getContentPlaceholderContainer = function(body) {
+        return body.find(SELECTORS.CONTENT_PLACEHOLDER_CONTAINER);
     };
 
-    var showContentPlaceholder = function(root) {
-        getContentPlaceholderContainer(root).removeClass('hidden');
+    /**
+     * Show the content placeholder.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var showContentPlaceholder = function(body) {
+        getContentPlaceholderContainer(body).removeClass('hidden');
     };
 
-    var hideContentPlaceholder = function(root) {
-        getContentPlaceholderContainer(root).addClass('hidden');
+    /**
+     * Hide the content placeholder.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var hideContentPlaceholder = function(body) {
+        getContentPlaceholderContainer(body).addClass('hidden');
     };
 
-    var getHeaderContent = function(root) {
-        return root.find(SELECTORS.HEADER);
+    /**
+     * Get the header content container element.
+     * 
+     * @param  {Object} header Conversation header container element.
+     * @return {Object} The header content container element.
+     */ 
+    var getHeaderContent = function(header) {
+        return header.find(SELECTORS.HEADER);
     };
 
-    var showHeaderContent = function(root) {
-        getHeaderContent(root).removeClass('hidden');
+    /**
+     * Show the header content.
+     *
+     * @param  {Object} header Conversation header container element.
+     */
+    var showHeaderContent = function(header) {
+        getHeaderContent(header).removeClass('hidden');
     };
 
-    var hideHeaderContent = function(root) {
-        getHeaderContent(root).addClass('hidden');
+    /**
+     * Hide the header content.
+     *
+     * @param  {Object} header Conversation header container element.
+     */
+    var hideHeaderContent = function(header) {
+        getHeaderContent(header).addClass('hidden');
     };
 
-    var getHeaderEditMode = function(root) {
-        return root.find(SELECTORS.HEADER_EDIT_MODE);
+    /**
+     * Get the header edit mode container element.
+     * 
+     * @param  {Object} header Conversation header container element.
+     * @return {Object} The header content container element.
+     */ 
+    var getHeaderEditMode = function(header) {
+        return header.find(SELECTORS.HEADER_EDIT_MODE);
     };
 
-    var showHeaderEditMode = function(root) {
-        getHeaderEditMode(root).removeClass('hidden');
+    /**
+     * Show the header edit mode container.
+     * 
+     * @param  {Object} header Conversation header container element.
+     */
+    var showHeaderEditMode = function(header) {
+        getHeaderEditMode(header).removeClass('hidden');
     };
 
-    var hideHeaderEditMode = function(root) {
-        getHeaderEditMode(root).addClass('hidden');
+    /**
+     * Hide the header edit mode container.
+     * 
+     * @param  {Object} header Conversation header container element.
+     */
+    var hideHeaderEditMode = function(header) {
+        getHeaderEditMode(header).addClass('hidden');
     };
 
-    var getHeaderPlaceholderContainer = function(root) {
-        return root.find(SELECTORS.HEADER_PLACEHOLDER_CONTAINER);
+    /**
+     * Get the header placeholder container element.
+     * 
+     * @param  {Object} header Conversation header container element.
+     * @return {Object} The header placeholder container element.
+     */ 
+    var getHeaderPlaceholderContainer = function(header) {
+        return header.find(SELECTORS.HEADER_PLACEHOLDER_CONTAINER);
     };
 
-    var showHeaderPlaceholder = function(root) {
-        getHeaderPlaceholderContainer(root).removeClass('hidden');
+    /**
+     * Show the header placeholder.
+     * 
+     * @param  {Object} header Conversation header container element.
+     */
+    var showHeaderPlaceholder = function(header) {
+        getHeaderPlaceholderContainer(header).removeClass('hidden');
     };
 
-    var hideHeaderPlaceholder = function(root) {
-        getHeaderPlaceholderContainer(root).addClass('hidden');
+    /**
+     * Hide the header placeholder.
+     * 
+     * @param  {Object} header Conversation header container element.
+     */
+    var hideHeaderPlaceholder = function(header) {
+        getHeaderPlaceholderContainer(header).addClass('hidden');
     };
 
-    var getMessageTextArea = function(root) {
-        return root.find(SELECTORS.MESSAGE_TEXT_AREA);
+    /**
+     * Get the text input area element.
+     * 
+     * @param  {Object} header Conversation header container element.
+     * @return {Object} The header placeholder container element.
+     */ 
+    var getMessageTextArea = function(footer) {
+        return footer.find(SELECTORS.MESSAGE_TEXT_AREA);
     };
 
-    var getMessagesContainer = function(root) {
-        return root.find(SELECTORS.MESSAGES);
-    };
-
-    var getMessageElement = function(root, messageId) {
-        var messagesContainer = getMessagesContainer(root);
+    /**
+     * Get a message element.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @param  {Number} messageId the Message id.
+     * @return {Object} A message element from the conversation.
+     */
+    var getMessageElement = function(body, messageId) {
+        var messagesContainer = getMessagesContainer(body);
         return messagesContainer.find('[data-message-id="' + messageId + '"]');
     };
 
-    var getDayElement = function(root, dayTimeCreated) {
-        var messagesContainer = getMessagesContainer(root);
+    /**
+     * Get the day container element. The day container element holds a list of messages for that day.
+     * 
+     * @param  {Object} body Conversation body container element.
+     * @param  {Object} The day container element.
+     */
+    var getDayElement = function(body, dayTimeCreated) {
+        var messagesContainer = getMessagesContainer(body);
         return messagesContainer.find('[data-day-id="' + dayTimeCreated + '"]');
     };
 
-    var getMoreMessagesLoadingIconContainer = function(root) {
-        return root.find(SELECTORS.MORE_MESSAGES_LOADING_ICON_CONTAINER);
+    /**
+     * Get the more messages loading icon container element.
+     *
+     * @param  {Object} body Conversation body container element.
+     * @return {Object} The more messages loading container element.
+     */
+    var getMoreMessagesLoadingIconContainer = function(body) {
+        return body.find(SELECTORS.MORE_MESSAGES_LOADING_ICON_CONTAINER);
     };
 
-    var showMoreMessagesLoadingIcon = function(root) {
-        getMoreMessagesLoadingIconContainer(root).removeClass('hidden');
+    /**
+     * Show the more messages loading icon.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var showMoreMessagesLoadingIcon = function(body) {
+        getMoreMessagesLoadingIconContainer(body).removeClass('hidden');
     };
 
-    var hideMoreMessagesLoadingIcon = function(root) {
-        getMoreMessagesLoadingIconContainer(root).addClass('hidden');
+    /**
+     * Hide the more messages loading icon.
+     * 
+     * @param  {Object} body Conversation body container element.
+     */
+    var hideMoreMessagesLoadingIcon = function(body) {
+        getMoreMessagesLoadingIconContainer(body).addClass('hidden');
     };
 
-    var disableSendMessage = function(root) {
-        root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', true);
-        getMessageTextArea(root).prop('disabled', true);
+    /**
+     * Disable the message controls for sending a message.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var disableSendMessage = function(footer) {
+        footer.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', true);
+        getMessageTextArea(footer).prop('disabled', true);
     };
 
-    var enableSendMessage = function(root) {
-        root.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', false);
-        getMessageTextArea(root).prop('disabled', false);
+    /**
+     * Enable the message controls for sending a message.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var enableSendMessage = function(footer) {
+        footer.find(SELECTORS.SEND_MESSAGE_BUTTON).prop('disabled', false);
+        getMessageTextArea(footer).prop('disabled', false);
     };
 
-    var startSendMessageLoading = function(root) {
-        disableSendMessage(root);
-        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
-        root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
+    /**
+     * Show the sending message loading icon and disable sending more.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var startSendMessageLoading = function(footer) {
+        disableSendMessage(footer);
+        footer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).addClass('hidden');
+        footer.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
-    var stopSendMessageLoading = function(root) {
-        enableSendMessage(root);
-        root.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
-        root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
+    /**
+     * Hide the sending message loading icon and allow sending new messages.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var stopSendMessageLoading = function(footer) {
+        enableSendMessage(footer);
+        footer.find(SELECTORS.SEND_MESSAGE_ICON_CONTAINER).removeClass('hidden');
+        footer.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
-    var hasSentMessage = function(root) {
-        var textArea = getMessageTextArea(root);
+    /**
+     * Clear out message text input and focus the input element.
+     * 
+     * @param  {Object} footer Conversation footer container element.
+     */
+    var hasSentMessage = function(footer) {
+        var textArea = getMessageTextArea(footer);
         textArea.val('');
         textArea.focus();
     };
 
+    /**
+     * Get the confirm dialogue container element.
+     * 
+     * @param  {Object} root The container element to search.
+     * @return {Object} The confirm dialogue container element.
+     */
     var getConfirmDialogueContainer = function(root) {
         return root.find(SELECTORS.CONFIRM_DIALOGUE_CONTAINER);
     };
 
+    /**
+     * Show the confirm dialogue container element.
+     * 
+     * @param  {Object} root The container element containing a dialogue.
+     */
     var showConfirmDialogueContainer = function(root) {
         getConfirmDialogueContainer(root).removeClass('hidden');
     };
 
+    /**
+     * Hide the confirm dialogue container element.
+     * 
+     * @param  {Object} root The container element containing a dialogue.
+     */
     var hideConfirmDialogueContainer = function(root) {
         getConfirmDialogueContainer(root).addClass('hidden');
     };
 
-    var setMessagesSelectedCount = function(root, value) {
-        getHeaderEditMode(root).find(SELECTORS.MESSAGES_SELECTED_COUNT).text(value);
+    /**
+     * Set the number of selected messages.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Number} value The new number to display.
+     */
+    var setMessagesSelectedCount = function(header, value) {
+        getHeaderEditMode(header).find(SELECTORS.MESSAGES_SELECTED_COUNT).text(value);
     };
 
+    /**
+     * Format message for the mustache template, transform camelCase properties to lowercase properties.
+     * 
+     * @param  {Array} messages Array of message objects.
+     * @return {Array} Messages formated for mustache template.
+     */
     var formatMessagesForTemplate = function(messages) {
         return messages.map(function(message) {
             return {
@@ -311,6 +576,15 @@ function(
         });
     };
 
+    /**
+     * Create rendering promises for each day containing messages.
+     * 
+     * @param  {Object} header The header container element.
+     * @param  {Object} body The body container element.
+     * @param  {Object} footer The footer container element.
+     * @param  {Array} days Array of days containing messages.
+     * @return {Promise} Days rendering promises.
+     */
     var renderAddDays = function(header, body, footer, days) {
         var messagesContainer = getMessagesContainer(body);
         var daysRenderPromises = days.map(function(data) {
@@ -339,6 +613,14 @@ function(
         });
     };
 
+    /**
+     * Add (more) messages to day containers.
+     * 
+     * @param  {Object} header The header container element.
+     * @param  {Object} body The body container element.
+     * @param  {Object} footer The footer container element.
+     * @param  {Array} messages List of messages.
+     */
     var renderAddMessages = function(header, body, footer, messages) {
         var messagesRenderPromises = messages.map(function(data) {
             var formattedMessages = formatMessagesForTemplate([data.value]);
@@ -363,18 +645,38 @@ function(
         });
     };
 
-    var renderRemoveDays = function(header, body, footer, days) {
+    /**
+     * Remove days from conversation.
+     * 
+     * @param  {Object} body The body container element.
+     * @param  {Array} days Array of days to be removed.
+     */
+    var renderRemoveDays = function(body, days) {
         days.forEach(function(data) {
             getDayElement(body, data.timestamp).remove();
         });
     };
 
-    var renderRemoveMessages = function(header, body, footer, messages) {
+    /**
+     * Remove messages from conversation.
+     * 
+     * @param  {Object} body The body container element.
+     * @param  {Array} messages Array of messages to be removed.
+     */
+    var renderRemoveMessages = function(body, messages) {
         messages.forEach(function(data) {
             getMessageElement(body, data.id).remove();
         });
     };
 
+    /**
+     * Render the full conversation base on input from the statemanager.
+     *
+     * @param  {Object} header The header container element.
+     * @param  {Object} body The body container element.
+     * @param  {Object} footer The footer container element.
+     * @param  {Promise} Rendering promises.
+     */
     var renderConversation = function(header, body, footer, data) {
         var renderingPromises = [];
 
@@ -387,16 +689,24 @@ function(
         }
 
         if (data.days.remove.length > 0) {
-            renderRemoveDays(header, body, footer, data.days.remove);
+            renderRemoveDays(body, data.days.remove);
         }
 
         if (data.messages.remove.length > 0) {
-            renderRemoveMessages(header, body, footer, data.messages.remove);
+            renderRemoveMessages(body, data.messages.remove);
         }
 
         return $.when.apply($, renderingPromises);
     };
 
+    /**
+     * Render the conversation header.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} data Data for header.
+     */
     var renderHeader = function(header, body, footer, data) {
         var headerContainer = getHeaderContent(header);
         return Templates.render(TEMPLATES.HEADER, data.context)
@@ -405,6 +715,14 @@ function(
             });
     };
 
+    /**
+     * Render the conversation footer.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} data Data for footer.
+     */
     var renderFooter = function(header, body, footer, data) {
         hideAllFooterElements(footer);
 
@@ -445,6 +763,14 @@ function(
         return true;
     };
 
+    /**
+     * Scroll to a message in the conversation.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Number} messageId Message id.
+     */
     var renderScrollToMessage = function(header, body, footer, messageId) {
         var messagesContainer = getMessagesContainer(body);
         var messageElement = getMessageElement(body, messageId);
@@ -453,6 +779,14 @@ function(
         messagesContainer.scrollTop(scrollTop);
     };
 
+    /**
+     * Hide or show the conversation header.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isLoadingMembers Members loading.
+     */
     var renderLoadingMembers = function(header, body, footer, isLoadingMembers) {
         if (isLoadingMembers) {
             hideHeaderContent(header);
@@ -463,6 +797,14 @@ function(
         }
     };
 
+    /**
+     * Hide or show loading conversation messages.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isLoadingFirstMessages Messages loading.
+     */
     var renderLoadingFirstMessages = function(header, body, footer, isLoadingFirstMessages) {
         if (isLoadingFirstMessages) {
             hideMessagesContainer(body);
@@ -473,6 +815,14 @@ function(
         }
     };
 
+    /**
+     * Hide or show loading more messages.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isLoadingFirstMessages Messages loading.
+     */
     var renderLoadingMessages = function(header, body, footer, isLoading) {
         if (isLoading) {
             showMoreMessagesLoadingIcon(body);
@@ -481,6 +831,14 @@ function(
         }
     };
 
+    /**
+     * activate or deactivate send message controls.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isSending Message sending.
+     */
     var renderSendingMessage = function(header, body, footer, isSending) {
         if (isSending) {
             startSendMessageLoading(footer);
@@ -490,6 +848,16 @@ function(
         }
     };
 
+    /**
+     * Show a confirmation dialogue 
+     * 
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {String} buttonSelector The confirm button.
+     * @param {String} bodyText Text to show in dialogue.
+     * @param {String} headerText Text to show in dialogue header.
+     * @param {Bool} canCancel Can this dialogue be cancelled.
+     */
     var showConfirmDialogue = function(
         body,
         footer,
@@ -526,6 +894,13 @@ function(
         showConfirmDialogueContainer(body);
     };
 
+    /**
+     * Hide the dialogue
+     * 
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} always true.
+     */
     var hideConfirmDialogue = function(body, footer) {
         var dialogue = getConfirmDialogueContainer(body);
         var cancelButton = dialogue.find(SELECTORS.CONFIRM_DIALOGUE_CANCEL_BUTTON);
@@ -542,6 +917,14 @@ function(
         return true;
     };
 
+    /**
+     * Render the confirm block user dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} user User to block.
+     */
     var renderConfirmBlockUser = function(header, body, footer, user) {
         if (user) {
             return Str.get_string('blockuserconfirm', 'core_message', user.fullname)
@@ -553,6 +936,14 @@ function(
         }
     };
 
+    /**
+     * Render the confirm unblock user dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} user User to unblock.
+     */
     var renderConfirmUnblockUser = function(header, body, footer, user) {
         if (user) {
             return Str.get_string('unblockuserconfirm', 'core_message', user.fullname)
@@ -564,6 +955,14 @@ function(
         }
     };
 
+    /**
+     * Render the add user as contact dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} user User to add as contact.
+     */
     var renderConfirmAddContact = function(header, body, footer, user) {
         if (user) {
             return Str.get_string('addcontactconfirm', 'core_message', user.fullname)
@@ -575,6 +974,14 @@ function(
         }
     };
 
+    /**
+     * Render the remove user from contacts dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} user User to remove from contacts.
+     */
     var renderConfirmRemoveContact = function(header, body, footer, user) {
         if (user) {
             return Str.get_string('removecontactconfirm', 'core_message', user.fullname)
@@ -586,6 +993,14 @@ function(
         }
     };
 
+    /**
+     * Render the delete selected messages dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} show.
+     */
     var renderConfirmDeleteSelectedMessages = function(header, body, footer, show) {
         if (show) {
             return Str.get_string('deleteselectedmessagesconfirm', 'core_message')
@@ -597,6 +1012,14 @@ function(
         }
     };
 
+    /**
+     * Render the confirm delete conversation dialogue.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} show.
+     */
     var renderConfirmDeleteConversation = function(header, body, footer, show) {
         if (show) {
             return Str.get_string('deleteallconfirm', 'core_message')
@@ -608,6 +1031,14 @@ function(
         }
     };
 
+    /**
+     * Show or hide the block / unblock option in the header dropdown menu.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isBlocked is user blocked.
+     */
     var renderIsBlocked = function(header, body, footer, isBlocked) {
         if (isBlocked) {
             header.find(SELECTORS.ACTION_REQUEST_BLOCK).addClass('hidden');
@@ -618,6 +1049,14 @@ function(
         }
     };
 
+    /**
+     * Show or hide the add / remove user as contact option in the header dropdown menu.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isContact is user contact.
+     */
     var renderIsContact = function(header, body, footer, isContact) {
         if (isContact) {
             header.find(SELECTORS.ACTION_REQUEST_ADD_CONTACT).addClass('hidden');
@@ -628,6 +1067,14 @@ function(
         }
     };
 
+    /**
+     * Show or hide confirm action from confirm dialogue is loading.
+     * 
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} isLoading confirm action is loading.
+     */
     var renderLoadingConfirmAction = function(header, body, footer, isLoading) {
         var dialogue = getConfirmDialogueContainer(body);
         var buttons = dialogue.find('button');
@@ -652,7 +1099,7 @@ function(
             hideHeaderContent(header);
             showHeaderEditMode(header);
         } else {
-            var messages = body.find(SELECTORS.MESSAGE);
+            var messages = getMessagesContainer(body);
             messages.find(SELECTORS.MESSAGE_NOT_SELECTED_ICON).addClass('hidden');
             messages.find(SELECTORS.MESSAGE_SELECTED_ICON).addClass('hidden');
             showHeaderContent(header);

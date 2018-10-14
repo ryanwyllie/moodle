@@ -30,9 +30,16 @@ define(
         UserDate
     )
 {
+    /**
+     * Sort messages by day.
+     * 
+     * @param  {Array} messages The list of messages to sort.
+     * @param  {Number} midnight.
+     * @return {Array} messages sorted by day. 
+     */
     var sortMessagesByDay = function(messages, midnight) {
         var messagesByDay = messages.reduce(function(carry, message) {
-            var dayTimestamp = UserDate.getUserMidnightForTimestamp(message.timeCreated, midnight)
+            var dayTimestamp = UserDate.getUserMidnightForTimestamp(message.timeCreated, midnight);
 
             if (carry.hasOwnProperty(dayTimestamp)) {
                 carry[dayTimestamp].push(message);
@@ -51,6 +58,15 @@ define(
         });
     };
 
+    /**
+     * Diff 2 arrays using a match function
+     * 
+     * @param  {Array} a The first array.
+     * @param  {Array} b The second array.
+     * @param  {Function} matchFunction Function used for matching array items.
+     * @return {Object} Object containing array items missing from a, array items missing from b
+     * and matches
+     */
     var diffArrays = function(a, b, matchFunction) {
         // Make copy of it.
         b = b.slice();
@@ -94,6 +110,13 @@ define(
         };
     };
 
+    /**
+     * Find an element in a array based on a matching function.
+     * 
+     * @param  {array} array Array to search.
+     * @param  {Function} breakFunction Function to run on array item.
+     * @return {*} The array item.
+     */
     var findPositionInArray = function(array, breakFunction) {
         var before = null;
 
@@ -108,6 +131,13 @@ define(
         return before;
     };
 
+    /**
+     * Check if 2 arrays are equal.
+     * 
+     * @param  {Array} a The first array.
+     * @param  {Array} b The second array.
+     * @return {Boolean} Are arrays equal.
+     */
     var isArrayEqual = function(a, b) {
         a.sort();
         b.sort();
@@ -127,6 +157,13 @@ define(
         });
     };
 
+    /**
+     * Build a patch based on days.
+     * 
+     * @param  {Object} current Current list current items.
+     * @param  {Object} daysDiff Difference between current and new.
+     * @return {Object} Patch with elements to add and remove.
+     */
     var buildDaysPatch = function(current, daysDiff) {
         return {
             remove: daysDiff.missingFromB,
@@ -145,6 +182,11 @@ define(
         };
     };
 
+    /**
+     * Build the messages patch for each day.
+     *
+     * @param {Array} matchingDays Array of old and new messages sorted by day.
+     */
     var buildMessagesPatch = function(matchingDays) {
         var remove = [];
         var add = [];
@@ -177,6 +219,13 @@ define(
         };
     };
 
+    /**
+     * Build a patch for this conversation.
+     * 
+     * @param  {Object} state, The current state of this conversation.
+     * @param  {Object} newState, The new state of this conversation.
+     * @return {Object} Patch with days and messsages for each day.
+     */
     var buildConversationPatch = function(state, newState) {
         var oldMessageIds = state.messages.map(function(message) {
             return message.id;
@@ -201,6 +250,14 @@ define(
         }
     };
 
+    /**
+     * Build a patch for the header of this conversation. Check if this conversation
+     * is a group conversation.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} patch
+     */
     var buildHeaderPatch = function(state, newState) {
         var oldMemberIds = Object.keys(state.members);
         var newMemberIds = Object.keys(newState.members);
@@ -229,13 +286,20 @@ define(
         return {
             isGroupMessage: isGroupMessage,
             context: context,
-        }
+        };
     };
 
     var buildFooterPatch = function(state, newState) {
 
     };
 
+    /**
+     * Find the newest or oldest message.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Number} Oldest or newest message id.
+     */
     var buildScrollToMessagePatch = function(state, newState) {
         var oldMessages = state.messages;
         var newMessages = newState.messages;
@@ -262,6 +326,13 @@ define(
         return null;
     };
 
+    /**
+     * Check if members should be loaded.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildLoadingMembersPatch = function(state, newState) {
         if (!state.loadingMembers && newState.loadingMembers) {
             return true;
@@ -272,6 +343,13 @@ define(
         }
     };
 
+    /**
+     * Check if the messages are being loaded for the first time.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildLoadingFirstMessages = function(state, newState) {
         if (state.hasTriedToLoadMessages === newState.hasTriedToLoadMessages) {
             return null;
@@ -284,6 +362,13 @@ define(
         }
     };
 
+    /**
+     * Check if the messages are still being loaded
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildLoadingMessages = function(state, newState) {
         if (!state.loadingMessages && newState.loadingMessages) {
             return true;
@@ -294,6 +379,13 @@ define(
         }
     };
 
+    /**
+     * Check if the messages are still being send
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null} User Object if Object.
+     */
     var buildSendingMessage = function(state, newState) {
         if (!state.sendingMessage && newState.sendingMessage) {
             return true;
@@ -304,6 +396,13 @@ define(
         }
     };
 
+    /**
+     * Get the user Object of user to be blocked if pending.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object|Bool|Null} User Object if Object.
+     */
     var buildConfirmBlockUser = function(state, newState) {
         if (newState.pendingBlockUserIds.length) {
             // We currently only support a single user;
@@ -316,6 +415,13 @@ define(
         return null;
     };
 
+    /**
+     * Get the user Object of user to be unblocked if pending.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object|Bool|Null} User Object if Object.
+     */
     var buildConfirmUnblockUser = function(state, newState) {
         if (newState.pendingUnblockUserIds.length) {
             // We currently only support a single user;
@@ -328,6 +434,13 @@ define(
         return null;
     };
 
+    /**
+     * Get the user Object of user to be added as contact if pending.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object|Bool|Null} User Object if Object.
+     */
     var buildConfirmAddContact = function(state, newState) {
         if (newState.pendingAddContactIds.length) {
             // We currently only support a single user;
@@ -340,6 +453,13 @@ define(
         return null;
     };
 
+    /**
+     * Get the user Object of user to be removed as contact if pending.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object|Bool|Null} User Object if Object.
+     */
     var buildConfirmRemoveContact = function(state, newState) {
         if (newState.pendingRemoveContactIds.length) {
             // We currently only support a single user;
@@ -352,6 +472,13 @@ define(
         return null;
     };
 
+    /**
+     * Check if there are any messages to be deleted.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildConfirmDeleteSelectedMessages = function(state, newState) {
         if (newState.pendingDeleteMessageIds.length) {
             return true;
@@ -362,6 +489,13 @@ define(
         return null;
     };
 
+    /**
+     * Check if there is a conversation to be deleted.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildConfirmDeleteConversation = function(state, newState) {
         if (!state.pendingDeleteConversation && newState.pendingDeleteConversation) {
             return true;
@@ -372,6 +506,14 @@ define(
         return null;
     };
 
+
+    /**
+     * Check if there are any changes in blocked users.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildIsBlocked = function(state, newState) {
         var oldMemberIds = Object.keys(state.members);
         var newMemberIds = Object.keys(newState.members);
@@ -399,6 +541,14 @@ define(
         }
     };
 
+    /**
+     * Check if there are any changes in the contact status of the current user
+     * and other user.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildIsContact = function(state, newState) {
         var oldMemberIds = Object.keys(state.members);
         var newMemberIds = Object.keys(newState.members);
@@ -426,6 +576,13 @@ define(
         }
     };
 
+    /**
+     * Check if a confirm action is active.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildLoadingConfirmationAction = function(state, newState) {
         if (!state.loadingConfirmAction && newState.loadingConfirmAction) {
             return true;
@@ -436,6 +593,13 @@ define(
         }
     };
 
+    /**
+     * Check if a edit mode is active.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildInEditMode = function(state, newState) {
         var oldHasSelectedMessages = state.selectedMessageIds.length > 0;
         var newHasSelectedMessages = newState.selectedMessageIds.length > 0;
@@ -452,6 +616,13 @@ define(
         }
     };
 
+    /**
+     * Build a patch for the messages selected.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} patch
+     */
     var buildSelectedMessages = function(state, newState) {
         var oldSelectedMessages = state.selectedMessageIds;
         var newSelectedMessages = newState.selectedMessageIds;
@@ -462,15 +633,22 @@ define(
 
         var diff = diffArrays(oldSelectedMessages, newSelectedMessages, function(a, b) {
             return a == b;
-        })
+        });
 
         return {
             count: newSelectedMessages.length,
             add: diff.missingFromA,
             remove: diff.missingFromB
-        }
+        };
     };
 
+    /**
+     * Get a list of users from the state that are not the logged in user. Use to find group
+     * message members or the other user in a conversation.
+     * 
+     * @param  {Object} state State
+     * @return {Array} List of users.
+     */
     var getOtherUserFromState = function(state) {
         return Object.keys(state.members).reduce(function(carry, userId) {
             if (userId != state.loggedInUserId && !carry) {
@@ -481,6 +659,13 @@ define(
         }, null);
     };
 
+    /**
+     * Check if other users are required to be added as contact.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} Object controlling the required to add contact dialog variables.
+     */
     var buildRequireAddContact = function(state, newState) {
         var oldOtherUser = getOtherUserFromState(state);
         var newOtherUser = getOtherUserFromState(newState);
@@ -502,7 +687,7 @@ define(
                 show: true,
                 hasMessages: hasMessages,
                 user: newOtherUser
-            }
+            };
         }
 
         // Everything is loaded.
@@ -512,14 +697,14 @@ define(
                     show: true,
                     hasMessages: hasMessages,
                     user: newOtherUser
-                }
+                };
             }
 
             if (!oldOtherUser.iscontact && newOtherUser.iscontact) {
                 return {
                     show: false,
                     hasMessages: hasMessages
-                }
+                };
             }
         }
 
@@ -540,13 +725,20 @@ define(
                 return {
                     show: false,
                     hasMessages: hadMessages
-                }
+                };
             }
         }
 
         return null;
     };
 
+    /**
+     * Check if other users are required to be unblocked.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildRequireUnblock = function(state, newState) {
         var oldOtherUser = getOtherUserFromState(state);
         var newOtherUser = getOtherUserFromState(newState);
@@ -566,6 +758,13 @@ define(
         return null;
     };
 
+    /**
+     * Check if other users can be messaged.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Bool|Null}
+     */
     var buildUnableToMessage = function(state, newState) {
         var oldOtherUser = getOtherUserFromState(state);
         var newOtherUser = getOtherUserFromState(newState);
@@ -585,6 +784,13 @@ define(
         return null;
     };
 
+    /**
+     * Build patch for footer information.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} containing footer state type.
+     */
     var buildFooterPatch = function(state, newState) {
         var loadingFirstMessages = buildLoadingFirstMessages(state, newState);
         var inEditMode = buildInEditMode(state, newState);
@@ -598,7 +804,7 @@ define(
                 return successReturn;
             } else if (checkValue !== null && !checkValue) {
                 if (!otherUser) {
-                    return {type: 'content'}
+                    return {type: 'content'};
                 } else if (!otherUser.canmessage) {
                     return {type: 'unable-to-message'};
                 } else if (otherUser.isblocked) {
@@ -641,6 +847,14 @@ define(
         };
     };
 
+    /**
+     * Build the full patch comparing the current state and the new state. This patch is used by
+     * the conversation renderer to render the UI on any update.
+     * 
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} Patch containing all information changed.
+     */
     var buildPatch = function(state, newState) {
         var config = {
             conversation: buildConversationPatch,
@@ -663,7 +877,7 @@ define(
             inEditMode: buildInEditMode,
             selectedMessages: buildSelectedMessages,
             requireAddContact: buildRequireAddContact
-        }
+        };
 
         return Object.keys(config).reduce(function(patch, key) {
             var buildFunc = config[key];
