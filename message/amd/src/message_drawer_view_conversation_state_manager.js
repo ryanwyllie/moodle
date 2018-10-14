@@ -23,6 +23,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([], function() {
+
+    /**
+     * Clone a state, a state is a collection of information about the variables required to build
+     * the conversation user interface.
+     * 
+     * @param  {Object} state State to clone
+     * @return {Object} newstate A copy of the state to clone.
+     */
     var cloneState = function(state) {
         var newState = Object.assign({}, state);
         newState.messages = state.messages.map(function(message) {
@@ -35,6 +43,14 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Format messages to be used in a state.
+     * 
+     * @param  {Array} messages The messages to format.
+     * @param  {Number} loggedInUserId The logged in user id.
+     * @param  {Array} members The converstation members.
+     * @return {Array} Formatted messages.
+     */
     var formatMessages = function(messages, loggedInUserId, members) {
         return messages.map(function(message) {
             var fromLoggedInUser = message.useridfrom == loggedInUserId;
@@ -49,6 +65,15 @@ define([], function() {
         });
     };
 
+    /**
+     * Create an initial (blank) state.
+     * 
+     * @param  {Number} midnight Midnight time.
+     * @param  {Number} loggedInUserId The logged in user id.
+     * @param  {Number} id The conversation id.
+     * @param  {String} title ?
+     * @return {Object} Initial state.
+     */
     var buildInitialState = function(midnight, loggedInUserId, id, title) {
         return {
             midnight: midnight,
@@ -72,6 +97,13 @@ define([], function() {
         };
     };
 
+    /**
+     * Add messages to a state and sort them by timecreated.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messages Messages to add to state.
+     * @return {Object} state New state with added messages.
+     */
     var addMessages = function(state, messages) {
         var newState = cloneState(state);
         var formattedMessages = formatMessages(messages, state.loggedInUserId, state.members);
@@ -95,6 +127,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Remove messages from state.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messages Messages to remove from state.
+     * @return {Object} state New state with removed messages.
+     */
     var removeMessages = function(state, messages) {
         var newState = cloneState(state);
         var removeMessageIds = messages.map(function(message) {
@@ -107,6 +146,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Remove messages from state by message id.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messagesIds Message ids to remove from state.
+     * @return {Object} state New state with removed messages.
+     */
     var removeMessagesById = function(state, messagesIds) {
         var newState = cloneState(state);
         newState.messages = newState.messages.filter(function(message) {
@@ -116,6 +162,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Add conversation member to state.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} members Conversation members to be added to state.
+     * @return {Object} New state with added members.
+     */
     var addMembers = function(state, members) {
         var newState = cloneState(state);
         members.forEach(function(member) {
@@ -124,6 +177,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Remove members from state.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} members Members to be removed from state.
+     * @return {Object} New state with removed members.
+     */
     var removeMembers = function(state, members) {
         var newState = cloneState(state);
         members.forEach(function(member) {
@@ -132,6 +192,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state loading messages attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Bool} value New loading messages value.
+     * @return {Object} New state with loading messages attribute.
+     */
     var setLoadingMessages = function(state, value) {
         var newState = cloneState(state);
         newState.loadingMessages = value;
@@ -143,36 +210,78 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state sending message attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Bool} value New sending message value.
+     * @return {Object} New state with sending message attribute.
+     */
     var setSendingMessage = function(state, value) {
         var newState = cloneState(state);
         newState.sendingMessage = value;
         return newState;
     };
 
+    /**
+     * Set the state loading members attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Bool} value New loading members value.
+     * @return {Object} New state with loading members attribute.
+     */
     var setLoadingMembers = function(state, value) {
         var newState = cloneState(state);
         newState.loadingMembers = value;
         return newState;
     };
 
+    /**
+     * Set the state title attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {String} value New title value.
+     * @return {Object} New state with title attribute.
+     */
     var setTitle = function(state, value) {
         var newState = cloneState(state);
         newState.title = value;
         return newState;
     };
 
+    /**
+     * Set the state loading confirm action attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Bool} value New loading confirm action value.
+     * @return {Object} New state with loading confirm action attribute.
+     */
     var setLoadingConfirmAction = function(state, value) {
         var newState = cloneState(state);
         newState.loadingConfirmAction = value;
         return newState;
     };
 
+    /**
+     * Set the state pending delete conversation attribute.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Bool} value New pending delete conversation value.
+     * @return {Object} New state with pending delete conversation attribute.
+     */
     var setPendingDeleteConversation = function(state, value) {
         var newState = cloneState(state);
         newState.pendingDeleteConversation = value;
         return newState;
     };
 
+    /**
+     * Set the state pending block userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to block.
+     * @return {Object} New state with array of pending block userids.
+     */
     var addPendingBlockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -181,6 +290,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state pending remove userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to remove.
+     * @return {Object} New state with array of pending remove userids.
+     */
     var addPendingRemoveContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -189,6 +305,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state pending unblock userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to unblock.
+     * @return {Object} New state with array of pending unblock userids.
+     */
     var addPendingUnblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -197,6 +320,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state pending add users to contacts userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to add users to contacts.
+     * @return {Object} New state with array of pending add users to contacts userids.
+     */
     var addPendingAddContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -205,6 +335,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state pending delete messages.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages to delete.
+     * @return {Object} New state with array of pending delete message ids.
+     */
     var addPendingDeleteMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         messageIds.forEach(function(id) {
@@ -213,6 +350,14 @@ define([], function() {
         return newState;
     };
 
+
+    /**
+     * Update the state pending block userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to remove from the list of user ids to block.
+     * @return {Object} New state with array of pending block userids.
+     */
     var removePendingBlockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         newState.pendingBlockUserIds = newState.pendingBlockUserIds.filter(function(id) {
@@ -221,6 +366,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Update the state pending remove userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to remove from the list of user ids to remove.
+     * @return {Object} New state with array of pending remove userids.
+     */
     var removePendingRemoveContactsById = function(state, userIds) {
         var newState = cloneState(state);
         newState.pendingRemoveContactIds = newState.pendingRemoveContactIds.filter(function(id) {
@@ -229,6 +381,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Update the state pending unblock userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to remove from the list of user ids to unblock.
+     * @return {Object} New state with array of pending unblock userids.
+     */
     var removePendingUnblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         newState.pendingUnblockUserIds = newState.pendingUnblockUserIds.filter(function(id) {
@@ -237,6 +396,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Update the state pending add to contacts userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to remove from the list of user ids to add to contacts.
+     * @return {Object} New state with array of pending add to contacts userids.
+     */
     var removePendingAddContactsById = function(state, userIds) {
         var newState = cloneState(state);
         newState.pendingAddContactIds = newState.pendingAddContactIds.filter(function(id) {
@@ -245,6 +411,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Update the state pending delete messages userids.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Message ids to remove from the list of messages to delete.
+     * @return {Object} New state with array of messages to delete.
+     */
     var removePendingDeleteMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         newState.pendingDeleteMessageIds = newState.pendingDeleteMessageIds.filter(function(id) {
@@ -253,6 +426,14 @@ define([], function() {
         return newState;
     };
 
+
+    /**
+     * Set the state members (users) blocked to true.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids to block.
+     * @return {Object} New state with members that are blocked.
+     */
     var blockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -263,6 +444,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state members (users) blocked to false.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids that are not blocked.
+     * @return {Object} New state with members that are not blocked.
+     */
     var unblockUsersById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -273,6 +461,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state members (users) is contact status to false.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids with that are not contacts.
+     * @return {Object} New state with members that are not contacts.
+     */
     var removeContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -283,6 +478,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Set the state members (users) is contact status to false.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} userIds User ids with that are not contacts.
+     * @return {Object} New state with array members that are contacts.
+     */
     var addContactsById = function(state, userIds) {
         var newState = cloneState(state);
         userIds.forEach(function(id) {
@@ -293,12 +495,26 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Add messages to state selected messages.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages that are selected.
+     * @return {Object} New state with array of not blocked members.
+     */
     var addSelectedMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         newState.selectedMessageIds = newState.selectedMessageIds.concat(messageIds);
         return newState;
     };
 
+    /**
+     * Remove messages from the state selected messages.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages to remove from selected messages.
+     * @return {Object} New state with array of selected messages.
+     */
     var removeSelectedMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         newState.selectedMessageIds = newState.selectedMessageIds.filter(function(id) {
@@ -307,6 +523,13 @@ define([], function() {
         return newState;
     };
 
+    /**
+     * Mark messages as read.
+     * 
+     * @param  {Object} state Current state.
+     * @param  {Array} readMessages Messages that are read.
+     * @return {Object} New state with array of messages that have the isread attribute set.
+     */
     var markMessagesAsRead = function(state, readMessages) {
         var newState = cloneState(state);
         var readMessageIds = readMessages.map(function(message) {

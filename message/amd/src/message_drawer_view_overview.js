@@ -39,10 +39,21 @@ function(
         SEARCH_INPUT: '[data-region="view-overview-search-input"]',
     };
 
+    /**
+     * Get the search input text element.
+     * 
+     * @param  {Object} header Overview header container element.
+     * @return {Object} The search input element.
+     */
     var getSearchInput = function(header) {
         return header.find(SELECTORS.SEARCH_INPUT);
     };
 
+    /**
+     * Listen to, and handle event in the overview header.
+     *
+     * @param {Object} header Conversation header container element.
+     */
     var registerEventListeners = function(header) {
         var searchInput = getSearchInput(header);
         searchInput.on('focus', function() {
@@ -50,6 +61,12 @@ function(
         });
     };
 
+    /**
+     * Setup the overview page.
+     *
+     * @param {Object} header Overview header container element.
+     * @param {Object} body Overview body container element.
+     */
     var show = function(header, body) {
         if (!header.attr('data-init')) {
             registerEventListeners(header);

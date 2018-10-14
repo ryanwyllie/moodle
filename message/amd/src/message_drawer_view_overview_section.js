@@ -38,47 +38,107 @@ function(
         PLACEHOLDER: '[data-region="placeholder-container"]'
     };
 
+    /**
+     * Show the loading icon.
+     * 
+     * @param {Object} root The section container element.
+     */
     var startLoading = function(root) {
         root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Hide the loading icon.
+     * 
+     * @param {Object} root The section container element.
+     */
     var stopLoading = function(root) {
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Get user id
+     * 
+     * @param  {Object} root The section container element.
+     * @return {Number} Logged in user id.
+     */
     var getUserId = function(root) {
         return root.attr('data-user-id');
     };
 
+    /**
+     * Get the section content container element.
+     * 
+     * @param  {Object} root The section container element.
+     * @return {Object} The section content container element.
+     */
     var getContentContainer = function(root) {
         return root.find(SELECTORS.CONTENT_CONTAINER);
     };
 
+    /**
+     * Get the section visibility status.
+     * 
+     * @param  {Object} root The section container element.
+     * @return {Bool} Is section visible.
+     */
     var isVisible = function(root) {
         return root.find(SELECTORS.COLLAPSE_REGION).hasClass('show');
     };
 
+    /**
+     * Show the no conversations element.
+     * 
+     * @param {Object} root The section container element.
+     */
     var showEmptyMessage = function(root) {
         getContentContainer(root).addClass('hidden');
         root.find(SELECTORS.EMPTY_MESSAGE).removeClass('hidden');
     };
 
+    /**
+     * Show the placeholder element.
+     * 
+     * @param {Object} root The section container element.
+     */
     var showPlaceholder = function(root) {
         root.find(SELECTORS.PLACEHOLDER).removeClass('hidden');
     };
 
+    /**
+     * Hide the placeholder element.
+     * 
+     * @param {Object} root The section container element.
+     */
     var hidePlaceholder = function(root) {
         root.find(SELECTORS.PLACEHOLDER).addClass('hidden');
     };
 
+    /**
+     * Show the section content container.
+     * 
+     * @param {Object} root The section container element.
+     */
     var showContent = function(root) {
         getContentContainer(root).removeClass('hidden');
     };
 
+    /**
+     * Hide the section content container.
+     * 
+     * @param {Object} root The section container element.
+     */
     var hideContent = function(root) {
         getContentContainer(root).addClass('hidden');
     };
 
+    /**
+     * Load all items in this container from callback and render them.
+     * 
+     * @param {Object} root The section container element.
+     * @callback The callback to load items.
+     * @callback The callback to render the results.
+     */
     var loadAndRender = function(root, loadCallback, renderCallback) {
         startLoading(root);
 
@@ -103,6 +163,13 @@ function(
             });
     };
 
+    /**
+     * First load of this section.
+     * 
+     * @param {Object} root The section container element.
+     * @callback The callback to load items.
+     * @callback The callback to render the results.
+     */
     var initialLoadAndRender = function(root, loadCallback, renderCallback) {
         getContentContainer(root).empty();
         showPlaceholder(root);
@@ -120,6 +187,13 @@ function(
             });
     };
 
+    /**
+     * Listen to, and handle events in this section.
+     *
+     * @param {Object} root The section container element.
+     * @callback The callback to load items.
+     * @callback The callback to render the results.
+     */
     var registerEventListeners = function(root, loadCallback, renderCallback) {
         root.on('show.bs.collapse', function() {
             if (!root.attr('data-seen')) {
@@ -128,6 +202,13 @@ function(
         });
     };
 
+    /**
+     * Setup the section.
+     *
+     * @param {Object} root The section container element.
+     * @callback The callback to load items.
+     * @callback The callback to render the results.
+     */
     var show = function(root, loadCallback, renderCallback) {
         root = $(root);
 
