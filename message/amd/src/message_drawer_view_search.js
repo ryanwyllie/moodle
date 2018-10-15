@@ -75,141 +75,314 @@ function(
         MESSAGES_LIST: 'core_message/message_drawer_messages_list'
     };
 
-    var getUsersOffset = function(root) {
-        return parseInt(root.attr('data-users-offset'), 10);
+    /**
+     * Get the users offset attribute of the body container element.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Int} Users offset.
+     */
+    var getUsersOffset = function(body) {
+        return parseInt(body.attr('data-users-offset'), 10);
     };
 
-    var getMessagesOffset = function(root) {
-        return parseInt(root.attr('data-messages-offset'), 10);
+    /**
+     * Get the messages offset attribute of the body container element.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Int} Messages offset.
+     */
+    var getMessagesOffset = function(body) {
+        return parseInt(body.attr('data-messages-offset'), 10);
     };
 
-    var setUsersOffset = function(root, value) {
-        return root.attr('data-users-offset', value);
+    /**
+     * Set the users offset attribute in the body container element.
+     *
+     * @param {Object} body Search body container element.
+     * @param {Number} value New users offset value.
+     */
+    var setUsersOffset = function(body, value) {
+        return body.attr('data-users-offset', value);
     };
 
-    var setMessagesOffset = function(root, value) {
-        return root.attr('data-messages-offset', value);
+    /**
+     * Set the messages offset attribute in the body container element.
+     *
+     * @param {Object} body Search body container element.
+     * @param {Number} value New messages offset value.
+     */
+    var setMessagesOffset = function(body, value) {
+        return body.attr('data-messages-offset', value);
     };
 
-    var getLoggedInUserId = function(root) {
-        return root.attr('data-user-id');
+    /**
+     * Get the logged in user id.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Number} User id.
+     */
+    var getLoggedInUserId = function(body) {
+        return body.attr('data-user-id');
     };
 
-    var getEmptyMessageContainer = function(root) {
-        return root.find(SELECTORS.EMPTY_MESSAGE_CONTAINER);
+    /**
+     * Show the no messages container element.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} No messages container element.
+     */
+    var getEmptyMessageContainer = function(body) {
+        return body.find(SELECTORS.EMPTY_MESSAGE_CONTAINER);
     };
 
-    var getLoadingIconContainer = function(root) {
-        return root.find(SELECTORS.LOADING_ICON_CONTAINER);
+    /**
+     * Get the search loading icon.
+     *
+     * @param  {Object} header Search header container element.
+     * @return {Object} Loading icon element.
+     */
+    var getLoadingIconContainer = function(header) {
+        return header.find(SELECTORS.LOADING_ICON_CONTAINER);
     };
 
-    var getLoadingPlaceholder = function(root) {
-        return root.find(SELECTORS.LOADING_PLACEHOLDER);
+    /**
+     * Get the loading container element.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Loading container element.
+     */
+    var getLoadingPlaceholder = function(body) {
+        return body.find(SELECTORS.LOADING_PLACEHOLDER);
     };
 
-    var getSearchIconContainer = function(root) {
-        return root.find(SELECTORS.SEARCH_ICON_CONTAINER);
+    /**
+     * Get the search icon container.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Search icon container.
+     */
+    var getSearchIconContainer = function(header) {
+        return header.find(SELECTORS.SEARCH_ICON_CONTAINER);
     };
 
-    var getSearchInput = function(root) {
-        return root.find(SELECTORS.SEARCH_INPUT);
+    /**
+     * Get the search input container.
+     *
+     * @param  {Object} header Search header container element.
+     * @return {Object} Search input container.
+     */
+    var getSearchInput = function(header) {
+        return header.find(SELECTORS.SEARCH_INPUT);
     };
 
-    var getSearchResultsContainer = function(root) {
-        return root.find(SELECTORS.SEARCH_RESULTS_CONTAINER);
+    /**
+     * Get the search results container.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Search results container.
+     */
+    var getSearchResultsContainer = function(body) {
+        return body.find(SELECTORS.SEARCH_RESULTS_CONTAINER);
     };
 
-    var getContactsContainer = function(root) {
-        return root.find(SELECTORS.CONTACTS_CONTAINER);
+    /**
+     * Get the search contacts container.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Search contacts container.
+     */
+    var getContactsContainer = function(body) {
+        return body.find(SELECTORS.CONTACTS_CONTAINER);
     };
 
-    var getNonContactsContainer = function(root) {
-        return root.find(SELECTORS.NON_CONTACTS_CONTAINER);
+    /**
+     * Get the search non contacts container.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Search non contacts container.
+     */
+    var getNonContactsContainer = function(body) {
+        return body.find(SELECTORS.NON_CONTACTS_CONTAINER);
     };
 
-    var getMessagesContainer = function(root) {
-        return root.find(SELECTORS.MESSAGES_CONTAINER);
+    /**
+     * Get the search messages container.
+     *
+     * @param  {Object} body Search body container element.
+     * @return {Object} Search messages container.
+     */
+    var getMessagesContainer = function(body) {
+        return body.find(SELECTORS.MESSAGES_CONTAINER);
     };
 
-    var showEmptyMessage = function(root) {
-        getEmptyMessageContainer(root).removeClass('hidden');
+
+    /**
+     * Show the messages empty container.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var showEmptyMessage = function(body) {
+        getEmptyMessageContainer(body).removeClass('hidden');
     };
 
-    var hideEmptyMessage = function(root) {
-        getEmptyMessageContainer(root).addClass('hidden');
+    /**
+     * Hide the messages empty container.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var hideEmptyMessage = function(body) {
+        getEmptyMessageContainer(body).addClass('hidden');
     };
 
-    var showLoadingIcon = function(root) {
-        getLoadingIconContainer(root).removeClass('hidden');
+
+    /**
+     * Show the loading icon.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var showLoadingIcon = function(header) {
+        getLoadingIconContainer(header).removeClass('hidden');
     };
 
-    var hideLoadingIcon = function(root) {
-        getLoadingIconContainer(root).addClass('hidden');
+    /**
+     * Hide the loading icon.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var hideLoadingIcon = function(header) {
+        getLoadingIconContainer(header).addClass('hidden');
     };
 
-    var showLoadingPlaceholder = function(root) {
-        getLoadingPlaceholder(root).removeClass('hidden');
+    /**
+     * Show loading placeholder.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var showLoadingPlaceholder = function(body) {
+        getLoadingPlaceholder(body).removeClass('hidden');
     };
 
-    var hideLoadingPlaceholder = function(root) {
-        getLoadingPlaceholder(root).addClass('hidden');
+    /**
+     * Hide loading placeholder.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var hideLoadingPlaceholder = function(body) {
+        getLoadingPlaceholder(body).addClass('hidden');
     };
 
-    var showSearchIcon = function(root) {
-        getSearchIconContainer(root).removeClass('hidden');
+    /**
+     * Show search icon.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var showSearchIcon = function(header) {
+        getSearchIconContainer(header).removeClass('hidden');
     };
 
-    var hideSearchIcon = function(root) {
-        getSearchIconContainer(root).addClass('hidden');
+    /**
+     * Hide search icon.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var hideSearchIcon = function(header) {
+        getSearchIconContainer(header).addClass('hidden');
     };
 
-    var showSearchResults = function(root) {
-        getSearchResultsContainer(root).removeClass('hidden');
+    /**
+     * Show search results.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var showSearchResults = function(body) {
+        getSearchResultsContainer(body).removeClass('hidden');
     };
 
-    var hideSearchResults = function(root) {
-        getSearchResultsContainer(root).addClass('hidden');
+    /**
+     * Hide search results.
+     *
+     * @param {Object} body Search body container element.
+     */
+    var hideSearchResults = function(body) {
+        getSearchResultsContainer(body).addClass('hidden');
     };
 
-    var disableSearchInput = function(root) {
-        getSearchInput(root).prop('disabled', true);
+    /**
+     * Disable the search input.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var disableSearchInput = function(header) {
+        getSearchInput(header).prop('disabled', true);
     };
 
-    var enableSearchInput = function(root) {
-        getSearchInput(root).prop('disabled', false);
+    /**
+     * Enable the search input.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var enableSearchInput = function(header) {
+        getSearchInput(header).prop('disabled', false);
     };
 
-    var clearSearchInput = function(root) {
-        getSearchInput(root).val('');
+    /**
+     * Clear the search input.
+     *
+     * @param {Object} header Search header container element.
+     */
+    var clearSearchInput = function(header) {
+        getSearchInput(header).val('');
     };
 
-    var clearAllSearchResults = function(root) {
-        root.find(SELECTORS.CONTACTS_LIST).empty();
-        root.find(SELECTORS.NON_CONTACTS_LIST).empty();
-        root.find(SELECTORS.MESSAGES_LIST).empty();
-        root.find(SELECTORS.NO_RESULTS_CONTAINTER).addClass('hidden');
-        showLoadMoreUsersButton(root);
-        showLoadMoreMessagesButton(root);
+    /**
+     * Clear all search results
+     *
+     * @param {Object} body Search body container element.
+     */
+    var clearAllSearchResults = function(body) {
+        body.find(SELECTORS.CONTACTS_LIST).empty();
+        body.find(SELECTORS.NON_CONTACTS_LIST).empty();
+        body.find(SELECTORS.MESSAGES_LIST).empty();
+        body.find(SELECTORS.NO_RESULTS_CONTAINTER).addClass('hidden');
+        showLoadMoreUsersButton(body);
+        showLoadMoreMessagesButton(body);
     };
 
-    var startLoading = function(root) {
-        hideSearchIcon(root);
-        hideEmptyMessage(root);
-        hideSearchResults(root);
-        showLoadingIcon(root);
-        showLoadingPlaceholder(root);
-        disableSearchInput(root);
+    /**
+     * Update the body and header to indicate the search is loading.
+     *
+     * @param {Object} header Search header container element.
+     * @param {Object} body Search body container element.
+     */
+    var startLoading = function(header, body) {
+        hideSearchIcon(header);
+        hideEmptyMessage(body);
+        hideSearchResults(body);
+        showLoadingIcon(header);
+        showLoadingPlaceholder(body);
+        disableSearchInput(header);
     };
 
-    var stopLoading = function(root) {
-        showSearchIcon(root);
-        hideEmptyMessage(root);
-        showSearchResults(root);
-        hideLoadingIcon(root);
-        hideLoadingPlaceholder(root);
-        enableSearchInput(root);
+    /**
+     * Update the body and header to indicate the search has stopped loading.
+     *
+     * @param {Object} header Search header container element.
+     * @param {Object} body Search body container element.
+     */
+    var stopLoading = function(header, body) {
+        showSearchIcon(header);
+        hideEmptyMessage(body);
+        showSearchResults(body);
+        hideLoadingIcon(header);
+        hideLoadingPlaceholder(body);
+        enableSearchInput(header);
     };
 
+    /**
+     * show the more users loading icon.
+     *
+     * @param {Object} root The more users container element.
+     */
     var showUsersLoadingIcon = function(root) {
         var button = root.find(SELECTORS.LOAD_MORE_USERS);
         button.prop('disabled', true);
@@ -217,6 +390,11 @@ function(
         button.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * hide the more users loading icon.
+     *
+     * @param {Object} root The more users container element.
+     */
     var hideUsersLoadingIcon = function(root) {
         var button = root.find(SELECTORS.LOAD_MORE_USERS);
         button.prop('disabled', false);
@@ -224,14 +402,29 @@ function(
         button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Show the load more users button.
+     *
+     * @param {Object} root The users container element.
+     */
     var showLoadMoreUsersButton = function(root) {
         root.find(SELECTORS.LOAD_MORE_USERS).removeClass('hidden');
     };
 
+    /**
+     * Hide the load more users button.
+     *
+     * @param {Object} root The users container element.
+     */
     var hideLoadMoreUsersButton = function(root) {
         root.find(SELECTORS.LOAD_MORE_USERS).addClass('hidden');
     };
 
+    /**
+     * Show the messages are loading icon.
+     *
+     * @param {Object} root Messages root element.
+     */
     var showMessagesLoadingIcon = function(root) {
         var button = root.find(SELECTORS.LOAD_MORE_MESSAGES);
         button.prop('disabled', true);
@@ -239,6 +432,11 @@ function(
         button.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
+    /**
+     * Hide the messages are loading icon.
+     *
+     * @param {Object} root Messages root element.
+     */
     var hideMessagesLoadingIcon = function(root) {
         var button = root.find(SELECTORS.LOAD_MORE_MESSAGES);
         button.prop('disabled', false);
@@ -246,10 +444,20 @@ function(
         button.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
+    /**
+     * Show the load more messages button.
+     *
+     * @param  {Object} root The messages container element.
+     */
     var showLoadMoreMessagesButton = function(root) {
         root.find(SELECTORS.LOAD_MORE_MESSAGES).removeClass('hidden');
     };
 
+    /**
+     * Hide the load more messages button.
+     *
+     * @param  {Object} root The messages container element.
+     */
     var hideLoadMoreMessagesButton = function(root) {
         root.find(SELECTORS.LOAD_MORE_MESSAGES).addClass('hidden');
     };
@@ -264,10 +472,23 @@ function(
         });
     }
 
+    /**
+     * Find a contact in the search results.
+     *
+     * @param  {Object} root Search results container element.
+     * @param  {Number} userId User id.
+     * @return {Object} User container element.
+     */
     var findContact = function(root, userId) {
         return root.find('[data-contact-user-id="' + userId + '"]');
     };
 
+    /**
+     * Add a contact to the search results.
+     *
+     * @param {Object} root Search results container.
+     * @param {Object} contact User in contacts list.
+     */
     var addContact = function(root, contact) {
         var nonContactsContainer = getNonContactsContainer(root);
         var nonContact = findContact(nonContactsContainer, contact.userid);
@@ -284,6 +505,12 @@ function(
         }
     };
 
+    /**
+     * Remove a contact from the contacts results.
+     *
+     * @param {Object} root Search results container.
+     * @param {Object} userId Contact user id.
+     */
     var removeContact = function(root, userId) {
         var contactsContainer = getContactsContainer(root);
         var contact = findContact(contactsContainer, userId);
@@ -300,6 +527,12 @@ function(
         }
     };
 
+    /**
+     * Show the contact is blocked icon.
+     *
+     * @param {Object} root Search results container.
+     * @param {Object} userId Contact user id.
+     */
     var blockContact = function(root, userId) {
         var contact = findContact(root, userId);
         if (contact.length) {
@@ -307,6 +540,12 @@ function(
         }
     };
 
+    /**
+     * Hide the contact is blocked icon.
+     *
+     * @param {Object} root Search results container.
+     * @param {Object} userId Contact user id.
+     */
     var unblockContact = function(root, userId) {
         var contact = findContact(root, userId);
         if (contact.length) {
@@ -314,6 +553,13 @@ function(
         }
     };
 
+    /**
+     * Render contacts in the contacts search results.
+     *
+     * @param {Object} root Search results container.
+     * @param {Array} contacts List of contacts.
+     * @return {Promise} Renderer promise.
+     */
     var renderContacts = function(root, contacts) {
         var container = getContactsContainer(root);
         var list = container.find(SELECTORS.LIST);
@@ -330,6 +576,13 @@ function(
         }
     };
 
+    /**
+     * Render non contacts in the contacts search results.
+     *
+     * @param {Object} root Search results container.
+     * @param {Array} nonContacts List of non contacts.
+     * @return {Promise} Renderer promise.
+     */
     var renderNonContacts = function(root, nonContacts) {
         var container = getNonContactsContainer(root);
         var list = container.find(SELECTORS.LIST);
@@ -346,6 +599,13 @@ function(
         }
     };
 
+    /**
+     * Render messages in the messages search results.
+     *
+     * @param {Object} root Search results container.
+     * @param {Array} messages List of messages.
+     * @return {Promise} Renderer promise.
+     */
     var renderMessages = function(root, messages) {
         var container = getMessagesContainer(root);
         var list = container.find(SELECTORS.LIST);
@@ -362,6 +622,15 @@ function(
         }
     };
 
+    /**
+     * Load more users from the repository and render the results into the users search results.
+     *
+     * @param  {Object} root Search results container.
+     * @param  {Number} loggedInUserId Current logged in user.
+     * @param  {String} text Search text.
+     * @param  {Number} limit Number of users to get.
+     * @param  {Number} offset Load users from
+     */
     var loadMoreUsers = function(root, loggedInUserId, text, limit, offset) {
         var loadedAll = false;
         showUsersLoadingIcon(root);
@@ -404,6 +673,15 @@ function(
             });
     };
 
+    /**
+     * Load more messages from the repository and render the results into the messages search results.
+     *
+     * @param  {Object} root Search results container.
+     * @param  {Number} loggedInUserId Current logged in user.
+     * @param  {String} text Search text.
+     * @param  {Number} limit Number of messages to get.
+     * @param  {Number} offset Load messages from
+     */
     var loadMoreMessages = function(root, loggedInUserId, text, limit, offset) {
         var loadedAll = false;
         showMessagesLoadingIcon(root);
@@ -436,27 +714,41 @@ function(
             });
     };
 
-    var search = function(root, searchText) {
-        var loggedInUserId = getLoggedInUserId(root);
-        startLoading(root);
-        setUsersOffset(root, 0);
-        setMessagesOffset(root, 0);
-        clearAllSearchResults(root);
+    /**
+     * Search for users and messages.
+     *
+     * @param {Object} header Search header container element.
+     * @param {Object} body Search body container element.
+     * @param {String} searchText Search text.
+     */
+    var search = function(header, body, searchText) {
+        var loggedInUserId = getLoggedInUserId(body);
+        startLoading(header, body);
+        setUsersOffset(body, 0);
+        setMessagesOffset(body, 0);
+        clearAllSearchResults(body);
 
         return $.when(
-            loadMoreUsers(root, loggedInUserId, searchText, USERS_INITIAL_SEARCH_LIMIT, 0),
-            loadMoreMessages(root, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, 0)
+            loadMoreUsers(body, loggedInUserId, searchText, USERS_INITIAL_SEARCH_LIMIT, 0),
+            loadMoreMessages(body, loggedInUserId, searchText, MESSAGE_SEARCH_LIMIT, 0)
         )
         .then(function() {
-            stopLoading(root);
+            stopLoading(header, body);
             return;
         })
         .catch(function(error) {
             Notification.exception(error);
-            stopLoading(root);
+            stopLoading(header, body);
         });
     };
 
+
+    /**
+     * Listen to and handle events for searching.
+     *
+     * @param {Object} header Search header container element.
+     * @param {Object} body Search body container element.
+     */
     var registerEventListeners = function(header, body) {
         var loggedInUserId = getLoggedInUserId(body);
         var searchInput = getSearchInput(header);
@@ -465,7 +757,7 @@ function(
             searchText = searchInput.val().trim();
 
             if (searchText !== '') {
-                search(body, searchText)
+                search(header, body, searchText)
                     .then(function() {
                         searchInput.focus();
                     });
@@ -526,6 +818,12 @@ function(
         });
     };
 
+    /**
+     * Setup the search page.
+     *
+     * @param {Object} header Contacts header container element.
+     * @param {Object} body Contacts body container element.
+     */
     var show = function(header, body) {
         if (!body.attr('data-init')) {
             registerEventListeners(header, body);

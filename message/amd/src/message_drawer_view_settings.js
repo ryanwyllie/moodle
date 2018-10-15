@@ -61,26 +61,47 @@ function(
         }
     };
 
-    var getPreferenceElement = function(root, preferenceName) {
-        return root.find('[data-preference="' + preferenceName + '"]');
+    /**
+     * Get a preference element
+     * @param  {Object} body The settings body element.
+     * @param  {String} preferenceName Name of the preference.
+     * @return {Object} The preference container element.
+     */
+    var getPreferenceElement = function(body, preferenceName) {
+        return body.find('[data-preference="' + preferenceName + '"]');
     };
 
+    /**
+     * Check if a preference is enabled.
+     * 
+     * @param  {Object} body The settings body element.
+     * @param  {String} preferenceName Name of the preference.
+     * @return {Bool} Is preference enabled.
+     */
     var isPreferenceElementEnabled = function(preferenceElement) {
         var checkbox = preferenceElement.find(SELECTORS.CHECKBOX);
         return checkbox.prop('checked');
     };
 
+    /**
+     * Set preference checked in UI.
+     * 
+     * @param {Object} preferenceElement The preference container element.
+     * @param {Number} isEnabled 1 for enabled 0 for disabled.
+     */
     var updatePreferenceElement = function(preferenceElement, isEnabled) {
         preferenceElement.find(SELECTORS.CHECKBOX).prop('checked', isEnabled);
     };
 
     /**
      * Load Preferences and check boxes for preferences already set.
-     *
+     * 
+     * @param {Object} body The settings body element.
+     * @param {Number} loggedInUserId The logged in user id.
      */
-    var loadPreferences = function(root, loggedInUserId) {
-        var settingsContainer = root.find(SELECTORS.SETTINGS);
-        var loadingPlaceholder = root.find(SELECTORS.LOADING_PLACEHOLDER);
+    var loadPreferences = function(body, loggedInUserId) {
+        var settingsContainer = body.find(SELECTORS.SETTINGS);
+        var loadingPlaceholder = body.find(SELECTORS.LOADING_PLACEHOLDER);
 
         Repository.getPreferences(loggedInUserId)
             .then(function(result) {
@@ -122,7 +143,7 @@ function(
                     var isEnabled = preferencesByType[type].every(function(enabled) {
                         return enabled;
                     });
-                    var preferenceElement = getPreferenceElement(root, type);
+                    var preferenceElement = getPreferenceElement(body, type);
                     updatePreferenceElement(preferenceElement, isEnabled);
                 });
             })
@@ -136,10 +157,12 @@ function(
      * Create all of the event listeners for the message preferences page.
      *
      * @method registerEventListeners
+     * @param {Object} body The settings body element.
+     * @param {Number} loggedInUserId The logged in user id.
      */
-    var registerEventListeners = function(root, loggedInUserId) {
+    var registerEventListeners = function(body, loggedInUserId) {
 
-        var settingsContainer = root.find(SELECTORS.SETTINGS);
+        var settingsContainer = body.find(SELECTORS.SETTINGS);
 
         CustomEvents.define(settingsContainer, [
             CustomEvents.events.activate
@@ -148,7 +171,7 @@ function(
         settingsContainer.on(CustomEvents.events.activate, SELECTORS.CHECKBOX, function(e) {
                 var setting = $(e.target).closest(SELECTORS.PREFERENCE_CONTROL);
                 var type = setting.attr('data-preference');
-                var element = getPreferenceElement(root, type);
+                var element = getPreferenceElement(body, type);
                 var isEnabled = isPreferenceElementEnabled(element);
                 var preferences = Object.keys(PREFERENCES).reduce(function(carry, preference) {
                     var config = PREFERENCES[preference];
@@ -173,7 +196,9 @@ function(
      * Initialise the settings page by adding event listeners to
      * the checkboxes.
      *
-     * @param {object} root The root element for the settings page
+     * @param {Object} header The settings header element.
+     * @param {Object} body The settings body element.
+     * @param {Number} loggedInUserId The logged in user id.
      */
     var show = function(header, body, loggedInUserId) {
         if (!body.attr('data-init')) {
