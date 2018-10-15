@@ -216,6 +216,11 @@ function(
             show(root);
             Router.go(Routes.VIEW_CONVERSATION, conversationId);
         });
+
+        PubSub.subscribe(Events.SHOW_SETTINGS, function() {
+            show(root);
+            Router.go(Routes.VIEW_SETTINGS);
+        });
     };
 
     /**

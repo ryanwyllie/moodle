@@ -47,8 +47,16 @@ function(
         PubSub.publish(MessageDrawerEvents.SHOW_CONVERSATION, conversationId);
     };
 
+    /**
+     * Trigger an event to show messaging settings.
+     */
+    var showSettings = function() {
+        PubSub.publish(MessageDrawerEvents.SHOW_SETTINGS);
+    };
+
     return {
         show: show,
-        showConversation: showConversation
+        showConversation: showConversation,
+        showSettings: showSettings
     };
 });

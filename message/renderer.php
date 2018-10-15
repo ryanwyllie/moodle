@@ -219,4 +219,32 @@ class core_message_renderer extends plugin_renderer_base {
         return $this->render_from_template('message/notification_preferences',
             $notificationlistoutput->export_for_template($this));
     }
+
+    /**
+     * Display the interface for message preferences
+     *
+     * @param object $user instance of a user
+     * @return string The text to render
+     */
+    public function render_user_message_preferences($user) {
+        // Filter out enabled, available system_configured and user_configured processors only.
+        $readyprocessors = array_filter(get_message_processors(), function($processor) {
+            return $processor->enabled &&
+                $processor->configured &&
+                $processor->object->is_user_configured() &&
+                // Filter out processors that don't have and message preferences to configure.
+                $processor->object->has_message_preferences();
+        });
+
+        $providers = array_filter(message_get_providers_for_user($user->id), function($provider) {
+            return $provider->component === 'moodle';
+        });
+        $preferences = \core_message\api::get_all_message_preferences($readyprocessors, $providers, $user);
+        $notificationlistoutput = new \core_message\output\preferences\message_notification_list($readyprocessors,
+            $providers, $preferences, $user);
+        $context = $notificationlistoutput->export_for_template($this);
+        $context['blocknoncontacts'] = get_user_preferences('message_blocknoncontacts', '', $user->id) ? true : false;
+
+        return $this->render_from_template('message/message_preferences', $context);
+    }
 }
