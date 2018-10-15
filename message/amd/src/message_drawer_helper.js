@@ -14,26 +14,41 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Events for the message drawer.
+ * Provides some helper functions to trigger actions in the message drawer.
  *
- * @module     core_message/message_drawer_events
+ * @module     core_message/message_drawer_helper
  * @package    message
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([],function() {
+define(
+[
+    'core/pubsub',
+    'core_message/message_drawer_events'
+],
+function(
+    PubSub,
+    MessageDrawerEvents
+) {
+
+    /**
+     * Trigger an event to show the message drawer.
+     */
+    var show = function() {
+        PubSub.publish(MessageDrawerEvents.SHOW);
+    };
+
+    /**
+     * Trigger an event to show the given conversation.
+     *
+     * @param {int} conversationId Id for the conversation to show.
+     */
+    var showConversation = function(conversationId) {
+        PubSub.publish(MessageDrawerEvents.SHOW_CONVERSATION, conversationId);
+    };
+
     return {
-        CONTACT_BLOCKED: 'message-drawer-contact-blocked',
-        CONTACT_UNBLOCKED: 'message-drawer-contact-unblocked',
-        CONTACT_ADDED: 'message-drawer-contact-added',
-        CONTACT_REMOVED: 'message-drawer-contact-removed',
-        CONVERSATION_NEW_LAST_MESSAGE: 'message-drawer-conversation-new-last-message',
-        CONVERSATION_DELETED: 'message-drawer-conversation-deleted',
-        CONVERSATION_READ: 'message-drawer-conversation-read',
-        ROUTE_CHANGED: 'message-drawer-route-change',
-        SHOW: 'message-drawer-show',
-        HIDE: 'message-drawer-hide',
-        TOGGLE_VISIBILITY: 'message-drawer-toggle',
-        SHOW_CONVERSATION: 'message-drawer-show-conversation'
+        show: show,
+        showConversation: showConversation
     };
 });

@@ -14,10 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Controls the message drawer.
+ * Controls the message popover in the nav bar.
  *
- * @module     core_message/message_drawer
- * @class      notification_area_content_area
+ * @module     core_message/message_popover
  * @package    message
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,37 +34,64 @@ function(
     PubSub,
     MessageDrawerEvents
 ) {
-    var showMessageDrawer = function() {
-        PubSub.publish(MessageDrawerEvents.SHOW);
+    var SELECTORS = {
+        COUNT_CONTAINER: '[data-region="count-container"]'
     };
 
-    var hideMessageDrawer = function() {
-        PubSub.publish(MessageDrawerEvents.HIDE);
+    /**
+     * Toggle the message drawer visibility.
+     */
+    var toggleMessageDrawerVisibility = function() {
+        PubSub.publish(MessageDrawerEvents.TOGGLE_VISIBILITY);
     };
 
-    var registerEventListeners = function(root, isShown) {
+    /**
+     * Decrement the unread conversation count in the nav bar if a conversation
+     * is read. When there are no unread conversations then hide the counter.
+     *
+     * @param {Object} root The root element for the popover.
+     */
+    var handleConversationRead = function(root) {
+        return function() {
+            var countContainer = root.find(SELECTORS.COUNT_CONTAINER);
+            var count = parseInt(countContainer.text(), 10);
+
+            if (isNaN(count)) {
+                countContainer.addClass('hidden');
+            } else if (!count || count < 2) {
+                countContainer.addClass('hidden');
+            } else {
+                count = count - 1;
+                countContainer.text(count);
+            }
+        };
+    };
+
+    /**
+     * Add events listeners for when the popover icon is clicked and when conversations
+     * are read.
+     *
+     * @param {Object} root The root element for the popover.
+     */
+    var registerEventListeners = function(root) {
         CustomEvents.define(root, [CustomEvents.events.activate]);
 
         root.on(CustomEvents.events.activate, function(e, data) {
-
-            if (isShown) {
-                hideMessageDrawer();
-            } else {
-                showMessageDrawer();
-            }
-
-            isShown = !isShown;
+            toggleMessageDrawerVisibility();
             data.originalEvent.preventDefault();
         });
+
+        PubSub.subscribe(MessageDrawerEvents.CONVERSATION_READ, handleConversationRead(root));
     };
 
-    var init = function(root, isShown) {
+    /**
+     * Initialise the message popover.
+     *
+     * @param {Object} root The root element for the popover.
+     */
+    var init = function(root) {
         root = $(root);
-        registerEventListeners(root, isShown);
-
-        if (isShown) {
-            showMessageDrawer();
-        }
+        registerEventListeners(root);
     };
 
     return {

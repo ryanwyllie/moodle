@@ -85,7 +85,7 @@ function(
 
     /**
      * Get the other user userid.
-     * 
+     *
      * @return {Number} Userid.
      */
     var getOtherUserId = function() {
@@ -112,7 +112,7 @@ function(
 
     /**
      * Get the messages container element.
-     * 
+     *
      * @param  {Object} body Conversation body container element.
      * @return {Object} The messages container element.
      */
@@ -122,7 +122,7 @@ function(
 
     /**
      * Reformat the message for rendering event.
-     * 
+     *
      * @param  {Object} message Raw message stored in statemanager.
      * @return {Object} New formatted message with additional attributs.
      */
@@ -206,7 +206,7 @@ function(
 
     /**
      * Create a callback function for getting new messages for this conversation.
-     * 
+     *
      * @param  {Number} conversationId Conversation id.
      * @param  {Bool} newestFirst Show newest messages first
      * @return {Function} Callback function that returns a renderer promise.
@@ -223,7 +223,7 @@ function(
                 // we need to filter them back out of the result so that we're left only
                 // with the new messages.
                 var ignoreMessageIds = [];
-                for (var i = messages.length - 1; i > 0; i--) {
+                for (var i = messages.length - 1; i >= 0; i--) {
                     var message = messages[i];
                     if (message.timeCreated === mostRecentMessage.timeCreated) {
                         ignoreMessageIds.push(message.id);
@@ -275,7 +275,7 @@ function(
 
     /**
      * Mark a conversation as read.
-     * 
+     *
      * @param  {Number} conversationId The conversation id.
      * @return {Promise} The renderer promise.
      */
@@ -296,7 +296,7 @@ function(
     /**
      * Tell the statemanager there is request to block a user and run the renderer
      * to show the block user dialogue.
-     * 
+     *
      * @param  {Number} userId User id.
      * @return {Promise} Renderer promise.
      */
@@ -310,7 +310,7 @@ function(
     /**
      * Send the repository a request to block a user, update the statemanager and publish
      * a contact has been blocked.
-     * 
+     *
      * @param  {Number} userId User id of user to block.
      * @return {Promise} Renderer promise.
      */
@@ -332,7 +332,7 @@ function(
     /**
      * Tell the statemanager there is a request to unblock a user and run the renderer
      * to show the unblock user dialogue.
-     * 
+     *
      * @param  {Number} userId User id of user to unblock.
      * @return {Promise} Renderer promise.
      */
@@ -346,7 +346,7 @@ function(
     /**
      * Send the repository a request to unblock a user, update the statemanager and publish
      * a contact has been unblocked.
-     * 
+     *
      * @param  {Number} userId User id of user to unblock.
      * @return {Promise} Renderer promise.
      */
@@ -368,10 +368,10 @@ function(
     /**
      * Tell the statemanager there is a request to remove a user from the contact list
      * and run the renderer to show the remove user from contacts dialogue.
-     * 
+     *
      * @param  {Number} userId User id of user to remove from contacts.
      * @return {Promise} Renderer promise.
-     */   
+     */
     var requestRemoveContact = function(userId) {
         return cancelRequest(userId).then(function() {
             var newState = StateManager.addPendingRemoveContactsById(viewState, [userId]);
@@ -382,7 +382,7 @@ function(
     /**
      * Send the repository a request to remove a user from the contacts list. update the statemanager
      * and publish a contact has been removed.
-     * 
+     *
      * @param  {Number} userId User id of user to remove from contacts.
      * @return {Promise} Renderer promise.
      */
@@ -404,7 +404,7 @@ function(
     /**
      * Tell the statemanager there is a request to add a user to the contact list
      * and run the renderer to show the add user to contacts dialogue.
-     * 
+     *
      * @param  {Number} userId User id of user to add to contacts.
      * @return {Promise} Renderer promise.
      */
@@ -418,7 +418,7 @@ function(
     /**
      * Send the repository a request to add a user to the contacts list. update the statemanager
      * and publish a contact has been added.
-     * 
+     *
      * @param  {Number} userId User id of user to add to contacts.
      * @return {Promise} Renderer promise.
      */
@@ -440,7 +440,7 @@ function(
     /**
      * Tell the statemanager there is a request to delete the selected messages
      * and run the renderer to show confirm delete messages dialogue.
-     * 
+     *
      * @param  {Number} userId User id.
      * @return {Promise} Renderer promise.
      */
@@ -455,7 +455,7 @@ function(
     /**
      * Send the repository a request to delete the messages pending deletion. Update the statemanager
      * and publish a message deletion event.
-     * 
+     *
      * @return {Promise} Renderer promise.
      */
     var deleteSelectedMessages = function() {
@@ -488,7 +488,7 @@ function(
     /**
      * Tell the statemanager there is a request to delete a conversation
      * and run the renderer to show confirm delete conversation dialogue.
-     * 
+     *
      * @param  {Number} userId User id of other user.
      * @return {Promise} Renderer promise.
      */
@@ -502,7 +502,7 @@ function(
     /**
      * Send the repository a request to delete a conversation. Update the statemanager
      * and publish a conversation deleted event.
-     * 
+     *
      * @return {Promise} Renderer promise.
      */
     var deleteConversation = function() {
@@ -541,7 +541,7 @@ function(
     /**
      * Send a message to the repository, update the statemanager publish a message send event
      * and call the renderer.
-     * 
+     *
      * @param  {Number} toUserId User id of user to send this message to.
      * @param  {String} text Text to send.
      * @return {Promise} Renderer promise.
@@ -624,7 +624,7 @@ function(
 
     /**
      * Create a function to render the Conversation.
-     *  
+     *
      * @param  {Object} header The conversation header container element.
      * @param  {Object} body The conversation body container element.
      * @param  {Object} footer The conversation footer container element.
@@ -645,7 +645,7 @@ function(
 
     /**
      * Create a confirm action function.
-     * 
+     *
      * @callback actionCallback
      * @return {Function} Confirm action handler.
      */
@@ -660,7 +660,7 @@ function(
 
     /**
      * Send message event handler.
-     * 
+     *
      * @param {Object} e Element this event handler is called on.
      * @param {Object} data Data for this event.
      */
@@ -679,7 +679,7 @@ function(
 
     /**
      * Select message event handler.
-     * 
+     *
      * @param {Object} e Element this event handler is called on.
      * @param {Object} data Data for this event.
      */
@@ -694,7 +694,7 @@ function(
 
     /**
      * Cancel edit mode event handler.
-     * 
+     *
      * @param {Object} e Element this event handler is called on.
      * @param {Object} data Data for this event.
      */
@@ -806,7 +806,7 @@ function(
 
     /**
      * Load new messages into the conversation based on a time interval.
-     * 
+     *
      * @param  {Object} body Conversation body container element.
      * @param  {Number} conversationId The conversation id.
      * @return {Promise} Renderer promise.

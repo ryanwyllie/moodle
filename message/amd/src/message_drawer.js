@@ -128,6 +128,16 @@ function(
     };
 
     /**
+     * Check if the drawer is visible.
+     *
+     * @param {Object} root The message drawer container.
+     * @return {bool}
+     */
+    var isVisible = function(root) {
+        return !root.hasClass('hidden');
+    };
+
+    /**
      * Listen to and handle events for routing, showing and hiding the message drawer.
      *
      * @param {Object} root The message drawer container.
@@ -192,6 +202,19 @@ function(
 
         PubSub.subscribe(Events.HIDE, function() {
             hide(root);
+        });
+
+        PubSub.subscribe(Events.TOGGLE_VISIBILITY, function() {
+            if (isVisible(root)) {
+                hide(root);
+            } else {
+                show(root);
+            }
+        });
+
+        PubSub.subscribe(Events.SHOW_CONVERSATION, function(conversationId) {
+            show(root);
+            Router.go(Routes.VIEW_CONVERSATION, conversationId);
         });
     };
 
