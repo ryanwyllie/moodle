@@ -60,7 +60,7 @@ function(
      * @param {string} newRoute Route config name.
      * @return {object} record Current route record with route config name and parameters.
      */
-    var goInSecret = function(newRoute) {
+    var changeRoute = function(newRoute) {
         var newConfig;
         // Get the rest of the arguments, if any.
         var args = [].slice.call(arguments, 1);
@@ -106,22 +106,27 @@ function(
      * @return {object} record Current route record with route config name and parameters.
      */
     var go = function() {
-        var record = goInSecret.apply(null, arguments);
+        var record = changeRoute.apply(null, arguments);
+        var inHistory = false;
+        // History stores a unique list of routes. Check to see if the new route
+        // is already in the history, if it is then forget all history after it.
+        // This ensures there are no duplicate routes in history and that it represents
+        // a linear path of routes (it never stores something like [foo, bar, foo])/
+        history = history.reduce(function(carry, previous) {
+            if (previous.route === record.route) {
+                inHistory = true;
+            }
+
+            if (!inHistory) {
+                carry.push(previous);
+            }
+
+            return carry;
+        }, []);
+
         var previousRecord = history.length ? history[history.length - 1] : null;
 
         if (previousRecord) {
-            if (previousRecord.route === record.route) {
-                if (previousRecord.params.length === record.params.length) {
-                    var paramsMatch = previousRecord.params.every(function(param, index) {
-                        return param === record.params[index];
-                    });
-
-                    if (paramsMatch) {
-                        return record;
-                    }
-                }
-            }
-
             routes[previousRecord.route].elements.forEach(function(element) {
                 element.addClass('previous');
             });
@@ -151,7 +156,6 @@ function(
     return {
         add: add,
         go: go,
-        goInSecret: goInSecret,
         back: back
     };
 });

@@ -149,7 +149,6 @@ function(
         root.on(CustomEvents.events.activate, SELECTORS.ROUTES, function(e, data) {
             var element = $(e.target).closest(SELECTORS.ROUTES);
             var route = element.attr('data-route');
-            var skipHistory = element.attr('data-route-skip-history') !== undefined;
             var attributes = [];
 
             for (var i = 0; i < element[0].attributes.length; i++) {
@@ -181,11 +180,7 @@ function(
             });
             var routeParams = [route].concat(params);
 
-            if (skipHistory) {
-                Router.goInSecret.apply(null, routeParams);
-            } else {
-                Router.go.apply(null, routeParams);
-            }
+            Router.go.apply(null, routeParams);
 
             data.originalEvent.preventDefault();
         });
