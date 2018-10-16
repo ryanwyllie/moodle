@@ -1887,7 +1887,20 @@ class core_message_external extends external_api {
                 'showonlinestatus' => new external_value(PARAM_BOOL, 'Show the user\'s online status?'),
                 'isonline' => new external_value(PARAM_BOOL, 'The user\'s online status'),
                 'isblocked' => new external_value(PARAM_BOOL, 'Is the user blocked?'),
-                'iscontact' => new external_value(PARAM_BOOL, 'Is the user a contact?')
+                'iscontact' => new external_value(PARAM_BOOL, 'Is the user a contact?'),
+                'canmessage' => new external_value(PARAM_BOOL, 'Can the user message the other user?'),
+                'contactrequests' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id' => new external_value(PARAM_INT, 'Request ID'),
+                            'userid' => new external_value(PARAM_INT, "Requester's user id"),
+                            'requesteduserid' => new external_value(PARAM_INT, "Receiver's user id"),
+                            'timecreated' => new external_value(PARAM_INT, "time created")
+                        )
+                    ),
+                    'List of contact requests'
+                ),
+                'requirescontact' => new external_value(PARAM_BOOL, 'Must be contacts to message')
             )
         );
     }

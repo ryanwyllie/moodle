@@ -89,6 +89,21 @@ class profile implements templatable, renderable {
     public $iscontact;
 
     /**
+     * @var bool Can the user message this user?
+     */
+    public $canmessage;
+
+    /**
+     * @var bool List of contact requests betwen the users.
+     */
+    public $contactrequests;
+
+    /**
+     * @var bool Does the profile user require being contacts to message?
+     */
+    public $requirescontact;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $profile
@@ -104,6 +119,9 @@ class profile implements templatable, renderable {
         $this->profileimageurlsmall = $profile->profileimageurlsmall;
         $this->isblocked = $profile->isblocked;
         $this->iscontact = $profile->iscontact;
+        $this->canmessage = $profile->canmessage;
+        $this->contactrequests = $profile->contactrequests;
+        $this->requirescontact = $profile->requirescontact;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -123,6 +141,9 @@ class profile implements templatable, renderable {
         $data->profileimageurlsmall = $this->profileimageurlsmall;
         $data->isblocked = $this->isblocked;
         $data->iscontact = $this->iscontact;
+        $data->canmessage = $this->canmessage;
+        $data->contactrequests = $this->contactrequests;
+        $data->requirescontact = $this->requirescontact;
 
         return $data;
     }

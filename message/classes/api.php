@@ -867,7 +867,7 @@ class api {
      * @return \stdClass
      */
     public static function get_profile($userid, $otheruserid) {
-        global $CFG, $PAGE;
+        global $CFG, $DB, $PAGE;
 
         require_once($CFG->dirroot . '/user/lib.php');
 
@@ -904,8 +904,28 @@ class api {
             }
         }
 
+        if ($userid != $otheruserid) {
+            $sql = "SELECT *
+                    FROM {message_contact_requests} mcr
+                    WHERE (mcr.userid = ? AND mcr.requesteduserid = ?)
+                        OR (mcr.userid = ? AND mcr.requesteduserid = ?)";
+
+            $contactrequests = $DB->get_records_sql($sql, [$userid, $otheruserid, $otheruserid, $userid]);
+        } else {
+            $sql = "SELECT *
+                    FROM {message_contact_requests} mcr
+                    WHERE mcr.userid = ? OR mcr.requesteduserid = ?";
+
+            $contactrequests = $DB->get_records_sql($sql, [$userid, $userid]);
+        }
+
+        $privacysetting = self::get_user_privacy_messaging_preference($otheruserid);
+        $blocknoncontacts = $privacysetting = self::MESSAGE_PRIVACY_ONLYCONTACTS;
         $data->isblocked = self::is_blocked($userid, $otheruserid);
         $data->iscontact = self::is_contact($userid, $otheruserid);
+        $data->canmessage = ($data->iscontact || !$blocknoncontacts) && !self::is_blocked($otheruserid, $userid);
+        $data->contactrequests = $contactrequests;
+        $data->requirescontact = $blocknoncontacts;
 
         return $data;
     }
