@@ -241,6 +241,8 @@ class helper {
      * @return array
      */
     public static function create_messages($userid, $messages) {
+        global $PAGE;
+
         debugging('\core_message\helper::create_messages() is deprecated, please use ' .
             '\core_message\helper::create_conversation_messages() instead.', DEBUG_DEVELOPER);
 
@@ -278,6 +280,11 @@ class helper {
             $msg->displayblocktime = $displayblocktime;
             $msg->timecreated = $message->timecreated;
             $msg->timeread = $message->timeread;
+            $prefix = 'userfrom_';
+            $userfields = \user_picture::unalias($message, array('lastaccess'), $prefix . 'id', $prefix);
+            $userpicture = new \user_picture($userfields);
+            $msg->profileimageurl = $userpicture->get_url($PAGE)->out(false);
+            $msg->fullname = fullname($userfields);
             $arrmessages[] = $msg;
         }
 
