@@ -56,12 +56,15 @@ class helper {
         global $DB;
 
         $hash = self::get_conversation_hash([$userid, $otheruserid]);
+        $ufields = \user_picture::fields('u', array('lastaccess'), 'userfrom_id', 'userfrom_');
 
         $sql = "SELECT m.id, m.useridfrom, m.subject, m.fullmessage, m.fullmessagehtml,
-                       m.fullmessageformat, m.smallmessage, m.timecreated, muaread.timecreated AS timeread
+                       m.fullmessageformat, m.smallmessage, m.timecreated, muaread.timecreated AS timeread, $ufields
                   FROM {message_conversations} mc
             INNER JOIN {messages} m
                     ON m.conversationid = mc.id
+            INNER JOIN {user} u
+                    ON u.id = m.useridfrom
              LEFT JOIN {message_user_actions} muaread
                     ON (muaread.messageid = m.id
                    AND muaread.userid = :userid1

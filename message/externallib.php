@@ -1058,6 +1058,8 @@ class core_message_external extends external_api {
                 'displayblocktime' => new external_value(PARAM_BOOL, 'Should we display the block time?'),
                 'blocktime' => new external_value(PARAM_NOTAGS, 'The time to display above the message'),
                 'position' => new external_value(PARAM_ALPHA, 'The position of the text'),
+                'profileimageurl' => new external_value(PARAM_URL, 'User picture URL'),
+                'fullname' => new external_value(PARAM_NOTAGS, 'The sender\'s name'),
                 'timesent' => new external_value(PARAM_NOTAGS, 'The time the message was sent'),
                 'timecreated' => new external_value(PARAM_INT, 'The timecreated timestamp for the message'),
                 'isread' => new external_value(PARAM_INT, 'Determines if the message was read or not'),
