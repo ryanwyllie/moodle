@@ -932,13 +932,30 @@ class core_message_external extends external_api {
                 'ismessaging' => new external_value(PARAM_BOOL, 'If we are messaging the user'),
                 'sentfromcurrentuser' => new external_value(PARAM_BOOL, 'Was the last message sent from the current user?'),
                 'lastmessage' => new external_value(PARAM_NOTAGS, 'The user\'s last message'),
+                'lastmessagedate' => new external_value(PARAM_INT, 'Last message date', VALUE_DEFAULT, null),
                 'messageid' => new external_value(PARAM_INT, 'The unique search message id', VALUE_DEFAULT, null),
                 'showonlinestatus' => new external_value(PARAM_BOOL, 'Show the user\'s online status?'),
                 'isonline' => new external_value(PARAM_BOOL, 'The user\'s online status'),
                 'isread' => new external_value(PARAM_BOOL, 'If the user has read the message'),
                 'isblocked' => new external_value(PARAM_BOOL, 'If the user has been blocked'),
+                'isfavourite' => new external_value(PARAM_BOOL, 'If the user has been favourited'),
+                'iscontact' => new external_value(PARAM_BOOL, 'If the user has been blocked', VALUE_OPTIONAL),
                 'unreadcount' => new external_value(PARAM_INT, 'The number of unread messages in this conversation',
                     VALUE_DEFAULT, null),
+                'conversationid' => new external_value(PARAM_INT, 'The conversation id', VALUE_DEFAULT, null),
+                'canmessage' => new external_value(PARAM_BOOL, 'Can the user message the other user?', VALUE_OPTIONAL),
+                'contactrequests' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id' => new external_value(PARAM_INT, 'Request ID'),
+                            'userid' => new external_value(PARAM_INT, "Requester's user id"),
+                            'requesteduserid' => new external_value(PARAM_INT, "Receiver's user id"),
+                            'timecreated' => new external_value(PARAM_INT, "time created")
+                        )
+                    ),
+                    'List of contact requests'
+                ),
+                'requirescontact' => new external_value(PARAM_BOOL, 'Must be contacts to message', VALUE_OPTIONAL)
             )
         );
     }
@@ -1500,7 +1517,13 @@ class core_message_external extends external_api {
         $contacts = new \core_message\output\messagearea\contacts(null, $contacts);
 
         $renderer = $PAGE->get_renderer('core_message');
-        return $contacts->export_for_template($renderer);
+        $exported = $contacts->export_for_template($renderer);
+        $returncontacts = array_map(function($contact) {
+            $contact->contactrequests = [];
+            return $contact;
+        }, $exported->contacts);
+
+        return ['contacts' => $returncontacts];
     }
 
     /**

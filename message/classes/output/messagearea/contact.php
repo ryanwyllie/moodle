@@ -84,6 +84,11 @@ class contact implements templatable, renderable {
     public $lastmessage;
 
     /**
+     * @var int lastmessage date.
+     */
+    public $lastmessagedate;
+
+    /**
      * @var bool Is the user online?
      */
     public $isonline;
@@ -104,6 +109,11 @@ class contact implements templatable, renderable {
     public $unreadcount;
 
     /**
+     * @var int The conversation id.
+     */
+    public $conversationid;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $contact
@@ -117,10 +127,17 @@ class contact implements templatable, renderable {
         $this->messageid = $contact->messageid;
         $this->ismessaging = $contact->ismessaging;
         $this->lastmessage = $contact->lastmessage;
+        $this->lastmessagedate = $contact->lastmessagedate;
         $this->isonline = $contact->isonline;
         $this->isblocked = $contact->isblocked;
+        $this->iscontact = $contact->iscontact;
+        $this->isfavourite = $contact->isfavourite;
         $this->isread = $contact->isread;
         $this->unreadcount = $contact->unreadcount;
+        $this->conversationid = !empty($contact->conversationid) ? $contact->conversationid : null;
+        $this->canmessage = isset($contact->canmessage) ? $contact->canmessage : null;
+        $this->contactrequests = isset($contact->contactrequests) ? $contact->contactrequests : null;
+        $this->requirescontact = isset($contact->requirescontact) ? $contact->requirescontact : null;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -132,6 +149,7 @@ class contact implements templatable, renderable {
         $contact->messageid = $this->messageid;
         $contact->ismessaging = $this->ismessaging;
         $contact->sentfromcurrentuser = false;
+        $contact->lastmessagedate = $this->lastmessagedate;
         if ($this->lastmessage) {
             if ($this->userid !== $this->useridfrom) {
                 $contact->sentfromcurrentuser = true;
@@ -139,12 +157,19 @@ class contact implements templatable, renderable {
             $contact->lastmessage = shorten_text($this->lastmessage, self::MAX_MSG_LENGTH);
         } else {
             $contact->lastmessage = null;
+            $contact->lastmessagedate = null;
         }
         $contact->showonlinestatus = is_null($this->isonline) ? false : true;
         $contact->isonline = $this->isonline;
         $contact->isblocked = $this->isblocked;
+        $contact->iscontact = $this->iscontact;
+        $contact->isfavourite = $this->isfavourite;
         $contact->isread = $this->isread;
         $contact->unreadcount = $this->unreadcount;
+        $contact->conversationid = $this->conversationid;
+        $contact->canmessage = $this->canmessage;
+        $contact->contactrequests = $this->contactrequests;
+        $contact->requirescontact = $this->requirescontact;
 
         return $contact;
     }

@@ -307,6 +307,9 @@ class helper {
         $data->ismessaging = false;
         $data->lastmessage = null;
         $data->messageid = null;
+        $data->conversationid = isset($contact->conversationid) ? $contact->conversationid : null;
+        $data->lastmessagedate = isset($contact->lastmessagedate) ? $contact->lastmessagedate : 0;
+
         if (isset($contact->smallmessage)) {
             $data->ismessaging = true;
             // Strip the HTML tags from the message for displaying in the contact area.
@@ -321,6 +324,7 @@ class helper {
             $data->isonline = self::is_online($userfields->lastaccess);
         }
         $data->isblocked = isset($contact->blocked) ? (bool) $contact->blocked : false;
+        $data->isfavourite = isset($contact->isfavourite) ? (bool) $contact->isfavourite : false;
         $data->isread = isset($contact->isread) ? (bool) $contact->isread : false;
         $data->unreadcount = isset($contact->unreadcount) ? $contact->unreadcount : null;
 

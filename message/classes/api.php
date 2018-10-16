@@ -141,6 +141,7 @@ class api {
                 $message->blocked = $message->$blockedcol ? 1 : 0;
 
                 $message->messageid = $message->id;
+                $message->lastmessagedate = $message->timecreated;
                 $conversations[] = helper::create_contact($message, $prefix);
             }
         }
