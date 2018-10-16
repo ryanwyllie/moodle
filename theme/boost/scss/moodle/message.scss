@@ -1217,7 +1217,7 @@ $message-drawer-width: 320px;
 
     .body-container {
         flex: 1;
-        overflow-y: auto;
+        overflow: hidden;
 
         & > * {
             position: absolute;

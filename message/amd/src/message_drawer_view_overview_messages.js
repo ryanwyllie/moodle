@@ -60,6 +60,9 @@ function(
         MESSAGES_LIST: 'core_message/message_drawer_messages_list'
     };
 
+    var limit = 50;
+    var offset = 0;
+
     /**
      * Render the messages in the overview page.
      *
@@ -76,15 +79,28 @@ function(
 
     /**
      * Load list of contacts with message history from repository.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Number} userId Logged in userid.
      * @return {Promise} Ajax promise with list of contacts.
      */
     var load = function(root, userId) {
-        return MessageRepository.query({userid: userId})
+        return MessageRepository.query({
+                userid: userId,
+                limit: limit + 1,
+                offset: offset
+            })
             .then(function(result) {
-                return result.contacts;
+                var messages = result.contacts;
+
+                if (messages.length > limit) {
+                    messages = messages.slice(0, -1);
+                } else {
+                    Section.setLoadedAll(root, true);
+                }
+
+                offset = offset + limit;
+                return messages;
             })
             .catch(Notification.exception);
     };
@@ -111,7 +127,7 @@ function(
 
     /**
      * Increment the total conversations count.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      */
     var incrementTotalConversationCount = function(root) {
@@ -123,7 +139,7 @@ function(
 
     /**
      * Decrement the total conversations count.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      */
     var decrementTotalConversationCount = function(root) {
@@ -135,7 +151,7 @@ function(
 
     /**
      * Increment the total unread messages count.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      */
     var incrementTotalUnreadConversationCount = function(root) {
@@ -147,7 +163,7 @@ function(
 
     /**
      * Decrement the total unread conversations count.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      */
     var decrementTotalUnreadConversationCount = function(root) {
@@ -173,7 +189,7 @@ function(
 
     /**
      * Show the contact is blocked icon.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Number} userId User id to show the block icon for.
      */
@@ -184,7 +200,7 @@ function(
 
     /**
      * Hide the contact is blocked icon.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Number} userId User id to hide the block icon for.
      */
@@ -195,7 +211,7 @@ function(
 
     /**
      * Update the last message from / to a contact.
-     * 
+     *
      * @param  {Object} element Conversation element.
      * @param  {Object} message Last message in conversation.
      */
@@ -228,7 +244,7 @@ function(
 
     /**
      * Create an render new conversation element in the list of conversations.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Object} message The last message in this conversation.
      */
@@ -254,7 +270,7 @@ function(
 
     /**
      * Delete a conversation from the list of conversations.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Number} conversationId The conversation id to delete.
      */
@@ -265,7 +281,7 @@ function(
 
     /**
      * Mark a conversation as read.
-     * 
+     *
      * @param  {Object} root Overview messages container element.
      * @param  {Number} conversationId The conversation id to mark as read.
      */

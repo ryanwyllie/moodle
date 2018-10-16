@@ -24,10 +24,12 @@
  */
 define(
 [
-    'jquery'
+    'jquery',
+    'core/custom_interaction_events'
 ],
 function(
-    $
+    $,
+    CustomEvents
 ) {
 
     var SELECTORS = {
@@ -39,26 +41,37 @@ function(
     };
 
     /**
-     * Show the loading icon.
-     * 
+     * Show the loading icon and flag element as loading.
+     *
      * @param {Object} root The section container element.
      */
     var startLoading = function(root) {
+        root.attr('data-loading', true);
         root.find(SELECTORS.LOADING_ICON_CONTAINER).removeClass('hidden');
     };
 
     /**
-     * Hide the loading icon.
-     * 
+     * Hide the loading icon and flag element as not loading.
+     *
      * @param {Object} root The section container element.
      */
     var stopLoading = function(root) {
+        root.attr('data-loading', false);
         root.find(SELECTORS.LOADING_ICON_CONTAINER).addClass('hidden');
     };
 
     /**
+     * Check if the element is loading.
+     *
+     * @param {Object} root The section container element.
+     */
+    var isLoading = function(root) {
+        return root.attr('data-loading') === 'true';
+    };
+
+    /**
      * Get user id
-     * 
+     *
      * @param  {Object} root The section container element.
      * @return {Number} Logged in user id.
      */
@@ -68,7 +81,7 @@ function(
 
     /**
      * Get the section content container element.
-     * 
+     *
      * @param  {Object} root The section container element.
      * @return {Object} The section content container element.
      */
@@ -77,18 +90,28 @@ function(
     };
 
     /**
+     * Get the section collapse region element.
+     *
+     * @param  {Object} root The section container element.
+     * @return {Object} The section collapse region element.
+     */
+    var getCollapseRegion = function(root) {
+        return root.find(SELECTORS.COLLAPSE_REGION);
+    };
+
+    /**
      * Get the section visibility status.
-     * 
+     *
      * @param  {Object} root The section container element.
      * @return {Bool} Is section visible.
      */
     var isVisible = function(root) {
-        return root.find(SELECTORS.COLLAPSE_REGION).hasClass('show');
+        return getCollapseRegion(root).hasClass('show');
     };
 
     /**
      * Show the no conversations element.
-     * 
+     *
      * @param {Object} root The section container element.
      */
     var showEmptyMessage = function(root) {
@@ -98,7 +121,7 @@ function(
 
     /**
      * Show the placeholder element.
-     * 
+     *
      * @param {Object} root The section container element.
      */
     var showPlaceholder = function(root) {
@@ -107,7 +130,7 @@ function(
 
     /**
      * Hide the placeholder element.
-     * 
+     *
      * @param {Object} root The section container element.
      */
     var hidePlaceholder = function(root) {
@@ -116,7 +139,7 @@ function(
 
     /**
      * Show the section content container.
-     * 
+     *
      * @param {Object} root The section container element.
      */
     var showContent = function(root) {
@@ -125,7 +148,7 @@ function(
 
     /**
      * Hide the section content container.
-     * 
+     *
      * @param {Object} root The section container element.
      */
     var hideContent = function(root) {
@@ -133,8 +156,38 @@ function(
     };
 
     /**
+     * If the section has loaded all content.
+     *
+     * @param {Object} root The section container element.
+     * @return {Bool}
+     */
+    var hasLoadedAll = function(root) {
+        return root.attr('data-loaded-all') == 'true';
+    };
+
+    /**
+     * If the section has loaded all content.
+     *
+     * @param {Object} root The section container element.
+     * @param {Bool} value If all items have been loaded.
+     */
+    var setLoadedAll = function(root, value) {
+        root.attr('data-loaded-all', value);
+    };
+
+    /**
+     * If the section can load more items.
+     *
+     * @param {Object} root The section container element.
+     * @return {Bool}
+     */
+    var canLoadMore = function(root) {
+        return !hasLoadedAll(root) && !isLoading(root);
+    };
+
+    /**
      * Load all items in this container from callback and render them.
-     * 
+     *
      * @param {Object} root The section container element.
      * @callback The callback to load items.
      * @callback The callback to render the results.
@@ -146,15 +199,23 @@ function(
             .then(function(items) {
                 if (items.length > 0) {
                     var contentContainer = getContentContainer(root);
-                    return renderCallback(contentContainer, items);
+                    return renderCallback(contentContainer, items)
+                        .then(function() {
+                            return items;
+                        });
                 } else {
-                    return showEmptyMessage(root);
+                    return items;
                 }
             })
-            .then(function() {
+            .then(function(items) {
                 stopLoading(root);
                 root.attr('data-seen', true);
-                return;
+
+                if (!items.length) {
+                    setLoadedAll(root, true);
+                }
+
+                return items;
             })
             .catch(function() {
                 stopLoading(root);
@@ -165,19 +226,25 @@ function(
 
     /**
      * First load of this section.
-     * 
+     *
      * @param {Object} root The section container element.
      * @callback The callback to load items.
      * @callback The callback to render the results.
+     * @return {Object} promise
      */
     var initialLoadAndRender = function(root, loadCallback, renderCallback) {
         getContentContainer(root).empty();
         showPlaceholder(root);
         hideContent(root);
-        loadAndRender(root, loadCallback, renderCallback)
-            .then(function() {
+        return loadAndRender(root, loadCallback, renderCallback)
+            .then(function(items) {
                 hidePlaceholder(root);
                 showContent(root);
+
+                if (!items.length) {
+                    showEmptyMessage(root);
+                }
+
                 return;
             })
             .catch(function() {
@@ -195,8 +262,19 @@ function(
      * @callback The callback to render the results.
      */
     var registerEventListeners = function(root, loadCallback, renderCallback) {
+        var collapseRegion = getCollapseRegion(root);
+        CustomEvents.define(collapseRegion, [
+            CustomEvents.events.scrollBottom
+        ]);
+
+        collapseRegion.on(CustomEvents.events.scrollBottom, function() {
+            if (canLoadMore(root)) {
+                loadAndRender(root, loadCallback, renderCallback);
+            }
+        });
+
         root.on('show.bs.collapse', function() {
-            if (!root.attr('data-seen')) {
+            if (!root.attr('data-seen') && canLoadMore(root)) {
                 initialLoadAndRender(root, loadCallback, renderCallback);
             }
         });
@@ -225,6 +303,7 @@ function(
 
     return {
         show: show,
-        getContentContainer: getContentContainer
+        getContentContainer: getContentContainer,
+        setLoadedAll: setLoadedAll
     };
 });

@@ -103,6 +103,7 @@ function(
     /**
      * Go to a defined route and store the route history.
      *
+     * @param {string} newRoute Route config name.
      * @return {object} record Current route record with route config name and parameters.
      */
     var go = function() {
@@ -133,7 +134,6 @@ function(
         }
 
         history.push(record);
-        console.log('HISTORY', history);
         return record;
     };
 

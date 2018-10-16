@@ -611,7 +611,8 @@ function(
     };
 
     /**
-     * Cancel the delete messages request and.
+     * Cancel edit mode (selecting the messages).
+     *
      * @return {Promise} Renderer promise.
      */
     var cancelEditMode = function() {
@@ -633,9 +634,6 @@ function(
     var generateRenderFunction = function(header, body, footer) {
         return function(newState) {
             var patch = Patcher.buildPatch(viewState, newState);
-            console.log("PREV STATE:", viewState);
-            console.log("NEXT STATE:", newState);
-            console.log("PATCH: ", patch);
             return Renderer.render(header, body, footer, patch)
                 .then(function() {
                     viewState = newState;
@@ -753,7 +751,7 @@ function(
         ]);
         CustomEvents.define(messagesContainer, [
             CustomEvents.events.scrollTop,
-            //CustomEvents.events.scrollLock,
+            CustomEvents.events.scrollLock
         ]);
 
         messagesContainer.on(CustomEvents.events.scrollTop, function(e, data) {

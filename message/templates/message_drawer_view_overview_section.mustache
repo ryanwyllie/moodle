@@ -35,7 +35,7 @@
 }}
 
 <div
-    class="card border-0"
+    class="border-0 h-100 d-flex flex-column"
     data-region="{{$region}}{{/region}}"
     data-user-id="{{loggedinuser.id}}"
 >
@@ -68,6 +68,7 @@
         aria-labelledby="{{$region}}{{/region}}-toggle"
         data-parent="#message-drawer-view-overview-container"
         data-region="collapse-region"
+        style="overflow-y: auto;"
     >
         <div class="hidden text-center p-2" data-region="empty-message-container">
             {{$emptymessage}}{{/emptymessage}}
