@@ -1411,7 +1411,9 @@ class core_message_external extends external_api {
             array(
                 'userid' => new external_value(PARAM_INT, 'The id of the user who we are viewing conversations for'),
                 'limitfrom' => new external_value(PARAM_INT, 'Limit from', VALUE_DEFAULT, 0),
-                'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 0)
+                'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 0),
+                'type' => new external_value(PARAM_INT, 'Conversation type', VALUE_DEFAULT, null),
+                'favouritesonly' => new external_value(PARAM_BOOL, 'Favourites only', VALUE_DEFAULT, NULL),
             )
         );
     }
@@ -1433,7 +1435,7 @@ class core_message_external extends external_api {
      * @throws moodle_exception
      * @since 3.2
      */
-    public static function data_for_messagearea_conversations($userid, $limitfrom = 0, $limitnum = 0) {
+    public static function data_for_messagearea_conversations($userid, $limitfrom = 0, $limitnum = 0, $type = null, $favouritesonly = false) {
         global $CFG, $PAGE, $USER;
 
         // Check if messaging is enabled.
