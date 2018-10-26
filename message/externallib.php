@@ -1197,7 +1197,19 @@ class core_message_external extends external_api {
         $search = new \core_message\output\messagearea\user_search_results($contacts, $courses, $noncontacts);
 
         $renderer = $PAGE->get_renderer('core_message');
-        return $search->export_for_template($renderer);
+        $exported = $search->export_for_template($renderer);
+
+        return [
+            'contacts' => array_map(function($contact) {
+                $contact->contactrequests = [];
+                return $contact;
+            }, $exported->contacts),
+            'courses' => [],
+            'noncontacts' => array_map(function($contact) {
+                $contact->contactrequests = [];
+                return $contact;
+            }, $exported->noncontacts)
+        ];
     }
 
     /**
@@ -1284,7 +1296,14 @@ class core_message_external extends external_api {
         $results = new \core_message\output\messagearea\message_search_results($messages);
 
         $renderer = $PAGE->get_renderer('core_message');
-        return $results->export_for_template($renderer);
+        $exported = $results->export_for_template($renderer);
+
+        return [
+            'contacts' => array_map(function($contact) {
+                $contact->contactrequests = [];
+                return $contact;
+            }, $exported->contacts)
+        ];
     }
 
     /**

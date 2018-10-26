@@ -100,7 +100,7 @@ class api {
         $ufields2 = \user_picture::fields('u2', array('lastaccess'), 'userto_id', 'userto_');
 
         $sql = "SELECT m.id, m.useridfrom, mcm.userid as useridto, m.subject, m.fullmessage, m.fullmessagehtml, m.fullmessageformat,
-                       m.smallmessage, m.timecreated, 0 as isread, $ufields, mub.id as userfrom_blocked, $ufields2,
+                       m.smallmessage, m.timecreated, 0 as isread, m.conversationid, $ufields, mub.id as userfrom_blocked, $ufields2,
                        mub2.id as userto_blocked
                   FROM {messages} m
             INNER JOIN {user} u
@@ -272,6 +272,18 @@ class api {
                 $noncontacts[] = helper::create_contact($user);
             }
         }
+
+        $contacts = array_map(function($contact) use ($userid) {
+            $conversationid = self::get_conversation_between_users([$userid, $contact->userid]);
+            $contact->conversationid = $conversationid;
+            return $contact;
+        }, $contacts);
+
+        $noncontacts = array_map(function($contact) use ($userid) {
+            $conversationid = self::get_conversation_between_users([$userid, $contact->userid]);
+            $contact->conversationid = $conversationid;
+            return $contact;
+        }, $noncontacts);
 
         return array($contacts, $courses, $noncontacts);
     }
