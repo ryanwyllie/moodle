@@ -1205,6 +1205,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Mark a conversation or group of conversations as favourites/starred conversations.',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_unset_favourite_conversations' => array(
@@ -1213,6 +1214,7 @@ $functions = array(
         'classpath' => 'message/externallib.php',
         'description' => 'Unset a conversation or group of conversations as favourites/starred conversations.',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_notes_create_notes' => array(
