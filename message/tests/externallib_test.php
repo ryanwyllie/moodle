@@ -552,6 +552,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
      * Test getting contact requests.
      */
     public function test_get_contact_requests() {
+        global $PAGE;
+
         $this->resetAfterTest();
 
         $user1 = self::getDataGenerator()->create_user();
@@ -572,6 +574,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertCount(1, $requests);
 
         $request = reset($requests);
+        $userpicture = new \user_picture($user2);
+        $profileimageurl = $userpicture->get_url($PAGE)->out(false);
 
         $this->assertEquals($user2->id, $request['id']);
         $this->assertEquals($user2->picture, $request['picture']);
@@ -582,6 +586,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertEquals($user2->middlename, $request['middlename']);
         $this->assertEquals($user2->alternatename, $request['alternatename']);
         $this->assertEquals($user2->email, $request['email']);
+        $this->assertEquals(fullname($user2), $request['fullname']);
+        $this->assertEquals($profileimageurl, $request['profileimageurl']);
     }
 
     /**
@@ -641,7 +647,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         $return = core_message_external::create_contact_request($user1->id, $user2->id);
         $return = external_api::clean_returnvalue(core_message_external::create_contact_request_returns(), $return);
-        $this->assertEquals(array(), $return);
+        $this->assertEquals([], $return['warnings']);
 
         $request = $DB->get_records('message_contact_requests');
 
@@ -649,8 +655,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         $request = reset($request);
 
-        $this->assertEquals($user1->id, $request->userid);
-        $this->assertEquals($user2->id, $request->requesteduserid);
+        $this->assertEquals($request->id, $return['request']['id']);
+        $this->assertEquals($request->userid, $return['request']['userid']);
+        $this->assertEquals($request->requesteduserid, $return['request']['requesteduserid']);
+        $this->assertEquals($request->timecreated, $return['request']['timecreated']);
     }
 
     /**
@@ -671,7 +679,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $return = core_message_external::create_contact_request($user1->id, $user2->id);
         $return = external_api::clean_returnvalue(core_message_external::create_contact_request_returns(), $return);
 
-        $warning = reset($return);
+        $warning = reset($return['warnings']);
 
         $this->assertEquals('user', $warning['item']);
         $this->assertEquals($user2->id, $warning['itemid']);
