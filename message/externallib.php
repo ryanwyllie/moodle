@@ -661,7 +661,9 @@ class core_message_external extends external_api {
                         'The middle name of the user'),
                     'alternatename' => new external_value(core_user::get_property_type('alternatename'),
                         'The alternate name of the user'),
-                    'email' => new external_value(core_user::get_property_type('email'), 'An email address')
+                    'email' => new external_value(core_user::get_property_type('email'), 'An email address'),
+                    'fullname' => new external_value(PARAM_NOTAGS, 'The user\'s name'),
+                    'profileimageurl' => new external_value(PARAM_URL, 'User picture URL')
                 ]
             )
         );
@@ -781,22 +783,27 @@ class core_message_external extends external_api {
 
         $params = ['userid' => $userid, 'requesteduserid' => $requesteduserid];
         $params = self::validate_parameters(self::create_contact_request_parameters(), $params);
+        $result = [
+            'warnings' => []
+        ];
 
         if (!\core_message\api::can_create_contact($params['userid'], $params['requesteduserid'])) {
-            $warning[] = [
+            $result['warnings'][] = [
                 'item' => 'user',
                 'itemid' => $params['requesteduserid'],
                 'warningcode' => 'cannotcreatecontactrequest',
                 'message' => 'You are unable to create a contact request for this user'
             ];
-            return $warning;
+        } else {
+            if ($requests = \core_message\api::get_contact_requests_between_users($params['userid'], $params['requesteduserid'])) {
+                // There should only ever be one but just in case there are multiple then we can return the first.
+                $result['request'] = array_shift($requests);
+            } else {
+                $result['request'] = \core_message\api::create_contact_request($params['userid'], $params['requesteduserid']);
+            }
         }
 
-        if (!\core_message\api::does_contact_request_exist($params['userid'], $params['requesteduserid'])) {
-            \core_message\api::create_contact_request($params['userid'], $params['requesteduserid']);
-        }
-
-        return [];
+        return $result;
     }
 
     /**
@@ -805,7 +812,21 @@ class core_message_external extends external_api {
      * @return external_description
      */
     public static function create_contact_request_returns() {
-        return new external_warnings();
+        return new external_single_structure(
+            array(
+                'request' => new external_single_structure(
+                    array(
+                        'id' => new external_value(PARAM_INT, 'Message id'),
+                        'userid' => new external_value(PARAM_INT, 'User from id'),
+                        'requesteduserid' => new external_value(PARAM_INT, 'User to id'),
+                        'timecreated' => new external_value(PARAM_INT, 'Time created'),
+                    ),
+                    'request record',
+                    VALUE_OPTIONAL
+                ),
+                'warnings' => new external_warnings()
+            )
+        );
     }
 
     /**
