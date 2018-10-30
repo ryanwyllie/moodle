@@ -599,7 +599,13 @@ class core_message_external extends external_api {
     public static function get_contact_requests_parameters() {
         return new external_function_parameters(
             [
-                'userid' => new external_value(PARAM_INT, 'The id of the user we want the requests for')
+                'userid' => new external_value(PARAM_INT, 'The id of the user we want the requests for'),
+                'includeconversations' => new external_value(
+                    PARAM_BOOL,
+                    'If conversations between the users should be included',
+                    VALUE_DEFAULT,
+                    false
+                ),
             ]
         );
     }
@@ -614,7 +620,7 @@ class core_message_external extends external_api {
      *
      * @param int $userid The id of the user we want to get the contact requests for
      */
-    public static function get_contact_requests(int $userid) {
+    public static function get_contact_requests(int $userid, bool $includeconversations = false) {
         global $CFG, $USER;
 
         // Check if messaging is enabled.
@@ -631,10 +637,30 @@ class core_message_external extends external_api {
             throw new required_capability_exception($context, $capability, 'nopermissions', '');
         }
 
-        $params = ['userid' => $userid];
+        $params = ['userid' => $userid, 'includeconversations' => $includeconversations];
         $params = self::validate_parameters(self::get_contact_requests_parameters(), $params);
 
-        return \core_message\api::get_contact_requests($params['userid']);
+        $requests = \core_message\api::get_contact_requests($params['userid']);
+        $requests = array_values($requests);
+
+        if ($includeconversations) {
+            $useridsets = array_map(function($request) use ($USER) {
+                return [$USER->id, $request->id];
+            }, $requests);
+            $conversations = \core_message\api::get_individual_conversations_between_users($useridsets);
+
+            foreach ($requests as $index => $request) {
+                $conversation = $conversations[$index];
+                $request->conversations = $conversation ? [$conversation] : [];
+            }
+        } else {
+            $requests = array_map(function($request) {
+                $request->conversations = [];
+                return $request;
+            }, $requests);
+        }
+
+        return $requests;
     }
 
     /**
@@ -661,7 +687,20 @@ class core_message_external extends external_api {
                         'The middle name of the user'),
                     'alternatename' => new external_value(core_user::get_property_type('alternatename'),
                         'The alternate name of the user'),
-                    'email' => new external_value(core_user::get_property_type('email'), 'An email address')
+                    'email' => new external_value(core_user::get_property_type('email'), 'An email address'),
+                    'fullname' => new external_value(PARAM_NOTAGS, 'The user\'s name'),
+                    'profileimageurl' => new external_value(PARAM_URL, 'User picture URL'),
+                    'conversations' => new external_multiple_structure(
+                        new external_single_structure(
+                            array(
+                                'id' => new external_value(PARAM_INT, 'Conversation ID'),
+                                'timecreated' => new external_value(PARAM_INT, "Time created"),
+                                'type' => new external_value(PARAM_INT, "Conversation type"),
+                                'name' => new external_value(PARAM_NOTAGS, "Conversation name"),
+                            )
+                        ),
+                        'List of conversations'
+                    ),
                 ]
             )
         );
@@ -781,22 +820,27 @@ class core_message_external extends external_api {
 
         $params = ['userid' => $userid, 'requesteduserid' => $requesteduserid];
         $params = self::validate_parameters(self::create_contact_request_parameters(), $params);
+        $result = [
+            'warnings' => []
+        ];
 
         if (!\core_message\api::can_create_contact($params['userid'], $params['requesteduserid'])) {
-            $warning[] = [
+            $result['warnings'][] = [
                 'item' => 'user',
                 'itemid' => $params['requesteduserid'],
                 'warningcode' => 'cannotcreatecontactrequest',
                 'message' => 'You are unable to create a contact request for this user'
             ];
-            return $warning;
+        } else {
+            if ($requests = \core_message\api::get_contact_requests_between_users($params['userid'], $params['requesteduserid'])) {
+                // There should only ever be one but just in case there are multiple then we can return the first.
+                $result['request'] = array_shift($requests);
+            } else {
+                $result['request'] = \core_message\api::create_contact_request($params['userid'], $params['requesteduserid']);
+            }
         }
 
-        if (!\core_message\api::does_contact_request_exist($params['userid'], $params['requesteduserid'])) {
-            \core_message\api::create_contact_request($params['userid'], $params['requesteduserid']);
-        }
-
-        return [];
+        return $result;
     }
 
     /**
@@ -805,7 +849,21 @@ class core_message_external extends external_api {
      * @return external_description
      */
     public static function create_contact_request_returns() {
-        return new external_warnings();
+        return new external_single_structure(
+            array(
+                'request' => new external_single_structure(
+                    array(
+                        'id' => new external_value(PARAM_INT, 'Message id'),
+                        'userid' => new external_value(PARAM_INT, 'User from id'),
+                        'requesteduserid' => new external_value(PARAM_INT, 'User to id'),
+                        'timecreated' => new external_value(PARAM_INT, 'Time created'),
+                    ),
+                    'request record',
+                    VALUE_OPTIONAL
+                ),
+                'warnings' => new external_warnings()
+            )
+        );
     }
 
     /**
