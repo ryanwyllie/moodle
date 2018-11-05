@@ -1046,6 +1046,15 @@ $functions = array(
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
         'ajax' => true
     ),
+    'core_message_get_conversation' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'get_conversation',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Retrieve a conversation for a user',
+        'type' => 'read',
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+        'ajax' => true
+    ),
     'core_message_get_messages' => array(
         'classname' => 'core_message_external',
         'methodname' => 'get_messages',
