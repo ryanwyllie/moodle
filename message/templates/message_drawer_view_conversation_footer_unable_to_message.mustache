@@ -15,22 +15,26 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/loading
+    @template core_message/message_drawer_view_conversation_unable_to_message
 
-    Moodle loading template.
-
-    The purpose of this template is to render a loading animation.
+    This template will render the footer content when the user is unable to message
+    in a conversation in the message drawer.
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    * All data attributes are required
 
     Context variables required for this template:
-    *
+    * userid The logged in user id
+    * urls The URLs for the popover
 
     Example context (json):
     {}
+
 }}
-<span class="loading-icon icon-no-margin">{{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}</span>
+
+<div class="p-3 bg-white">
+    <p class="text-muted" data-region="text">{{#str}} unabletomessage, core_message {{/str}}</p>
+</div>

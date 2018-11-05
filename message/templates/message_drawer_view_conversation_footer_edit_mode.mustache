@@ -15,22 +15,36 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/loading
+    @template core_message/message_drawer_view_conversation_footer_edit_mode
 
-    Moodle loading template.
-
-    The purpose of this template is to render a loading animation.
+    This template will render the foot while the conversation page is in edit mode
+    in the message drawer.
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    * All data attributes are required
 
     Context variables required for this template:
-    *
+    * userid The logged in user id
+    * urls The URLs for the popover
 
     Example context (json):
     {}
+
 }}
-<span class="loading-icon icon-no-margin">{{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}</span>
+
+<div class="d-flex p-3">
+    <button
+        class="btn btn-link btn-icon my-1 icon-size-4"
+        data-action="delete-selected-messages"
+        data-toggle="tooltip"
+        data-placement="top"
+        title="{{#str}} deleteselectedmessages, core_message {{/str}}"
+    >
+        <span data-region="icon-container">{{#pix}} i/delete, core {{/pix}}</span>
+        <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+        <span class="sr-only">{{#str}} deleteselectedmessages, core_message {{/str}}</span>
+    </button>
+</div>

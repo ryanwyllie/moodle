@@ -15,22 +15,35 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/loading
+    @template core_message/message_drawer_view_conversation_header
 
-    Moodle loading template.
-
-    The purpose of this template is to render a loading animation.
+    This template will render the header for the conversation page of the message drawer.
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    * All data attributes are required
 
     Context variables required for this template:
-    *
+    * userid The logged in user id
+    * urls The URLs for the popover
 
     Example context (json):
     {}
+
 }}
-<span class="loading-icon icon-no-margin">{{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}</span>
+
+<div
+    class="hidden bg-white border-bottom px-2 py-3"
+    aria-hidden="true"
+    data-region="view-conversation"
+>
+    <div class="hidden" data-region="header-content"></div>
+    <div class="hidden" data-region="header-edit-mode">
+        {{> core_message/message_drawer_view_conversation_header_edit_mode }}
+    </div>
+    <div data-region="header-placeholder">
+        {{> core_message/message_drawer_view_conversation_header_placeholder }}
+    </div>
+</div>

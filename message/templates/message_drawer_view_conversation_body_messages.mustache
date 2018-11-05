@@ -15,22 +15,27 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/loading
+    @template core_message/message_drawer_view_conversation_body_messages
 
-    Moodle loading template.
-
-    The purpose of this template is to render a loading animation.
+    This template will render the list of messages in the body of the conversation
+    page in the message drawer.
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    * All data attributes are required
 
     Context variables required for this template:
-    *
+    * userid The logged in user id
+    * urls The URLs for the popover
 
     Example context (json):
     {}
+
 }}
-<span class="loading-icon icon-no-margin">{{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}</span>
+<div data-region="day-messages-container">
+    {{#messages}}
+        {{> core_message/message_drawer_view_conversation_body_message }}
+    {{/messages}}
+</div>

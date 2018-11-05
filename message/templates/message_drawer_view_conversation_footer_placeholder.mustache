@@ -15,22 +15,26 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/loading
+    @template core_message/message_drawer_view_conversation_footer_placeholder
 
-    Moodle loading template.
-
-    The purpose of this template is to render a loading animation.
+    This template will render the loading placeholder elements in the footer of
+    the conversation page in the message drawer.
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    * All data attributes are required
 
     Context variables required for this template:
-    *
+    * userid The logged in user id
+    * urls The URLs for the popover
 
     Example context (json):
     {}
+
 }}
-<span class="loading-icon icon-no-margin">{{#pix}} i/loading, core, {{#str}} loading {{/str}} {{/pix}}</span>
+<div class="d-flex">
+    <div class="bg-pulse-grey w-100" style="height: 80px"></div>
+    <div class="mx-2 mb-2 align-self-end bg-pulse-grey" style="height: 20px; width: 20px"></div>
+</div>
