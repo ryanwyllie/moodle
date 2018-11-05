@@ -1492,6 +1492,7 @@ $functions = array(
         'classpath' => 'user/externallib.php',
         'description' => 'Return user preferences.',
         'type' => 'read',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_user_update_picture' => array(

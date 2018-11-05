@@ -14,34 +14,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A list of human readable names for the keycodes.
+ * Controls the group overview section of the overview page in the message drawer.
  *
- * @module     core/key_codes
- * @class      key_codes
- * @package    core
- * @copyright  2016 Ryan Wyllie <ryan@moodle.com>
+ * @module     core_message/message_drawer_view_overview_section_group_messages
+ * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      3.2
  */
-define(function() {
+define(
+[
+    'jquery',
+    'core_message/message_drawer_view_overview_section'
+],
+function(
+    $,
+    Section
+) {
+    // Public conversations.
+    var CONVERSATION_TYPE = 2;
+    var INCLUDE_FAVOURITES = false;
 
-    return /** @alias module:core/key_codes */ {
-        'tab': 9,
-        'enter': 13,
-        'shift': 16,
-        'ctrl': 17,
-        'alt': 18,
-        'escape': 27,
-        'space': 32,
-        'end': 35,
-        'home': 36,
-        'arrowLeft': 37,
-        'arrowUp': 38,
-        'arrowRight': 39,
-        'arrowDown': 40,
-        '8': 56,
-        'asterix': 106,
-        'pageUp': 33,
-        'pageDown': 34,
+    /**
+     * Show the overview page conversations.
+     *
+     * @param {Object} root Overview messages container element.
+     */
+    var show = function(root) {
+        root = $(root);
+        Section.show($(root), CONVERSATION_TYPE, INCLUDE_FAVOURITES);
+    };
+
+    return {
+        show: show,
     };
 });
