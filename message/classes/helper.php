@@ -528,6 +528,11 @@ class helper {
 
             $data->isdeleted = ($member->deleted) ? true : false;
 
+            // TODO: DELETE ME
+            $data->contactrequests = [];
+            $data->requirescontact = false;
+            $data->canmessage = true;
+
             $members[$data->id] = $data;
         }
         return $members;
