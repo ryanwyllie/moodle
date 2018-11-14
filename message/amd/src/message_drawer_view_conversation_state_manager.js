@@ -66,12 +66,14 @@ define(['jquery'], function($) {
         return messages.map(function(message) {
             var fromLoggedInUser = message.useridfrom == loggedInUserId;
             return {
-                id: parseInt(message.id, 10),
+                id: message.id,
                 isRead: message.isread,
                 fromLoggedInUser: fromLoggedInUser,
                 userFrom: members[message.useridfrom],
                 text: message.text,
-                timeCreated: parseInt(message.timecreated, 10)
+                timeCreated: message.timecreated ? parseInt(message.timecreated, 10) : null,
+                state: 'pending',
+                timeAdded: Date.now()
             };
         });
     };
@@ -99,7 +101,6 @@ define(['jquery'], function($) {
             messages: [],
             hasTriedToLoadMessages: false,
             loadingMessages: true,
-            sendingMessage: false,
             loadingMembers: true,
             loadingConfirmAction: false,
             pendingBlockUserIds: [],
@@ -107,6 +108,7 @@ define(['jquery'], function($) {
             pendingRemoveContactIds: [],
             pendingAddContactIds: [],
             pendingDeleteMessageIds: [],
+            pendingSendMessageIds: [],
             pendingDeleteConversation: false,
             selectedMessageIds: []
         };
@@ -125,9 +127,25 @@ define(['jquery'], function($) {
         var allMessages = state.messages.concat(formattedMessages);
         // Sort the messages. Oldest to newest.
         allMessages.sort(function(a, b) {
-            if (a.timeCreated < b.timeCreated) {
+            if (a.timeCreated === null && b.timeCreated === null) {
+                if (a.timeAdded < b.timeAdded) {
+                    return -1;
+                } else if (a.timeAdded > b.timeAdded) {
+                    return 1;
+                }
+            }
+
+            if (a.timeCreated === null && b.timeCreated !== null) {
+                // A comes after b.
+                return 1;
+            } else if (a.timeCreated !== null && b.timeCreated === null) {
+                // A comes before b.
+                return -1;
+            } else if (a.timeCreated < b.timeCreated) {
+                // A comes before b.
                 return -1;
             } else if (a.timeCreated > b.timeCreated) {
+                // A comes after b.
                 return 1;
             } else if (a.id < b.id) {
                 return -1;
@@ -140,7 +158,37 @@ define(['jquery'], function($) {
 
         // Filter out any duplicate messages.
         newState.messages = allMessages.filter(function(message, index, sortedMessages) {
-            return !index || message.id !== sortedMessages[index - 1].id;
+            return !index || message.id != sortedMessages[index - 1].id;
+        });
+
+        return newState;
+    };
+
+    /**
+     * Update existing messages.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Array} data 2D array of old and new messages
+     * @return {Object} state.
+     */
+    var updateMessages = function(state, data) {
+        var newState = cloneState(state);
+        var updatesById = data.reduce(function(carry, messageData) {
+            var oldMessage = messageData[0];
+            var newMessage = messageData[1];
+            var formattedMessages = formatMessages([newMessage], state.loggedInUserId, state.members);
+            var formattedMessage = formattedMessages[0];
+
+            carry[oldMessage.id] = formattedMessage;
+            return carry;
+        }, {});
+
+        newState.messages = newState.messages.map(function(message) {
+            if (message.id in updatesById) {
+                return $.extend(message, updatesById[message.id]);
+            } else {
+                return message;
+            }
         });
 
         return newState;
@@ -226,19 +274,6 @@ define(['jquery'], function($) {
             // it means we've tried to load.
             newState.hasTriedToLoadMessages = true;
         }
-        return newState;
-    };
-
-    /**
-     * Set the state sending message attribute.
-     *
-     * @param  {Object} state Current state.
-     * @param  {Bool} value New sending message value.
-     * @return {Object} New state with sending message attribute.
-     */
-    var setSendingMessage = function(state, value) {
-        var newState = cloneState(state);
-        newState.sendingMessage = value;
         return newState;
     };
 
@@ -373,6 +408,40 @@ define(['jquery'], function($) {
     };
 
     /**
+     * Set the state of message to sent.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages to delete.
+     * @return {Object} New state with array of pending delete message ids.
+     */
+    var setMessagesSendSuccessById = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.messages.forEach(function(message) {
+            if (messageIds.indexOf(message.id) >= 0) {
+                message.state = 'sent';
+            }
+        });
+        return newState;
+    };
+
+    /**
+     * Set the state of messages to error.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages to delete.
+     * @return {Object} New state with array of pending delete message ids.
+     */
+    var setMessagesSendFailById = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.messages.forEach(function(message) {
+            if (messageIds.indexOf(message.id) >= 0) {
+                message.state = 'error';
+            }
+        });
+        return newState;
+    };
+
+    /**
      * Set the state pending block userids.
      *
      * @param  {Object} state Current state.
@@ -443,6 +512,21 @@ define(['jquery'], function($) {
         var newState = cloneState(state);
         messageIds.forEach(function(id) {
             newState.pendingDeleteMessageIds.push(id);
+        });
+        return newState;
+    };
+
+    /**
+     * Set the state pending send messages.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Messages to send.
+     * @return {Object} New state
+     */
+    var addPendingSendMessagesById = function(state, messageIds) {
+        var newState = cloneState(state);
+        messageIds.forEach(function(id) {
+            newState.pendingSendMessageIds.push(id);
         });
         return newState;
     };
@@ -518,6 +602,21 @@ define(['jquery'], function($) {
     var removePendingDeleteMessagesById = function(state, messageIds) {
         var newState = cloneState(state);
         newState.pendingDeleteMessageIds = newState.pendingDeleteMessageIds.filter(function(id) {
+            return messageIds.indexOf(id) < 0;
+        });
+        return newState;
+    };
+
+    /**
+     * Update the state pending send messages ids.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Array} messageIds Message ids to remove from the list of messages to send.
+     * @return {Object} New state.
+     */
+    var removePendingSendMessagesById = function(state, messageIds) {
+        var newState = cloneState(state);
+        newState.pendingSendMessageIds = newState.pendingSendMessageIds.filter(function(id) {
             return messageIds.indexOf(id) < 0;
         });
         return newState;
@@ -620,12 +719,12 @@ define(['jquery'], function($) {
     return {
         buildInitialState: buildInitialState,
         addMessages: addMessages,
+        updateMessages: updateMessages,
         removeMessages: removeMessages,
         removeMessagesById: removeMessagesById,
         addMembers: addMembers,
         removeMembers: removeMembers,
         setLoadingMessages: setLoadingMessages,
-        setSendingMessage: setSendingMessage,
         setLoadingMembers: setLoadingMembers,
         setId: setId,
         setName: setName,
@@ -636,16 +735,20 @@ define(['jquery'], function($) {
         setImageUrl: setImageUrl,
         setLoadingConfirmAction: setLoadingConfirmAction,
         setPendingDeleteConversation: setPendingDeleteConversation,
+        setMessagesSendSuccessById: setMessagesSendSuccessById,
+        setMessagesSendFailById: setMessagesSendFailById,
         addPendingBlockUsersById: addPendingBlockUsersById,
         addPendingRemoveContactsById: addPendingRemoveContactsById,
         addPendingUnblockUsersById: addPendingUnblockUsersById,
         addPendingAddContactsById: addPendingAddContactsById,
         addPendingDeleteMessagesById: addPendingDeleteMessagesById,
+        addPendingSendMessagesById: addPendingSendMessagesById,
         removePendingBlockUsersById: removePendingBlockUsersById,
         removePendingRemoveContactsById: removePendingRemoveContactsById,
         removePendingUnblockUsersById: removePendingUnblockUsersById,
         removePendingAddContactsById: removePendingAddContactsById,
         removePendingDeleteMessagesById: removePendingDeleteMessagesById,
+        removePendingSendMessagesById: removePendingSendMessagesById,
         addSelectedMessagesById: addSelectedMessagesById,
         removeSelectedMessagesById: removeSelectedMessagesById,
         markMessagesAsRead: markMessagesAsRead,

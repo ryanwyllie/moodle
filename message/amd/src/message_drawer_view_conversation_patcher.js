@@ -45,7 +45,8 @@ function(
      */
     var sortMessagesByDay = function(messages, midnight) {
         var messagesByDay = messages.reduce(function(carry, message) {
-            var dayTimestamp = UserDate.getUserMidnightForTimestamp(message.timeCreated, midnight);
+            var timeCreated = message.timeCreated ? message.timeCreated : midnight;
+            var dayTimestamp = UserDate.getUserMidnightForTimestamp(timeCreated, midnight);
 
             if (carry.hasOwnProperty(dayTimestamp)) {
                 carry[dayTimestamp].push(message);
@@ -197,6 +198,7 @@ function(
     var buildMessagesPatch = function(matchingDays) {
         var remove = [];
         var add = [];
+        var update = [];
 
         matchingDays.forEach(function(days) {
             var dayCurrent = days.a;
@@ -204,17 +206,28 @@ function(
             var messagesDiff = diffArrays(dayCurrent.messages, dayNext.messages, function(messageCurrent, messageNext) {
                 return messageCurrent.id == messageNext.id;
             });
+            var toRemove = messagesDiff.missingFromB;
+            var toAdd = messagesDiff.missingFromA;
+            var sendMessageDiff = diffArrays(toRemove, toAdd, function(messageRemove, messageAdd) {
+                return messageRemove.state == 'pending' &&
+                    messageAdd.state != 'pending' &&
+                    messageRemove.timeAdded == messageNext.timeAdded;
+            });
 
-            remove = remove.concat(messagesDiff.missingFromB);
+            remove = remove.concat(sendMessageDiff.missingFromB);
 
-            messagesDiff.missingFromA.forEach(function(message) {
-                var before = findPositionInArray(dayCurrent.messages, function(candidate) {
-                    if (message.timeCreated == candidate.timeCreated) {
-                        return message.id < candidate.id;
-                    } else {
-                        return message.timeCreated < candidate.timeCreated;
-                    }
-                });
+            sendMessageDiff.missingFromA.forEach(function(message) {
+                var before = null;
+
+                if (message.timeCreated) {
+                    before = findPositionInArray(dayCurrent.messages, function(candidate) {
+                        if (message.timeCreated == candidate.timeCreated) {
+                            return message.id < candidate.id;
+                        } else {
+                            return message.timeCreated < candidate.timeCreated;
+                        }
+                    });
+                }
 
                 add.push({
                     before: before,
@@ -222,11 +235,27 @@ function(
                     day: dayCurrent
                 });
             });
+
+            var toUpdate = sendMessageDiff.matches.reduce(function(carry, message) {
+                if (!message.timeAdded in carry) {
+                    carry[message.timeAdded] = {
+                        before: null,
+                        after: null
+                    };
+                }
+
+                if (message.state == 'pending') {
+                    carry[message.timeAdded]['before'] = messsage;
+                } else {
+                    carry[message.timeAdded]['after'] = messsage;
+                }
+            }, {});
         });
 
         return {
             add: add,
-            remove: remove
+            remove: remove,
+            update: update
         };
     };
 
@@ -420,23 +449,6 @@ function(
         if (!state.loadingMessages && newState.loadingMessages) {
             return true;
         } else if (state.loadingMessages && !newState.loadingMessages) {
-            return false;
-        } else {
-            return null;
-        }
-    };
-
-    /**
-     * Check if the messages are still being send
-     *
-     * @param  {Object} state The current state.
-     * @param  {Object} newState The new state.
-     * @return {Bool|Null} User Object if Object.
-     */
-    var buildSendingMessage = function(state, newState) {
-        if (!state.sendingMessage && newState.sendingMessage) {
-            return true;
-        } else if (state.sendingMessage && !newState.sendingMessage) {
             return false;
         } else {
             return null;
@@ -1111,7 +1123,6 @@ function(
                 loadingMembers: buildLoadingMembersPatch,
                 loadingFirstMessages: buildLoadingFirstMessages,
                 loadingMessages: buildLoadingMessages,
-                sendingMessage: buildSendingMessage,
                 confirmDeleteSelectedMessages: buildConfirmDeleteSelectedMessages,
                 inEditMode: buildInEditMode,
                 selectedMessages: buildSelectedMessages,

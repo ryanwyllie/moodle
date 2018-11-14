@@ -99,6 +99,10 @@ function(
     var newMessagesPollTimer = null;
     // If the UI is currently resetting.
     var isResetting = true;
+    // Whether the send message queue is processing.
+    var sendingMessages = false;
+    // A buffer of messages to send.
+    var sendMessageBuffer = [];
     // This is the render function which will be generated when this module is
     // first called. See generateRenderFunction for details.
     var render = null;
@@ -931,35 +935,67 @@ function(
             });
     };
 
-    /**
-     * Send a message to the repository, update the statemanager publish a message send event
-     * and call the renderer.
-     *
-     * @param  {Number} conversationId The conversation to send to.
-     * @param  {String} text Text to send.
-     * @return {Promise} Renderer promise.
-     */
-    var sendMessage = function(conversationId, text) {
-        var newState = StateManager.setSendingMessage(viewState, true);
-        var newConversationId = null;
-        return render(newState)
+    var processSendMessageBuffer = function() {
+        if (sendingMessages) {
+            // We're already sending messages so nothing to do.
+            return;
+        }
+
+        if (!sendMessageBuffer.length) {
+            // No messages waiting to send. Nothing to do.
+            return;
+        }
+
+        // Flag that we're processing the queue.
+        sendingMessages = true;
+        // Grab all of the messages in the buffer.
+        var messagesToSend = sendMessageBuffer.slice();
+        // Empty the buffer since we're processing it.
+        sendMessageBuffer = [];
+        var conversationId = viewState.id;
+        var messagesText = messagesToSend.map(function(message) {
+            return message.text;
+        });
+        var messageIds = messagesToSend.map(function(message) {
+            return message.id;
+        });
+
+        // First thing to do is render the messages in the UI so that the user
+        // knows their message was registered.
+        var newState = StateManager.addMessages(viewState, messagesToSend);
+        newState = StateManager.addPendingSendMessagesById(newState, messageIds);
+        render(newState)
             .then(function() {
+                // No send all of the messages to the server.
                 if (!conversationId && viewState.type == CONVERSATION_TYPES.PRIVATE) {
                     // If it's a new private conversation then we need to use the old
                     // web service function to create the conversation.
                     var otherUserId = getOtherUserId();
-                    return Repository.sendMessageToUser(otherUserId, text)
-                        .then(function(message) {
-                            newConversationId = parseInt(message.conversationid, 10);
-                            return message;
+                    return Repository.sendMessagesToUser(otherUserId, messagesText)
+                        .then(function(messages) {
+                            if (messages.length) {
+                                newConversationId = parseInt(messages[0].conversationid, 10);
+                            }
+                            return messages;
                         });
                 } else {
-                    return Repository.sendMessageToConversation(conversationId, text);
+                    return Repository.sendMessagesToConversation(conversationId, messagesText);
                 }
             })
-            .then(function(message) {
-                var newState = StateManager.addMessages(viewState, [message]);
-                newState = StateManager.setSendingMessage(newState, false);
+            .then(function(messages) {
+                var newMessageIds = messages.map(function(message) {
+                    return message.id;
+                });
+                var data = messagesToSend.map(function(oldMessage, index) {
+                    // Update messages expects and array of arrays where the first value
+                    // is the old message to update and the second value is the new values
+                    // to set.
+                    return [oldMessage, messages[index]];
+                });
+                var newState = StateManager.updateMessages(viewState, data);
+                // Remove the old messages from the pending queue.
+                newState = StateManager.removePendingSendMessagesById(newState, messageIds);
+                newState = StateManager.setMessagesSendSuccessById(newState, newMessageIds);
                 var conversation = formatConversationForEvent(newState);
 
                 if (!newState.id) {
@@ -971,17 +1007,52 @@ function(
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_CREATED, conversation);
                 }
 
+                // Update the UI with the new message values from the server.
                 return render(newState)
+                    .then(function() {
+                        // Recurse just in case there has been more messages added to the buffer.
+                        sendingMessages = false;
+                        processSendMessageBuffer();
+                        return;
+                    })
                     .then(function() {
                         PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, conversation);
                         return;
                     });
             })
-            .catch(function(error) {
-                var newState = StateManager.setSendingMessage(viewState, false);
-                render(newState);
-                Notification.exception(error);
+            .catch(function() {
+                // We failed to create messages so remove the old messages from the pending queue
+                // and update the UI to indicate that the message failed.
+                var newState = StateManager.removePendingSendMessagesById(viewState, messageIds);
+                newState = StateManager.setMessagesSendFailById(newState, newMessageIds);
+                render(newState)
+                    .then(function() {
+                        // Recurse just in case there has been more messages added to the buffer.
+                        sendingMessages = false;
+                        processSendMessageBuffer();
+                        return;
+                    });
             });
+    };
+
+    /**
+     * Buffers messages to be sent to the server. We use a bugger here to allow the
+     * user to freely input messages without blocking the interface for them.
+     *
+     * Instead we just queue all of their messages up and send them as fast as we can.
+     *
+     * @param  {String} text Text to send.
+     */
+    var sendMessage = function(text) {
+        var id = 'temp' + Date.now();
+        var message = {
+            id: id,
+            useridfrom: viewState.loggedInUserId,
+            text: text,
+            timecreated: null
+        };
+        sendMessageBuffer.push(message);
+        processSendMessageBuffer();
     };
 
     /**
@@ -1029,6 +1100,9 @@ function(
             // This is a great place to add in some console logging if you need
             // to debug something. You can log the current state, the next state,
             // and the generated patch and see exactly what will be updated.
+            console.log("PREV STATE", viewState);
+            console.log("NEXT STATE", newState);
+            console.log("PATCH", patch);
             return Renderer.render(header, body, footer, patch)
                 .then(function() {
                     viewState = newState;
@@ -1078,7 +1152,9 @@ function(
         var text = textArea.val().trim();
 
         if (text !== '') {
-            sendMessage(viewState.id, text);
+            sendMessage(text);
+            textArea.val('');
+            textArea.focus();
         }
 
         data.originalEvent.preventDefault();

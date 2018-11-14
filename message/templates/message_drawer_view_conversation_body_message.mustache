@@ -57,12 +57,14 @@
             <h6 class="text-truncate m-0">{{userfrom.fullname}}</h6>
         </div>
         {{/fromloggedinuser}}
-        <div
-            class="ml-auto small text-right text-muted"
-            style="flex-shrink: 0"
-        >
-            {{formattedtime}}
-        </div>
+        {{#formattedtime}}
+            <div
+                class="ml-auto small text-right text-muted"
+                style="flex-shrink: 0"
+            >
+                {{.}}
+            </div>
+        {{/formattedtime}}
         <span class="hidden ml-2 small text-primary" data-region="not-selected-icon">{{#pix}} i/unchecked, core {{/pix}}</span>
         <span class="hidden ml-2 small text-primary" data-region="selected-icon">{{#pix}} i/checked, core {{/pix}}</span>
     </div>
