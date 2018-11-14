@@ -524,10 +524,12 @@ function(
      */
     var getLoadNewMessagesCallback = function(conversationId, newestFirst) {
         return function() {
+            /*
             var messages = viewState.messages;
             var mostRecentMessage = messages.length ? messages[messages.length - 1] : null;
+            var lastTimeCreated = mostRecentMessage ? mostRecentMessage.timeCreated : null;
 
-            if (mostRecentMessage && !isResetting && !isSendingMessage) {
+            if (lastTimeCreated && !isResetting && !isSendingMessage) {
                 // There may be multiple messages with the same time created value since
                 // the accuracy is only down to the second. The server will include these
                 // messages in the result (since it does a >= comparison on time from) so
@@ -536,7 +538,7 @@ function(
                 var ignoreMessageIds = [];
                 for (var i = messages.length - 1; i >= 0; i--) {
                     var message = messages[i];
-                    if (message.timeCreated === mostRecentMessage.timeCreated) {
+                    if (message.timeCreated === lastTimeCreated) {
                         ignoreMessageIds.push(message.id);
                     } else {
                         // Since the messages are ordered in ascending order of time created
@@ -552,7 +554,7 @@ function(
                         0,
                         newestFirst,
                         ignoreMessageIds,
-                        mostRecentMessage.timeCreated
+                        lastTimeCreated
                     )
                     .then(function(result) {
                         if (result.messages.length) {
@@ -569,6 +571,7 @@ function(
                         }
                     });
             }
+            */
 
             return $.Deferred().resolve().promise();
         };
@@ -585,9 +588,7 @@ function(
 
         return Repository.markAllConversationMessagesAsRead(loggedInUserId, conversationId)
             .then(function() {
-                var newState = StateManager.markMessagesAsRead(viewState, viewState.messages);
                 PubSub.publish(MessageDrawerEvents.CONVERSATION_READ, conversationId);
-                return render(newState);
             });
     };
 
@@ -928,60 +929,119 @@ function(
             });
     };
 
-    /**
-     * Send a message to the repository, update the statemanager publish a message send event
-     * and call the renderer.
-     *
-     * @param  {Number} conversationId The conversation to send to.
-     * @param  {String} text Text to send.
-     * @return {Promise} Renderer promise.
-     */
-    var sendMessage = function(conversationId, text) {
-        isSendingMessage = true;
-        var newState = StateManager.setSendingMessage(viewState, true);
-        var newConversationId = null;
-        render(newState);
+    var processSendMessageBuffer = function() {
+        if (isSendingMessage) {
+            // We're already sending messages so nothing to do.
+            return;
+        }
+         if (!sendMessageBuffer.length) {
+            // No messages waiting to send. Nothing to do.
+            return;
+        }
 
+        // Flag that we're processing the queue.
+        isSendingMessage = true;
+        // Grab all of the messages in the buffer.
+        var messagesToSend = sendMessageBuffer.slice();
+        // Empty the buffer since we're processing it.
+        sendMessageBuffer = [];
+        var conversationId = viewState.id;
+        var messagesText = messagesToSend.map(function(message) {
+            return message.text;
+        });
+        var messageIds = messagesToSend.map(function(message) {
+            return message.id;
+        });
         var sendMessagePromise = null;
 
+        // Now send all of the messages to the server.
         if (!conversationId && viewState.type == CONVERSATION_TYPES.PRIVATE) {
             // If it's a new private conversation then we need to use the old
             // web service function to create the conversation.
             var otherUserId = getOtherUserId();
-            sendMessagePromise = Repository.sendMessageToUser(otherUserId, text)
-                .then(function(message) {
-                    newConversationId = parseInt(message.conversationid, 10);
-                    return message;
+            sendMessagePromise = Repository.sendMessagesToUser(otherUserId, messagesText)
+                .then(function(messages) {
+                    if (messages.length) {
+                        newConversationId = parseInt(messages[0].conversationid, 10);
+                    }
+                    return messages;
                 });
         } else {
-            sendMessagePromise = Repository.sendMessageToConversation(conversationId, text);
+            sendMessagePromise = Repository.sendMessagesToConversation(conversationId, messagesText);
         }
 
-        sendMessagePromise.then(function(message) {
-                var newState = StateManager.addMessages(viewState, [message]);
-                newState = StateManager.setSendingMessage(newState, false);
+        sendMessagePromise
+            .then(function(messages) {
+                var newMessageIds = messages.map(function(message) {
+                    return message.id;
+                });
+                var data = messagesToSend.map(function(oldMessage, index) {
+                    // Update messages expects and array of arrays where the first value
+                    // is the old message to update and the second value is the new values
+                    // to set.
+                    return [oldMessage, messages[index]];
+                });
+                var newState = StateManager.updateMessages(viewState, data);
+                newState = StateManager.setMessagesSendSuccessById(newState, newMessageIds);
                 var conversation = formatConversationForEvent(newState);
-
-                if (!newState.id) {
-                    // If this message created the conversation then save the conversation
-                    // id.
-                    newState = StateManager.setId(newState, newConversationId);
-                    conversation.id = newConversationId;
-                    resetMessagePollTimer(newConversationId);
+                    if (!newState.id) {
+                        // If this message created the conversation then save the conversation
+                        // id.
+                        newState = StateManager.setId(newState, newConversationId);
+                        conversation.id = newConversationId;
+                        resetMessagePollTimer(newConversationId);
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_CREATED, conversation);
                 }
 
-                render(newState);
+                // Update the UI with the new message values from the server.
+                render(newState)
+                // Recurse just in case there has been more messages added to the buffer.
                 isSendingMessage = false;
+                processSendMessageBuffer();
                 PubSub.publish(MessageDrawerEvents.CONVERSATION_NEW_LAST_MESSAGE, conversation);
-                return;
             })
-            .catch(function(error) {
+            .catch(function() {
+                // We failed to create messages so remove the old messages from the pending queue
+                // and update the UI to indicate that the message failed.
+                var newState = StateManager.setMessagesSendFailById(viewState, messageIds);
+                render(newState)
                 isSendingMessage = false;
-                var newState = StateManager.setSendingMessage(viewState, false);
-                render(newState);
-                Notification.exception(error);
+                processSendMessageBuffer();
             });
+    };
+
+    /**
+     * Buffers messages to be sent to the server. We use a buffer here to allow the
+     * user to freely input messages without blocking the interface for them.
+     *
+     * Instead we just queue all of their messages up and send them as fast as we can.
+     *
+     * @param {String} text Text to send.
+     */
+    var sendMessage = function(text) {
+        var id = 'temp' + Date.now();
+        var message = {
+            id: id,
+            useridfrom: viewState.loggedInUserId,
+            text: text,
+            timecreated: null
+        };
+        var newState = StateManager.addMessages(viewState, [message]);
+        render(newState);
+        sendMessageBuffer.push(message);
+        processSendMessageBuffer();
+    };
+
+    /**
+     * Retry sending a message that failed.
+     *
+     * @param {Object} message The message to send.
+     */
+    var retrySendMessage = function(message) {
+        var newState = StateManager.setMessagesSendPendingById(viewState, [message.id]);
+        render(newState);
+        sendMessageBuffer.push(message);
+        processSendMessageBuffer();
     };
 
     /**
@@ -1071,6 +1131,9 @@ function(
             // This is a great place to add in some console logging if you need
             // to debug something. You can log the current state, the next state,
             // and the generated patch and see exactly what will be updated.
+            console.log("PREV STATE", viewState);
+            console.log("NEXT STATE", newState);
+            console.log("PATCH", patch);
 
             // Optimistically update the state. We're going to assume that the rendering
             // will always succeed. The rendering is asynchronous (annoyingly) so it's buffered
@@ -1122,7 +1185,9 @@ function(
         var text = textArea.val().trim();
 
         if (text !== '') {
-            sendMessage(viewState.id, text);
+            sendMessage(text);
+            textArea.val('');
+            textArea.focus();
         }
 
         data.originalEvent.preventDefault();
@@ -1149,9 +1214,31 @@ function(
         }
 
         var element = target.closest(SELECTORS.MESSAGE);
-        var messageId = parseInt(element.attr('data-message-id'), 10);
+        var messageId = element.attr('data-message-id');
 
         toggleSelectMessage(messageId);
+
+        data.originalEvent.preventDefault();
+    };
+
+    /**
+     * Handle retry sending of message.
+     *
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
+    var handleRetrySendMessage = function(e, data) {
+        var target = $(e.target);
+        var element = target.closest(SELECTORS.MESSAGE);
+        var messageId = element.attr('data-message-id');
+        var messages = viewState.messages.filter(function(message) {
+            return message.id == messageId;
+        });
+        var message = messages.length ? messages[0] : null;
+
+        if (message) {
+            retrySendMessage(message);
+        }
 
         data.originalEvent.preventDefault();
     };
@@ -1246,7 +1333,8 @@ function(
         [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
         [SELECTORS.ACTION_ACCEPT_CONTACT_REQUEST, generateConfirmActionHandler(acceptContactRequest)],
         [SELECTORS.ACTION_DECLINE_CONTACT_REQUEST, generateConfirmActionHandler(declineContactRequest)],
-        [SELECTORS.MESSAGE, handleSelectMessage]
+        [SELECTORS.MESSAGE, handleSelectMessage],
+        [SELECTORS.RETRY_SEND, handleRetrySendMessage],
     ];
     var footerActivateHandlers = [
         [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
@@ -1374,10 +1462,14 @@ function(
     var resetState = function(body, conversationId, loggedInUserProfile) {
         // Reset all of the states back to the beginning if we're loading a new
         // conversation.
-        isResetting = true;
+        loadedAllMessages = false;
+        messagesOffset = 0;
+        newMessagesPollTimer = null;
         isRendering = false;
         renderBuffer = [];
+        isResetting = true;
         isSendingMessage = false;
+        sendMessageBuffer = [];
 
         var loggedInUserId = loggedInUserProfile.id;
         var midnight = parseInt(body.attr('data-midnight'), 10);
@@ -1572,6 +1664,7 @@ function(
         if (isNewConversation) {
             var renderPromise = null;
             var loggedInUserProfile = getLoggedInUserProfile(body);
+
             if (conversation) {
                 renderPromise = resetByConversation(body, conversation, loggedInUserProfile, otherUserId);
             } else if (conversationId) {
