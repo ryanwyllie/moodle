@@ -75,9 +75,12 @@ define([], function() {
         MESSAGE_TEXT_AREA: '[data-region="send-message-txt"]',
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]',
+        RETRY_SEND: '[data-region="retry-send"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
         SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
         TEXT: '[data-region="text"]',
+        TEXT_CONTAINER: '[data-region="text-container"]',
+        TIME_CREATED: '[data-region="time-created"]',
         TITLE: '[data-region="title"]'
     };
 
