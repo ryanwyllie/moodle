@@ -103,7 +103,8 @@
     <nav
         role="navigation"
         id="{{$pagingbarid}}paging-bar-{{uniqid}}{{/pagingbarid}}"
-        class="{{#showitemsperpageselector}}ml-auto{{/showitemsperpageselector}}"
+        class="{{#showitemsperpageselector}}ml-auto{{/showitemsperpageselector}}
+               {{#hidecontrolonsinglepage}}hidden{{/hidecontrolonsinglepage}}"
         data-region="paging-bar"
         data-ignore-control-while-loading="{{ignorecontrolwhileloading}}"
         data-hide-control-on-single-page="{{hidecontrolonsinglepage}}"
