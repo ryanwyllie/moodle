@@ -104,6 +104,37 @@ function(
     };
 
     /**
+     * Parse the last message text to ensure that it can be displayed properly
+     * in the sections.
+     *
+     * Part of the section rendering requires the message to run through JSON.parse
+     * so let's check that it can be parsed before sending it to the template to
+     * render otherwise we'll get an exception for the user.
+     *
+     * @param {String} text The text to parse
+     * @return {String} Parsed text
+     */
+    var parseLastMessageText = function(text) {
+        var parsedText = $(text).text() || text;
+        // Split on new lines. If there is a new line then just take the first part.
+        var splits = parsedText.split(/\r?\n/);
+        parsedText = splits[0];
+
+        // If we can't JSON parse this then it'll break the templates so
+        // stringify it so that it doesn't.
+        try {
+            JSON.parse('{"text":"' + parsedText + '"}');
+        } catch(e) {
+            // Stringify to escape any characters that the parser doens't like.
+            parsedText = JSON.stringify(parsedText);
+            // Strip the quotes that get added.
+            parsedText = parsedText.slice(1, -1);
+        }
+
+        return parsedText;
+    };
+
+    /**
      * Render the total count value and show it for the user. Also update the placeholder
      * HTML for better visuals.
      *
@@ -171,7 +202,7 @@ function(
                 unreadcount: conversation.unreadcount,
                 lastmessagedate: lastMessage ? lastMessage.timecreated : null,
                 sentfromcurrentuser: lastMessage ? lastMessage.useridfrom == userId : null,
-                lastmessage: lastMessage ? $(lastMessage.text).text() || lastMessage.text : null
+                lastmessage: lastMessage ? parseLastMessageText(lastMessage.text) : null
             };
 
             if (conversation.type == MessageDrawerViewConversationContants.CONVERSATION_TYPES.PRIVATE) {
@@ -380,7 +411,7 @@ function(
                 // Now load the last message.
                 return Str.get_string('conversationlastmessage', 'core_message', {
                     sender: message.fromLoggedInUser ? youString : message.userFrom.fullname,
-                    message: "<span class='text-muted'>" + $(message.text).text() + "</span>"
+                    message: "<span class='text-muted'>" + parseLastMessageText(message.text) + "</span>"
                 });
             })
             .then(function(lastMessage) {
@@ -397,7 +428,6 @@ function(
      */
     var createNewConversation = function(root, conversation) {
         var existingConversations = root.find(SELECTORS.CONVERSATION);
-        var text = '';
 
         if (!existingConversations.length) {
             // If we didn't have any conversations then we need to show
@@ -410,17 +440,13 @@ function(
         var messageCount = conversation.messages.length;
         var lastMessage = messageCount ? conversation.messages[messageCount - 1] : null;
 
-        if (lastMessage) {
-            text = $(lastMessage.text).text() || lastMessage.text;
-        }
-
         var formattedConversation = {
             id: conversation.id,
             name: conversation.name,
             subname: conversation.subname,
             lastmessagedate: lastMessage ? lastMessage.timeCreated : null,
             sentfromcurrentuser: lastMessage ? lastMessage.fromLoggedInUser : null,
-            lastmessage: text,
+            lastmessage: lastMessage ? parseLastMessageText(lastMessage.text) : null,
             imageurl: conversation.imageUrl,
         };
 
