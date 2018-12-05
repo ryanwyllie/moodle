@@ -97,6 +97,7 @@ function(
     var loadedAllMessages = false;
     var messagesOffset = 0;
     var newMessagesPollTimer = null;
+    var hasScrolledFromBottom = false;
     var isRendering = false;
     var renderBuffer = [];
     // If the UI is currently resetting.
@@ -226,6 +227,17 @@ function(
      */
     var getMessagesContainer = function(body) {
         return body.find(SELECTORS.MESSAGES_CONTAINER);
+    };
+
+    /**
+     * Get the message element.
+     *
+     * @param  {Object} body Conversation body container element.
+     * @param  {Number} messageId The message id to scroll to.
+     * @return {Object} The message element.
+     */
+    var getMessageElement = function(body, messageId) {
+        return body.find(SELECTORS.MESSAGES_CONTAINER).find('[data-message-id="' + messageId + '"]');
     };
 
     /**
@@ -1310,6 +1322,23 @@ function(
         data.originalEvent.preventDefault();
     };
 
+    /**
+     * Scroll to the bottom of the conversation panel.
+     *
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
+    var handleScrollBottom = function(e, data) {
+        var lastMessage = viewState.messages[viewState.messages.length - 1];
+        var newState = StateManager.setShowMessageById(viewState, lastMessage.id);
+        render(newState);
+        // This needs to be reset to null so that the button works again on a second
+        // click.
+        newState = StateManager.setShowMessageById(newState, null);
+        render(newState);
+        data.originalEvent.preventDefault();
+    };
+
     var headerActivateHandlers = [
         [SELECTORS.ACTION_REQUEST_BLOCK, generateConfirmActionHandler(requestBlockUser)],
         [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
@@ -1335,6 +1364,7 @@ function(
         [SELECTORS.ACTION_DECLINE_CONTACT_REQUEST, generateConfirmActionHandler(declineContactRequest)],
         [SELECTORS.MESSAGE, handleSelectMessage],
         [SELECTORS.RETRY_SEND, handleRetrySendMessage],
+        [SELECTORS.SCROLL_BOTTOM_BUTTON, handleScrollBottom]
     ];
     var footerActivateHandlers = [
         [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
@@ -1392,6 +1422,21 @@ function(
             }
 
             data.originalEvent.preventDefault();
+        });
+
+        messagesContainer.on('scroll', function(e) {
+            if (viewState && viewState.hasTriedToLoadMessages) {
+                var outerHeight = messagesContainer.outerHeight();
+                var scrollHeight = messagesContainer[0].scrollHeight;
+                var scrollTop = messagesContainer.scrollTop();
+                var newHasScrolled = (scrollHeight - scrollTop - Constants.SCROLL_BOTTOM_BUFFER) > outerHeight;
+
+                if (newHasScrolled != hasScrolledFromBottom) {
+                    var newState = StateManager.setHasScrolledFromBottom(viewState, newHasScrolled);
+                    render(newState);
+                    hasScrolledFromBottom = newHasScrolled;
+                }
+            }
         });
 
         headerActivateHandlers.forEach(function(handler) {
@@ -1465,6 +1510,7 @@ function(
         loadedAllMessages = false;
         messagesOffset = 0;
         newMessagesPollTimer = null;
+        hasScrolledFromBottom = false;
         isRendering = false;
         renderBuffer = [];
         isResetting = true;

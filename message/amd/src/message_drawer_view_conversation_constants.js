@@ -76,6 +76,7 @@ define([], function() {
         MORE_MESSAGES_LOADING_ICON_CONTAINER: '[data-region="more-messages-loading-icon-container"]',
         PLACEHOLDER_CONTAINER: '[data-region="placeholder-container"]',
         RETRY_SEND: '[data-region="retry-send"]',
+        SCROLL_BOTTOM_BUTTON: '[data-region="scroll-bottom"]',
         SEND_MESSAGE_BUTTON: '[data-action="send-message"]',
         SEND_MESSAGE_ICON_CONTAINER: '[data-region="send-icon-container"]',
         TEXT: '[data-region="text"]',
@@ -104,6 +105,7 @@ define([], function() {
         CONVERSATION_TYPES: CONVERSATION_TYPES,
         NEWEST_MESSAGES_FIRST: true,
         LOAD_MESSAGE_LIMIT: 100,
-        INITIAL_NEW_MESSAGE_POLL_TIMEOUT: 1000
+        INITIAL_NEW_MESSAGE_POLL_TIMEOUT: 1000,
+        SCROLL_BOTTOM_BUFFER: 200, // Pixels.
     };
 });

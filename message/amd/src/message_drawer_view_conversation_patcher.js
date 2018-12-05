@@ -465,15 +465,16 @@ function(
     };
 
     /**
-     * Find the newest or oldest message.
+     * Show the newly loaded messages either at the start or end of the list.
      *
      * @param  {Object} state The current state.
      * @param  {Object} newState The new state.
      * @return {Number} Oldest or newest message id.
      */
-    var buildScrollToMessagePatch = function(state, newState) {
+    var buildShowNewMessagePatch = function(state, newState) {
         var oldMessages = state.messages;
         var newMessages = newState.messages;
+        var hasScrolledFromBottom = newState.hasScrolledFromBottom;
 
         if (newMessages.length < 1) {
             return null;
@@ -488,13 +489,57 @@ function(
         var previousOldest = oldMessages[0];
         var currentOldest = newMessages[0];
 
-        if (previousNewest.id != currentNewest.id) {
-            return currentNewest.id;
+        if (previousNewest.id != currentNewest.id && !hasScrolledFromBottom) {
+            return {
+                messageId: currentNewest.id,
+                smooth: true
+            };
         } else if (previousOldest.id != currentOldest.id) {
-            return previousOldest.id;
+            return {
+                messageId: previousOldest.id,
+                smooth: false
+            };
         }
 
         return null;
+    };
+
+    /**
+     * Show the scroll to bottom button.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} Message to show.
+     */
+    var buildShowScrollToBottom = function(state, newState) {
+        var oldHasScrolled = state.hasScrolledFromBottom;
+        var newHasScrolled = newState.hasScrolledFromBottom;
+
+        if (oldHasScrolled != newHasScrolled) {
+            return newHasScrolled;
+        } else {
+            return null;
+        }
+    };
+
+    /**
+     * Show a specific message.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} Message to show.
+     */
+    var buildShowMessagePatch = function(state, newState) {
+        var oldMessageId = state.showMessageId;
+        var newMessageId = newState.showMessageId;
+
+        if (newMessageId === null) {
+            return null;
+        } else if (oldMessageId != newMessageId) {
+            return newMessageId;
+        } else {
+            return null;
+        }
     };
 
     /**
@@ -1224,14 +1269,16 @@ function(
             all: {
                 reset: buildReset,
                 conversation: buildConversationPatch,
-                scrollToMessage: buildScrollToMessagePatch,
+                showNewMessage: buildShowNewMessagePatch,
                 loadingMembers: buildLoadingMembersPatch,
                 loadingFirstMessages: buildLoadingFirstMessages,
                 loadingMessages: buildLoadingMessages,
                 confirmDeleteSelectedMessages: buildConfirmDeleteSelectedMessages,
                 inEditMode: buildInEditMode,
                 selectedMessages: buildSelectedMessages,
-                isFavourite: buildIsFavourite
+                isFavourite: buildIsFavourite,
+                showMessage: buildShowMessagePatch,
+                showScrollToBottom: buildShowScrollToBottom
             }
         };
         // These build functions are only applicable to private conversations.

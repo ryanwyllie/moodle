@@ -867,21 +867,44 @@ function(
     };
 
     /**
-     * Scroll to a message in the conversation.
+     * Scroll to a new message in the conversation.
+     *
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Object} data Render data
+     */
+    var renderShowNewMessage = function(header, body, footer, data) {
+        var messageId = data.messageId;
+        var smooth = data.smooth;
+        var messageElement = getMessageElement(body, messageId);
+
+        if (smooth) {
+            messageElement[0].scrollIntoView({behavior: 'smooth'});
+        } else {
+            // Scroll the message container down to the top of the message element.
+            var messagesContainer = getMessagesContainer(body);
+            var position = messageElement.position();
+
+            if (position) {
+                var scrollTop = messagesContainer.scrollTop() + position.top;
+                messagesContainer.scrollTop(scrollTop);
+            }
+        }
+    };
+
+    /**
+     * Scroll to a new message in the conversation.
      *
      * @param {Object} header The header container element.
      * @param {Object} body The body container element.
      * @param {Object} footer The footer container element.
      * @param {Number} messageId Message id.
      */
-    var renderScrollToMessage = function(header, body, footer, messageId) {
-        var messagesContainer = getMessagesContainer(body);
+    var renderShowMessagePatch = function(header, body, footer, messageId) {
         var messageElement = getMessageElement(body, messageId);
-        var position = messageElement.position();
-        // Scroll the message container down to the top of the message element.
-        if (position) {
-            var scrollTop = messagesContainer.scrollTop() + position.top;
-            messagesContainer.scrollTop(scrollTop);
+        if (messageElement.length) {
+            messageElement[0].scrollIntoView({behavior: 'smooth'});
         }
     };
 
@@ -917,6 +940,9 @@ function(
             showContentPlaceholder(body);
         } else {
             showMessagesContainer(body);
+            // Instantly show the bottom of the messages container for most recent messages.
+            var messagesContainer = getMessagesContainer(body);
+            messagesContainer.scrollTop(messagesContainer.innerHeight());
             hideContentPlaceholder(body);
         }
     };
@@ -1370,6 +1396,24 @@ function(
     };
 
     /**
+     * Show or hide the scroll to bottom button.
+     *
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} show If it should be shown/hidden.
+     */
+    var renderShowScrollToBottom = function(header, body, footer, show) {
+        var button = body.find(SELECTORS.SCROLL_BOTTOM_BUTTON);
+
+        if (show) {
+            button.removeClass('hidden');
+        } else {
+            button.addClass('hidden');
+        }
+    };
+
+    /**
      * Show or hide the require add contact panel.
      *
      * @param {Object} header The header container element.
@@ -1488,8 +1532,10 @@ function(
             {
                 // Scrolling should be last to make sure everything
                 // on the page is visible.
-                scrollToMessage: renderScrollToMessage,
-                selectedMessages: renderSelectedMessages
+                showNewMessage: renderShowNewMessage,
+                showMessage: renderShowMessagePatch,
+                selectedMessages: renderSelectedMessages,
+                showScrollToBottom: renderShowScrollToBottom
             }
         ];
         // Helper function to process each of the configs above.

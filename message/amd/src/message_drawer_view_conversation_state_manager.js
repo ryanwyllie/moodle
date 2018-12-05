@@ -123,6 +123,8 @@ define(['jquery'], function($) {
             members: {},
             messages: [],
             hasTriedToLoadMessages: false,
+            hasScrolledFromBottom: false,
+            showMessageId: null,
             loadingMessages: true,
             loadingMembers: true,
             loadingConfirmAction: false,
@@ -500,6 +502,32 @@ define(['jquery'], function($) {
     };
 
     /**
+     * Set if the user has scrolled from the bottom of the messages container.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Bool} value If the user has scrolled
+     * @return {Object} New state
+     */
+    var setHasScrolledFromBottom = function(state, value) {
+        var newState = cloneState(state);
+        newState.hasScrolledFromBottom = value;
+        return newState;
+    };
+
+    /**
+     * Set if the user has scrolled from the bottom of the messages container.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Number} messageId Id of the message to show.
+     * @return {Object} New state
+     */
+    var setShowMessageById = function(state, messageId) {
+        var newState = cloneState(state);
+        newState.showMessageId = messageId;
+        return newState;
+    };
+
+    /**
      * Set the state pending block userids.
      *
      * @param  {Object} state Current state.
@@ -749,6 +777,8 @@ define(['jquery'], function($) {
         setMessagesSendPendingById: setMessagesSendPendingById,
         setMessagesSendSuccessById: setMessagesSendSuccessById,
         setMessagesSendFailById: setMessagesSendFailById,
+        setHasScrolledFromBottom: setHasScrolledFromBottom,
+        setShowMessageById: setShowMessageById,
         addPendingBlockUsersById: addPendingBlockUsersById,
         addPendingRemoveContactsById: addPendingRemoveContactsById,
         addPendingUnblockUsersById: addPendingUnblockUsersById,
