@@ -49,7 +49,11 @@ class main implements renderable, templatable {
 
         return [
             'userid' => $USER->id,
-            'nocoursesimgurl' => $nocoursesurl
+            'nocoursesimgurl' => $nocoursesurl,
+            'pagingbar' => [
+                'next' => true,
+                'previous' => true
+            ]
         ];
     }
 }

@@ -248,6 +248,13 @@ body.drawer-open-left #region-main.has-blocks {
     }
 }
 
+.block_recentlyaccessedcourses {
+    .paging-bar-container {
+        margin-top: -2.4rem;
+        justify-content: flex-end;
+    }
+}
+
 .block_recentlyaccesseditems {
     img.icon {
         height: auto;

@@ -24,17 +24,24 @@
         "nocoursesimgurl": "https://moodlesite/theme/image.php/boost/block_recentlyaccessedcourses/1535727318/courses"
     }
 }}
-<div id="recentlyaccessedcourses-view-{{uniqid}}"
-     data-region="recentlyaccessedcourses-view">
-    <div data-region="recentlyaccessedcourses-view-content">
-        <div data-region="recentlyaccessedcourses-loading-placeholder">
-            <div class="card-deck dashboard-card-deck one-row" style="height: 11.1rem">
-                {{> block_recentlyaccessedcourses/placeholder-course }}
-                {{> block_recentlyaccessedcourses/placeholder-course }}
-                {{> block_recentlyaccessedcourses/placeholder-course }}
-                {{> block_recentlyaccessedcourses/placeholder-course }}
-            </div>
+<div id="recentlyaccessedcourses-view-{{uniqid}}" data-region="recentlyaccessedcourses-view">
+    <div data-region="loading-placeholder">
+        <div class="card-deck dashboard-card-deck one-row" style="height: 11.4rem">
+            {{> block_recentlyaccessedcourses/placeholder-course }}
+            {{> block_recentlyaccessedcourses/placeholder-course }}
+            {{> block_recentlyaccessedcourses/placeholder-course }}
+            {{> block_recentlyaccessedcourses/placeholder-course }}
         </div>
+    </div>
+    <div class="hidden" data-region="view-content">
+        {{#pagingbar}}
+            <div class="d-flex paging-bar-container mb-3" data-region="paging-bar-container">
+                {{> core/paged_content_paging_bar }}
+            </div>
+        {{/pagingbar}}
+        {{< core_course/coursecards }}
+            {{$classes}}one-row fixed-width-cards justify-content-center{{/classes}}
+        {{/ core_course/coursecards }}
     </div>
     <div class="hidden text-xs-center text-center m-t-3" data-region="empty-message">
         <img class="empty-placeholder-image-lg m-t-1"

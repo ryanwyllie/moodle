@@ -15,9 +15,9 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_recentlyaccessedcourses/view-cards
+    @template block_recentlyaccessedcourses/course-card
 
-    This template renders the carousel for the recentlyaccessedcourses block.
+    This template renders a course for the recentlyaccessedcourses block.
 
     Example context (json):
     {
@@ -33,8 +33,6 @@
     }
 }}
 
-
-{{< core_course/coursecards }}
-    {{$classes}}one-row fixed-width-cards{{/classes}}
+{{< core_course/coursecard }}
     {{$coursename}} <span class="text-truncate">{{fullname}}</span> {{/coursename}}
-{{/ core_course/coursecards }}
+{{/ core_course/coursecard }}
