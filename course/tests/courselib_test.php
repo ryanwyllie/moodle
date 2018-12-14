@@ -5049,4 +5049,277 @@ class core_course_courselib_testcase extends advanced_testcase {
         $this->assertCount(3, $result);
         $this->assertArrayNotHasKey($courses[0]->id, $result);
     }
+
+    /**
+     * Test cases for the get_enrolled_courses_by_timeline_classification test.
+     */
+    public function get_course_get_enrolled_courses_by_timeline_classification_test_cases() {
+        $now = time();
+        $day = 86400;
+
+        $coursedata = [
+            [
+                'shortname' => 'apast',
+                'startdate' => $now - ($day * 2),
+                'enddate' => $now - $day
+            ],
+            [
+                'shortname' => 'bpast',
+                'startdate' => $now - ($day * 2),
+                'enddate' => $now - $day
+            ],
+            [
+                'shortname' => 'cpast',
+                'startdate' => $now - ($day * 2),
+                'enddate' => $now - $day
+            ],
+            [
+                'shortname' => 'dpast',
+                'startdate' => $now - ($day * 2),
+                'enddate' => $now - $day
+            ],
+            [
+                'shortname' => 'epast',
+                'startdate' => $now - ($day * 2),
+                'enddate' => $now - $day
+            ],
+            [
+                'shortname' => 'ainprogress',
+                'startdate' => $now - $day,
+                'enddate' => $now + $day
+            ],
+            [
+                'shortname' => 'binprogress',
+                'startdate' => $now - $day,
+                'enddate' => $now + $day
+            ],
+            [
+                'shortname' => 'cinprogress',
+                'startdate' => $now - $day,
+                'enddate' => $now + $day
+            ],
+            [
+                'shortname' => 'dinprogress',
+                'startdate' => $now - $day,
+                'enddate' => $now + $day
+            ],
+            [
+                'shortname' => 'einprogress',
+                'startdate' => $now - $day,
+                'enddate' => $now + $day
+            ],
+            [
+                'shortname' => 'afuture',
+                'startdate' => $now + $day
+            ],
+            [
+                'shortname' => 'bfuture',
+                'startdate' => $now + $day
+            ],
+            [
+                'shortname' => 'cfuture',
+                'startdate' => $now + $day
+            ],
+            [
+                'shortname' => 'dfuture',
+                'startdate' => $now + $day
+            ],
+            [
+                'shortname' => 'efuture',
+                'startdate' => $now + $day
+            ]
+        ];
+
+        // Raw enrolled courses result set should be returned in this order:
+        // afuture, ainprogress, apast, bfuture, binprogress, bpast, cfuture, cinprogress, cpast,
+        // dfuture, dinprogress, dpast, efuture, einprogress, epast
+        //
+        // By classification the offset values for each record should be:
+        // COURSE_TIMELINE_FUTURE
+        // 0 (afuture), 3 (bfuture), 6 (cfuture), 9 (dfuture), 12 (efuture)
+        // COURSE_TIMELINE_INPROGRESS
+        // 1 (ainprogress), 4 (binprogress), 7 (cinprogress), 10 (dinprogress), 13 (einprogress)
+        // COURSE_TIMELINE_PAST
+        // 2 (apast), 5 (bpast), 8 (cpast), 11 (dpast), 14 (epast).
+        //
+        // NOTE: The offset applies to the unfiltered full set of courses before the classification
+        // filtering is done.
+        // E.g. In our example if an offset of 2 is given then it would mean the first
+        // two courses (afuture, ainprogress) are ignored.
+        return [
+            'empty set' => [
+                'coursedata' => [],
+                'classification' => 'future',
+                'limit' => 2,
+                'offset' => 0,
+                'expectedcourses' => [],
+                'expectednextoffset' => 0
+            ],
+            // COURSE_TIMELINE_FUTURE.
+            'future not limit no offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => ['afuture', 'bfuture', 'cfuture', 'dfuture', 'efuture'],
+                'expectednextoffset' => 15
+            ],
+            'future no offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 2,
+                'offset' => 0,
+                'expectedcourses' => ['afuture', 'bfuture'],
+                'expectednextoffset' => 4
+            ],
+            'future offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 2,
+                'offset' => 2,
+                'expectedcourses' => ['bfuture', 'cfuture'],
+                'expectednextoffset' => 7
+            ],
+            'future exact limit' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 5,
+                'offset' => 0,
+                'expectedcourses' => ['afuture', 'bfuture', 'cfuture', 'dfuture', 'efuture'],
+                'expectednextoffset' => 13
+            ],
+            'future limit less results' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 10,
+                'offset' => 0,
+                'expectedcourses' => ['afuture', 'bfuture', 'cfuture', 'dfuture', 'efuture'],
+                'expectednextoffset' => 15
+            ],
+            'future limit less results with offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'future',
+                'limit' => 10,
+                'offset' => 5,
+                'expectedcourses' => ['cfuture', 'dfuture', 'efuture'],
+                'expectednextoffset' => 15
+            ],
+            'all no limit or offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'all',
+                'limit' => 0,
+                'offset' => 0,
+                'expectedcourses' => [
+                    'afuture',
+                    'ainprogress',
+                    'apast',
+                    'bfuture',
+                    'binprogress',
+                    'bpast',
+                    'cfuture',
+                    'cinprogress',
+                    'cpast',
+                    'dfuture',
+                    'dinprogress',
+                    'dpast',
+                    'efuture',
+                    'einprogress',
+                    'epast'
+                ],
+                'expectednextoffset' => 15
+            ],
+            'all limit no offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'all',
+                'limit' => 5,
+                'offset' => 0,
+                'expectedcourses' => [
+                    'afuture',
+                    'ainprogress',
+                    'apast',
+                    'bfuture',
+                    'binprogress'
+                ],
+                'expectednextoffset' => 5
+            ],
+            'all limit and offset' => [
+                'coursedata' => $coursedata,
+                'classification' => 'all',
+                'limit' => 5,
+                'offset' => 5,
+                'expectedcourses' => [
+                    'bpast',
+                    'cfuture',
+                    'cinprogress',
+                    'cpast',
+                    'dfuture'
+                ],
+                'expectednextoffset' => 10
+            ],
+            'all offset past result set' => [
+                'coursedata' => $coursedata,
+                'classification' => 'all',
+                'limit' => 5,
+                'offset' => 50,
+                'expectedcourses' => [],
+                'expectednextoffset' => 50
+            ],
+        ];
+    }
+
+    /**
+     * Test the get_enrolled_courses_by_timeline_classification function.
+     *
+     * @dataProvider get_course_get_enrolled_courses_by_timeline_classification_test_cases()
+     * @param array $coursedata Courses to create
+     * @param string $classification Timeline classification
+     * @param int $limit Maximum number of results
+     * @param int $offset Offset the unfiltered courses result set by this amount
+     * @param array $expectedcourses Expected courses in result
+     * @param int $expectednextoffset Expected next offset value in result
+     */
+    public function test_course_get_enrolled_courses_by_timeline_classification(
+        $coursedata,
+        $classification,
+        $limit,
+        $offset,
+        $expectedcourses,
+        $expectednextoffset
+    ) {
+        global $PAGE;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+
+        $courses = array_map(function($coursedata) use ($generator) {
+            return $generator->create_course($coursedata);
+        }, $coursedata);
+
+        $student = $generator->create_user();
+
+        foreach ($courses as $course) {
+            $generator->enrol_user($student->id, $course->id, 'student');
+        }
+
+        $this->setUser($student);
+
+        // NOTE: The offset applies to the unfiltered full set of courses before the classification
+        // filtering is done.
+        // E.g. In our example if an offset of 2 is given then it would mean the first
+        // two courses (afuture, ainprogress) are ignored.
+        $result = course_get_enrolled_courses_by_timeline_classification(
+            $PAGE->get_renderer('core'),
+            $classification,
+            $limit,
+            $offset,
+            'shortname ASC'
+        );
+
+        $actual = array_map(function($course) {
+            return $course->shortname;
+        }, $result['courses']);
+
+        $this->assertEquals($expectedcourses, $actual);
+        $this->assertEquals($expectednextoffset, $result['nextoffset']);
+    }
 }
