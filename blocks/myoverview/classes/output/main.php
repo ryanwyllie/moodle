@@ -29,6 +29,7 @@ use renderer_base;
 use templatable;
 
 require_once($CFG->dirroot . '/blocks/myoverview/lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 /**
  * Class containing data for my overview block.
@@ -95,6 +96,73 @@ class main implements renderable, templatable {
         return $preferences;
     }
 
+    /*
+    public function get_courses(
+        renderer_base $renderer,
+        string $classification,
+        int $limit = 0,
+        int $offset = 0,
+        string $sort = null
+    ) {
+        global $USER;
+
+        $requiredproperties = course_summary_exporter::define_properties();
+        $fields = join(',', array_keys($requiredproperties));
+        $hiddencourses = get_hidden_courses_on_timeline();
+        $courses = [];
+
+        // If the timeline requires the hidden courses then restrict the result to only $hiddencourses else exclude.
+        if ($classification == COURSE_TIMELINE_HIDDEN) {
+            $courses = course_get_enrolled_courses_for_logged_in_user(0, $offset, $sort, $fields,
+                COURSE_DB_QUERY_LIMIT, $hiddencourses);
+        } else {
+            $courses = course_get_enrolled_courses_for_logged_in_user(0, $offset, $sort, $fields,
+                COURSE_DB_QUERY_LIMIT, [], $hiddencourses);
+        }
+
+        $favouritecourseids = [];
+        $ufservice = \core_favourites\service_factory::get_service_for_user_context(\context_user::instance($USER->id));
+        $favourites = $ufservice->find_favourites_by_type('core_course', 'courses');
+
+        if ($favourites) {
+            $favouritecourseids = array_map(
+                function($favourite) {
+                    return $favourite->itemid;
+                }, $favourites);
+        }
+
+        if ($classification == COURSE_FAVOURITES) {
+            list($filteredcourses, $processedcount) = course_filter_courses_by_favourites(
+                $courses,
+                $favouritecourseids,
+                $limit
+            );
+        } else {
+            list($filteredcourses, $processedcount) = course_filter_courses_by_timeline_classification(
+                $courses,
+                $classification,
+                $limit
+            );
+        }
+
+        $formattedcourses = array_map(function($course) use ($renderer, $favouritecourseids) {
+            \context_helper::preload_from_record($course);
+            $context = \context_course::instance($course->id);
+            $isfavourite = false;
+            if (in_array($course->id, $favouritecourseids)) {
+                $isfavourite = true;
+            }
+            $exporter = new course_summary_exporter($course, ['context' => $context, 'isfavourite' => $isfavourite]);
+            return $exporter->export($renderer);
+        }, $filteredcourses);
+
+        return [
+            'courses' => $formattedcourses,
+            'nextoffset' => $offset + $processedcount
+        ];
+    }
+    */
+
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
@@ -102,19 +170,84 @@ class main implements renderable, templatable {
      * @return array Context variables for the template
      */
     public function export_for_template(renderer_base $output) {
-
+        $limit = $this->paging;
+        $sort = $this->sort == BLOCK_MYOVERVIEW_SORTING_TITLE ? 'fullname' : 'ul.timeaccess desc';
         $nocoursesurl = $output->image_url('courses', 'block_myoverview')->out();
+        $result = course_get_enrolled_courses_by_timeline_classification(
+            $output,
+            $this->grouping,
+            $limit + 1,
+            0,
+            $sort
+        );
 
-        $defaultvariables = [
+        $hasmorepages = count($result['courses']) > $limit;
+        $courses = array_slice($result['courses'], 0, $limit);
+        $hascourses = !empty($courses);
+        $itemsperpage = [
+            [
+                'value' => BLOCK_MYOVERVIEW_PAGING_12,
+                'active' => $limit == BLOCK_MYOVERVIEW_PAGING_12,
+            ],
+            [
+                'value' => BLOCK_MYOVERVIEW_PAGING_24,
+                'active' => $limit == BLOCK_MYOVERVIEW_PAGING_24,
+            ],
+            [
+                'value' => BLOCK_MYOVERVIEW_PAGING_48,
+                'active' => $limit == BLOCK_MYOVERVIEW_PAGING_48,
+            ]
+        ];
+        $offset = $hasmorepages ? $result['nextoffset'] - 1 : $result['nextoffset'];
+
+        if ($hascourses) {
+            switch ($this->view) {
+                case BLOCK_MYOVERVIEW_VIEW_CARD:
+                    $template = 'block_myoverview/view-cards';
+                    break;
+                case BLOCK_MYOVERVIEW_VIEW_LIST:
+                    $template = 'block_myoverview/view-list';
+                    break;
+                default:
+                    $template = 'block_myoverview/view-summary';
+                    break;
+            }
+
+            $content = $output->render_from_template($template, ['courses' => $courses]);
+        } else {
+            $content = $output->render_from_template('block_myoverview/no-courses', ['nocoursesimg' => $nocoursesurl]);
+        }
+
+        $templatecontext = [
             'nocoursesimg' => $nocoursesurl,
             'grouping' => $this->grouping,
-            'sort' => $this->sort == BLOCK_MYOVERVIEW_SORTING_TITLE ? 'fullname' : 'ul.timeaccess desc',
+            'sort' => $sort,
             'view' => $this->view,
-            'paging' => $this->paging
+            'paging' => $limit,
+            'loadedcourses' => json_encode($courses),
+            'initialoffset' => $offset,
+            'pagedcontent' => [
+                'ignorecontrolwhileloading' => true,
+                'controlplacementbottom' => true,
+                'skipjs' => true,
+                'pagingbar' => [
+                    'showitemsperpageselector' => true,
+                    'itemsperpage' => $itemsperpage,
+                    'skippages' => true,
+                    'next' => $hascourses ? ['disabled' => !$hasmorepages] : false,
+                    'previous' => $hascourses ? ['disabled' => true] : false
+                ],
+                'pages' => [
+                    [
+                        'page' => 1,
+                        'active' => true,
+                        'content' => $content
+                    ]
+                ]
+            ]
         ];
 
         $preferences = $this->get_preferences_as_booleans();
-        return array_merge($defaultvariables, $preferences);
-
+        return array_merge($templatecontext, $preferences);
     }
 }

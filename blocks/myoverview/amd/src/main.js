@@ -36,13 +36,15 @@ function(
      * Initialise all of the modules for the overview block.
      *
      * @param {object} root The root element for the overview block.
+     * @param {object[]} loadedCourses The list of courses that the server has loaded for us.
+     * @param {int} initialOffset The first offset from the server.
      */
-    var init = function(root) {
+    var init = function(root, loadedCourses, initialOffset) {
         root = $(root);
         // Initialise the course navigation elements.
         ViewNav.init(root);
         // Initialise the courses view modules.
-        View.init(root);
+        View.init(root, loadedCourses, initialOffset);
     };
 
     return {

@@ -70,13 +70,9 @@ function(
     var NUMCOURSES_PERPAGE = [12, 24, 48];
 
     var loadedPages = [];
-
     var courseOffset = 0;
-
     var lastPage = 0;
-
     var lastLimit = 0;
-
     var namespace = null;
 
     /**
@@ -404,6 +400,100 @@ function(
     };
 
     /**
+     * Return the callback function to handle page changes from the paged
+     * content widget.
+     *
+     * @param {object} root The root element for the courses view
+     * @return {function}
+     */
+    var getRenderPagesCallback = function(root) {
+        var filters = getFilterValues(root);
+        return function(pagesData, actions) {
+            var promises = [];
+
+            pagesData.forEach(function(pageData) {
+                var currentPage = pageData.pageNumber;
+                var limit = pageData.limit;
+
+                // Reset local variables if limits have changed
+                if (lastLimit != limit) {
+                    loadedPages = [];
+                    courseOffset = 0;
+                    lastPage = 0;
+                }
+
+                if (lastPage == currentPage) {
+                    // If we are on the last page and have it's data then load it from cache
+                    actions.allItemsLoaded(lastPage);
+                    promises.push(renderCourses(root, loadedPages[currentPage]));
+                    return;
+                }
+
+                lastLimit = limit;
+
+                // Get 2 pages worth of data as we will need it for the hidden functionality.
+                if (loadedPages[currentPage + 1] == undefined) {
+                    if (loadedPages[currentPage] == undefined) {
+                        limit *= 2;
+                    }
+                }
+
+                var pagePromise = getMyCourses(
+                    filters,
+                    limit
+                ).then(function(coursesData) {
+                    var courses = coursesData.courses;
+                    var nextPageStart = 0;
+                    var pageCourses = [];
+
+                    // If current page's data is loaded make sure we max it to page limit
+                    if (loadedPages[currentPage] != undefined) {
+                        pageCourses = loadedPages[currentPage].courses;
+                        var currentPageLength = pageCourses.length;
+                        if (currentPageLength < pageData.limit) {
+                            nextPageStart = pageData.limit - currentPageLength;
+                            pageCourses = $.merge(loadedPages[currentPage].courses, courses.slice(0, nextPageStart));
+                        }
+                    } else {
+                        nextPageStart = pageData.limit;
+                        pageCourses = courses.slice(0, pageData.limit);
+                    }
+
+                    // Finished setting up the current page
+                    loadedPages[currentPage] = {
+                        courses: pageCourses
+                    };
+
+                    // Set up the next page
+                    var remainingCourses = courses.slice(nextPageStart, courses.length);
+                    if (remainingCourses.length) {
+                        loadedPages[currentPage + 1] = {
+                            courses: remainingCourses
+                        };
+                    }
+
+                    // Set the last page to either the current or next page
+                    if (loadedPages[currentPage].courses.length < pageData.limit) {
+                        lastPage = currentPage;
+                        actions.allItemsLoaded(currentPage);
+                    } else if (loadedPages[currentPage + 1] != undefined
+                        && loadedPages[currentPage + 1].courses.length < pageData.limit) {
+                        lastPage = currentPage + 1;
+                    }
+
+                    courseOffset = coursesData.nextoffset;
+                    return renderCourses(root, loadedPages[currentPage]);
+                })
+                .catch(Notification.exception);
+
+                promises.push(pagePromise);
+            });
+
+            return promises;
+        };
+    };
+
+    /**
      * Intialise the courses list and cards views on page load.
      *
      * @param {object} root The root element for the courses view.
@@ -428,102 +518,35 @@ function(
             });
         }
 
-        var filters = getFilterValues(root);
-        var config = $.extend({}, DEFAULT_PAGED_CONTENT_CONFIG);
-        config.eventNamespace = namespace;
-
-        var pagedContentPromise = PagedContentFactory.createWithLimit(
+        var config = $.extend(DEFAULT_PAGED_CONTENT_CONFIG, {eventNamespace: namespace});
+        PagedContentFactory.createWithLimit(
             itemsPerPage,
-            function(pagesData, actions) {
-                var promises = [];
-
-                pagesData.forEach(function(pageData) {
-                    var currentPage = pageData.pageNumber;
-                    var limit = pageData.limit;
-
-                    // Reset local variables if limits have changed
-                    if (lastLimit != limit) {
-                        loadedPages = [];
-                        courseOffset = 0;
-                        lastPage = 0;
-                    }
-
-                    if (lastPage == currentPage) {
-                        // If we are on the last page and have it's data then load it from cache
-                        actions.allItemsLoaded(lastPage);
-                        promises.push(renderCourses(root, loadedPages[currentPage]));
-                        return;
-                    }
-
-                    lastLimit = limit;
-
-                    // Get 2 pages worth of data as we will need it for the hidden functionality.
-                    if (loadedPages[currentPage + 1] == undefined) {
-                        if (loadedPages[currentPage] == undefined) {
-                            limit *= 2;
-                        }
-                    }
-
-                    var pagePromise = getMyCourses(
-                        filters,
-                        limit
-                    ).then(function(coursesData) {
-                        var courses = coursesData.courses;
-                        var nextPageStart = 0;
-                        var pageCourses = [];
-
-                        // If current page's data is loaded make sure we max it to page limit
-                        if (loadedPages[currentPage] != undefined) {
-                            pageCourses = loadedPages[currentPage].courses;
-                            var currentPageLength = pageCourses.length;
-                            if (currentPageLength < pageData.limit) {
-                                nextPageStart = pageData.limit - currentPageLength;
-                                pageCourses = $.merge(loadedPages[currentPage].courses, courses.slice(0, nextPageStart));
-                            }
-                        } else {
-                            nextPageStart = pageData.limit;
-                            pageCourses = courses.slice(0, pageData.limit);
-                        }
-
-                        // Finished setting up the current page
-                        loadedPages[currentPage] = {
-                            courses: pageCourses
-                        };
-
-                        // Set up the next page
-                        var remainingCourses = courses.slice(nextPageStart, courses.length);
-                        if (remainingCourses.length) {
-                            loadedPages[currentPage + 1] = {
-                                courses: remainingCourses
-                            };
-                        }
-
-                        // Set the last page to either the current or next page
-                        if (loadedPages[currentPage].courses.length < pageData.limit) {
-                            lastPage = currentPage;
-                            actions.allItemsLoaded(currentPage);
-                        } else if (loadedPages[currentPage + 1] != undefined
-                            && loadedPages[currentPage + 1].courses.length < pageData.limit) {
-                            lastPage = currentPage + 1;
-                        }
-
-                        courseOffset = coursesData.nextoffset;
-                        return renderCourses(root, loadedPages[currentPage]);
-                    })
-                    .catch(Notification.exception);
-
-                    promises.push(pagePromise);
-                });
-
-                return promises;
-            },
+            getRenderPagesCallback(root),
             config
-        );
-
-        pagedContentPromise.then(function(html, js) {
+        )
+        .then(function(html, js) {
             registerPagedEventHandlers(root, namespace);
             return Templates.replaceNodeContents(root.find(Selectors.courseView.region), html, js);
-        }).catch(Notification.exception);
+        })
+        .catch(Notification.exception);
+    };
+
+    /**
+     * Enhance an existing paged content HTML block to allow all of the controls
+     * for the paging to work.
+     *
+     * @param {object} root The root element for the courses view.
+     */
+    var enhancePagedContent = function(root) {
+        namespace = "block_myoverview_" + root.attr('id') + "_" + Math.random();
+
+        var config = $.extend(DEFAULT_PAGED_CONTENT_CONFIG, {eventNamespace: namespace});
+        PagedContentFactory.enhance(
+            root,
+            getRenderPagesCallback(root),
+            config
+        );
+        registerPagedEventHandlers(root, namespace);
     };
 
     /**
@@ -593,35 +616,34 @@ function(
     };
 
     /**
-     * Intialise the courses list and cards views on page load.
+     * Intialise the courses views. The server has rendered the first page of
+     * courses for use so we just need to enhance the HTML to make all of the
+     * pagination controls work.
      *
      * @param {object} root The root element for the courses view.
+     * @param {object[]} loadedCourses The list of courses that the server has loaded for us.
+     * @param {int} initialOffset The first offset from the server.
      */
-    var init = function(root) {
+    var init = function(root, loadedCourses, initialOffset) {
         root = $(root);
-        loadedPages = [];
-        lastPage = 0;
-        courseOffset = 0;
-
-        initializePagedContent(root);
-
-        if (!root.attr('data-init')) {
-            registerEventListeners(root);
-            root.attr('data-init', true);
-        }
+        // Initialise our cache with the courses that were already rendered on the
+        // server for us.
+        loadedPages[1] = {'courses': loadedCourses};
+        lastLimit = loadedCourses.length;
+        courseOffset = initialOffset;
+        registerEventListeners(root);
+        // The sever has pre-rendered the first page of the paged content for us so
+        // we don't need to build the whole widget, we just need to initialise the
+        // JavaScript so that all of the controls work.
+        enhancePagedContent(root);
     };
 
     /**
-
-     * Reset the courses views to their original
-     * state on first page load.courseOffset
+     * Re-render the loaded courses into a different view (card, list, or summary).
      *
-     * This is called when configuration has changed for the event lists
-     * to cause them to reload their data.
-     *
-     * @param {Object} root The root element for the timeline view.
+     * @param {Object} root The root element for the view.
      */
-    var reset = function(root) {
+    var resetDisplay = function(root) {
         if (loadedPages.length > 0) {
             loadedPages.forEach(function(courseList, index) {
                 var pagedContentPage = getPagedContentContainer(root, index);
@@ -629,13 +651,25 @@ function(
                     return Templates.replaceNodeContents(pagedContentPage, html, js);
                 }).catch(Notification.exception);
             });
-        } else {
-            init(root);
         }
+    };
+
+    /**
+     * Reset the course views after a filter change. This requires the whole
+     * paged content area to be recreated.
+     *
+     * @param {Object} root The root element for the view.
+     */
+    var resetFilters = function(root) {
+        loadedPages = [];
+        lastPage = 0;
+        courseOffset = 0;
+        initializePagedContent(root);
     };
 
     return {
         init: init,
-        reset: reset
+        resetDisplay: resetDisplay,
+        resetFilters: resetFilters
     };
 });

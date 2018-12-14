@@ -48,6 +48,6 @@ function(
     Main
 ) {
     var root = $('#block-myoverview-{{uniqid}}');
-    Main.init(root);
+    Main.init(root, {{{loadedcourses}}}, {{initialoffset}});
 });
 {{/js}}

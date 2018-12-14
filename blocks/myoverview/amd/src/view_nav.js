@@ -34,7 +34,7 @@ function(
     CustomEvents,
     Repository,
     View,
-    Selectors
+    BlockMyOverviewSelectors
 ) {
 
     var SELECTORS = {
@@ -76,10 +76,11 @@ function(
      */
     var registerSelector = function(root) {
 
-        var Selector = root.find(SELECTORS.FILTERS);
+        var filtersContainer = root.find(SELECTORS.FILTERS);
+        var courseViewContainer = root.find(BlockMyOverviewSelectors.courseView.region);
 
-        CustomEvents.define(Selector, [CustomEvents.events.activate]);
-        Selector.on(
+        CustomEvents.define(filtersContainer, [CustomEvents.events.activate]);
+        filtersContainer.on(
             CustomEvents.events.activate,
             SELECTORS.FILTER_OPTION,
             function(e, data) {
@@ -93,18 +94,16 @@ function(
                 var filter = option.attr('data-filter');
                 var pref = option.attr('data-pref');
 
-                root.find(Selectors.courseView.region).attr('data-' + filter, option.attr('data-value'));
+                courseViewContainer.attr('data-' + filter, option.attr('data-value'));
                 updatePreferences(filter, pref);
 
-                // Reset the views.
-                View.init(root);
-
+                // Reset the filters.
+                View.resetFilters(root);
                 data.originalEvent.preventDefault();
             }
         );
 
-        CustomEvents.define(Selector, [CustomEvents.events.activate]);
-        Selector.on(
+        filtersContainer.on(
             CustomEvents.events.activate,
             SELECTORS.DISPLAY_OPTION,
             function(e, data) {
@@ -117,9 +116,11 @@ function(
                 var filter = option.attr('data-display-option');
                 var pref = option.attr('data-pref');
 
-                root.find(Selectors.courseView.region).attr('data-display', option.attr('data-value'));
+                courseViewContainer.attr('data-display', option.attr('data-value'));
                 updatePreferences(filter, pref);
-                View.reset(root);
+
+                // Reset the display.
+                View.resetDisplay(root);
                 data.originalEvent.preventDefault();
             }
         );

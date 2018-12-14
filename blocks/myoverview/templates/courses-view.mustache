@@ -36,6 +36,8 @@
     data-paging="{{paging}}"
     data-nocoursesimg="{{nocoursesimg}}">
     <div data-region="course-view-content">
-        {{> block_myoverview/placeholders }}
+        {{#pagedcontent}}
+            {{> core/paged_content }}
+        {{/pagedcontent}}
     </div>
 </div>

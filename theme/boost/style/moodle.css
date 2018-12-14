@@ -11338,12 +11338,6 @@ div.editor_atto_toolbar button .icon {
   width: auto;
   margin-right: 6px; }
 
-.block_myoverview .content {
-  min-height: 19.35rem; }
-
-.block_myoverview .paged-content-page-container {
-  min-height: 13rem; }
-
 .block_settings .block_tree [aria-expanded="true"],
 .block_settings .block_tree [aria-expanded="true"].emptybranch,
 .block_settings .block_tree [aria-expanded="false"],

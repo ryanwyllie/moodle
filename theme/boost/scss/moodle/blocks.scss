@@ -248,15 +248,6 @@ body.drawer-open-left #region-main.has-blocks {
     }
 }
 
-.block_myoverview {
-    .content {
-        min-height: 19.35rem;
-    }
-    .paged-content-page-container {
-        min-height: 13rem;
-    }
-}
-
 // Show expand collapse with font-awesome.
 .block_settings .block_tree [aria-expanded="true"],
 .block_settings .block_tree [aria-expanded="true"].emptybranch,
