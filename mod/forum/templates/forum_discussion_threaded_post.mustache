@@ -1,0 +1,55 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_forum/forum_post_email_htmlemail
+
+    Template which defines a forum post for sending in a single-post HTML email.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+<div data-post-id="{{id}}">
+    <div class="d-flex border p-2">
+        <div>
+            <img class="rounded-circle" src="{{{author.profileimageurl}}}" style="width: 45px; height: 45px">
+        </div>
+        <div class="d-flex flex-column ml-2">
+            <div class="mb-2">
+                <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
+                <address>
+                    by <a href="{{{author.profileurl}}}">{{author.fullname}}</a> - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
+                </address>
+            </div>
+            <div>
+                {{{message}}}
+            </div>
+        </div>
+    </div>
+
+    <div class="indent pt-2">
+        {{#replies}}
+            {{> mod_forum/forum_discussion_threaded_post_reply }}
+        {{/replies}}
+    </div>
+</div>
