@@ -3244,7 +3244,7 @@ function forum_print_mode_form($id, $mode, $forumtype='') {
         $select->set_label(get_string('displaymode', 'forum'), array('class' => 'accesshide'));
         $select->class = "forummode";
     } else {
-        $select = new single_select(new moodle_url("/mod/forum/discuss.php", array('d'=>$id)), 'mode', forum_get_layout_modes(), $mode, null, "mode");
+        $select = new single_select(new moodle_url("/mod/forum/discuss2.php", array('d'=>$id)), 'mode', forum_get_layout_modes(), $mode, null, "mode");
         $select->set_label(get_string('displaymode', 'forum'), array('class' => 'accesshide'));
     }
     echo $OUTPUT->render($select);
