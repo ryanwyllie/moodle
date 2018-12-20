@@ -15,31 +15,46 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Forum class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults;
+namespace mod_forum\local\serializers;
 
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\author as author_entity;
-use mod_forum\local\serializers\author as author_serializer;
-use mod_forum\local\serializers\serializer_interface;
-use mod_forum\local\vault;
+use mod_forum\local\factories\vault as vault_factory;
 
 /**
- * Vault class.
+ * Forum class.
  */
-class author extends vault {
-    public function __construct(\moodle_database $db, string $table = 'user', serializer_interface $serializer = null) {
-        if (is_null($serializer)) {
-            $serializer = new author_serializer();
-        }
+class author implements serializer_interface {
 
-        return parent::__construct($db, $table, $serializer);
+    public function from_db_records(array $records) : array {
+        global $PAGE;
+
+        return array_map(function($record) use ($PAGE) {
+            $userpicture = new \user_picture($record);
+            $userpicture->size = 1;
+            return new author_entity(
+                $record->id,
+                fullname($record),
+                new \moodle_url('/user/view.php', ['id' => $record->id]),
+                $userpicture->get_url($PAGE)
+            );
+        }, $records);
+    }
+
+    public function to_db_records(array $authors) : array {
+        return array_map(function($author) {
+            return (object) [
+                'id' => $author->get_id(),
+                'fullname' => $author->get_full_name()
+            ];
+        }, $authors);
     }
 }

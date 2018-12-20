@@ -28,12 +28,18 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
+use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
 
 /**
  * Vault factory.
  */
 class vault {
+    public static function get_forum_vault() : forum_vault {
+        global $DB;
+        return new forum_vault($DB);
+    }
+
     public static function get_discussion_vault() : discussion_vault {
         global $DB;
         return new discussion_vault($DB);

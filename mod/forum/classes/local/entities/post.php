@@ -100,12 +100,12 @@ class post {
         return $this->author;
     }
 
-    public function get_time_created() : \DateTimeImmutable {
-        return (new \DateTimeImmutable)->setTimestamp($this->timecreated);
+    public function get_time_created() : int {
+        return $this->timecreated;
     }
 
-    public function get_time_modified() : \DateTimeImmutable {
-        return (new \DateTimeImmutable)->setTimestamp($this->timemodified);
+    public function get_time_modified() : int {
+        return $this->timemodified;
     }
 
     public function has_been_mailed() : bool {
@@ -129,8 +129,8 @@ class post {
         return $this->messagetrust;
     }
 
-    public function get_attachement() : string {
-        return $this->attachement;
+    public function get_attachment() : string {
+        return $this->attachment;
     }
 
     public function get_total_score() : int {

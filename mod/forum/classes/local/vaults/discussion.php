@@ -27,35 +27,19 @@ namespace mod_forum\local\vaults;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
+use mod_forum\local\serializers\discussion as discussion_serializer;
+use mod_forum\local\serializers\serializer_interface;
 use mod_forum\local\vault;
 
 /**
  * Vault class.
  */
 class discussion extends vault {
-    public function __construct(\moodle_database $db, string $table = 'forum_discussions', callable $transformtoentities = null) {
-        if (is_null($transformtoentities)) {
-            $transformtoentities = function(array $records) {
-                return array_map(function($record) {
-                    return new discussion_entity(
-                        $record->id,
-                        $record->course,
-                        $record->forum,
-                        $record->name,
-                        $record->firstpost,
-                        $record->userid,
-                        $record->groupid,
-                        $record->assessed,
-                        $record->timemodified,
-                        $record->usermodified,
-                        $record->timestart,
-                        $record->timeend,
-                        $record->pinned
-                    );
-                }, $records);
-            };
+    public function __construct(\moodle_database $db, string $table = 'forum_discussions', serializer_interface $serializer = null) {
+        if (is_null($serializer)) {
+            $serializer = new discussion_serializer();
         }
 
-        return parent::__construct($db, $table, $transformtoentities);
+        return parent::__construct($db, $table, $serializer);
     }
 }

@@ -26,18 +26,20 @@ namespace mod_forum\local;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\serializers\serializer_interface;
+
 /**
  * Vault class.
  */
 class vault {
     private $table;
     private $db;
-    private $transformcallable;
+    private $serializer;
 
-    public function __construct(\moodle_database $db, string $table, callable $transformtoentity) {
+    public function __construct(\moodle_database $db, string $table, serializer_interface $serializer) {
         $this->db = $db;
         $this->table = $table;
-        $this->transformcallable = $transformtoentity;
+        $this->serializer = $serializer;
     }
 
     public function get_db() : \moodle_database {
@@ -46,6 +48,10 @@ class vault {
 
     public function get_table() : string {
         return $this->table;
+    }
+
+    public function get_serializer() : serializer_interface {
+        return $this->serializer;
     }
 
     public function get_from_id(int $id) {
@@ -59,6 +65,6 @@ class vault {
     }
 
     protected function transform_db_records_to_entities(array $records) {
-        return ($this->transformcallable)($records);
+        return $this->get_serializer()->from_db_records($records);
     }
 }

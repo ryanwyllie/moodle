@@ -29,6 +29,31 @@
     {
     }
 }}
-{{#posts}}
-    {{> mod_forum/forum_discussion_nested_post }}
-{{/posts}}
+{{< mod_forum/forum_discussion }}
+    {{$post}}
+        <div data-post-id="{{id}}">
+            <div class="d-flex border p-2">
+                <div>
+                    <img class="rounded-circle" src="{{{author.profileimageurl}}}" style="width: 45px; height: 45px">
+                </div>
+                <div class="d-flex flex-column ml-2">
+                    <div class="mb-2">
+                        <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
+                        <address>
+                            by <a href="{{{author.profileurl}}}">{{author.fullname}}</a> - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
+                        </address>
+                    </div>
+                    <div>
+                        {{{message}}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="indent pt-2">
+                {{#replies}}
+                    {{> mod_forum/forum_discussion_nested_post }}
+                {{/replies}}
+            </div>
+        </div>
+    {{/post}}
+{{/ mod_forum/forum_discussion }}
