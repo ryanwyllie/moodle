@@ -66,7 +66,7 @@ class forum implements serializer_interface {
     }
 
     public function to_db_records(array $forums) : array {
-        return array_map(function($forums) {
+        return array_map(function($forum) {
             return (object) [
                 'id' => $forum->get_id(),
                 'course' => $forum->get_course_id(),

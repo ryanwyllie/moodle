@@ -27,6 +27,11 @@ namespace mod_forum\local\serializers;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
+use mod_forum\local\entities\forum as forum_entity;
+use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\serializers\post as post_serializer;
+use context;
+use stdClass;
 
 /**
  * Forum class.
@@ -34,7 +39,7 @@ use mod_forum\local\entities\discussion as discussion_entity;
 class discussion implements serializer_interface {
 
     public function from_db_records(array $records) : array {
-        return array_map(function($record) {
+        return array_map(function(stdClass $record) {
             return new discussion_entity(
                 $record->id,
                 $record->course,
@@ -54,7 +59,7 @@ class discussion implements serializer_interface {
     }
 
     public function to_db_records(array $discussions) : array {
-        return array_map(function($discussion) {
+        return array_map(function(discussion_entity $discussion) {
             return (object) [
                 'id' => $discussion->get_id(),
                 'course' => $discussion->get_course_id(),
@@ -71,5 +76,15 @@ class discussion implements serializer_interface {
                 'pinned' => $discussion->is_pinned()
             ];
         }, $discussions);
+    }
+
+    public function for_display(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, array $posts) {
+        $postserializer = new post_serializer();
+        $serialisedposts = $postserializer->for_display($user, $context, $forum, $discussion, $posts);
+
+        return [
+            'id' => $discussion->get_id(),
+            'posts' => $serialisedposts
+        ];
     }
 }
