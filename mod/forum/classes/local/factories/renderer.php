@@ -27,49 +27,62 @@ namespace mod_forum\local\factories;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion;
+use mod_forum\local\entities\forum;
 use mod_forum\local\renderers\discussion as discussion_renderer;
-
-require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
  * Vault factory.
  */
 class renderer {
     public static function get_discussion_renderer(
+        forum $forum,
         discussion $discussion,
         int $displaymode,
         \renderer_base $renderer
     ) {
+        $defaultrendervalidation = function($context, $discussion) {
+            require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
+        };
+
         switch ($displaymode) {
             case FORUM_MODE_FLATOLDEST:
                 return new discussion_renderer(
                     $renderer,
+                    FORUM_MODE_FLATOLDEST,
                     'mod_forum/forum_discussion_flat_posts',
-                    'created DESC'
+                    'created DESC',
+                    $defaultrendervalidation
                 );
             case FORUM_MODE_FLATNEWEST:
                 return new discussion_renderer(
                     $renderer,
+                    FORUM_MODE_FLATNEWEST,
                     'mod_forum/forum_discussion_flat_posts',
-                    'created DESC'
+                    'created DESC',
+                    $defaultrendervalidation
                 );
             case FORUM_MODE_THREADED:
                 return new discussion_renderer(
                     $renderer,
+                    FORUM_MODE_THREADED,
                     'mod_forum/forum_discussion_threaded_posts',
-                    'created ASC'
+                    'created ASC',
+                    $defaultrendervalidation
                 );
             case FORUM_MODE_NESTED:
                 return new discussion_renderer(
                     $renderer,
+                    FORUM_MODE_NESTED,
                     'mod_forum/forum_discussion_nested_posts',
-                    'created ASC'
+                    'created ASC',
+                    $defaultrendervalidation
                 );
             default;
                 return new discussion_renderer(
                     $renderer,
                     'mod_forum/forum_discussion_nested_posts',
-                    'created ASC'
+                    'created ASC',
+                    $defaultrendervalidation
                 );
         }
     }

@@ -30,9 +30,9 @@
     }
 }}
 <div data-post-id="{{id}}">
-    <a href="" class="h6 font-weight-bold mb-0">{{subject}}</a>
-    <address>
-        by <a href="{{{author.profileurl}}}">{{author.fullname}}</a> - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
+    <a href="">{{subject}}</a>
+    <address class="d-inline-block mb-0">
+        by {{author.fullname}} - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
     </address>
 
     <div class="indent pt-2">

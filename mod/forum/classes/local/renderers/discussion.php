@@ -27,24 +27,48 @@ namespace mod_forum\local\renderers;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\entities\post;
+use mod_forum\local\entities\forum as forum_entity;
+use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\vault as vault_factory;
+
+require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
  * Nested discussion renderer class.
  */
 class discussion {
     private $renderer;
+    private $displaymode;
     private $template;
     private $orderby;
+    private $canrendercallback;
 
-    public function __construct(\renderer_base $renderer, string $template, string $orderby = 'created ASC') {
+    public function __construct(
+        \renderer_base $renderer,
+        int $displaymode,
+        string $template,
+        string $orderby = 'created ASC',
+        callable $validaterendercallback = null
+    ) {
         $this->renderer = $renderer;
+        $this->displaymode = $displaymode;
         $this->template = $template;
         $this->orderby = $orderby;
+
+        if (is_null($validaterendercallback)) {
+            $validaterendercallback = function($context, $discussion) {
+                // No errors.
+                return;
+            };
+        }
+
+        $this->validaterendercallback = $validaterendercallback;
     }
 
-    public function render(discussion_entity $discussion) : string {
+    public function render(\context $context, forum_entity $forum, discussion_entity $discussion) : string {
+        // Make sure we can render.
+        $this->validate_render($context, $forum, $discussion);
+
         $postvault = vault_factory::get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->orderby);
         $sortedposts = $this->sort_posts_into_replies($posts);
@@ -53,7 +77,14 @@ class discussion {
             return $this->transform_posts_to_template_object($post, $replies);
         }, $sortedposts);
 
-        return $this->renderer->render_from_template($this->template, ['posts' => $formattedposts]);
+        return $this->renderer->render_from_template($this->template, [
+            'modeselectorform' => forum_print_mode_form($discussion->get_id(), $this->displaymode),
+            'posts' => $formattedposts
+        ]);
+    }
+
+    private function validate_render(\context $context, forum_entity $forum, discussion_entity $discussion) {
+        ($this->validaterendercallback)($context, $forum, $discussion);
     }
 
     private function sort_posts_into_replies($posts) : array {
@@ -93,7 +124,7 @@ class discussion {
         }, $parents);
     }
 
-    private function transform_posts_to_template_object(post $post, array $replies) : array {
+    private function transform_posts_to_template_object(post_entity $post, array $replies) : array {
         $author = $post->get_author();
 
         return [
@@ -106,7 +137,7 @@ class discussion {
                 'profileurl' => $author->get_profile_url()->out(false),
                 'profileimageurl' => $author->get_profile_image_url()->out(false),
             ],
-            'timecreated' => $post->get_time_created()->getTimestamp(),
+            'timecreated' => $post->get_time_created(),
             'replies' => array_map(function($replydata) {
                 list($reply, $replyreplies) = $replydata;
                 return $this->transform_posts_to_template_object($reply, $replyreplies);

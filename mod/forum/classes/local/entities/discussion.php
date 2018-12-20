@@ -91,7 +91,7 @@ class discussion {
     }
 
     // What is this?
-    public function get_first_post() : int {
+    public function get_first_post_id() : int {
         return $this->firstpost;
     }
 
@@ -107,19 +107,23 @@ class discussion {
         return $this->assessed;
     }
 
-    public function get_time_modified() : \DateTimeImmutable {
-        return (new \DateTimeImmutable)->setTimestamp($this->timemodified);
+    public function get_time_modified() : int {
+        return $this->timemodified;
     }
 
-    public function get_user_modified() : \DateTimeImmutable {
-        return (new \DateTimeImmutable)->setTimestamp($this->usermodified);
+    public function get_user_modified() : int {
+        return $this->usermodified;
     }
 
-    public function get_time_start() : \DateTimeImmutable {
-        return $this->timestart ? (new \DateTimeImmutable)->setTimestamp($this->timestart) : null;
+    public function get_time_start() : int {
+        return $this->timestart;
     }
 
-    public function get_time_end() : \DateTimeImmutable {
-        return $this->timeend ? (new \DateTimeImmutable)->setTimestamp($this->timeend) : null;
+    public function get_time_end() : int {
+        return $this->timeend;
+    }
+
+    public function is_pinned() : bool {
+        return $this->pinned;
     }
 }

@@ -15,36 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Serializer interface.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults;
+namespace mod_forum\local\serializers;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\serializers\post as post_serializer;
-use mod_forum\local\serializers\serializer_interface;
-use mod_forum\local\vault;
-
 /**
- * Vault class.
+ * Serializer interface.
  */
-class post extends vault {
-    public function __construct(\moodle_database $db, string $table = 'forum_posts', serializer_interface $serializer = null) {
-        if (is_null($serializer)) {
-            $serializer = new post_serializer();
-        }
-
-        return parent::__construct($db, $table, $serializer);
-    }
-
-    public function get_from_discussion_id(int $discussionid, string $orderby = 'created ASC') : array {
-        $records = $this->get_db()->get_records($this->get_table(), ['discussion' => $discussionid], $orderby);
-        return $this->transform_db_records_to_entities($records);
-    }
+interface serializer_interface {
+    public function from_db_records(array $records) : array;
+    public function to_db_records(array $entities) : array;
 }
