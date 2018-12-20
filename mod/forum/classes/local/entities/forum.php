@@ -154,6 +154,10 @@ class forum {
         return $this->maxbytes;
     }
 
+    public function get_max_attachments() : int {
+        return $this->maxattachments;
+    }
+
     public function is_subscription_forced() : bool {
         return $this->forcesubscribe;
     }

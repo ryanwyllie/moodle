@@ -40,7 +40,7 @@
                     <div class="mb-2">
                         <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
                         <address>
-                            by <a href="{{{author.profileurl}}}">{{author.fullname}}</a> - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
+                            by <a href="{{{author.profileurl}}}">{{author.fullname}}</a>{{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
                         </address>
                     </div>
                     <div>
