@@ -53,8 +53,25 @@ require_course_login($course, true, $cm);
 
 $modcontext = context_module::instance($cm->id);
 
-$PAGE->set_title("$course->shortname: ".format_string($discussion->get_name()));
+$forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
+if (empty($forumnode)) {
+    $forumnode = $PAGE->navbar;
+} else {
+    $forumnode->make_active();
+}
+$node = $forumnode->add(format_string($discussion->get_name()), new moodle_url('/mod/forum/discuss2.php', ['d' => $discussion->get_id()]));
+$node->display = false;
+
+/*
+if ($node && $post->id != $discussion->firstpost) {
+    $node->add(format_string($post->subject), $PAGE->url);
+}
+*/
+
+$PAGE->set_title("$course->shortname: " . format_string($discussion->get_name()));
 $PAGE->set_heading($course->fullname);
+$PAGE->set_button(forum_search_form($course));
+
 $renderer = $PAGE->get_renderer('mod_forum');
 
 echo $OUTPUT->header();

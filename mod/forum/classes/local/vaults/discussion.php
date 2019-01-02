@@ -26,20 +26,11 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\serializers\discussion as discussion_serializer;
-use mod_forum\local\serializers\serializer_interface;
 use mod_forum\local\vault;
 
 /**
  * Vault class.
  */
 class discussion extends vault {
-    public function __construct(\moodle_database $db, string $table = 'forum_discussions', serializer_interface $serializer = null) {
-        if (is_null($serializer)) {
-            $serializer = new discussion_serializer();
-        }
 
-        return parent::__construct($db, $table, $serializer);
-    }
 }

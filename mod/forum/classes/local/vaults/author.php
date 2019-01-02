@@ -26,20 +26,11 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\author as author_entity;
-use mod_forum\local\serializers\author as author_serializer;
-use mod_forum\local\serializers\serializer_interface;
 use mod_forum\local\vault;
 
 /**
  * Vault class.
  */
 class author extends vault {
-    public function __construct(\moodle_database $db, string $table = 'user', serializer_interface $serializer = null) {
-        if (is_null($serializer)) {
-            $serializer = new author_serializer();
-        }
 
-        return parent::__construct($db, $table, $serializer);
-    }
 }

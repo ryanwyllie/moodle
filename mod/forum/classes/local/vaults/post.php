@@ -26,23 +26,12 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\serializers\post as post_serializer;
-use mod_forum\local\serializers\serializer_interface;
 use mod_forum\local\vault;
 
 /**
  * Vault class.
  */
 class post extends vault {
-    public function __construct(\moodle_database $db, string $table = 'forum_posts', serializer_interface $serializer = null) {
-        if (is_null($serializer)) {
-            $serializer = new post_serializer();
-        }
-
-        return parent::__construct($db, $table, $serializer);
-    }
-
     public function get_from_discussion_id(int $discussionid, string $orderby = 'created ASC') : array {
         $records = $this->get_db()->get_records($this->get_table(), ['discussion' => $discussionid], $orderby);
         return $this->transform_db_records_to_entities($records);
