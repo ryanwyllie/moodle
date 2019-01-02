@@ -97,10 +97,16 @@ class post implements serializer_interface {
         }, $posts);
     }
 
-    public function for_display(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, array $posts) {
+    public function for_display(
+        stdClass $user,
+        context $context,
+        forum_entity $forum,
+        discussion_entity $discussion,
+        array $posts
+    ) {
         $forumserializer = new forum_serializer();
-        $forumrecord = $forumserializer->to_db_records([$forum])[0];
         $discussionserializer = new discussion_serializer();
+        $forumrecord = $forumserializer->to_db_records([$forum])[0];
         $discussionrecord = $discussionserializer->to_db_records([$discussion])[0];
         $sortedposts = $this->sort_posts_into_replies($posts);
         $coursemodule = get_coursemodule_from_instance('forum', $forum->get_id(), $forum->get_course_id());
@@ -185,7 +191,9 @@ class post implements serializer_interface {
                 'profileurl' => $profileurl,
                 'profileimageurl' => $profileimageurl
             ],
+            'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
+            'cansee' => $canseepost,
             'replies' => array_map(function($replydata) use ($user, $forumrecord, $discussionrecord, $coursemodule) {
                 list($reply, $replyreplies) = $replydata;
                 return $this->transform_posts_to_display_object(

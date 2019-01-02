@@ -26,6 +26,10 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\serializers\author as author_serializer;
+use mod_forum\local\serializers\discussion as discussion_serializer;
+use mod_forum\local\serializers\forum as forum_serializer;
+use mod_forum\local\serializers\post as post_serializer;
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
@@ -37,21 +41,21 @@ use mod_forum\local\vaults\post as post_vault;
 class vault {
     public static function get_forum_vault() : forum_vault {
         global $DB;
-        return new forum_vault($DB);
+        return new forum_vault($DB, 'forum', new forum_serializer());
     }
 
     public static function get_discussion_vault() : discussion_vault {
         global $DB;
-        return new discussion_vault($DB);
+        return new discussion_vault($DB, 'forum_discussions', new discussion_serializer());
     }
 
     public static function get_post_vault() : post_vault {
         global $DB;
-        return new post_vault($DB);
+        return new post_vault($DB, 'forum_posts', new post_serializer());
     }
 
     public static function get_author_vault() : author_vault {
         global $DB;
-        return new author_vault($DB);
+        return new author_vault($DB, 'user', new author_serializer());
     }
 }

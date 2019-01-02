@@ -30,13 +30,18 @@
     }
 }}
 
+{{#html.subscribe}}{{{.}}}{{/html.subscribe}}
+
 <div class="discussioncontrols clearfix">
     <div class="controlscontainer m-b-1">
         <div class="discussioncontrol displaymode">
-            {{{modeselectorform}}}
+            {{{html.modeselectorform}}}
         </div>
     </div>
 </div>
+
+{{#html.notifications}}{{{.}}}{{/html.notifications}}
+
 {{#posts}}
     {{$post}}{{/post}}
 {{/posts}}

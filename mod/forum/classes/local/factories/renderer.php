@@ -56,7 +56,7 @@ class renderer {
                     $postvault,
                     FORUM_MODE_FLATOLDEST,
                     'mod_forum/forum_discussion_flat_posts',
-                    'created DESC',
+                    'created ASC',
                     $defaultrendervalidation
                 );
             case FORUM_MODE_FLATNEWEST:
