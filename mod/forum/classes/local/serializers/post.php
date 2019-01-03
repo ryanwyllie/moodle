@@ -32,6 +32,7 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\serializers\discussion as discussion_serializer;
 use mod_forum\local\serializers\forum as forum_serializer;
+use mod_forum\local\vaults\author as author_vault;
 use context;
 use stdClass;
 
@@ -40,15 +41,27 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 /**
  * Forum class.
  */
-class post implements serializer_interface {
+class post implements db_serializer_interface {
+    private $authorvault;
+    private $discussionserializer;
+    private $forumserializer;
+
+    public function __construct(
+        author_vault $authorvault,
+        discussion_serializer $discussionserializer,
+        forum_serializer $forumserializer
+    ) {
+        $this->authorvault = $authorvault;
+        $this->discussionserializer = $discussionserializer;
+        $this->forumserializer = $forumserializer;
+    }
 
     public function from_db_records(array $records) : array {
-        $authorvault = vault_factory::get_author_vault();
         $authorids = array_keys(array_reduce($records, function($carry, $record) {
             $carry[$record->userid] = true;
             return $carry;
         }, []));
-        $authors = $authorvault->get_from_ids($authorids);
+        $authors = $this->authorvault->get_from_ids($authorids);
         $authorsbyid = array_reduce($authors, function($carry, $author) {
             $carry[$author->get_id()] = $author;
             return $carry;
@@ -104,10 +117,8 @@ class post implements serializer_interface {
         discussion_entity $discussion,
         array $posts
     ) {
-        $forumserializer = new forum_serializer();
-        $discussionserializer = new discussion_serializer();
-        $forumrecord = $forumserializer->to_db_records([$forum])[0];
-        $discussionrecord = $discussionserializer->to_db_records([$discussion])[0];
+        $forumrecord = $this->forumserializer->to_db_records([$forum])[0];
+        $discussionrecord = $this->discussionserializer->to_db_records([$discussion])[0];
         $sortedposts = $this->sort_posts_into_replies($posts);
         $coursemodule = get_coursemodule_from_instance('forum', $forum->get_id(), $forum->get_course_id());
 

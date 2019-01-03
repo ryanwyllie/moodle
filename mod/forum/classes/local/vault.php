@@ -26,7 +26,8 @@ namespace mod_forum\local;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\serializers\serializer_interface;
+use mod_forum\local\serializers\db_serializer_interface;
+use moodle_database;
 
 /**
  * Vault class.
@@ -36,13 +37,13 @@ class vault {
     private $db;
     private $serializer;
 
-    public function __construct(\moodle_database $db, string $table, serializer_interface $serializer) {
+    public function __construct(moodle_database $db, string $table, db_serializer_interface $serializer) {
         $this->db = $db;
         $this->table = $table;
         $this->serializer = $serializer;
     }
 
-    public function get_db() : \moodle_database {
+    public function get_db() : moodle_database {
         return $this->db;
     }
 
@@ -50,7 +51,7 @@ class vault {
         return $this->table;
     }
 
-    public function get_serializer() : serializer_interface {
+    public function get_serializer() : db_serializer_interface {
         return $this->serializer;
     }
 

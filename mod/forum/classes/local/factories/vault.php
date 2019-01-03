@@ -26,10 +26,7 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\serializers\author as author_serializer;
-use mod_forum\local\serializers\discussion as discussion_serializer;
-use mod_forum\local\serializers\forum as forum_serializer;
-use mod_forum\local\serializers\post as post_serializer;
+use mod_forum\local\factories\serializer as serializer_factory;
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
@@ -39,23 +36,29 @@ use mod_forum\local\vaults\post as post_vault;
  * Vault factory.
  */
 class vault {
-    public static function get_forum_vault() : forum_vault {
-        global $DB;
-        return new forum_vault($DB, 'forum', new forum_serializer());
+    private $serializerfactory;
+
+    public function __construct(serializer_factory $serializerfactory) {
+        $this->serializerfactory = $serializerfactory;
     }
 
-    public static function get_discussion_vault() : discussion_vault {
+    public function get_forum_vault() : forum_vault {
         global $DB;
-        return new discussion_vault($DB, 'forum_discussions', new discussion_serializer());
+        return new forum_vault($DB, 'forum', $this->serializerfactory->get_forum_serializer());
     }
 
-    public static function get_post_vault() : post_vault {
+    public function get_discussion_vault() : discussion_vault {
         global $DB;
-        return new post_vault($DB, 'forum_posts', new post_serializer());
+        return new discussion_vault($DB, 'forum_discussions', $this->serializerfactory->get_discussion_serializer());
     }
 
-    public static function get_author_vault() : author_vault {
+    public function get_post_vault() : post_vault {
         global $DB;
-        return new author_vault($DB, 'user', new author_serializer());
+        return new post_vault($DB, 'forum_posts', $this->serializerfactory->get_post_serializer());
+    }
+
+    public function get_author_vault() : author_vault {
+        global $DB;
+        return new author_vault($DB, 'user', $this->serializerfactory->get_author_serializer());
     }
 }

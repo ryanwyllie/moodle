@@ -29,15 +29,13 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\serializers\post as post_serializer;
 use context;
 use stdClass;
 
 /**
  * Forum class.
  */
-class discussion implements serializer_interface {
-
+class discussion implements db_serializer_interface {
     public function from_db_records(array $records) : array {
         return array_map(function(stdClass $record) {
             return new discussion_entity(
@@ -78,13 +76,10 @@ class discussion implements serializer_interface {
         }, $discussions);
     }
 
-    public function for_display(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, array $posts) {
-        $postserializer = new post_serializer();
-        $serialisedposts = $postserializer->for_display($user, $context, $forum, $discussion, $posts);
-
+    public function for_display(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, array $serializedposts = []) {
         return [
             'id' => $discussion->get_id(),
-            'posts' => $serialisedposts
+            'posts' => $serializedposts
         ];
     }
 }

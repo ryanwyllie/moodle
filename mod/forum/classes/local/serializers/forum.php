@@ -31,7 +31,7 @@ use mod_forum\local\entities\forum as forum_entity;
 /**
  * Forum class.
  */
-class forum implements serializer_interface {
+class forum implements db_serializer_interface {
 
     public function from_db_records(array $records) : array {
         return array_map(function($record) {
