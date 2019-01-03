@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Serializer interface.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
@@ -26,34 +26,10 @@ namespace mod_forum\local\serializers;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\author as author_entity;
-
 /**
- * Forum class.
+ * Serializer interface.
  */
-class author implements db_serializer_interface {
-
-    public function from_db_records(array $records) : array {
-        global $PAGE;
-
-        return array_map(function($record) use ($PAGE) {
-            $userpicture = new \user_picture($record);
-            $userpicture->size = 1;
-            return new author_entity(
-                $record->id,
-                fullname($record),
-                new \moodle_url('/user/view.php', ['id' => $record->id]),
-                $userpicture->get_url($PAGE)
-            );
-        }, $records);
-    }
-
-    public function to_db_records(array $authors) : array {
-        return array_map(function($author) {
-            return (object) [
-                'id' => $author->get_id(),
-                'fullname' => $author->get_full_name()
-            ];
-        }, $authors);
-    }
+interface db_serializer_interface {
+    public function from_db_records(array $records) : array;
+    public function to_db_records(array $entities) : array;
 }

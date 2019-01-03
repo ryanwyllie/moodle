@@ -52,7 +52,9 @@
 
             <div class="indent pt-2">
                 {{#replies}}
-                    {{> mod_forum/forum_discussion_threaded_post_reply }}
+                    {{#cansee}}
+                        {{> mod_forum/forum_discussion_threaded_post_reply }}
+                    {{/cansee}}
                 {{/replies}}
             </div>
         </div>

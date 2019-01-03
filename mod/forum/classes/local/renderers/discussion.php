@@ -29,9 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\serializers\forum as forum_serializer;
-use mod_forum\local\serializers\serializer_interface;
-use mod_forum\local\vaults\post as post_vault;
+use mod_forum\local\factories\serializer as serializer_factory;
+use mod_forum\local\factories\vault as vault_factory;
 use context;
 use html_writer;
 use moodle_url;
@@ -49,14 +48,13 @@ class discussion {
     private $template;
     private $orderby;
     private $canrendercallback;
-    private $serializer;
-    private $postvault;
+    private $serializerfactory;
+    private $vaultfactory;
 
     public function __construct(
         renderer_base $renderer,
-        serializer_interface $serializer,
-        // TODO: change this to an interface dependency.
-        post_vault $postvault,
+        serializer_factory $serializerfactory,
+        vault_factory $vaultfactory,
         int $displaymode,
         string $template,
         string $orderby = 'created ASC',
@@ -66,8 +64,8 @@ class discussion {
         $this->displaymode = $displaymode;
         $this->template = $template;
         $this->orderby = $orderby;
-        $this->serializer = $serializer;
-        $this->postvault = $postvault;
+        $this->serializerfactory = $serializerfactory;
+        $this->vaultfactory = $vaultfactory;
 
         if (is_null($validaterendercallback)) {
             $validaterendercallback = function($context, $discussion) {
@@ -85,8 +83,12 @@ class discussion {
         // Make sure we can render.
         $this->validate_render($context, $forum, $discussion);
 
-        $posts = $this->postvault->get_from_discussion_id($discussion->get_id(), $this->orderby);
-        $serializeddiscussion = $this->serializer->for_display($USER, $context, $forum, $discussion, $posts);
+        $postvault = $this->vaultfactory->get_post_vault();
+        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->orderby);
+        $discussionserializer = $this->serializerfactory->get_discussion_serializer();
+        $postserializer = $this->serializerfactory->get_post_serializer();
+        $serialisedposts = $postserializer->for_display($USER, $context, $forum, $discussion, $posts);
+        $serializeddiscussion = $discussionserializer->for_display($USER, $context, $forum, $discussion, $serialisedposts);
         $serializeddiscussion = array_merge($serializeddiscussion, [
             'html' => [
                 'modeselectorform' => null,
@@ -126,7 +128,7 @@ class discussion {
         // is_guest should be used here as this also checks whether the user is a guest in the current course.
         // Guests and visitors cannot subscribe - only enrolled users.
         if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/forum:viewdiscussion', $context)) {
-            $forumserializer = new forum_serializer();
+            $forumserializer = $this->serializerfactory->get_forum_serializer();
             $forumrecord = $forumserializer->to_db_records([$forum])[0];
             // Discussion subscription.
             if (\mod_forum\subscriptions::is_subscribable($forumrecord)) {

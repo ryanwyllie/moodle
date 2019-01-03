@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Serializer interface.
  */
-interface serializer_interface {
+interface display_serializer_interface {
     public function from_db_records(array $records) : array;
     public function to_db_records(array $entities) : array;
 }

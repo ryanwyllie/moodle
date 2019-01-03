@@ -27,20 +27,29 @@
 require_once('../../config.php');
 
 $discussionid = required_param('d', PARAM_INT);
-$displaymode = optional_param('mode', 3, PARAM_INT);
+$displaymode = optional_param('mode', 0, PARAM_INT);
 $url = new moodle_url('/mod/forum/discuss2.php', ['d' => $discussionid]);
 
 $PAGE->set_url($url);
 
-$discussionvault = mod_forum\local\factories\vault::get_discussion_vault();
+if ($displaymode) {
+    set_user_preference('forum_displaymode', $displaymode);
+}
+
+$displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
+$vaultfactory = mod_forum\local\container::get_vault_factory();
+$rendererfactory = mod_forum\local\container::get_renderer_factory();
+$serializerfactory = mod_forum\local\container::get_serializer_factory();
+
+$discussionvault = $vaultfactory->get_discussion_vault();
 $discussion = $discussionvault->get_from_id($discussionid);
 
 if (!$discussion) {
     throw new \moodle_exception('Unable to find discussion with id ' . $discussionid);
 }
 
-$course = $DB->get_record('course', array('id' => $discussion->get_course_id()), '*', MUST_EXIST);
-$forumvault = mod_forum\local\factories\vault::get_forum_vault();
+$course = $DB->get_record('course', ['id' => $discussion->get_course_id()], '*', MUST_EXIST);
+$forumvault = $vaultfactory->get_forum_vault();
 $forum = $forumvault->get_from_id($discussion->get_forum_id());
 
 if (!$forum) {
@@ -50,6 +59,8 @@ if (!$forum) {
 $cm = get_coursemodule_from_instance('forum', $forum->get_id(), $course->id, false, MUST_EXIST);
 
 require_course_login($course, true, $cm);
+// move this down fix for MDL-6926
+require_once($CFG->dirroot.'/mod/forum/lib.php');
 
 $modcontext = context_module::instance($cm->id);
 
@@ -59,7 +70,7 @@ if (empty($forumnode)) {
 } else {
     $forumnode->make_active();
 }
-$node = $forumnode->add(format_string($discussion->get_name()), new moodle_url('/mod/forum/discuss2.php', ['d' => $discussion->get_id()]));
+$node = $forumnode->add(format_string($discussion->get_name()), $url);
 $node->display = false;
 
 /*
@@ -67,6 +78,15 @@ if ($node && $post->id != $discussion->firstpost) {
     $node->add(format_string($post->subject), $PAGE->url);
 }
 */
+
+// Trigger discussion viewed event.
+$discussionserializer = $serializerfactory->get_discussion_serializer();
+$forumserializer = $serializerfactory->get_forum_serializer();
+$discussionrecord = $discussionserializer->to_db_records([$discussion])[0];
+$forumrecord = $forumserializer->to_db_records([$forum])[0];
+forum_discussion_view($modcontext, $forumrecord, $discussionrecord);
+
+unset($SESSION->fromdiscussion);
 
 $PAGE->set_title("$course->shortname: " . format_string($discussion->get_name()));
 $PAGE->set_heading($course->fullname);
@@ -78,7 +98,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname');
 
-$discussionrenderer = mod_forum\local\factories\renderer::get_discussion_renderer($forum, $discussion, $displaymode, $renderer);
+$discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion, $displaymode, $renderer);
 echo $discussionrenderer->render($modcontext, $forum, $discussion);
 
 echo $OUTPUT->footer();

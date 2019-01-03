@@ -29,74 +29,88 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion;
 use mod_forum\local\entities\forum;
 use mod_forum\local\factories\vault as vault_factory;
+use mod_forum\local\factories\serializer as serializer_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
-use mod_forum\local\serializers\discussion as discussion_serializer;
+use renderer_base;
 
 /**
  * Vault factory.
  */
 class renderer {
-    public static function get_discussion_renderer(
+    private $serializerfactory;
+    private $vaultfactory;
+
+    public function __construct(
+        serializer_factory $serializerfactory,
+        vault_factory $vaultfactory
+    ) {
+        $this->serializerfactory = $serializerfactory;
+        $this->vaultfactory = $vaultfactory;
+    }
+
+    public function get_discussion_renderer(
         forum $forum,
         discussion $discussion,
         int $displaymode,
-        \renderer_base $renderer
+        renderer_base $renderer,
+        callable $validationfunction = null
     ) {
-        $defaultrendervalidation = function($context, $discussion) {
-            require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
-        };
-        $discussionserializer = new discussion_serializer();
-        $postvault = vault_factory::get_post_vault();
+
+        if (is_null($validationfunction)) {
+            $validationfunction = function($context, $discussion) {
+                require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
+            };
+        }
 
         switch ($displaymode) {
             case FORUM_MODE_FLATOLDEST:
                 return new discussion_renderer(
                     $renderer,
-                    $discussionserializer,
-                    $postvault,
+                    $this->serializerfactory,
+                    $this->vaultfactory,
                     FORUM_MODE_FLATOLDEST,
                     'mod_forum/forum_discussion_flat_posts',
                     'created ASC',
-                    $defaultrendervalidation
+                    $validationfunction
                 );
             case FORUM_MODE_FLATNEWEST:
                 return new discussion_renderer(
                     $renderer,
-                    $discussionserializer,
-                    $postvault,
+                    $this->serializerfactory,
+                    $this->vaultfactory,
                     FORUM_MODE_FLATNEWEST,
                     'mod_forum/forum_discussion_flat_posts',
                     'created DESC',
-                    $defaultrendervalidation
+                    $validationfunction
                 );
             case FORUM_MODE_THREADED:
                 return new discussion_renderer(
                     $renderer,
-                    $discussionserializer,
-                    $postvault,
+                    $this->serializerfactory,
+                    $this->vaultfactory,
                     FORUM_MODE_THREADED,
                     'mod_forum/forum_discussion_threaded_posts',
                     'created ASC',
-                    $defaultrendervalidation
+                    $validationfunction
                 );
             case FORUM_MODE_NESTED:
                 return new discussion_renderer(
                     $renderer,
-                    $discussionserializer,
-                    $postvault,
+                    $this->serializerfactory,
+                    $this->vaultfactory,
                     FORUM_MODE_NESTED,
                     'mod_forum/forum_discussion_nested_posts',
                     'created ASC',
-                    $defaultrendervalidation
+                    $validationfunction
                 );
             default;
                 return new discussion_renderer(
                     $renderer,
-                    $discussionserializer,
-                    $postvault,
+                    $this->serializerfactory,
+                    $this->vaultfactory,
                     'mod_forum/forum_discussion_nested_posts',
                     'created ASC',
-                    $defaultrendervalidation
+                    $validationfunction
                 );
         }
     }
