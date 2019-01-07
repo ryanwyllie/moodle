@@ -22,14 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers;
+namespace mod_forum\local\serializers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * Serializer interface.
  */
-interface display_serializer_interface {
+interface db_serializer_interface {
     public function from_db_records(array $records) : array;
     public function to_db_records(array $entities) : array;
 }

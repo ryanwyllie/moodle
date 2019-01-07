@@ -27,7 +27,8 @@ namespace mod_forum\local;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\renderer as renderer_factory;
-use mod_forum\local\factories\serializer as serializer_factory;
+use mod_forum\local\factories\database_serializer as database_serializer_factory;
+use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\factories\vault as vault_factory;
 
 /**
@@ -36,18 +37,25 @@ use mod_forum\local\factories\vault as vault_factory;
 class container {
     public static function get_renderer_factory() : renderer_factory {
         return new renderer_factory(
-            self::get_serializer_factory(),
+            self::get_database_serializer_factory(),
+            self::get_exporter_serializer_factory(),
             self::get_vault_factory()
         );
     }
 
-    public static function get_serializer_factory() : serializer_factory {
-        return new serializer_factory();
+    public static function get_database_serializer_factory() : database_serializer_factory {
+        return new database_serializer_factory();
+    }
+
+    public static function get_exporter_serializer_factory() : exporter_serializer_factory {
+        return new exporter_serializer_factory(
+            self::get_database_serializer_factory()
+        );
     }
 
     public static function get_vault_factory() : vault_factory {
         return new vault_factory(
-            self::get_serializer_factory()
+            self::get_database_serializer_factory()
         );
     }
 }

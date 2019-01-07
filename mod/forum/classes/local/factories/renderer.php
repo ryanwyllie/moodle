@@ -29,7 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion;
 use mod_forum\local\entities\forum;
 use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\factories\serializer as serializer_factory;
+use mod_forum\local\factories\database_serializer as database_serializer_factory;
+use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use renderer_base;
 
@@ -37,14 +38,17 @@ use renderer_base;
  * Vault factory.
  */
 class renderer {
-    private $serializerfactory;
+    private $databaseserializerfactory;
+    private $exporterserializerfactory;
     private $vaultfactory;
 
     public function __construct(
-        serializer_factory $serializerfactory,
+        database_serializer_factory $databaseserializerfactory,
+        exporter_serializer_factory $exporterserializerfactory,
         vault_factory $vaultfactory
     ) {
-        $this->serializerfactory = $serializerfactory;
+        $this->databaseserializerfactory = $databaseserializerfactory;
+        $this->exporterserializerfactory = $exporterserializerfactory;
         $this->vaultfactory = $vaultfactory;
     }
 
@@ -66,7 +70,8 @@ class renderer {
             case FORUM_MODE_FLATOLDEST:
                 return new discussion_renderer(
                     $renderer,
-                    $this->serializerfactory,
+                    $this->databaseserializerfactory,
+                    $this->exporterserializerfactory,
                     $this->vaultfactory,
                     FORUM_MODE_FLATOLDEST,
                     'mod_forum/forum_discussion_flat_posts',
@@ -76,7 +81,8 @@ class renderer {
             case FORUM_MODE_FLATNEWEST:
                 return new discussion_renderer(
                     $renderer,
-                    $this->serializerfactory,
+                    $this->databaseserializerfactory,
+                    $this->exporterserializerfactory,
                     $this->vaultfactory,
                     FORUM_MODE_FLATNEWEST,
                     'mod_forum/forum_discussion_flat_posts',
@@ -86,7 +92,8 @@ class renderer {
             case FORUM_MODE_THREADED:
                 return new discussion_renderer(
                     $renderer,
-                    $this->serializerfactory,
+                    $this->databaseserializerfactory,
+                    $this->exporterserializerfactory,
                     $this->vaultfactory,
                     FORUM_MODE_THREADED,
                     'mod_forum/forum_discussion_threaded_posts',
@@ -96,7 +103,8 @@ class renderer {
             case FORUM_MODE_NESTED:
                 return new discussion_renderer(
                     $renderer,
-                    $this->serializerfactory,
+                    $this->databaseserializerfactory,
+                    $this->exporterserializerfactory,
                     $this->vaultfactory,
                     FORUM_MODE_NESTED,
                     'mod_forum/forum_discussion_nested_posts',
@@ -106,7 +114,8 @@ class renderer {
             default;
                 return new discussion_renderer(
                     $renderer,
-                    $this->serializerfactory,
+                    $this->databaseserializerfactory,
+                    $this->exporterserializerfactory,
                     $this->vaultfactory,
                     'mod_forum/forum_discussion_nested_posts',
                     'created ASC',

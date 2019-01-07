@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers;
+namespace mod_forum\local\serializers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -74,12 +74,5 @@ class discussion implements db_serializer_interface {
                 'pinned' => $discussion->is_pinned()
             ];
         }, $discussions);
-    }
-
-    public function for_display(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, array $serializedposts = []) {
-        return [
-            'id' => $discussion->get_id(),
-            'posts' => $serializedposts
-        ];
     }
 }
