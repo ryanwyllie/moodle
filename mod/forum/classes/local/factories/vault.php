@@ -26,7 +26,7 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\factories\serializer as serializer_factory;
+use mod_forum\local\factories\database_serializer as serializer_factory;
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;

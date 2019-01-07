@@ -27,15 +27,15 @@ namespace mod_forum\local\factories;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\serializers\author as author_serializer;
-use mod_forum\local\serializers\discussion as discussion_serializer;
-use mod_forum\local\serializers\forum as forum_serializer;
-use mod_forum\local\serializers\post as post_serializer;
+use mod_forum\local\serializers\database\author as author_serializer;
+use mod_forum\local\serializers\database\discussion as discussion_serializer;
+use mod_forum\local\serializers\database\forum as forum_serializer;
+use mod_forum\local\serializers\database\post as post_serializer;
 
 /**
- * Serializer factory.
+ * Exporter serializer factory.
  */
-class serializer {
+class database_serializer {
     public function get_forum_serializer() : forum_serializer {
         return new forum_serializer();
     }

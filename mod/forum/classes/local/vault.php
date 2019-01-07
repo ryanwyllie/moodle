@@ -26,7 +26,7 @@ namespace mod_forum\local;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\serializers\db_serializer_interface;
+use mod_forum\local\serializers\database\db_serializer_interface;
 use moodle_database;
 
 /**

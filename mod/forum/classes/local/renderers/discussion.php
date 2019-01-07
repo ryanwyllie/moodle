@@ -29,7 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\factories\serializer as serializer_factory;
+use mod_forum\local\factories\database_serializer as database_serializer_factory;
+use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use context;
 use html_writer;
@@ -48,12 +49,14 @@ class discussion {
     private $template;
     private $orderby;
     private $canrendercallback;
-    private $serializerfactory;
+    private $databaseserializerfactory;
+    private $exporterserializerfactory;
     private $vaultfactory;
 
     public function __construct(
         renderer_base $renderer,
-        serializer_factory $serializerfactory,
+        database_serializer_factory $databaseserializerfactory,
+        exporter_serializer_factory $exporterserializerfactory,
         vault_factory $vaultfactory,
         int $displaymode,
         string $template,
@@ -64,7 +67,8 @@ class discussion {
         $this->displaymode = $displaymode;
         $this->template = $template;
         $this->orderby = $orderby;
-        $this->serializerfactory = $serializerfactory;
+        $this->databaseserializerfactory = $databaseserializerfactory;
+        $this->exporterserializerfactory = $exporterserializerfactory;
         $this->vaultfactory = $vaultfactory;
 
         if (is_null($validaterendercallback)) {
@@ -85,11 +89,21 @@ class discussion {
 
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->orderby);
-        $discussionserializer = $this->serializerfactory->get_discussion_serializer();
-        $postserializer = $this->serializerfactory->get_post_serializer();
-        $serialisedposts = $postserializer->for_display($USER, $context, $forum, $discussion, $posts);
-        $serializeddiscussion = $discussionserializer->for_display($USER, $context, $forum, $discussion, $serialisedposts);
-        $serializeddiscussion = array_merge($serializeddiscussion, [
+        $postexporter = $this->exporterserializerfactory->get_posts_exporter(
+            $USER,
+            $context,
+            $forum,
+            $discussion,
+            $posts
+        );
+        $exportedposts = $postexporter->export($this->renderer);
+        $discussionexporter = $this->exporterserializerfactory->get_discussion_exporter(
+            $discussion,
+            $exportedposts->posts
+        );
+
+        $exporteddiscussion = $discussionexporter->export($this->renderer);
+        $exporteddiscussion = array_merge((array) $exporteddiscussion, [
             'html' => [
                 'modeselectorform' => null,
                 'notifications' => [],
@@ -115,20 +129,20 @@ class discussion {
         );
         $select->set_label(get_string('displaymode', 'forum'), ['class' => 'accesshide']);
         $select->class = implode(' ', $selectclasses);
-        $serializeddiscussion['html']['modeselectorform'] = $this->renderer->render($select);
+        $exporteddiscussion['html']['modeselectorform'] = $this->renderer->render($select);
 
         if (
             $forum->get_type() == 'qanda' &&
             !has_capability('mod/forum:viewqandawithoutposting', $context) &&
             !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $USER->id)
         ) {
-            $serializeddiscussion['html']['notifications'][] = $this->renderer->notification(get_string('qandanotify', 'forum'));
+            $exporteddiscussion['html']['notifications'][] = $this->renderer->notification(get_string('qandanotify', 'forum'));
         }
 
         // is_guest should be used here as this also checks whether the user is a guest in the current course.
         // Guests and visitors cannot subscribe - only enrolled users.
         if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/forum:viewdiscussion', $context)) {
-            $forumserializer = $this->serializerfactory->get_forum_serializer();
+            $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
             $forumrecord = $forumserializer->to_db_records([$forum])[0];
             // Discussion subscription.
             if (\mod_forum\subscriptions::is_subscribable($forumrecord)) {
@@ -137,13 +151,13 @@ class discussion {
                     'discussionsubscription'
                 );
                 $html .= forum_get_discussion_subscription_icon_preloaders();
-                $serializeddiscussion['html']['subscribe'] = $html;
+                $exporteddiscussion['html']['subscribe'] = $html;
                 // Add the subscription toggle JS.
                 $PAGE->requires->yui_module('moodle-mod_forum-subscriptiontoggle', 'Y.M.mod_forum.subscriptiontoggle.init');
             }
         }
 
-        return $this->renderer->render_from_template($this->template, $serializeddiscussion);
+        return $this->renderer->render_from_template($this->template, $exporteddiscussion);
     }
 
     private function validate_render(context $context, forum_entity $forum, discussion_entity $discussion) {
