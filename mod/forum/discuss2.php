@@ -28,7 +28,7 @@ require_once('../../config.php');
 
 $discussionid = required_param('d', PARAM_INT);
 $displaymode = optional_param('mode', 0, PARAM_INT);
-$url = new moodle_url('/mod/forum/discuss2.php', ['d' => $discussionid]);
+$url = new moodle_url('/mod/forum/discuss.php', ['d' => $discussionid]);
 
 $PAGE->set_url($url);
 
@@ -98,7 +98,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname');
 
-$discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion, $displaymode, $renderer);
-echo $discussionrenderer->render($USER, $modcontext, $forum, $discussion);
+$discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion, $renderer);
+echo $discussionrenderer->render($USER, $modcontext, $forum, $discussion, $displaymode);
 
 echo $OUTPUT->footer();
