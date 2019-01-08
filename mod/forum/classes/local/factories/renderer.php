@@ -32,7 +32,11 @@ use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\database_serializer as database_serializer_factory;
 use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
+use mod_forum\subscriptions;
+use context;
+use moodle_url;
 use renderer_base;
+use stdClass;
 
 /**
  * Vault factory.
@@ -56,71 +60,45 @@ class renderer {
         forum $forum,
         discussion $discussion,
         int $displaymode,
-        renderer_base $renderer,
-        callable $validationfunction = null
-    ) {
+        renderer_base $renderer
+    ) : discussion_renderer {
 
-        if (is_null($validationfunction)) {
-            $validationfunction = function($context, $discussion) {
-                require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
-            };
+        $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
+        $forumrecord = $forumserializer->to_db_records([$forum])[0];
+        $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
+        $canshowdisplaymodeselector = true;
+        $canshowmovediscussion = true;
+        $canshowsubscription = subscriptions::is_subscribable($forumrecord);
+        $getnotificationscallback = null;
+
+        switch ($forum->get_type()) {
+            case 'single':
+                $baseurl = new moodle_url("/mod/forum/view.php", ['f' => $forum->get_id()]);
+                $canshowmovediscussion = false;
+                break;
+            case 'qanda':
+                $getnotificationscallback = function($user, $context, $forum, $discussion) use ($renderer) {
+                    if (
+                        !has_capability('mod/forum:viewqandawithoutposting', $context) &&
+                        !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $user->id)
+                    ) {
+                        return [$renderer->notification(get_string('qandanotify', 'forum'))];
+                    }
+                };
+                break;
         }
 
-        switch ($displaymode) {
-            case FORUM_MODE_FLATOLDEST:
-                return new discussion_renderer(
-                    $renderer,
-                    $this->databaseserializerfactory,
-                    $this->exporterserializerfactory,
-                    $this->vaultfactory,
-                    FORUM_MODE_FLATOLDEST,
-                    'mod_forum/forum_discussion_flat_posts',
-                    'created ASC',
-                    $validationfunction
-                );
-            case FORUM_MODE_FLATNEWEST:
-                return new discussion_renderer(
-                    $renderer,
-                    $this->databaseserializerfactory,
-                    $this->exporterserializerfactory,
-                    $this->vaultfactory,
-                    FORUM_MODE_FLATNEWEST,
-                    'mod_forum/forum_discussion_flat_posts',
-                    'created DESC',
-                    $validationfunction
-                );
-            case FORUM_MODE_THREADED:
-                return new discussion_renderer(
-                    $renderer,
-                    $this->databaseserializerfactory,
-                    $this->exporterserializerfactory,
-                    $this->vaultfactory,
-                    FORUM_MODE_THREADED,
-                    'mod_forum/forum_discussion_threaded_posts',
-                    'created ASC',
-                    $validationfunction
-                );
-            case FORUM_MODE_NESTED:
-                return new discussion_renderer(
-                    $renderer,
-                    $this->databaseserializerfactory,
-                    $this->exporterserializerfactory,
-                    $this->vaultfactory,
-                    FORUM_MODE_NESTED,
-                    'mod_forum/forum_discussion_nested_posts',
-                    'created ASC',
-                    $validationfunction
-                );
-            default;
-                return new discussion_renderer(
-                    $renderer,
-                    $this->databaseserializerfactory,
-                    $this->exporterserializerfactory,
-                    $this->vaultfactory,
-                    'mod_forum/forum_discussion_nested_posts',
-                    'created ASC',
-                    $validationfunction
-                );
-        }
+        return new discussion_renderer(
+            $renderer,
+            $this->databaseserializerfactory,
+            $this->exporterserializerfactory,
+            $this->vaultfactory,
+            $displaymode,
+            $baseurl,
+            $canshowdisplaymodeselector,
+            $canshowmovediscussion,
+            $canshowsubscription,
+            $getnotificationscallback
+        );
     }
 }
