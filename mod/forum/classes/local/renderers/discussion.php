@@ -37,6 +37,7 @@ use html_writer;
 use moodle_url;
 use renderer_base;
 use single_select;
+use stdClass;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -46,12 +47,14 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 class discussion {
     private $renderer;
     private $displaymode;
-    private $template;
-    private $orderby;
-    private $canrendercallback;
     private $databaseserializerfactory;
     private $exporterserializerfactory;
     private $vaultfactory;
+    private $baseurl;
+    private $canshowdisplaymodeselector;
+    private $canshowmovediscussion;
+    private $canshowsubscription;
+    private $getnotificationscallback;
 
     public function __construct(
         renderer_base $renderer,
@@ -59,68 +62,150 @@ class discussion {
         exporter_serializer_factory $exporterserializerfactory,
         vault_factory $vaultfactory,
         int $displaymode,
-        string $template,
-        string $orderby = 'created ASC',
-        callable $validaterendercallback = null
+        moodle_url $baseurl,
+        bool $canshowdisplaymodeselector = true,
+        bool $canshowmovediscussion = true,
+        bool $canshowsubscription = true,
+        callable $getnotificationscallback = null
     ) {
         $this->renderer = $renderer;
         $this->displaymode = $displaymode;
-        $this->template = $template;
-        $this->orderby = $orderby;
+        $this->baseurl = $baseurl;
+        $this->canshowdisplaymodeselector = $canshowdisplaymodeselector;
+        $this->canshowmovediscussion = $canshowmovediscussion;
+        $this->canshowsubscription = $canshowsubscription;
         $this->databaseserializerfactory = $databaseserializerfactory;
         $this->exporterserializerfactory = $exporterserializerfactory;
         $this->vaultfactory = $vaultfactory;
 
-        if (is_null($validaterendercallback)) {
-            $validaterendercallback = function($context, $discussion) {
-                // No errors.
-                return;
+        if (is_null($getnotificationscallback)) {
+            $getnotificationscallback = function() {
+                return [];
             };
         }
 
-        $this->validaterendercallback = $validaterendercallback;
+        $this->getnotificationscallback = $getnotificationscallback;
     }
 
-    public function render(context $context, forum_entity $forum, discussion_entity $discussion) : string {
+    public function render(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion) : string {
         global $PAGE, $USER;
 
         // Make sure we can render.
-        $this->validate_render($context, $forum, $discussion);
+        $this->validate_render($context);
 
+        $nestedposts = $this->get_exported_posts($user, $context, $forum, $discussion);
+        $exporteddiscussion = $this->get_exported_discussion($discussion, $nestedposts);
+        $exporteddiscussion = array_merge($exporteddiscussion, [
+            'html' => [
+                'modeselectorform' => null,
+                'notifications' => ($this->getnotificationscallback)($user, $context, $forum, $discussion),
+                'subscribe' => null
+            ]
+        ]);
+
+        if ($this->canshowdisplaymodeselector) {
+            $exporteddiscussion['html']['modeselectorform'] = $this->get_display_mode_selector_html($this->baseurl);
+        }
+
+        $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
+        $forumrecord = $forumserializer->to_db_records([$forum])[0];
+
+        if ($this->canshowsubscription) {
+            $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
+        }
+
+        return $this->renderer->render_from_template($this->get_template($this->displaymode), $exporteddiscussion);
+    }
+
+    private function validate_render(context $context) {
+        require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
+    }
+
+    private function get_template(int $displaymode) : string {
+        switch ($displaymode) {
+            case FORUM_MODE_FLATOLDEST:
+                return 'mod_forum/forum_discussion_flat_posts';
+            case FORUM_MODE_FLATNEWEST:
+                return 'mod_forum/forum_discussion_flat_posts';
+            case FORUM_MODE_THREADED:
+                return 'mod_forum/forum_discussion_threaded_posts';
+            case FORUM_MODE_NESTED:
+                return 'mod_forum/forum_discussion_nested_posts';
+            default;
+                return 'mod_forum/forum_discussion_nested_posts';
+        }
+    }
+
+    private function get_order_by(int $displaymode) : string {
+        switch ($displaymode) {
+            case FORUM_MODE_FLATNEWEST:
+                return 'created DESC';
+            default;
+                return 'created ASC';
+        }
+    }
+
+    private function get_exported_posts(
+        stdClass $user,
+        context $context,
+        forum_entity $forum,
+        discussion_entity $discussion
+    ) : array {
         $postvault = $this->vaultfactory->get_post_vault();
-        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->orderby);
+        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($this->displaymode));
         $postexporter = $this->exporterserializerfactory->get_posts_exporter(
-            $USER,
+            $user,
             $context,
             $forum,
             $discussion,
             $posts
         );
-        $exportedposts = $postexporter->export($this->renderer);
+        ['posts' => $exportedposts] = (array) $postexporter->export($this->renderer);
+
+        $nestedposts = [];
+        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies) {
+            if (!isset($candidate->replies)) {
+                $candidate->replies = [];
+            }
+
+            if (empty($unsorted)) {
+                return [$candidate, $unsorted];
+            }
+
+            $next = array_shift($unsorted);
+
+            if ($next->parentid == $candidate->id) {
+                [$next, $unsorted] = $sortintoreplies($next, $unsorted);
+                $candidate->replies[] = $next;
+
+                return $sortintoreplies($candidate, $unsorted);
+            } else {
+                array_unshift($unsorted, $next);
+                return [$candidate, $unsorted];
+            }
+        };
+
+        do {
+            $candidate = array_shift($exportedposts);
+            [$candidate, $exportedposts] = $sortintoreplies($candidate, $exportedposts);
+            $nestedposts[] = $candidate;
+        } while (!empty($exportedposts));
+
+        return $nestedposts;
+    }
+
+    private function get_exported_discussion(discussion_entity $discussion, array $posts) : array {
         $discussionexporter = $this->exporterserializerfactory->get_discussion_exporter(
             $discussion,
-            $exportedposts->posts
+            $posts
         );
 
-        $exporteddiscussion = $discussionexporter->export($this->renderer);
-        $exporteddiscussion = array_merge((array) $exporteddiscussion, [
-            'html' => [
-                'modeselectorform' => null,
-                'notifications' => [],
-                'subscribe' => null
-            ]
-        ]);
+        return (array) $discussionexporter->export($this->renderer);
+    }
 
-        $selectclasses = [];
-        $selecturl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
-
-        if ($forum->get_type() == 'single') {
-            $selecturl = new moodle_url("/mod/forum/view.php", ['f' => $forum->get_id()]);
-            $selectclasses[] = "forummode";
-        }
-
+    private function get_display_mode_selector_html(moodle_url $baseurl) : string {
         $select = new single_select(
-            $selecturl,
+            $baseurl,
             'mode',
             forum_get_layout_modes(),
             $this->displaymode,
@@ -128,39 +213,20 @@ class discussion {
             'mode'
         );
         $select->set_label(get_string('displaymode', 'forum'), ['class' => 'accesshide']);
-        $select->class = implode(' ', $selectclasses);
-        $exporteddiscussion['html']['modeselectorform'] = $this->renderer->render($select);
 
-        if (
-            $forum->get_type() == 'qanda' &&
-            !has_capability('mod/forum:viewqandawithoutposting', $context) &&
-            !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $USER->id)
-        ) {
-            $exporteddiscussion['html']['notifications'][] = $this->renderer->notification(get_string('qandanotify', 'forum'));
-        }
-
-        // is_guest should be used here as this also checks whether the user is a guest in the current course.
-        // Guests and visitors cannot subscribe - only enrolled users.
-        if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/forum:viewdiscussion', $context)) {
-            $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
-            $forumrecord = $forumserializer->to_db_records([$forum])[0];
-            // Discussion subscription.
-            if (\mod_forum\subscriptions::is_subscribable($forumrecord)) {
-                $html = html_writer::div(
-                    forum_get_discussion_subscription_icon($forumrecord, $discussion->get_id(), null, true),
-                    'discussionsubscription'
-                );
-                $html .= forum_get_discussion_subscription_icon_preloaders();
-                $exporteddiscussion['html']['subscribe'] = $html;
-                // Add the subscription toggle JS.
-                $PAGE->requires->yui_module('moodle-mod_forum-subscriptiontoggle', 'Y.M.mod_forum.subscriptiontoggle.init');
-            }
-        }
-
-        return $this->renderer->render_from_template($this->template, $exporteddiscussion);
+        return $this->renderer->render($select);
     }
 
-    private function validate_render(context $context, forum_entity $forum, discussion_entity $discussion) {
-        ($this->validaterendercallback)($context, $forum, $discussion);
+    private function get_subscription_button_html(stdClass $forumrecord, discussion_entity $discussion) : string {
+        global $PAGE;
+
+        $html = html_writer::div(
+            forum_get_discussion_subscription_icon($forumrecord, $discussion->get_id(), null, true),
+            'discussionsubscription'
+        );
+        $html .= forum_get_discussion_subscription_icon_preloaders();
+        // Add the subscription toggle JS.
+        $PAGE->requires->yui_module('moodle-mod_forum-subscriptiontoggle', 'Y.M.mod_forum.subscriptiontoggle.init');
+        return $html;
     }
 }
