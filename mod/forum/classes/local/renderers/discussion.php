@@ -33,11 +33,14 @@ use mod_forum\local\factories\database_serializer as database_serializer_factory
 use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use context;
+use context_module;
 use html_writer;
 use moodle_url;
 use renderer_base;
+use single_button;
 use single_select;
 use stdClass;
+use url_select;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -46,13 +49,13 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class discussion {
     private $renderer;
-    private $displaymode;
     private $databaseserializerfactory;
     private $exporterserializerfactory;
     private $vaultfactory;
     private $baseurl;
     private $canshowdisplaymodeselector;
     private $canshowmovediscussion;
+    private $canshowpindiscussion;
     private $canshowsubscription;
     private $getnotificationscallback;
 
@@ -61,18 +64,18 @@ class discussion {
         database_serializer_factory $databaseserializerfactory,
         exporter_serializer_factory $exporterserializerfactory,
         vault_factory $vaultfactory,
-        int $displaymode,
         moodle_url $baseurl,
         bool $canshowdisplaymodeselector = true,
         bool $canshowmovediscussion = true,
+        bool $canshowpindiscussion = true,
         bool $canshowsubscription = true,
         callable $getnotificationscallback = null
     ) {
         $this->renderer = $renderer;
-        $this->displaymode = $displaymode;
         $this->baseurl = $baseurl;
         $this->canshowdisplaymodeselector = $canshowdisplaymodeselector;
         $this->canshowmovediscussion = $canshowmovediscussion;
+        $this->canshowpindiscussion = $canshowpindiscussion;
         $this->canshowsubscription = $canshowsubscription;
         $this->databaseserializerfactory = $databaseserializerfactory;
         $this->exporterserializerfactory = $exporterserializerfactory;
@@ -87,34 +90,44 @@ class discussion {
         $this->getnotificationscallback = $getnotificationscallback;
     }
 
-    public function render(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion) : string {
+    public function render(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, int $displaymode) : string {
         global $PAGE, $USER;
 
         // Make sure we can render.
         $this->validate_render($context);
 
-        $nestedposts = $this->get_exported_posts($user, $context, $forum, $discussion);
+        $nestedposts = $this->get_exported_posts($user, $context, $forum, $discussion, $displaymode);
         $exporteddiscussion = $this->get_exported_discussion($discussion, $nestedposts);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'html' => [
                 'modeselectorform' => null,
                 'notifications' => ($this->getnotificationscallback)($user, $context, $forum, $discussion),
-                'subscribe' => null
+                'subscribe' => null,
+                'movediscussion' => null,
+                'pindiscussion' => null
             ]
         ]);
 
-        if ($this->canshowdisplaymodeselector) {
-            $exporteddiscussion['html']['modeselectorform'] = $this->get_display_mode_selector_html($this->baseurl);
+        if ($this->should_show_display_mode_selector()) {
+            $exporteddiscussion['html']['modeselectorform'] = $this->get_display_mode_selector_html($this->baseurl, $displaymode);
         }
 
         $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
         $forumrecord = $forumserializer->to_db_records([$forum])[0];
 
-        if ($this->canshowsubscription) {
+        if ($this->should_show_subscription_button($user, $context, $forumrecord)) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
         }
 
-        return $this->renderer->render_from_template($this->get_template($this->displaymode), $exporteddiscussion);
+        if ($this->should_show_move_discussion($context)) {
+            $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html($forum, $discussion);
+        }
+
+        if ($this->should_show_pin_discussion($context)) {
+            $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html($discussion);
+        }
+
+        return $this->renderer->render_from_template($this->get_template($displaymode), $exporteddiscussion);
     }
 
     private function validate_render(context $context) {
@@ -149,10 +162,11 @@ class discussion {
         stdClass $user,
         context $context,
         forum_entity $forum,
-        discussion_entity $discussion
+        discussion_entity $discussion,
+        int $displaymode
     ) : array {
         $postvault = $this->vaultfactory->get_post_vault();
-        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($this->displaymode));
+        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $postexporter = $this->exporterserializerfactory->get_posts_exporter(
             $user,
             $context,
@@ -203,18 +217,33 @@ class discussion {
         return (array) $discussionexporter->export($this->renderer);
     }
 
-    private function get_display_mode_selector_html(moodle_url $baseurl) : string {
+    private function should_show_display_mode_selector() : bool {
+        return $this->canshowdisplaymodeselector;
+    }
+
+    private function get_display_mode_selector_html(moodle_url $baseurl, int $displaymode) : string {
         $select = new single_select(
             $baseurl,
             'mode',
             forum_get_layout_modes(),
-            $this->displaymode,
+            $displaymode,
             null,
             'mode'
         );
         $select->set_label(get_string('displaymode', 'forum'), ['class' => 'accesshide']);
 
-        return $this->renderer->render($select);
+        $html = '<div class="discussioncontrol displaymode">';
+        $html .= $this->renderer->render($select);
+        $html .= '</div>';
+        return $html;
+    }
+
+    private function should_show_subscription_button(stdClass $user, context $context, stdClass $forumrecord) : bool {
+        return $this->canshowsubscription &&
+                !is_guest($context, $user) &&
+                isloggedin() &&
+                has_capability('mod/forum:viewdiscussion', $context) &&
+                \mod_forum\subscriptions::is_subscribable($forumrecord);
     }
 
     private function get_subscription_button_html(stdClass $forumrecord, discussion_entity $discussion) : string {
@@ -228,5 +257,71 @@ class discussion {
         // Add the subscription toggle JS.
         $PAGE->requires->yui_module('moodle-mod_forum-subscriptiontoggle', 'Y.M.mod_forum.subscriptiontoggle.init');
         return $html;
+    }
+
+    private function should_show_move_discussion(context $context) : bool {
+        return $this->canshowmovediscussion && has_capability('mod/forum:movediscussions', $context);
+    }
+
+    private function get_move_discussion_html(forum_entity $forum, discussion_entity $discussion) : string {
+        global $DB;
+
+        $courseid = $forum->get_course_id();
+
+        $html = '<div class="discussioncontrol movediscussion">';
+        // Popup menu to move discussions to other forums. The discussion in a
+        // single discussion forum can't be moved.
+        $modinfo = get_fast_modinfo($courseid);
+        if (isset($modinfo->instances['forum'])) {
+            $forummenu = [];
+            // Check forum types and eliminate simple discussions.
+            $forumcheck = $DB->get_records('forum', ['course' => $courseid],'', 'id, type');
+            foreach ($modinfo->instances['forum'] as $forumcm) {
+                if (!$forumcm->uservisible || !has_capability('mod/forum:startdiscussion',
+                    context_module::instance($forumcm->id))) {
+                    continue;
+                }
+                $section = $forumcm->sectionnum;
+                $sectionname = get_section_name($courseid, $section);
+                if (empty($forummenu[$section])) {
+                    $forummenu[$section] = [$sectionname => []];
+                }
+                $forumidcompare = $forumcm->instance != $forum->get_id();
+                $forumtypecheck = $forumcheck[$forumcm->instance]->type !== 'single';
+
+                if ($forumidcompare and $forumtypecheck) {
+                    $url = "/mod/forum/discuss.php?d={$discussion->get_id()}&move=$forumcm->instance&sesskey=".sesskey();
+                    $forummenu[$section][$sectionname][$url] = format_string($forumcm->name);
+                }
+            }
+            if (!empty($forummenu)) {
+                $html .= '<div class="movediscussionoption">';
+                $select = new url_select($forummenu, '',
+                        ['/mod/forum/discuss.php?d=' . $discussion->get_id() => get_string("movethisdiscussionto", "forum")],
+                        'forummenu', get_string('move'));
+                $html .= $this->renderer->render($select);
+                $html .= "</div>";
+            }
+        }
+        $html .= "</div>";
+
+        return $html;
+    }
+
+    private function should_show_pin_discussion(context $context) : bool {
+        return $this->canshowpindiscussion && has_capability('mod/forum:pindiscussions', $context);
+    }
+
+    private function get_pin_discussion_html(discussion_entity $discussion) : string {
+        if ($discussion->is_pinned()) {
+            $pinlink = FORUM_DISCUSSION_UNPINNED;
+            $pintext = get_string('discussionunpin', 'forum');
+        } else {
+            $pinlink = FORUM_DISCUSSION_PINNED;
+            $pintext = get_string('discussionpin', 'forum');
+        }
+
+        $button = new single_button(new moodle_url('discuss.php', ['pin' => $pinlink, 'd' => $discussion->get_id()]), $pintext, 'post');
+        return html_writer::tag('div', $this->renderer->render($button), ['class' => 'discussioncontrol pindiscussion']);
     }
 }

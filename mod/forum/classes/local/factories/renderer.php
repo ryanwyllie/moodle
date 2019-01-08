@@ -32,7 +32,6 @@ use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\database_serializer as database_serializer_factory;
 use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
-use mod_forum\subscriptions;
 use context;
 use moodle_url;
 use renderer_base;
@@ -59,16 +58,14 @@ class renderer {
     public function get_discussion_renderer(
         forum $forum,
         discussion $discussion,
-        int $displaymode,
         renderer_base $renderer
     ) : discussion_renderer {
 
-        $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
-        $forumrecord = $forumserializer->to_db_records([$forum])[0];
         $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
         $canshowdisplaymodeselector = true;
         $canshowmovediscussion = true;
-        $canshowsubscription = subscriptions::is_subscribable($forumrecord);
+        $canshowpiniscussion = true;
+        $canshowsubscription = true;
         $getnotificationscallback = null;
 
         switch ($forum->get_type()) {
@@ -93,10 +90,10 @@ class renderer {
             $this->databaseserializerfactory,
             $this->exporterserializerfactory,
             $this->vaultfactory,
-            $displaymode,
             $baseurl,
             $canshowdisplaymodeselector,
             $canshowmovediscussion,
+            $canshowpiniscussion,
             $canshowsubscription,
             $getnotificationscallback
         );
