@@ -2420,17 +2420,27 @@ require(["core/event", "jquery"], function(Event, $) {
       return ret;
     }
 
-
-    document.getElementById(\'' . $this->_attributes['id'] . '\').addEventListener(\'submit\', function(ev) {
+    // Listener to the custom "presubmit" event that performs form validation and calls ev.preventDefault().
+    document.getElementById(\'' . $this->_attributes['id'] . '\').addEventListener(\'presubmit\', function(ev) {
         try {
             var myValidator = validate_' . $this->_formName . ';
         } catch(e) {
-            return true;
+            return;
         }
         if (typeof window.tinyMCE !== \'undefined\') {
             window.tinyMCE.triggerSave();
         }
         if (!myValidator()) {
+            ev.preventDefault();
+        }
+    });
+
+    // When form is submitted perform the validation first.
+    document.getElementById(\'' . $this->_attributes['id'] . '\').addEventListener(\'submit\', function(ev) {
+        var event = document.createEvent(\'Event\');
+        event.initEvent(\'presubmit\', false, true);
+        ev.currentTarget.dispatchEvent(event);
+        if (event.defaultPrevented) {
             ev.preventDefault();
         }
     });

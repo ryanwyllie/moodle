@@ -460,24 +460,16 @@ define([
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
-        // When the user clicks the save button we trigger the form submission. We need to
-        // trigger an actual submission because there is some JS code in the form that is
-        // listening for this event and doing some stuff (e.g. saving draft areas etc).
-        this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
-            this.getForm().submit();
-            data.originalEvent.preventDefault();
-            e.stopPropagation();
-        }.bind(this));
-
-        // Catch the submit event before it is actually processed by the browser and
-        // prevent the submission. We'll take it from here.
-        this.getModal().on('submit', function(e) {
-            this.save();
-
-            // Stop the form from actually submitting and prevent it's
-            // propagation because we have already handled the event.
-            e.preventDefault();
-            e.stopPropagation();
+        // When the user clicks the save button save the form.
+        this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e) {
+            var event = document.createEvent('Event');
+            event.initEvent('presubmit', false, true);
+            this.getForm()[0].dispatchEvent(event);
+            if (event.defaultPrevented) {
+                e.preventDefault();
+            } else {
+                this.save();
+            }
         }.bind(this));
     };
 
