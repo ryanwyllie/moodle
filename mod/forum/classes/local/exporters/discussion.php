@@ -22,12 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\exporters;
+namespace mod_forum\local\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\serializers\exporters\post as post_exporter;
+use mod_forum\local\exporters\post as post_exporter;
 use core\external\exporter;
 use renderer_base;
 

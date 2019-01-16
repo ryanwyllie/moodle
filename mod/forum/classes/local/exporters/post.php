@@ -22,12 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\exporters;
+namespace mod_forum\local\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\serializers\exporters\author as author_exporter;
+use mod_forum\local\exporters\author as author_exporter;
 use core\external\exporter;
 use context;
 use renderer_base;
@@ -117,7 +117,7 @@ class post extends exporter {
      */
     protected static function define_related() {
         return [
-            'databaseserializerfactory' => 'mod_forum\local\factories\database_serializer',
+            'databasedatamapperfactory' => 'mod_forum\local\factories\database_data_mapper',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
             'coursemodule' => 'stdClass',
@@ -127,17 +127,17 @@ class post extends exporter {
     }
 
     private function get_forum_record() {
-        $forumdbserializer = $this->related['databaseserializerfactory']->get_forum_serializer();
-        return $forumdbserializer->to_db_records([$this->related['forum']])[0];
+        $forumdbdatamapper = $this->related['databasedatamapperfactory']->get_forum_data_mapper();
+        return $forumdbdatamapper->to_db_records([$this->related['forum']])[0];
     }
 
     private function get_discussion_record() {
-        $discussiondbserializer = $this->related['databaseserializerfactory']->get_discussion_serializer();
-        return $discussiondbserializer->to_db_records([$this->related['discussion']])[0];
+        $discussiondbdatamapper = $this->related['databasedatamapperfactory']->get_discussion_data_mapper();
+        return $discussiondbdatamapper->to_db_records([$this->related['discussion']])[0];
     }
 
     private function get_post_record() {
-        $postdbserializer = $this->related['databaseserializerfactory']->get_post_serializer();
-        return $postdbserializer->to_db_records([$this->post])[0];
+        $postdbdatamapper = $this->related['databasedatamapperfactory']->get_post_data_mapper();
+        return $postdbdatamapper->to_db_records([$this->post])[0];
     }
 }

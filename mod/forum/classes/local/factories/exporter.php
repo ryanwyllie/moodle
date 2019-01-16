@@ -26,22 +26,26 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
-use mod_forum\local\factories\database_serializer as database_serializer_factory;
-use mod_forum\local\serializers\exporters\discussion as discussion_exporter;
-use mod_forum\local\serializers\exporters\posts as posts_exporter;
+use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\exporters\author as author_exporter;
+use mod_forum\local\exporters\discussion as discussion_exporter;
+use mod_forum\local\exporters\post as post_exporter;
+use mod_forum\local\exporters\posts as posts_exporter;
 use context;
 use stdClass;
 
 /**
- * Serializer factory.
+ * data_mapper factory.
  */
-class exporter_serializer {
-    private $dbserializerfactory;
+class exporter {
+    private $dbdatamapperfactory;
 
-    public function __construct(database_serializer_factory $dbserializerfactory) {
-        $this->dbserializerfactory = $dbserializerfactory;
+    public function __construct(database_data_mapper_factory $dbdatamapperfactory) {
+        $this->dbdatamapperfactory = $dbdatamapperfactory;
     }
 
     public function get_discussion_exporter(discussion_entity $discussion, array $exportedposts = []) : discussion_exporter {
@@ -57,12 +61,15 @@ class exporter_serializer {
         context $context,
         forum_entity $forum,
         discussion_entity $discussion,
-        array $posts
+        array $posts,
+        stdClass $coursemodule = null
     ) : posts_exporter {
-        $coursemodule = get_coursemodule_from_instance('forum', $forum->get_id(), $forum->get_course_id());
+        if (is_null($coursemodule)) {
+            $coursemodule = get_coursemodule_from_instance('forum', $forum->get_id(), $forum->get_course_id());
+        }
 
         return new posts_exporter($posts, [
-            'databaseserializerfactory' => $this->dbserializerfactory,
+            'databasedatamapperfactory' => $this->dbdatamapperfactory,
             'forum' => $forum,
             'discussion' => $discussion,
             'coursemodule' => $coursemodule,

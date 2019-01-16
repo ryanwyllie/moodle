@@ -29,8 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\factories\database_serializer as database_serializer_factory;
-use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
+use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use context;
 use context_module;
@@ -49,8 +49,8 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class discussion {
     private $renderer;
-    private $databaseserializerfactory;
-    private $exporterserializerfactory;
+    private $databasedatamapperfactory;
+    private $exporterfactory;
     private $vaultfactory;
     private $baseurl;
     private $canshowdisplaymodeselector;
@@ -61,8 +61,8 @@ class discussion {
 
     public function __construct(
         renderer_base $renderer,
-        database_serializer_factory $databaseserializerfactory,
-        exporter_serializer_factory $exporterserializerfactory,
+        database_data_mapper_factory $databasedatamapperfactory,
+        exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         moodle_url $baseurl,
         bool $canshowdisplaymodeselector = true,
@@ -77,8 +77,8 @@ class discussion {
         $this->canshowmovediscussion = $canshowmovediscussion;
         $this->canshowpindiscussion = $canshowpindiscussion;
         $this->canshowsubscription = $canshowsubscription;
-        $this->databaseserializerfactory = $databaseserializerfactory;
-        $this->exporterserializerfactory = $exporterserializerfactory;
+        $this->databasedatamapperfactory = $databasedatamapperfactory;
+        $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
 
         if (is_null($getnotificationscallback)) {
@@ -112,8 +112,8 @@ class discussion {
             $exporteddiscussion['html']['modeselectorform'] = $this->get_display_mode_selector_html($this->baseurl, $displaymode);
         }
 
-        $forumserializer = $this->databaseserializerfactory->get_forum_serializer();
-        $forumrecord = $forumserializer->to_db_records([$forum])[0];
+        $forumdatamapper = $this->databasedatamapperfactory->get_forum_data_mapper();
+        $forumrecord = $forumdatamapper->to_db_records([$forum])[0];
 
         if ($this->should_show_subscription_button($user, $context, $forumrecord)) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
@@ -167,7 +167,7 @@ class discussion {
     ) : array {
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
-        $postexporter = $this->exporterserializerfactory->get_posts_exporter(
+        $postexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $context,
             $forum,
@@ -209,7 +209,7 @@ class discussion {
     }
 
     private function get_exported_discussion(discussion_entity $discussion, array $posts) : array {
-        $discussionexporter = $this->exporterserializerfactory->get_discussion_exporter(
+        $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $discussion,
             $posts
         );

@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\database;
+namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -39,7 +39,7 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 /**
  * Forum class.
  */
-class post implements db_serializer_interface {
+class post implements db_data_mapper_interface {
     private $authorvault;
 
     public function __construct(

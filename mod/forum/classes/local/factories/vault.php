@@ -26,7 +26,7 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\factories\database_serializer as serializer_factory;
+use mod_forum\local\factories\database_data_mapper as data_mapper_factory;
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
@@ -36,29 +36,29 @@ use mod_forum\local\vaults\post as post_vault;
  * Vault factory.
  */
 class vault {
-    private $serializerfactory;
+    private $datamapperfactory;
 
-    public function __construct(serializer_factory $serializerfactory) {
-        $this->serializerfactory = $serializerfactory;
+    public function __construct(data_mapper_factory $datamapperfactory) {
+        $this->datamapperfactory = $datamapperfactory;
     }
 
     public function get_forum_vault() : forum_vault {
         global $DB;
-        return new forum_vault($DB, 'forum', $this->serializerfactory->get_forum_serializer());
+        return new forum_vault($DB, 'forum', $this->datamapperfactory->get_forum_data_mapper());
     }
 
     public function get_discussion_vault() : discussion_vault {
         global $DB;
-        return new discussion_vault($DB, 'forum_discussions', $this->serializerfactory->get_discussion_serializer());
+        return new discussion_vault($DB, 'forum_discussions', $this->datamapperfactory->get_discussion_data_mapper());
     }
 
     public function get_post_vault() : post_vault {
         global $DB;
-        return new post_vault($DB, 'forum_posts', $this->serializerfactory->get_post_serializer());
+        return new post_vault($DB, 'forum_posts', $this->datamapperfactory->get_post_data_mapper());
     }
 
     public function get_author_vault() : author_vault {
         global $DB;
-        return new author_vault($DB, 'user', $this->serializerfactory->get_author_serializer());
+        return new author_vault($DB, 'user', $this->datamapperfactory->get_author_data_mapper());
     }
 }
