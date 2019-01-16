@@ -29,8 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion;
 use mod_forum\local\entities\forum;
 use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\factories\database_serializer as database_serializer_factory;
-use mod_forum\local\factories\exporter_serializer as exporter_serializer_factory;
+use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use context;
 use moodle_url;
@@ -41,17 +41,17 @@ use stdClass;
  * Vault factory.
  */
 class renderer {
-    private $databaseserializerfactory;
-    private $exporterserializerfactory;
+    private $databasedatamapperfactory;
+    private $exporterfactory;
     private $vaultfactory;
 
     public function __construct(
-        database_serializer_factory $databaseserializerfactory,
-        exporter_serializer_factory $exporterserializerfactory,
+        database_data_mapper_factory $databasedatamapperfactory,
+        exporter_factory $exporterfactory,
         vault_factory $vaultfactory
     ) {
-        $this->databaseserializerfactory = $databaseserializerfactory;
-        $this->exporterserializerfactory = $exporterserializerfactory;
+        $this->databasedatamapperfactory = $databasedatamapperfactory;
+        $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
     }
 
@@ -87,8 +87,8 @@ class renderer {
 
         return new discussion_renderer(
             $renderer,
-            $this->databaseserializerfactory,
-            $this->exporterserializerfactory,
+            $this->databasedatamapperfactory,
+            $this->exporterfactory,
             $this->vaultfactory,
             $baseurl,
             $canshowdisplaymodeselector,

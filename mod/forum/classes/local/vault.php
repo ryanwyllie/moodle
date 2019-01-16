@@ -26,7 +26,7 @@ namespace mod_forum\local;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\serializers\database\db_serializer_interface;
+use mod_forum\local\data_mappers\database\db_data_mapper_interface;
 use moodle_database;
 
 /**
@@ -35,12 +35,12 @@ use moodle_database;
 class vault {
     private $table;
     private $db;
-    private $serializer;
+    private $datamapper;
 
-    public function __construct(moodle_database $db, string $table, db_serializer_interface $serializer) {
+    public function __construct(moodle_database $db, string $table, db_data_mapper_interface $datamapper) {
         $this->db = $db;
         $this->table = $table;
-        $this->serializer = $serializer;
+        $this->datamapper = $datamapper;
     }
 
     public function get_db() : moodle_database {
@@ -51,8 +51,8 @@ class vault {
         return $this->table;
     }
 
-    public function get_serializer() : db_serializer_interface {
-        return $this->serializer;
+    public function get_data_mapper() : db_data_mapper_interface {
+        return $this->datamapper;
     }
 
     public function get_from_id(int $id) {
@@ -66,6 +66,6 @@ class vault {
     }
 
     protected function transform_db_records_to_entities(array $records) {
-        return $this->get_serializer()->from_db_records($records);
+        return $this->get_data_mapper()->from_db_records($records);
     }
 }

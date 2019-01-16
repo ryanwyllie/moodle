@@ -27,32 +27,32 @@ namespace mod_forum\local\factories;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\serializers\database\author as author_serializer;
-use mod_forum\local\serializers\database\discussion as discussion_serializer;
-use mod_forum\local\serializers\database\forum as forum_serializer;
-use mod_forum\local\serializers\database\post as post_serializer;
+use mod_forum\local\data_mappers\database\author as author_data_mapper;
+use mod_forum\local\data_mappers\database\discussion as discussion_data_mapper;
+use mod_forum\local\data_mappers\database\forum as forum_data_mapper;
+use mod_forum\local\data_mappers\database\post as post_data_mapper;
 
 /**
- * Exporter serializer factory.
+ * Exporter data_mapper factory.
  */
-class database_serializer {
-    public function get_forum_serializer() : forum_serializer {
-        return new forum_serializer();
+class database_data_mapper {
+    public function get_forum_data_mapper() : forum_data_mapper {
+        return new forum_data_mapper();
     }
 
-    public function get_discussion_serializer() : discussion_serializer {
-        return new discussion_serializer();
+    public function get_discussion_data_mapper() : discussion_data_mapper {
+        return new discussion_data_mapper();
     }
 
-    public function get_post_serializer() : post_serializer {
-        return new post_serializer(
+    public function get_post_data_mapper() : post_data_mapper {
+        return new post_data_mapper(
             (new vault_factory($this))->get_author_vault(),
-            $this->get_discussion_serializer(),
-            $this->get_forum_serializer()
+            $this->get_discussion_data_mapper(),
+            $this->get_forum_data_mapper()
         );
     }
 
-    public function get_author_serializer() : author_serializer {
-        return new author_serializer();
+    public function get_author_data_mapper() : author_data_mapper {
+        return new author_data_mapper();
     }
 }

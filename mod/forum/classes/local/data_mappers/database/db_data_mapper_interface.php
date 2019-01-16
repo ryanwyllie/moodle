@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Serializer interface.
+ * data_mapper interface.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\database;
+namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Serializer interface.
+ * data_mapper interface.
  */
-interface db_serializer_interface {
+interface db_data_mapper_interface {
     public function from_db_records(array $records) : array;
     public function to_db_records(array $entities) : array;
 }

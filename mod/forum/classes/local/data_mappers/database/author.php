@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\database;
+namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,7 +31,7 @@ use mod_forum\local\entities\author as author_entity;
 /**
  * Forum class.
  */
-class author implements db_serializer_interface {
+class author implements db_data_mapper_interface {
 
     public function from_db_records(array $records) : array {
         global $PAGE;

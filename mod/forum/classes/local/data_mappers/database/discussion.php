@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\serializers\database;
+namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +35,7 @@ use stdClass;
 /**
  * Forum class.
  */
-class discussion implements db_serializer_interface {
+class discussion implements db_data_mapper_interface {
     public function from_db_records(array $records) : array {
         return array_map(function(stdClass $record) {
             return new discussion_entity(

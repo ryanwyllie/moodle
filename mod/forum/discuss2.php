@@ -39,7 +39,7 @@ if ($displaymode) {
 $displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
 $vaultfactory = mod_forum\local\container::get_vault_factory();
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
-$dbserializerfactory = mod_forum\local\container::get_database_serializer_factory();
+$dbdatamapperfactory = mod_forum\local\container::get_database_data_mapper_factory();
 
 $discussionvault = $vaultfactory->get_discussion_vault();
 $discussion = $discussionvault->get_from_id($discussionid);
@@ -80,10 +80,10 @@ if ($node && $post->id != $discussion->firstpost) {
 */
 
 // Trigger discussion viewed event.
-$discussionserializer = $dbserializerfactory->get_discussion_serializer();
-$forumserializer = $dbserializerfactory->get_forum_serializer();
-$discussionrecord = $discussionserializer->to_db_records([$discussion])[0];
-$forumrecord = $forumserializer->to_db_records([$forum])[0];
+$discussiondatamapper = $dbdatamapperfactory->get_discussion_data_mapper();
+$forumdatamapper = $dbdatamapperfactory->get_forum_data_mapper();
+$discussionrecord = $discussiondatamapper->to_db_records([$discussion])[0];
+$forumrecord = $forumdatamapper->to_db_records([$forum])[0];
 forum_discussion_view($modcontext, $forumrecord, $discussionrecord);
 
 unset($SESSION->fromdiscussion);
