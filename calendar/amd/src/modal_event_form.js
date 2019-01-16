@@ -462,8 +462,7 @@ define([
 
         // When the user clicks the save button save the form.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e) {
-            var event = document.createEvent('Event');
-            event.initEvent('presubmit', false, true);
+            var event = new CustomEvent('presubmit', { cancelable: true });
             this.getForm()[0].dispatchEvent(event);
             if (event.defaultPrevented) {
                 e.preventDefault();
