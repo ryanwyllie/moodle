@@ -460,16 +460,20 @@ define([
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
+        var saveClicked = false;
         // When the user clicks the save button save the form.
         this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e) {
-            var event = new CustomEvent('presubmit', { cancelable: true });
-            this.getForm()[0].dispatchEvent(event);
-            if (event.defaultPrevented) {
-                e.preventDefault();
-            } else {
+            saveClicked = true;
+            this.getForm().trigger(Event.Events.VALIDATE_FORM);
+        }.bind(this));
+
+        this.getForm().on(Event.Events.FORM_VALIDATION_COMPLETE, function(isValid) {
+            if (saveClicked && isValid) {
+                // Check saved click just in case something else triggered the validation.
+                saveClicked = false;
                 this.save();
             }
-        }.bind(this));
+        });
     };
 
     // Automatically register with the modal registry the first time this module is imported so that you can create modals

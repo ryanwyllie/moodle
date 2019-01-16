@@ -2421,7 +2421,8 @@ require(["core/event", "jquery"], function(Event, $) {
     }
 
     // Listener to the custom "presubmit" event that performs form validation and calls ev.preventDefault().
-    document.getElementById(\'' . $this->_attributes['id'] . '\').addEventListener(\'presubmit\', function(ev) {
+    var form = $(\'#' . $this->_attributes['id'] . '\');
+    form.on(Event.Events.VALIDATE_FORM, function(ev) {
         try {
             var myValidator = validate_' . $this->_formName . ';
         } catch(e) {
@@ -2430,17 +2431,13 @@ require(["core/event", "jquery"], function(Event, $) {
         if (typeof window.tinyMCE !== \'undefined\') {
             window.tinyMCE.triggerSave();
         }
-        if (!myValidator()) {
-            ev.preventDefault();
-        }
+
+        form.trigger(Event.Events.FORM_VALIDATION_COMPLETE, myValidator());
     });
 
     // When form is submitted perform the validation first.
     document.getElementById(\'' . $this->_attributes['id'] . '\').addEventListener(\'submit\', function(ev) {
-        var event = document.createEvent(\'Event\');
-        event.initEvent(\'presubmit\', false, true);
-        ev.currentTarget.dispatchEvent(event);
-        if (event.defaultPrevented) {
+        if (!validate_' . $this->_formName . '()) {
             ev.preventDefault();
         }
     });
