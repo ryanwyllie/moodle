@@ -15,31 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * SQL strategy interface.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults;
+namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vault;
-
 /**
- * Vault class.
+ * SQL strategy interface.
  */
-class post extends vault {
-    public function get_from_discussion_id(int $discussionid, string $orderby = 'created ASC') : array {
-        $strategy = $this->get_sql_strategy();
-        $alias = $strategy->get_table_alias();
-        $wheresql = $alias . '.discussion = ?';
-        $orderbysql = $alias . '.' . $orderby;
-        $sql = $strategy->generate_get_records_sql($wheresql, $orderbysql);
-        $records = $this->get_db()->get_records_sql($sql, [$discussionid]);
-
-        return $this->transform_db_records_to_entities($records);
-    }
+interface sql_strategy_interface {
+    public function get_table() : string;
+    public function get_table_alias() : string;
+    public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string;
 }

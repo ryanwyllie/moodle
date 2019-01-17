@@ -26,10 +26,13 @@ namespace mod_forum\local\entities;
 
 defined('MOODLE_INTERNAL') || die();
 
+use context;
+
 /**
  * Forum class.
  */
 class forum {
+    private $context;
     private $id;
     private $courseid;
     private $type;
@@ -57,6 +60,7 @@ class forum {
     private $lockdiscussionafter;
 
     public function __construct(
+        context $context,
         int $id,
         int $courseid,
         string $type,
@@ -83,6 +87,7 @@ class forum {
         bool $displaywordcount,
         int $lockdiscussionafter
     ) {
+        $this->context = $context;
         $this->id = $id;
         $this->courseid = $courseid;
         $this->type = $type;
@@ -108,6 +113,10 @@ class forum {
         $this->completionposts = $completionposts;
         $this->displaywordcount = $displaywordcount;
         $this->lockdiscussionafter = $lockdiscussionafter;
+    }
+
+    public function get_context() : context {
+        return $this->context;
     }
 
     public function get_id() : int {

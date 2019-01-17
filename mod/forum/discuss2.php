@@ -99,6 +99,6 @@ echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname');
 
 $discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion, $renderer);
-echo $discussionrenderer->render($USER, $modcontext, $forum, $discussion, $displaymode);
+echo $discussionrenderer->render($USER, $displaymode);
 
 echo $OUTPUT->footer();

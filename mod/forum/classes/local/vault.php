@@ -27,19 +27,27 @@ namespace mod_forum\local;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\data_mappers\database\db_data_mapper_interface;
+use mod_forum\local\vaults\sql_strategies\sql_strategy_interface;
+use context_helper;
 use moodle_database;
 
 /**
  * Vault class.
  */
 class vault {
-    private $table;
+    private $sqlstrategy;
     private $db;
     private $datamapper;
+    private $includecontext;
+    private $contextlevel;
 
-    public function __construct(moodle_database $db, string $table, db_data_mapper_interface $datamapper) {
+    public function __construct(
+        moodle_database $db,
+        sql_strategy_interface $sqlstrategy,
+        db_data_mapper_interface $datamapper
+    ) {
         $this->db = $db;
-        $this->table = $table;
+        $this->sqlstrategy = $sqlstrategy;
         $this->datamapper = $datamapper;
     }
 
@@ -47,8 +55,8 @@ class vault {
         return $this->db;
     }
 
-    public function get_table() : string {
-        return $this->table;
+    public function get_sql_strategy() : sql_strategy_interface {
+        return $this->sqlstrategy;
     }
 
     public function get_data_mapper() : db_data_mapper_interface {
@@ -56,13 +64,19 @@ class vault {
     }
 
     public function get_from_id(int $id) {
-        $record = $this->get_db()->get_record($this->get_table(), ['id' => $id]);
-        return $record ? $this->transform_db_records_to_entities([$record])[0] : null;
+        $records = $this->get_from_ids([$id]);
+        return count($records) ? $records[0] : null;
     }
 
     public function get_from_ids(array $ids) {
-        $records = $this->get_db()->get_records_list($this->get_table(), 'id', $ids);
-        return $this->transform_db_records_to_entities($records);
+        $strategy = $this->get_sql_strategy();
+        $alias = $strategy->get_table_alias();
+        list($insql, $params) = $this->get_db()->get_in_or_equal($ids);
+        $wheresql = $alias . '.id ' . $insql;
+        $sql = $strategy->generate_get_records_sql($wheresql);
+        $records = $this->get_db()->get_records_sql($sql, $params);
+
+        return $this->transform_db_records_to_entities(array_values($records));
     }
 
     protected function transform_db_records_to_entities(array $records) {

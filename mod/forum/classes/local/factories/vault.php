@@ -31,6 +31,8 @@ use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
+use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
+use mod_forum\local\vaults\sql_strategies\single_table_with_module_context as module_context_strategy;
 
 /**
  * Vault factory.
@@ -44,21 +46,29 @@ class vault {
 
     public function get_forum_vault() : forum_vault {
         global $DB;
-        return new forum_vault($DB, 'forum', $this->datamapperfactory->get_forum_data_mapper());
+        $strategy = new module_context_strategy('forum', 'forum');
+        return new forum_vault(
+            $DB,
+            $strategy,
+            $this->datamapperfactory->get_forum_data_mapper()
+        );
     }
 
     public function get_discussion_vault() : discussion_vault {
         global $DB;
-        return new discussion_vault($DB, 'forum_discussions', $this->datamapperfactory->get_discussion_data_mapper());
+        $strategy = new single_table_strategy('forum_discussions');
+        return new discussion_vault($DB, $strategy, $this->datamapperfactory->get_discussion_data_mapper());
     }
 
     public function get_post_vault() : post_vault {
         global $DB;
-        return new post_vault($DB, 'forum_posts', $this->datamapperfactory->get_post_data_mapper());
+        $strategy = new single_table_strategy('forum_posts');
+        return new post_vault($DB, $strategy, $this->datamapperfactory->get_post_data_mapper());
     }
 
     public function get_author_vault() : author_vault {
         global $DB;
-        return new author_vault($DB, 'user', $this->datamapperfactory->get_author_data_mapper());
+        $strategy = new single_table_strategy('user');
+        return new author_vault($DB, $strategy, $this->datamapperfactory->get_author_data_mapper());
     }
 }

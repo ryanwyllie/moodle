@@ -22,24 +22,33 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults;
+namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
-
-use mod_forum\local\vault;
 
 /**
  * Vault class.
  */
-class post extends vault {
-    public function get_from_discussion_id(int $discussionid, string $orderby = 'created ASC') : array {
-        $strategy = $this->get_sql_strategy();
-        $alias = $strategy->get_table_alias();
-        $wheresql = $alias . '.discussion = ?';
-        $orderbysql = $alias . '.' . $orderby;
-        $sql = $strategy->generate_get_records_sql($wheresql, $orderbysql);
-        $records = $this->get_db()->get_records_sql($sql, [$discussionid]);
+class single_table implements sql_strategy_interface {
+    private $table;
 
-        return $this->transform_db_records_to_entities($records);
+    public function __construct(string $table) {
+        $this->table = $table;
+    }
+
+    public function get_table() : string {
+        return $this->table;
+    }
+
+    public function get_table_alias() : string {
+        return 't';
+    }
+
+    public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
+        $selectsql = 'SELECT * FROM {' . $this->get_table() . '} ' . $this->get_table_alias();
+        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
+        $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
+
+        return $selectsql;
     }
 }
