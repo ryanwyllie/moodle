@@ -27,6 +27,8 @@ namespace mod_forum\local\data_mappers\database;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\forum as forum_entity;
+use context;
+use context_helper;
 
 /**
  * Forum class.
@@ -35,7 +37,12 @@ class forum implements db_data_mapper_interface {
 
     public function from_db_records(array $records) : array {
         return array_map(function($record) {
+            $contextid = $record->ctxid;
+            context_helper::preload_from_record($record);
+            $context = context::instance_by_id($contextid);
+
             return new forum_entity(
+                $context,
                 $record->id,
                 $record->course,
                 $record->type,

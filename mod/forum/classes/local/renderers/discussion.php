@@ -48,6 +48,8 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * Nested discussion renderer class.
  */
 class discussion {
+    private $discussion;
+    private $forum;
     private $renderer;
     private $databasedatamapperfactory;
     private $exporterfactory;
@@ -60,6 +62,8 @@ class discussion {
     private $getnotificationscallback;
 
     public function __construct(
+        discussion_entity $discussion,
+        forum_entity $forum,
         renderer_base $renderer,
         database_data_mapper_factory $databasedatamapperfactory,
         exporter_factory $exporterfactory,
@@ -71,6 +75,8 @@ class discussion {
         bool $canshowsubscription = true,
         callable $getnotificationscallback = null
     ) {
+        $this->discussion = $discussion;
+        $this->forum = $forum;
         $this->renderer = $renderer;
         $this->baseurl = $baseurl;
         $this->canshowdisplaymodeselector = $canshowdisplaymodeselector;
@@ -90,8 +96,12 @@ class discussion {
         $this->getnotificationscallback = $getnotificationscallback;
     }
 
-    public function render(stdClass $user, context $context, forum_entity $forum, discussion_entity $discussion, int $displaymode) : string {
+    public function render(stdClass $user, int $displaymode) : string {
         global $PAGE, $USER;
+
+        $discussion = $this->discussion;
+        $forum = $this->forum;
+        $context = $forum->get_context();
 
         // Make sure we can render.
         $this->validate_render($context);

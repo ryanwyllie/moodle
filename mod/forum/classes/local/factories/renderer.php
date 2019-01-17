@@ -86,6 +86,8 @@ class renderer {
         }
 
         return new discussion_renderer(
+            $discussion,
+            $forum,
             $renderer,
             $this->databasedatamapperfactory,
             $this->exporterfactory,
