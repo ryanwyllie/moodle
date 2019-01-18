@@ -607,7 +607,6 @@ function(
      */
     var show = function(namespace, header, body, footer, type, includeFavourites, totalCountPromise, unreadCountPromise) {
         var root = $(body);
-
         if (!root.attr('data-init')) {
             var loadCallback = getLoadCallback(type, includeFavourites, 0);
             registerEventListeners(namespace, root, loadCallback, type, includeFavourites);

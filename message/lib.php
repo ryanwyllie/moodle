@@ -820,9 +820,10 @@ function core_message_render_navbar_output(\renderer_base $renderer) {
  * Render the message drawer to be included in the top of the body of
  * each page.
  *
+ * @param bool $isdrawer Are we are rendering the drawer or is this on a full page?
  * @return string HTML
  */
-function core_message_standard_after_main_region_html() {
+function core_message_standard_after_main_region_html($isdrawer = true) {
     global $USER, $CFG, $PAGE;
 
     // Early bail out conditions.
@@ -860,7 +861,15 @@ function core_message_standard_after_main_region_html() {
     // Get the unread counts for the current user.
     $unreadcounts = \core_message\api::get_unread_conversation_counts($USER->id);
 
-    return $renderer->render_from_template('core_message/message_drawer', [
+    if ($isdrawer) {
+        $template = 'core_message/message_drawer';
+        $messageurl = new moodle_url('/message/index.php');
+    } else {
+        $template = 'core_message/message_index';
+        $messageurl = null;
+    }
+
+    return $renderer->render_from_template($template, [
         'contactrequestcount' => $requestcount,
         'loggedinuser' => [
             'id' => $USER->id,
@@ -877,6 +886,9 @@ function core_message_standard_after_main_region_html() {
         'settings' => [
             'privacy' => $choices,
             'entertosend' => $entertosend
+        ],
+        'overview' => [
+            'messageurl' => $messageurl
         ]
     ]);
 }
