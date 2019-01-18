@@ -31,6 +31,7 @@ use mod_forum\local\entities\forum;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
+use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use context;
 use moodle_url;
@@ -44,23 +45,30 @@ class renderer {
     private $databasedatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
+    private $managerfactory;
+    private $rendererbase;
 
     public function __construct(
         database_data_mapper_factory $databasedatamapperfactory,
         exporter_factory $exporterfactory,
-        vault_factory $vaultfactory
+        vault_factory $vaultfactory,
+        manager_factory $managerfactory,
+        renderer_base $rendererbase
     ) {
         $this->databasedatamapperfactory = $databasedatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
+        $this->managerfactory = $managerfactory;
+        $this->rendererbase = $rendererbase;
     }
 
     public function get_discussion_renderer(
         forum $forum,
-        discussion $discussion,
-        renderer_base $renderer
+        discussion $discussion
     ) : discussion_renderer {
 
+        $capabilitymanager = $this->managerfactory->get_capability_manager();
+        $rendererbase = $this->rendererbase;
         $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
         $canshowdisplaymodeselector = true;
         $canshowmovediscussion = true;
@@ -74,12 +82,9 @@ class renderer {
                 $canshowmovediscussion = false;
                 break;
             case 'qanda':
-                $getnotificationscallback = function($user, $context, $forum, $discussion) use ($renderer) {
-                    if (
-                        !has_capability('mod/forum:viewqandawithoutposting', $context) &&
-                        !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $user->id)
-                    ) {
-                        return [$renderer->notification(get_string('qandanotify', 'forum'))];
+                $getnotificationscallback = function($user, $context, $forum, $discussion) use ($capabilitymanager, $rendererbase) {
+                    if ($capabilitymanager->must_post_before_viewing_discussion($user, $forum, $discussion)) {
+                        return [$rendererbase->notification(get_string('qandanotify', 'forum'))];
                     }
                 };
                 break;
@@ -88,10 +93,11 @@ class renderer {
         return new discussion_renderer(
             $discussion,
             $forum,
-            $renderer,
+            $rendererbase,
             $this->databasedatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
+            $capabilitymanager,
             $baseurl,
             $canshowdisplaymodeselector,
             $canshowmovediscussion,

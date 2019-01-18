@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\factories\renderer as renderer_factory;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
+use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\factories\vault as vault_factory;
 
 /**
@@ -36,10 +37,18 @@ use mod_forum\local\factories\vault as vault_factory;
  */
 class container {
     public static function get_renderer_factory() : renderer_factory {
+        global $PAGE;
+        $dbdatabasemapper = new database_data_mapper_factory();
+        $exporterfactory = new exporter_factory($dbdatabasemapper);
+        $vaultfactory = new vault_factory($dbdatabasemapper);
+        $managerfactory = new manager_factory($dbdatabasemapper);
+
         return new renderer_factory(
-            self::get_database_data_mapper_factory(),
-            self::get_exporter_factory(),
-            self::get_vault_factory()
+            $dbdatabasemapper,
+            $exporterfactory,
+            $vaultfactory,
+            $managerfactory,
+            $PAGE->get_renderer('mod_forum')
         );
     }
 
@@ -55,6 +64,12 @@ class container {
 
     public static function get_vault_factory() : vault_factory {
         return new vault_factory(
+            self::get_database_data_mapper_factory()
+        );
+    }
+
+    public static function get_manager_factory() : manager_factory {
+        return new manager_factory(
             self::get_database_data_mapper_factory()
         );
     }

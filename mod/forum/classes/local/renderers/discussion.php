@@ -32,9 +32,11 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
+use mod_forum\local\managers\capability as capability_manager;
 use context;
 use context_module;
 use html_writer;
+use moodle_exception;
 use moodle_url;
 use renderer_base;
 use single_button;
@@ -54,6 +56,7 @@ class discussion {
     private $databasedatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
+    private $capabilitymanager;
     private $baseurl;
     private $canshowdisplaymodeselector;
     private $canshowmovediscussion;
@@ -68,6 +71,7 @@ class discussion {
         database_data_mapper_factory $databasedatamapperfactory,
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
+        capability_manager $capabilitymanager,
         moodle_url $baseurl,
         bool $canshowdisplaymodeselector = true,
         bool $canshowmovediscussion = true,
@@ -86,6 +90,7 @@ class discussion {
         $this->databasedatamapperfactory = $databasedatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
+        $this->capabilitymanager = $capabilitymanager;
 
         if (is_null($getnotificationscallback)) {
             $getnotificationscallback = function() {
@@ -99,18 +104,21 @@ class discussion {
     public function render(stdClass $user, int $displaymode) : string {
         global $PAGE, $USER;
 
+        $capabilitymanager = $this->capabilitymanager;
         $discussion = $this->discussion;
         $forum = $this->forum;
         $context = $forum->get_context();
 
         // Make sure we can render.
-        $this->validate_render($context);
+        if (!$capabilitymanager->can_view_discussion($user, $forum)) {
+            throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
+        }
 
         $nestedposts = $this->get_exported_posts($user, $context, $forum, $discussion, $displaymode);
         $exporteddiscussion = $this->get_exported_discussion($discussion, $nestedposts);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'html' => [
-                'modeselectorform' => null,
+                'modeselectorform' => $this->get_display_mode_selector_html($this->baseurl, $displaymode),
                 'notifications' => ($this->getnotificationscallback)($user, $context, $forum, $discussion),
                 'subscribe' => null,
                 'movediscussion' => null,
@@ -118,30 +126,22 @@ class discussion {
             ]
         ]);
 
-        if ($this->should_show_display_mode_selector()) {
-            $exporteddiscussion['html']['modeselectorform'] = $this->get_display_mode_selector_html($this->baseurl, $displaymode);
-        }
-
         $forumdatamapper = $this->databasedatamapperfactory->get_forum_data_mapper();
         $forumrecord = $forumdatamapper->to_db_records([$forum])[0];
 
-        if ($this->should_show_subscription_button($user, $context, $forumrecord)) {
+        if ($capabilitymanager->can_subscribe($user, $forum)) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
         }
 
-        if ($this->should_show_move_discussion($context)) {
+        if ($capabilitymanager->can_move_discussion($user, $forum)) {
             $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html($forum, $discussion);
         }
 
-        if ($this->should_show_pin_discussion($context)) {
+        if ($capabilitymanager->can_pin_discussion($user, $forum)) {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html($discussion);
         }
 
         return $this->renderer->render_from_template($this->get_template($displaymode), $exporteddiscussion);
-    }
-
-    private function validate_render(context $context) {
-        require_capability('mod/forum:viewdiscussion', $context, NULL, true, 'noviewdiscussionspermission', 'forum');
     }
 
     private function get_template(int $displaymode) : string {
@@ -227,10 +227,6 @@ class discussion {
         return (array) $discussionexporter->export($this->renderer);
     }
 
-    private function should_show_display_mode_selector() : bool {
-        return $this->canshowdisplaymodeselector;
-    }
-
     private function get_display_mode_selector_html(moodle_url $baseurl, int $displaymode) : string {
         $select = new single_select(
             $baseurl,
@@ -248,14 +244,6 @@ class discussion {
         return $html;
     }
 
-    private function should_show_subscription_button(stdClass $user, context $context, stdClass $forumrecord) : bool {
-        return $this->canshowsubscription &&
-                !is_guest($context, $user) &&
-                isloggedin() &&
-                has_capability('mod/forum:viewdiscussion', $context) &&
-                \mod_forum\subscriptions::is_subscribable($forumrecord);
-    }
-
     private function get_subscription_button_html(stdClass $forumrecord, discussion_entity $discussion) : string {
         global $PAGE;
 
@@ -267,10 +255,6 @@ class discussion {
         // Add the subscription toggle JS.
         $PAGE->requires->yui_module('moodle-mod_forum-subscriptiontoggle', 'Y.M.mod_forum.subscriptiontoggle.init');
         return $html;
-    }
-
-    private function should_show_move_discussion(context $context) : bool {
-        return $this->canshowmovediscussion && has_capability('mod/forum:movediscussions', $context);
     }
 
     private function get_move_discussion_html(forum_entity $forum, discussion_entity $discussion) : string {
@@ -316,10 +300,6 @@ class discussion {
         $html .= "</div>";
 
         return $html;
-    }
-
-    private function should_show_pin_discussion(context $context) : bool {
-        return $this->canshowpindiscussion && has_capability('mod/forum:pindiscussions', $context);
     }
 
     private function get_pin_discussion_html(discussion_entity $discussion) : string {
