@@ -55,15 +55,15 @@ class capability {
             subscriptions::is_subscribable($this->get_forum_record($forum));
     }
 
-    public function can_view_discussion(stdClass $user, forum_entity $forum) : bool {
+    public function can_view_discussions(stdClass $user, forum_entity $forum) : bool {
         return has_capability('mod/forum:viewdiscussion', $forum->get_context(), $user);
     }
 
-    public function can_move_discussion(stdClass $user, forum_entity $forum) : bool {
+    public function can_move_discussions(stdClass $user, forum_entity $forum) : bool {
         return $forum->get_type() !== 'single' && has_capability('mod/forum:movediscussions', $forum->get_context());
     }
 
-    public function can_view_discussion_without_posting(stdClass $user, forum_entity $forum) : bool {
+    public function can_view_discussions_without_posting(stdClass $user, forum_entity $forum) : bool {
         return $this->can_view_discussion($user, $forum) &&
             (
                 $forum->get_type() !== 'qanda' ||
@@ -71,12 +71,12 @@ class capability {
             );
     }
 
-    public function can_pin_discussion(stdClass $user, forum_entity $forum) : bool {
+    public function can_pin_discussions(stdClass $user, forum_entity $forum) : bool {
         return has_capability('mod/forum:pindiscussions', $forum->get_context());
     }
 
     public function must_post_before_viewing_discussion(stdClass $user, forum_entity $forum, discussion_entity $discussion) : bool {
-        return !$this->can_view_discussion_without_posting($forum, $user) &&
+        return !$this->can_view_discussions_without_posting($forum, $user) &&
             !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $user->id);
     }
 

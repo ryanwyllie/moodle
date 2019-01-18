@@ -33,6 +33,7 @@ use mod_forum\local\factories\database_data_mapper as database_data_mapper_facto
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
+use core\output\notification;
 use context;
 use context_module;
 use html_writer;
@@ -58,11 +59,7 @@ class discussion {
     private $vaultfactory;
     private $capabilitymanager;
     private $baseurl;
-    private $canshowdisplaymodeselector;
-    private $canshowmovediscussion;
-    private $canshowpindiscussion;
-    private $canshowsubscription;
-    private $getnotificationscallback;
+    private $notifications;
 
     public function __construct(
         discussion_entity $discussion,
@@ -73,32 +70,17 @@ class discussion {
         vault_factory $vaultfactory,
         capability_manager $capabilitymanager,
         moodle_url $baseurl,
-        bool $canshowdisplaymodeselector = true,
-        bool $canshowmovediscussion = true,
-        bool $canshowpindiscussion = true,
-        bool $canshowsubscription = true,
-        callable $getnotificationscallback = null
+        array $notifications = []
     ) {
         $this->discussion = $discussion;
         $this->forum = $forum;
         $this->renderer = $renderer;
         $this->baseurl = $baseurl;
-        $this->canshowdisplaymodeselector = $canshowdisplaymodeselector;
-        $this->canshowmovediscussion = $canshowmovediscussion;
-        $this->canshowpindiscussion = $canshowpindiscussion;
-        $this->canshowsubscription = $canshowsubscription;
         $this->databasedatamapperfactory = $databasedatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->capabilitymanager = $capabilitymanager;
-
-        if (is_null($getnotificationscallback)) {
-            $getnotificationscallback = function() {
-                return [];
-            };
-        }
-
-        $this->getnotificationscallback = $getnotificationscallback;
+        $this->notifications = $notifications;
     }
 
     public function render(stdClass $user, int $displaymode) : string {
@@ -110,7 +92,7 @@ class discussion {
         $context = $forum->get_context();
 
         // Make sure we can render.
-        if (!$capabilitymanager->can_view_discussion($user, $forum)) {
+        if (!$capabilitymanager->can_view_discussions($user, $forum)) {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
@@ -119,7 +101,7 @@ class discussion {
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'html' => [
                 'modeselectorform' => $this->get_display_mode_selector_html($this->baseurl, $displaymode),
-                'notifications' => ($this->getnotificationscallback)($user, $context, $forum, $discussion),
+                'notifications' => $this->get_notifications(),
                 'subscribe' => null,
                 'movediscussion' => null,
                 'pindiscussion' => null
@@ -133,11 +115,11 @@ class discussion {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
         }
 
-        if ($capabilitymanager->can_move_discussion($user, $forum)) {
+        if ($capabilitymanager->can_move_discussions($user, $forum)) {
             $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html($forum, $discussion);
         }
 
-        if ($capabilitymanager->can_pin_discussion($user, $forum)) {
+        if ($capabilitymanager->can_pin_discussions($user, $forum)) {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html($discussion);
         }
 
@@ -313,5 +295,30 @@ class discussion {
 
         $button = new single_button(new moodle_url('discuss.php', ['pin' => $pinlink, 'd' => $discussion->get_id()]), $pintext, 'post');
         return html_writer::tag('div', $this->renderer->render($button), ['class' => 'discussioncontrol pindiscussion']);
+    }
+
+    private function get_notifications() {
+        $notifications = $this->notifications;
+        $discussion = $this->discussion;
+        $forum = $this->forum;
+        $renderer = $this->renderer;
+
+        if ($forum->is_discussion_locked($discussion)) {
+            $notifications[] = $renderer->notification(
+                get_string('discussionlocked', 'forum'),
+                notification::NOTIFY_INFO . ' discussionlocked'
+            );
+        }
+
+        if ($forum->has_blocking_enabled()) {
+            $notifications[] = $renderer->notification(
+                get_string('thisforumisthrottled', 'forum', [
+                    'blockafter' => $forum->get_block_after(),
+                    'blockperiod' => get_string('secondstotime' . $forum->get_block_period())
+                ]
+            ));
+        }
+
+        return $notifications;
     }
 }

@@ -27,6 +27,7 @@ namespace mod_forum\local\factories;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\vault as vault_factory;
+use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\data_mappers\database\author as author_data_mapper;
 use mod_forum\local\data_mappers\database\discussion as discussion_data_mapper;
 use mod_forum\local\data_mappers\database\forum as forum_data_mapper;
@@ -36,23 +37,25 @@ use mod_forum\local\data_mappers\database\post as post_data_mapper;
  * Exporter data_mapper factory.
  */
 class database_data_mapper {
+    private $entityfactory;
+
+    public function __consturct(entity_factory $entityfactory) {
+        $this->entityfactory = $entityfactory;
+    }
+
     public function get_forum_data_mapper() : forum_data_mapper {
-        return new forum_data_mapper();
+        return new forum_data_mapper($this->entityfactory);
     }
 
     public function get_discussion_data_mapper() : discussion_data_mapper {
-        return new discussion_data_mapper();
+        return new discussion_data_mapper($this->entityfactory);
     }
 
     public function get_post_data_mapper() : post_data_mapper {
-        return new post_data_mapper(
-            (new vault_factory($this))->get_author_vault(),
-            $this->get_discussion_data_mapper(),
-            $this->get_forum_data_mapper()
-        );
+        return new post_data_mapper($this->entityfactory);
     }
 
     public function get_author_data_mapper() : author_data_mapper {
-        return new author_data_mapper();
+        return new author_data_mapper($this->entityfactory);
     }
 }

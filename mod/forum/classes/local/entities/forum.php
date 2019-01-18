@@ -26,6 +26,7 @@ namespace mod_forum\local\entities;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\discussion as discussion_entity;
 use context;
 
 /**
@@ -199,6 +200,10 @@ class forum {
         return $this->blockperiod;
     }
 
+    public function has_blocking_enabled() : bool {
+        return !empty($this->get_block_after()) && !empty($this->get_block_period());
+    }
+
     // What is this?
     public function get_completion_discussions() : int {
         return $this->completiondiscussions;
@@ -218,7 +223,24 @@ class forum {
         return $this->displaywordcount;
     }
 
-    public function get_lock_discussion_after() : int {
+    public function get_lock_discussions_after() : int {
         return $this->lockdiscussionafter;
+    }
+
+    public function has_lock_discussions_after() : bool {
+        return !empty($this->get_lock_discussions_after());
+    }
+
+    public function is_discussion_locked(discussion_entity $discussion) : bool {
+        if (!$this->has_lock_discussions_after()) {
+            return false;
+        }
+
+        if ($this->get_type() === 'single') {
+            // It does not make sense to lock a single discussion forum.
+            return false;
+        }
+
+        return (($discussion->get_time_modified() + $this->get_lock_discussions_after()) < time());
     }
 }

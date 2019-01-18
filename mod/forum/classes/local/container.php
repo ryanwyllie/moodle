@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\renderer as renderer_factory;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\factories\vault as vault_factory;
@@ -53,7 +54,9 @@ class container {
     }
 
     public static function get_database_data_mapper_factory() : database_data_mapper_factory {
-        return new database_data_mapper_factory();
+        return new database_data_mapper_factory(
+            new entity_factory()
+        );
     }
 
     public static function get_exporter_factory() : exporter_factory {
@@ -72,5 +75,9 @@ class container {
         return new manager_factory(
             self::get_database_data_mapper_factory()
         );
+    }
+
+    public static function get_entity_factory() : entity_factory {
+        return new entity_factory();
     }
 }
