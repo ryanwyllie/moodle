@@ -38,7 +38,6 @@ if ($displaymode) {
 
 $displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
 $vaultfactory = mod_forum\local\container::get_vault_factory();
-$rendererfactory = mod_forum\local\container::get_renderer_factory();
 $dbdatamapperfactory = mod_forum\local\container::get_database_data_mapper_factory();
 
 $discussionvault = $vaultfactory->get_discussion_vault();
@@ -92,13 +91,12 @@ $PAGE->set_title("$course->shortname: " . format_string($discussion->get_name())
 $PAGE->set_heading($course->fullname);
 $PAGE->set_button(forum_search_form($course));
 
-$renderer = $PAGE->get_renderer('mod_forum');
-
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname');
 
-$discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion, $renderer);
+$rendererfactory = mod_forum\local\container::get_renderer_factory();
+$discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion);
 echo $discussionrenderer->render($USER, $displaymode);
 
 echo $OUTPUT->footer();
