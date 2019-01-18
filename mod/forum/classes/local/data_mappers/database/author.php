@@ -32,19 +32,17 @@ use mod_forum\local\entities\author as author_entity;
  * Forum class.
  */
 class author implements db_data_mapper_interface {
+    private $entityfactory;
+
+    public function __construct(entity_factory $entityfactory) {
+        $this->entityfactory = $entityfactory;
+    }
 
     public function from_db_records(array $records) : array {
-        global $PAGE;
+        $entityfactory = $this->entityfactory;
 
-        return array_map(function($record) use ($PAGE) {
-            $userpicture = new \user_picture($record);
-            $userpicture->size = 1;
-            return new author_entity(
-                $record->id,
-                fullname($record),
-                new \moodle_url('/user/view.php', ['id' => $record->id]),
-                $userpicture->get_url($PAGE)
-            );
+        return array_map(function($record) use ($entityfactory) {
+            return $entityfactory->get_author_from_stdClass($record);
         }, $records);
     }
 

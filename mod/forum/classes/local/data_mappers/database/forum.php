@@ -26,7 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\forum as forum_entity;
+use mod_forum\local\factories\entity as entity_factory;
 use context;
 use context_helper;
 
@@ -34,41 +34,21 @@ use context_helper;
  * Forum class.
  */
 class forum implements db_data_mapper_interface {
+    private $entityfactory;
+
+    public function __construct(entity_factory $entityfactory) {
+        $this->entityfactory = $entityfactory;
+    }
 
     public function from_db_records(array $records) : array {
-        return array_map(function($record) {
+        $entityfactory = $this->entityfactory;
+
+        return array_map(function($record) use ($entityfactory) {
             $contextid = $record->ctxid;
             context_helper::preload_from_record($record);
             $context = context::instance_by_id($contextid);
 
-            return new forum_entity(
-                $context,
-                $record->id,
-                $record->course,
-                $record->type,
-                $record->name,
-                $record->intro,
-                $record->introformat,
-                $record->assessed,
-                $record->assesstimestart,
-                $record->assesstimefinish,
-                $record->scale,
-                $record->maxbytes,
-                $record->maxattachments,
-                $record->forcesubscribe,
-                $record->trackingtype,
-                $record->rsstype,
-                $record->rssarticles,
-                $record->timemodified,
-                $record->warnafter,
-                $record->blockafter,
-                $record->blockperiod,
-                $record->completiondiscussions,
-                $record->completionreplies,
-                $record->completionposts,
-                $record->displaywordcount,
-                $record->lockdiscussionafter
-            );
+            return $entityfactory->get_forum_from_stdClass($record, $context);
         }, $records);
     }
 
@@ -99,7 +79,7 @@ class forum implements db_data_mapper_interface {
                 'completionreplies' => $forum->get_completion_replies(),
                 'completionposts' => $forum->get_completion_posts(),
                 'displaywordcount' => $forum->should_display_word_count(),
-                'lockdiscussionafter' => $forum->get_lock_discussion_after()
+                'lockdiscussionafter' => $forum->get_lock_discussions_after()
             ];
         }, $forums);
     }

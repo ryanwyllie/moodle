@@ -26,9 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\entities\forum as forum_entity;
-use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\factories\entity as entity_factory;
 use context;
 use stdClass;
 
@@ -36,23 +34,17 @@ use stdClass;
  * Forum class.
  */
 class discussion implements db_data_mapper_interface {
+    private $entityfactory;
+
+    public function __construct(entity_factory $entityfactory) {
+        $this->entityfactory = $entityfactory;
+    }
+
     public function from_db_records(array $records) : array {
-        return array_map(function(stdClass $record) {
-            return new discussion_entity(
-                $record->id,
-                $record->course,
-                $record->forum,
-                $record->name,
-                $record->firstpost,
-                $record->userid,
-                $record->groupid,
-                $record->assessed,
-                $record->timemodified,
-                $record->usermodified,
-                $record->timestart,
-                $record->timeend,
-                $record->pinned
-            );
+        $entityfactory = $this->entityfactory;
+
+        return array_map(function(stdClass $record) use ($entityfactory) {
+            return $entityfactory->get_discussion_from_stdClass($record);
         }, $records);
     }
 

@@ -70,23 +70,16 @@ class renderer {
         $capabilitymanager = $this->managerfactory->get_capability_manager();
         $rendererbase = $this->rendererbase;
         $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
-        $canshowdisplaymodeselector = true;
-        $canshowmovediscussion = true;
-        $canshowpiniscussion = true;
-        $canshowsubscription = true;
-        $getnotificationscallback = null;
+        $notifications = [];
 
         switch ($forum->get_type()) {
             case 'single':
                 $baseurl = new moodle_url("/mod/forum/view.php", ['f' => $forum->get_id()]);
-                $canshowmovediscussion = false;
                 break;
             case 'qanda':
-                $getnotificationscallback = function($user, $context, $forum, $discussion) use ($capabilitymanager, $rendererbase) {
-                    if ($capabilitymanager->must_post_before_viewing_discussion($user, $forum, $discussion)) {
-                        return [$rendererbase->notification(get_string('qandanotify', 'forum'))];
-                    }
-                };
+                if ($capabilitymanager->must_post_before_viewing_discussion($user, $forum, $discussion)) {
+                    $notifications[] = $rendererbase->notification(get_string('qandanotify', 'forum'));
+                }
                 break;
         }
 
@@ -99,11 +92,7 @@ class renderer {
             $this->vaultfactory,
             $capabilitymanager,
             $baseurl,
-            $canshowdisplaymodeselector,
-            $canshowmovediscussion,
-            $canshowpiniscussion,
-            $canshowsubscription,
-            $getnotificationscallback
+            $notifications
         );
     }
 }

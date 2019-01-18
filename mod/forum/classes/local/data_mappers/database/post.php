@@ -26,11 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\entities\forum as forum_entity;
-use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\vaults\author as author_vault;
+use mod_forum\local\factories\entity as entity_factory;
 use context;
 use stdClass;
 
@@ -40,12 +36,10 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * Forum class.
  */
 class post implements db_data_mapper_interface {
-    private $authorvault;
+    private $entityfactory;
 
-    public function __construct(
-        author_vault $authorvault
-    ) {
-        $this->authorvault = $authorvault;
+    public function __construct(entity_factory $entityfactory) {
+        $this->entityfactory = $entityfactory;
     }
 
     public function from_db_records(array $records) : array {
@@ -53,13 +47,17 @@ class post implements db_data_mapper_interface {
             $carry[$record->userid] = true;
             return $carry;
         }, []));
+        // TODO: Remove this dependency!
         $authors = $this->authorvault->get_from_ids($authorids);
         $authorsbyid = array_reduce($authors, function($carry, $author) {
             $carry[$author->get_id()] = $author;
             return $carry;
         }, []);
 
-        return array_map(function(stdClass $record) use ($authorsbyid) {
+        $entityfactory = $this->entityfactory;
+
+        return array_map(function(stdClass $record) use ($authorsbyid, $entityfactory) {
+            return $entityfactory->get_post_from_stdClass($record);
             return new post_entity(
                 $record->id,
                 $record->discussion,
