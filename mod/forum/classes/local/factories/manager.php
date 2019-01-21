@@ -41,7 +41,8 @@ class manager {
     public function get_capability_manager() {
         return new capability_manager(
             $this->dbdatamapperfactory->get_forum_data_mapper(),
-            $this->dbdatamapperfactory->get_discussion_data_mapper()
+            $this->dbdatamapperfactory->get_discussion_data_mapper(),
+            $this->dbdatamapperfactory->get_post_data_mapper()
         );
     }
 }

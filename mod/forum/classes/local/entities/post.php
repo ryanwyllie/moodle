@@ -144,4 +144,12 @@ class post {
     public function is_deleted() : bool {
         return $this->deleted;
     }
+
+    public function get_age() : int {
+        return time() - $this->get_time_created();
+    }
+
+    public function is_owned_by_user(stdClass $user) : bool {
+        return $this->get_author()->get_id() === $user->id;
+    }
 }

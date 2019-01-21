@@ -52,7 +52,9 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class discussion {
     private $discussion;
+    private $discussionrecord;
     private $forum;
+    private $forumrecord;
     private $renderer;
     private $databasedatamapperfactory;
     private $exporterfactory;
@@ -81,46 +83,48 @@ class discussion {
         $this->vaultfactory = $vaultfactory;
         $this->capabilitymanager = $capabilitymanager;
         $this->notifications = $notifications;
+
+        $forumdatamapper = $this->databasedatamapperfactory->get_forum_data_mapper();
+        $this->forumrecord = $forumdatamapper->to_db_records([$forum])[0];
+
+        $discussiondatamapper = $this->databasedatamapperfactory->get_discussion_data_mapper();
+        $this->discussionrecord = $discussiondatamapper->to_db_records([$discussion])[0];
     }
 
-    public function render(stdClass $user, int $displaymode) : string {
+    public function render(stdClass $user, int $displaymode, post_entity $post) : string {
         global $PAGE, $USER;
 
         $capabilitymanager = $this->capabilitymanager;
-        $discussion = $this->discussion;
         $forum = $this->forum;
-        $context = $forum->get_context();
 
         // Make sure we can render.
         if (!$capabilitymanager->can_view_discussions($user, $forum)) {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
-        $nestedposts = $this->get_exported_posts($user, $context, $forum, $discussion, $displaymode);
-        $exporteddiscussion = $this->get_exported_discussion($discussion, $nestedposts);
+        $nestedposts = $this->get_exported_posts($user, $displaymode);
+        $exporteddiscussion = $this->get_exported_discussion($nestedposts);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'html' => [
-                'modeselectorform' => $this->get_display_mode_selector_html($this->baseurl, $displaymode),
+                'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'notifications' => $this->get_notifications(),
                 'subscribe' => null,
                 'movediscussion' => null,
-                'pindiscussion' => null
+                'pindiscussion' => null,
+                'neighbourlinks' => $this->get_neighbour_links_html()
             ]
         ]);
 
-        $forumdatamapper = $this->databasedatamapperfactory->get_forum_data_mapper();
-        $forumrecord = $forumdatamapper->to_db_records([$forum])[0];
-
         if ($capabilitymanager->can_subscribe($user, $forum)) {
-            $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html($forumrecord, $discussion);
+            $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html();
         }
 
         if ($capabilitymanager->can_move_discussions($user, $forum)) {
-            $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html($forum, $discussion);
+            $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html();
         }
 
         if ($capabilitymanager->can_pin_discussions($user, $forum)) {
-            $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html($discussion);
+            $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html();
         }
 
         return $this->renderer->render_from_template($this->get_template($displaymode), $exporteddiscussion);
@@ -150,13 +154,10 @@ class discussion {
         }
     }
 
-    private function get_exported_posts(
-        stdClass $user,
-        context $context,
-        forum_entity $forum,
-        discussion_entity $discussion,
-        int $displaymode
-    ) : array {
+    private function get_exported_posts(stdClass $user, int $displaymode) : array {
+        $forum = $this->forum;
+        $discussion = $this->discussion;
+        $context = $forum->get_context();
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $postexporter = $this->exporterfactory->get_posts_exporter(
@@ -200,7 +201,8 @@ class discussion {
         return $nestedposts;
     }
 
-    private function get_exported_discussion(discussion_entity $discussion, array $posts) : array {
+    private function get_exported_discussion(array $posts) : array {
+        $discussion = $this->discussion;
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $discussion,
             $posts
@@ -209,7 +211,8 @@ class discussion {
         return (array) $discussionexporter->export($this->renderer);
     }
 
-    private function get_display_mode_selector_html(moodle_url $baseurl, int $displaymode) : string {
+    private function get_display_mode_selector_html(int $displaymode) : string {
+        $baseurl = $this->baseurl;
         $select = new single_select(
             $baseurl,
             'mode',
@@ -226,9 +229,11 @@ class discussion {
         return $html;
     }
 
-    private function get_subscription_button_html(stdClass $forumrecord, discussion_entity $discussion) : string {
+    private function get_subscription_button_html() : string {
         global $PAGE;
 
+        $forumrecord = $this->forumrecord;
+        $discussion = $this->discussion;
         $html = html_writer::div(
             forum_get_discussion_subscription_icon($forumrecord, $discussion->get_id(), null, true),
             'discussionsubscription'
@@ -239,9 +244,11 @@ class discussion {
         return $html;
     }
 
-    private function get_move_discussion_html(forum_entity $forum, discussion_entity $discussion) : string {
+    private function get_move_discussion_html() : string {
         global $DB;
 
+        $forum = $this->forum;
+        $discussion = $this->discussion;
         $courseid = $forum->get_course_id();
 
         $html = '<div class="discussioncontrol movediscussion">';
@@ -284,7 +291,9 @@ class discussion {
         return $html;
     }
 
-    private function get_pin_discussion_html(discussion_entity $discussion) : string {
+    private function get_pin_discussion_html() : string {
+        $discussion = $this->discussion;
+
         if ($discussion->is_pinned()) {
             $pinlink = FORUM_DISCUSSION_UNPINNED;
             $pintext = get_string('discussionunpin', 'forum');
@@ -320,5 +329,14 @@ class discussion {
         }
 
         return $notifications;
+    }
+
+    private function get_neighbour_links_html() {
+        // TODO: Remove this and use the entity object to get the course module.
+        $forum = $this->forum;
+        $modinfo = get_fast_modinfo($forum->get_course_id());
+        $coursemodule = $modinfo->instances['forum'][$forum->get_id()];
+        $neighbours = forum_get_discussion_neighbours($coursemodule, $this->discussionrecord, $this->forumrecord);
+        return $this->renderer->neighbouring_discussion_navigation($neighbours['prev'], $neighbours['next']);
     }
 }
