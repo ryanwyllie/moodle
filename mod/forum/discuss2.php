@@ -57,7 +57,7 @@ if (!$forum) {
     throw new \moodle_exception('Unable to find forum with id ' . $discussion->get_forum_id());
 }
 
-$cm = get_coursemodule_from_instance('forum', $forum->get_id(), $course->id, false, MUST_EXIST);
+$cm = $forum->get_course_module_record();
 
 require_course_login($course, true, $cm);
 // move this down fix for MDL-6926
@@ -70,6 +70,7 @@ if (empty($parentpostid)) {
 
 $postvault = $vaultfactory->get_post_vault();
 $post = $postvault->get_from_id($parentpostid);
+$modcontext = $forum->get_context();
 
 $forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
 if (empty($forumnode)) {

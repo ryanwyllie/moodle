@@ -28,12 +28,14 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
 use context;
+use cm_info;
 
 /**
  * Forum class.
  */
 class forum {
     private $context;
+    private $coursemodule;
     private $id;
     private $courseid;
     private $type;
@@ -62,6 +64,7 @@ class forum {
 
     public function __construct(
         context $context,
+        \stdClass $coursemodule,
         int $id,
         int $courseid,
         string $type,
@@ -89,6 +92,7 @@ class forum {
         int $lockdiscussionafter
     ) {
         $this->context = $context;
+        $this->coursemodule = $coursemodule;
         $this->id = $id;
         $this->courseid = $courseid;
         $this->type = $type;
@@ -118,6 +122,10 @@ class forum {
 
     public function get_context() : context {
         return $this->context;
+    }
+
+    public function get_course_module_record() : \stdClass {
+        return $this->coursemodule;
     }
 
     public function get_id() : int {

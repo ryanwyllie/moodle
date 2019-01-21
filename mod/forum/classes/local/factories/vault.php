@@ -47,11 +47,11 @@ class vault {
 
     public function get_forum_vault() : forum_vault {
         global $DB;
-        $strategy = new module_context_strategy('forum', 'forum');
+        $strategy = new module_context_strategy($DB, 'forum', 'forum');
         return new forum_vault(
             $DB,
             $strategy,
-            $this->datamapperfactory->get_forum_data_mapper()
+            $this->datamapperfactory->get_forum_data_mapper($DB)
         );
     }
 

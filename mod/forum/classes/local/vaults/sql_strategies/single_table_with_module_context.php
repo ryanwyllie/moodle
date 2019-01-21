@@ -27,15 +27,18 @@ namespace mod_forum\local\vaults\sql_strategies;
 defined('MOODLE_INTERNAL') || die();
 
 use context_helper;
+use moodle_database;
 
 /**
  * Vault class.
  */
 class single_table_with_module_context implements sql_strategy_interface {
+    private $db;
     private $table;
     private $modulename;
 
-    public function __construct(string $table, string $modulename) {
+    public function __construct(moodle_database $db, string $table, string $modulename) {
+        $this->db = $db;
         $this->table = $table;
         $this->modulename = $modulename;
     }
@@ -50,7 +53,16 @@ class single_table_with_module_context implements sql_strategy_interface {
 
     public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $alias = $this->get_table_alias();
-        $fields = $alias . '.*, ' . context_helper::get_preload_record_columns_sql('c');
+
+        $forumfields = $this->db->get_preload_columns($this->get_table(), $alias);
+        $cmfields = $this->db->get_preload_columns('course_modules', 'cm_');
+
+        $fields = implode(', ', [
+            $this->db->get_preload_columns_sql($forumfields, $alias),
+            context_helper::get_preload_record_columns_sql('c'),
+            $this->db->get_preload_columns_sql($cmfields, 'cm'),
+        ]);
+
         $tables = '{' . $this->get_table() . '} ' . $alias;
         $tables .= ' JOIN {modules} m ON m.name = \'' . $this->modulename . '\'';
         $tables .= ' JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = ' . $alias . '.id';
