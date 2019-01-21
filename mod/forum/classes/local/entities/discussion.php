@@ -26,6 +26,8 @@ namespace mod_forum\local\entities;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\post as post_entity;
+
 /**
  * Discussion class.
  */
@@ -125,5 +127,9 @@ class discussion {
 
     public function is_pinned() : bool {
         return $this->pinned;
+    }
+
+    public function is_first_post(post_entity $post) : bool {
+        return $this->get_first_post_id() === $post->get_id();
     }
 }

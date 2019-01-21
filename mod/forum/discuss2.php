@@ -28,6 +28,8 @@ require_once('../../config.php');
 
 $discussionid = required_param('d', PARAM_INT);
 $displaymode = optional_param('mode', 0, PARAM_INT);
+// Only show this post and it's children.
+$parentpostid = optional_param('parent', 0, PARAM_INT);
 $url = new moodle_url('/mod/forum/discuss.php', ['d' => $discussionid]);
 
 $PAGE->set_url($url);
@@ -61,7 +63,13 @@ require_course_login($course, true, $cm);
 // move this down fix for MDL-6926
 require_once($CFG->dirroot.'/mod/forum/lib.php');
 
-$modcontext = context_module::instance($cm->id);
+if (empty($parentpostid)) {
+    // Default to the first post of the discussion if no other post was specified.
+    $parentpostid = $discussion->get_first_post_id();
+}
+
+$postvault = $vaultfactory->get_post_vault();
+$post = $postvault->get_from_id($parentpostid);
 
 $forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
 if (empty($forumnode)) {
@@ -83,7 +91,7 @@ $discussiondatamapper = $dbdatamapperfactory->get_discussion_data_mapper();
 $forumdatamapper = $dbdatamapperfactory->get_forum_data_mapper();
 $discussionrecord = $discussiondatamapper->to_db_records([$discussion])[0];
 $forumrecord = $forumdatamapper->to_db_records([$forum])[0];
-forum_discussion_view($modcontext, $forumrecord, $discussionrecord);
+forum_discussion_view($forum->get_context(), $forumrecord, $discussionrecord);
 
 unset($SESSION->fromdiscussion);
 
@@ -97,6 +105,6 @@ echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname
 
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion);
-echo $discussionrenderer->render($USER, $displaymode);
+echo $discussionrenderer->render($USER, $displaymode, $post);
 
 echo $OUTPUT->footer();
