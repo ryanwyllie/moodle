@@ -61,8 +61,10 @@ class container {
     }
 
     public static function get_database_data_mapper_factory() : database_data_mapper_factory {
+        global $DB;
         if (is_null(self::$databasedatamapperfactory)) {
             self::$databasedatamapperfactory = new database_data_mapper_factory(
+                $DB,
                 self::get_entity_factory()
             );
         }

@@ -30,26 +30,35 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use context;
 use context_helper;
+use moodle_database;
 
 /**
  * Forum class.
  */
 class forum implements db_data_mapper_interface {
     private $entityfactory;
+    private $db;
 
-    public function __construct(entity_factory $entityfactory) {
+    public function __construct(moodle_database $db, entity_factory $entityfactory) {
+        $this->db = $db;
         $this->entityfactory = $entityfactory;
     }
 
     public function from_db_records(array $records) : array {
         $entityfactory = $this->entityfactory;
 
-        return array_map(function($record) use ($entityfactory) {
+        $forumfields = $this->db->get_preload_columns('forum', 't');
+        $coursemodulefields = $this->db->get_preload_columns('course_modules', 'cm_');
+
+        return array_map(function($record) use ($entityfactory, $forumfields, $coursemodulefields) {
             $contextid = $record->ctxid;
             context_helper::preload_from_record($record);
             $context = context::instance_by_id($contextid);
 
-            return $entityfactory->get_forum_from_stdClass($record, $context);
+            $forumrecord = $this->db->extract_fields_from_object($forumfields, $record);
+            $coursemodule = $this->db->extract_fields_from_object($coursemodulefields, $record);
+
+            return $entityfactory->get_forum_from_stdClass($forumrecord, $context, $coursemodule);
         }, $records);
     }
 

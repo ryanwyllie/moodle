@@ -32,6 +32,7 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use stdClass;
 use context;
+use cm_info;
 use user_picture;
 use moodle_url;
 
@@ -39,15 +40,10 @@ use moodle_url;
  * Vault factory.
  */
 class entity {
-    public function get_forum_from_stdClass(stdClass $record, context $context = null) : forum_entity {
-        if (is_null($context)) {
-            $modinfo = get_fast_modinfo($record->course);
-            $cminfo = $modinfo->instances['forum'][$record->id];
-            $context = context_module::instance($cminfo->id);
-        }
-
+    public function get_forum_from_stdClass(stdClass $record, context $context, \stdClass $coursemodule) : forum_entity {
         return new forum_entity(
             $context,
+            $coursemodule,
             $record->id,
             $record->course,
             $record->type,

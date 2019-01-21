@@ -32,5 +32,19 @@ use mod_forum\local\vault;
  * Vault class.
  */
 class forum extends vault {
+    public function get_from_cmid(int $id) {
+        $records = $this->get_from_cmids([$id]);
+        return count($records) ? $records[0] : null;
+    }
 
+    public function get_from_cmids(array $ids) : array {
+        $strategy = $this->get_sql_strategy();
+        $alias = $strategy->get_table_alias();
+        list($insql, $params) = $this->get_db()->get_in_or_equal($ids);
+        $wheresql = 'cm.id ' . $insql;
+        $sql = $strategy->generate_get_records_sql($wheresql);
+        $records = $this->get_db()->get_records_sql($sql, $params);
+
+        return $this->transform_db_records_to_entities(array_values($records));
+    }
 }
