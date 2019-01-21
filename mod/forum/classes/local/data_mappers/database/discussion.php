@@ -26,6 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use context;
 use stdClass;

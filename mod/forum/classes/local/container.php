@@ -37,47 +37,74 @@ use mod_forum\local\factories\vault as vault_factory;
  * Vault class.
  */
 class container {
+    private static $rendererfactory = null;
+    private static $databasedatamapperfactory = null;
+    private static $exporterfactory = null;
+    private static $vaultfactory = null;
+    private static $managerfactory = null;
+    private static $entityfactory = null;
+
     public static function get_renderer_factory() : renderer_factory {
         global $PAGE;
-        $dbdatabasemapper = new database_data_mapper_factory();
-        $exporterfactory = new exporter_factory($dbdatabasemapper);
-        $vaultfactory = new vault_factory($dbdatabasemapper);
-        $managerfactory = new manager_factory($dbdatabasemapper);
 
-        return new renderer_factory(
-            $dbdatabasemapper,
-            $exporterfactory,
-            $vaultfactory,
-            $managerfactory,
-            $PAGE->get_renderer('mod_forum')
-        );
+        if (is_null(self::$rendererfactory)) {
+            self::$rendererfactory = new renderer_factory(
+                self::get_database_data_mapper_factory(),
+                self::get_exporter_factory(),
+                self::get_vault_factory(),
+                self::get_manager_factory(),
+                $PAGE->get_renderer('mod_forum')
+            );
+        }
+
+        return self::$rendererfactory;
     }
 
     public static function get_database_data_mapper_factory() : database_data_mapper_factory {
-        return new database_data_mapper_factory(
-            new entity_factory()
-        );
+        if (is_null(self::$databasedatamapperfactory)) {
+            self::$databasedatamapperfactory = new database_data_mapper_factory(
+                self::get_entity_factory()
+            );
+        }
+
+        return self::$databasedatamapperfactory;
     }
 
     public static function get_exporter_factory() : exporter_factory {
-        return new exporter_factory(
-            self::get_database_data_mapper_factory()
-        );
+        if (is_null(self::$exporterfactory)) {
+            self::$exporterfactory = new exporter_factory(
+                self::get_database_data_mapper_factory()
+            );
+        }
+
+        return self::$exporterfactory;
     }
 
     public static function get_vault_factory() : vault_factory {
-        return new vault_factory(
-            self::get_database_data_mapper_factory()
-        );
+        if (is_null(self::$vaultfactory)) {
+            self::$vaultfactory = new vault_factory(
+                self::get_database_data_mapper_factory()
+            );
+        }
+
+        return self::$vaultfactory;
     }
 
     public static function get_manager_factory() : manager_factory {
-        return new manager_factory(
-            self::get_database_data_mapper_factory()
-        );
+        if (is_null(self::$managerfactory)) {
+            self::$managerfactory = new manager_factory(
+                self::get_database_data_mapper_factory()
+            );
+        }
+
+        return self::$managerfactory;
     }
 
     public static function get_entity_factory() : entity_factory {
-        return new entity_factory();
+        if (is_null(self::$entityfactory)) {
+            self::$entityfactory = new entity_factory();
+        }
+
+        return self::$entityfactory;
     }
 }

@@ -39,7 +39,7 @@ use mod_forum\local\data_mappers\database\post as post_data_mapper;
 class database_data_mapper {
     private $entityfactory;
 
-    public function __consturct(entity_factory $entityfactory) {
+    public function __construct(entity_factory $entityfactory) {
         $this->entityfactory = $entityfactory;
     }
 
