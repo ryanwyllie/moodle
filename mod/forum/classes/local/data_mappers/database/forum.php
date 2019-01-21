@@ -26,6 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use context;
 use context_helper;
@@ -53,7 +54,7 @@ class forum implements db_data_mapper_interface {
     }
 
     public function to_db_records(array $forums) : array {
-        return array_map(function($forum) {
+        return array_map(function(forum_entity $forum) {
             return (object) [
                 'id' => $forum->get_id(),
                 'course' => $forum->get_course_id(),

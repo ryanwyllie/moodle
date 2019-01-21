@@ -26,7 +26,10 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\container;
+use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
+use mod_forum\local\vaults\author as author_vault;
 use context;
 use stdClass;
 
@@ -43,12 +46,13 @@ class post implements db_data_mapper_interface {
     }
 
     public function from_db_records(array $records) : array {
+        // TODO: Remove this dependency!
+        $authorvault = (container::get_vault_factory())->get_author_vault();
         $authorids = array_keys(array_reduce($records, function($carry, $record) {
             $carry[$record->userid] = true;
             return $carry;
         }, []));
-        // TODO: Remove this dependency!
-        $authors = $this->authorvault->get_from_ids($authorids);
+        $authors = $authorvault->get_from_ids($authorids);
         $authorsbyid = array_reduce($authors, function($carry, $author) {
             $carry[$author->get_id()] = $author;
             return $carry;
@@ -57,24 +61,7 @@ class post implements db_data_mapper_interface {
         $entityfactory = $this->entityfactory;
 
         return array_map(function(stdClass $record) use ($authorsbyid, $entityfactory) {
-            return $entityfactory->get_post_from_stdClass($record);
-            return new post_entity(
-                $record->id,
-                $record->discussion,
-                $record->parent,
-                $authorsbyid[$record->userid],
-                $record->created,
-                $record->modified,
-                $record->mailed,
-                $record->subject,
-                $record->message,
-                $record->messageformat,
-                $record->messagetrust,
-                $record->attachment,
-                $record->totalscore,
-                $record->mailnow,
-                $record->deleted
-            );
+            return $entityfactory->get_post_from_stdClass($record, $authorsbyid[$record->userid]);
         }, $records);
     }
 
