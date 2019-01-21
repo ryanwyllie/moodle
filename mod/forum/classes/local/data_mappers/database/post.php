@@ -32,6 +32,7 @@ use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\vaults\author as author_vault;
 use context;
 use stdClass;
+use user_picture;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -46,22 +47,12 @@ class post implements db_data_mapper_interface {
     }
 
     public function from_db_records(array $records) : array {
-        // TODO: Remove this dependency!
-        $authorvault = (container::get_vault_factory())->get_author_vault();
-        $authorids = array_keys(array_reduce($records, function($carry, $record) {
-            $carry[$record->userid] = true;
-            return $carry;
-        }, []));
-        $authors = $authorvault->get_from_ids($authorids);
-        $authorsbyid = array_reduce($authors, function($carry, $author) {
-            $carry[$author->get_id()] = $author;
-            return $carry;
-        }, []);
-
         $entityfactory = $this->entityfactory;
 
-        return array_map(function(stdClass $record) use ($authorsbyid, $entityfactory) {
-            return $entityfactory->get_post_from_stdClass($record, $authorsbyid[$record->userid]);
+        return array_map(function(stdClass $record) use ($entityfactory) {
+            $authorrecord = user_picture::unalias($record, null, 'userpictureid', 'userrecord');
+            $author = $entityfactory->get_author_from_stdClass($authorrecord);
+            return $entityfactory->get_post_from_stdClass($record, $author);
         }, $records);
     }
 

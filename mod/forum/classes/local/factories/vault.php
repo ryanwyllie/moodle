@@ -33,6 +33,7 @@ use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_module_context as module_context_strategy;
+use mod_forum\local\vaults\sql_strategies\single_table_with_user as with_user_strategy;
 
 /**
  * Vault factory.
@@ -62,7 +63,7 @@ class vault {
 
     public function get_post_vault() : post_vault {
         global $DB;
-        $strategy = new single_table_strategy('forum_posts');
+        $strategy = new with_user_strategy('forum_posts');
         return new post_vault($DB, $strategy, $this->datamapperfactory->get_post_data_mapper());
     }
 

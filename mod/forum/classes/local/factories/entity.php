@@ -32,6 +32,8 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use stdClass;
 use context;
+use user_picture;
+use moodle_url;
 
 /**
  * Vault factory.
@@ -115,12 +117,12 @@ class entity {
     public function get_author_from_stdClass(stdClass $record) : author_entity {
         global $PAGE;
 
-        $userpicture = new \user_picture($record);
+        $userpicture = new user_picture($record);
         $userpicture->size = 1;
         return new author_entity(
             $record->id,
             fullname($record),
-            new \moodle_url('/user/view.php', ['id' => $record->id]),
+            new moodle_url('/user/view.php', ['id' => $record->id]),
             $userpicture->get_url($PAGE)
         );
     }
