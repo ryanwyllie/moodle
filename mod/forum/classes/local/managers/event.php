@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 
 /**
  * A manager to help raise events in the forum.
@@ -36,13 +37,18 @@ use mod_forum\local\entities\discussion as discussion_entity;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class event {
+    private $legacydatamapperfactory;
+
+    public function __construct(legacy_data_mapper_factory $legacydatamapperfactory) {
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
+    }
+
     public function mark_forum_as_viewed(forum_entity $forumentity): void {
-        $mapperfactory = \mod_forum\local\container::get_database_data_mapper_factory();
-        $forummapper = $mapperfactory->get_forum_data_mapper();
+        $forummapper = $this->legacydatamapperfactory->get_forum_data_mapper();
 
         $course = $forumentity->get_course_record();
         $coursemodule = $forumentity->get_course_module_record();
-        $forum = $forummapper->to_db_records([$forumentity])[0];
+        $forum = $forummapper->to_legacy_object($forumentity);
 
         // Completion.
         $completion = new \completion_info($course);
@@ -60,14 +66,14 @@ class event {
     }
 
     public function mark_discussion_as_viewed(forum_entity $forumentity, discussion_entity $discussionentity): void {
-        $mapperfactory = \mod_forum\local\container::get_database_data_mapper_factory();
+        $mapperfactory = $this->legacydatamapperfactory;
         $forummapper = $mapperfactory->get_forum_data_mapper();
         $discussionmapper = $mapperfactory->get_discussion_data_mapper();
 
         $course = $forumentity->get_course_record();
         $coursemodule = $forumentity->get_course_module_record();
-        $forum = $forummapper->to_db_records([$forumentity])[0];
-        $discussion = $discussionmapper->to_db_records([$discussionentity])[0];
+        $forum = $forummapper->to_legacy_object($forumentity);
+        $discussion = $discussionmapper->to_legacy_object($discussionentity);
 
         $event = \mod_forum\event\discussion_viewed::create([
                 'context' => $forumentity->get_context(),

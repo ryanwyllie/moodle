@@ -35,18 +35,18 @@ use mod_forum\local\managers\event as event_manager;
  * Managers factory.
  */
 class manager {
-    private $dbdatamapperfactory;
+    private $legacydatamapperfactory;
 
-    public function __construct(database_data_mapper $dbdatamapperfactory) {
-        $this->dbdatamapperfactory = $dbdatamapperfactory;
+    public function __construct(legacy_data_mapper $legacydatamapperfactory) {
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
     }
 
     public function get_capability_manager(forum_entity $forum) {
         return new capability_manager(
             $forum,
-            $this->dbdatamapperfactory->get_forum_data_mapper(),
-            $this->dbdatamapperfactory->get_discussion_data_mapper(),
-            $this->dbdatamapperfactory->get_post_data_mapper()
+            $this->legacydatamapperfactory->get_forum_data_mapper(),
+            $this->legacydatamapperfactory->get_discussion_data_mapper(),
+            $this->legacydatamapperfactory->get_post_data_mapper()
         );
     }
 
@@ -55,6 +55,6 @@ class manager {
     }
 
     public function get_event_manager() : event_manager {
-        return new event_manager();
+        return new event_manager($this->legacydatamapperfactory);
     }
 }

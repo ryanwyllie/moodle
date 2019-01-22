@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
@@ -42,20 +42,20 @@ use stdClass;
  * Vault factory.
  */
 class renderer {
-    private $databasedatamapperfactory;
+    private $legacydatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
     private $managerfactory;
     private $rendererbase;
 
     public function __construct(
-        database_data_mapper_factory $databasedatamapperfactory,
+        legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         manager_factory $managerfactory,
         renderer_base $rendererbase
     ) {
-        $this->databasedatamapperfactory = $databasedatamapperfactory;
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->managerfactory = $managerfactory;
@@ -87,7 +87,7 @@ class renderer {
             $discussion,
             $forum,
             $rendererbase,
-            $this->databasedatamapperfactory,
+            $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
             $capabilitymanager,

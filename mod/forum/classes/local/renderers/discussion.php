@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
@@ -56,7 +56,7 @@ class discussion {
     private $forum;
     private $forumrecord;
     private $renderer;
-    private $databasedatamapperfactory;
+    private $legacydatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
     private $capabilitymanager;
@@ -67,7 +67,7 @@ class discussion {
         discussion_entity $discussion,
         forum_entity $forum,
         renderer_base $renderer,
-        database_data_mapper_factory $databasedatamapperfactory,
+        legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         capability_manager $capabilitymanager,
@@ -78,17 +78,17 @@ class discussion {
         $this->forum = $forum;
         $this->renderer = $renderer;
         $this->baseurl = $baseurl;
-        $this->databasedatamapperfactory = $databasedatamapperfactory;
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->capabilitymanager = $capabilitymanager;
         $this->notifications = $notifications;
 
-        $forumdatamapper = $this->databasedatamapperfactory->get_forum_data_mapper();
-        $this->forumrecord = $forumdatamapper->to_db_records([$forum])[0];
+        $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
+        $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
 
-        $discussiondatamapper = $this->databasedatamapperfactory->get_discussion_data_mapper();
-        $this->discussionrecord = $discussiondatamapper->to_db_records([$discussion])[0];
+        $discussiondatamapper = $this->legacydatamapperfactory->get_discussion_data_mapper();
+        $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
     public function render(stdClass $user, int $displaymode, post_entity $post) : string {
