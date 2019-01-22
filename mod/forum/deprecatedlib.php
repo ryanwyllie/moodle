@@ -410,3 +410,49 @@ function forum_cron() {
     debugging("forum_cron() has been deprecated and replaced with new tasks. Please uses these instead.",
             DEBUG_DEVELOPER);
 }
+
+/*
+ * Mark the activity completed (if required) and trigger the course_module_viewed event.
+ *
+ * @param  stdClass $forum   forum object
+ * @param  stdClass $course  course object
+ * @param  stdClass $cm      course module object
+ * @param  stdClass $context context object
+ * @since Moodle 2.9
+ * @deprecated since Moodle 3.7
+ */
+function forum_view($forum, $course, $cm, $context) {
+    debugging("forum_view() has been deprecated, please use the new forum events instead.", DEBUG_DEVELOPER);
+
+    $entityfactory = mod_forum\local\container::get_entity_factory();
+    $forum = $entityfactory->get_forum_from_stdClass($forum, $context, $cm, $course);
+
+    $managerfactory = mod_forum\local\container::get_manager_factory();
+    $eventmanager = $managerfactory->get_event_manager();
+    $eventmanager->mark_forum_as_viewed($forum);
+}
+
+/**
+ * Trigger the discussion viewed event
+ *
+ * @param  stdClass $modcontext module context object
+ * @param  stdClass $forum      forum object
+ * @param  stdClass $discussion discussion object
+ * @since Moodle 2.9
+ * @deprecated since Moodle 3.7
+ */
+function forum_discussion_view($modcontext, $forum, $discussion) {
+    debugging("forum_discussion_view() has been deprecated, please use the new forum events instead.", DEBUG_DEVELOPER);
+
+    $entityfactory = mod_forum\local\container::get_entity_factory();
+    $vaultfactory = mod_forum\local\container::get_vault_factory();
+    $forumvault = $vaultfactory->get_forum_vault();
+
+    $discussion = $entityfactory->get_discussion_from_stdClass($discussion);
+
+    $forum = $forumvault->get_from_id($discussion->get_forum_id());
+
+    $managerfactory = mod_forum\local\container::get_manager_factory();
+    $eventmanager = $managerfactory->get_event_manager();
+    $eventmanager->mark_discussion_as_viewed($forum, $discussion);
+}
