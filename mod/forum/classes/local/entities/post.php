@@ -149,6 +149,10 @@ class post {
         return time() - $this->get_time_created();
     }
 
+    public function is_read() : bool {
+        return forum_tp_is_post_old();
+    }
+
     public function is_owned_by_user(stdClass $user) : bool {
         return $this->get_author()->get_id() === $user->id;
     }

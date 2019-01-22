@@ -34,42 +34,41 @@ use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_module_context as module_context_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_user as with_user_strategy;
+use moodle_database;
 
 /**
  * Vault factory.
  */
 class vault {
     private $datamapperfactory;
+    private $db;
 
-    public function __construct(data_mapper_factory $datamapperfactory) {
+    public function __construct(moodle_database $db, data_mapper_factory $datamapperfactory) {
+        $this->db = $db;
         $this->datamapperfactory = $datamapperfactory;
     }
 
     public function get_forum_vault() : forum_vault {
-        global $DB;
-        $strategy = new module_context_strategy($DB, 'forum', 'forum');
+        $strategy = new module_context_strategy($this->db, 'forum', 'forum');
         return new forum_vault(
-            $DB,
+            $this->db,
             $strategy,
-            $this->datamapperfactory->get_forum_data_mapper($DB)
+            $this->datamapperfactory->get_forum_data_mapper()
         );
     }
 
     public function get_discussion_vault() : discussion_vault {
-        global $DB;
         $strategy = new single_table_strategy('forum_discussions');
-        return new discussion_vault($DB, $strategy, $this->datamapperfactory->get_discussion_data_mapper());
+        return new discussion_vault($this->db, $strategy, $this->datamapperfactory->get_discussion_data_mapper());
     }
 
     public function get_post_vault() : post_vault {
-        global $DB;
         $strategy = new with_user_strategy('forum_posts');
-        return new post_vault($DB, $strategy, $this->datamapperfactory->get_post_data_mapper());
+        return new post_vault($this->db, $strategy, $this->datamapperfactory->get_post_data_mapper());
     }
 
     public function get_author_vault() : author_vault {
-        global $DB;
         $strategy = new single_table_strategy('user');
-        return new author_vault($DB, $strategy, $this->datamapperfactory->get_author_data_mapper());
+        return new author_vault($this->db, $strategy, $this->datamapperfactory->get_author_data_mapper());
     }
 }

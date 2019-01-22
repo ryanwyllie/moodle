@@ -26,6 +26,7 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\managers\capability as capability_manager;
 
 /**
@@ -38,8 +39,9 @@ class manager {
         $this->dbdatamapperfactory = $dbdatamapperfactory;
     }
 
-    public function get_capability_manager() {
+    public function get_capability_manager(forum_entity $forum) {
         return new capability_manager(
+            $forum,
             $this->dbdatamapperfactory->get_forum_data_mapper(),
             $this->dbdatamapperfactory->get_discussion_data_mapper(),
             $this->dbdatamapperfactory->get_post_data_mapper()

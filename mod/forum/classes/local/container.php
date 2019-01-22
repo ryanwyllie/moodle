@@ -83,8 +83,11 @@ class container {
     }
 
     public static function get_vault_factory() : vault_factory {
+        global $DB;
+
         if (is_null(self::$vaultfactory)) {
             self::$vaultfactory = new vault_factory(
+                $DB,
                 self::get_database_data_mapper_factory()
             );
         }
