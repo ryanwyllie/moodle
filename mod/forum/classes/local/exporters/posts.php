@@ -128,7 +128,7 @@ class posts extends exporter {
      */
     protected static function define_related() {
         return [
-            'databasedatamapperfactory' => 'mod_forum\local\factories\database_data_mapper',
+            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
             'coursemodule' => 'stdClass',

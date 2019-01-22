@@ -117,7 +117,7 @@ class post extends exporter {
      */
     protected static function define_related() {
         return [
-            'databasedatamapperfactory' => 'mod_forum\local\factories\database_data_mapper',
+            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
             'coursemodule' => 'stdClass',
@@ -127,17 +127,17 @@ class post extends exporter {
     }
 
     private function get_forum_record() {
-        $forumdbdatamapper = $this->related['databasedatamapperfactory']->get_forum_data_mapper();
-        return $forumdbdatamapper->to_db_records([$this->related['forum']])[0];
+        $forumdbdatamapper = $this->related['legacydatamapperfactory']->get_forum_data_mapper();
+        return $forumdbdatamapper->to_legacy_object($this->related['forum']);
     }
 
     private function get_discussion_record() {
-        $discussiondbdatamapper = $this->related['databasedatamapperfactory']->get_discussion_data_mapper();
-        return $discussiondbdatamapper->to_db_records([$this->related['discussion']])[0];
+        $discussiondbdatamapper = $this->related['legacydatamapperfactory']->get_discussion_data_mapper();
+        return $discussiondbdatamapper->to_legacy_object($this->related['discussion']);
     }
 
     private function get_post_record() {
-        $postdbdatamapper = $this->related['databasedatamapperfactory']->get_post_data_mapper();
-        return $postdbdatamapper->to_db_records([$this->post])[0];
+        $postdbdatamapper = $this->related['legacydatamapperfactory']->get_post_data_mapper();
+        return $postdbdatamapper->to_legacy_object($this->post);
     }
 }

@@ -26,7 +26,9 @@ namespace mod_forum\local\managers;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\data_mappers\database\db_data_mapper_interface;
+use mod_forum\local\data_mappers\legacy\forum as legacy_forum_data_mapper;
+use mod_forum\local\data_mappers\legacy\discussion as legacy_discussion_data_mapper;
+use mod_forum\local\data_mappers\legacy\post as legacy_post_data_mapper;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
@@ -41,24 +43,24 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * a user can and can't do in the forum.
  */
 class capability {
-    private $forumdbdatamapper;
-    private $discussiondbdatamapper;
-    private $postdbdatamapper;
+    private $forumdatamapper;
+    private $discussiondatamapper;
+    private $postdatamapper;
     private $forum;
     private $forumrecord;
     private $context;
 
     public function __construct(
         forum_entity $forum,
-        db_data_mapper_interface $forumdbdatamapper,
-        db_data_mapper_interface $discussiondbdatamapper,
-        db_data_mapper_interface $postdbdatamapper
+        legacy_forum_data_mapper $forumdatamapper,
+        legacy_discussion_data_mapper $discussiondatamapper,
+        legacy_post_data_mapper $postdatamapper
     ) {
-        $this->forumdbdatamapper = $forumdbdatamapper;
-        $this->discussiondbdatamapper = $discussiondbdatamapper;
-        $this->postdbdatamapper = $postdbdatamapper;
+        $this->forumdatamapper = $forumdatamapper;
+        $this->discussiondatamapper = $discussiondatamapper;
+        $this->postdatamapper = $postdatamapper;
         $this->forum = $forum;
-        $this->forumrecord = $forumdbdatamapper->to_db_records([$forum])[0];
+        $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
         $this->context = $forum->get_context();
     }
 
@@ -161,10 +163,10 @@ class capability {
     }
 
     protected function get_discussion_record(discussion_entity $discussion) : stdClass {
-        return $this->discussiondbdatamapper->to_db_records([$discussion])[0];
+        return $this->discussiondatamapper->to_legacy_object($discussion);
     }
 
     protected function get_post_record(post_entity $post) : stdClass {
-        return $this->postdbdatamapper->to_db_records([$post])[0];
+        return $this->postdatamapper->to_legacy_object($post);
     }
 }

@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\renderer as renderer_factory;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
@@ -39,6 +40,7 @@ use mod_forum\local\factories\vault as vault_factory;
 class container {
     private static $rendererfactory = null;
     private static $databasedatamapperfactory = null;
+    private static $legacydatamapperfactory = null;
     private static $exporterfactory = null;
     private static $vaultfactory = null;
     private static $managerfactory = null;
@@ -49,7 +51,7 @@ class container {
 
         if (is_null(self::$rendererfactory)) {
             self::$rendererfactory = new renderer_factory(
-                self::get_database_data_mapper_factory(),
+                self::get_legacy_data_mapper_factory(),
                 self::get_exporter_factory(),
                 self::get_vault_factory(),
                 self::get_manager_factory(),
@@ -72,10 +74,18 @@ class container {
         return self::$databasedatamapperfactory;
     }
 
+    public static function get_legacy_data_mapper_factory() : legacy_data_mapper_factory {
+        if (is_null(self::$legacydatamapperfactory)) {
+            self::$legacydatamapperfactory = new legacy_data_mapper_factory();
+        }
+
+        return self::$legacydatamapperfactory;
+    }
+
     public static function get_exporter_factory() : exporter_factory {
         if (is_null(self::$exporterfactory)) {
             self::$exporterfactory = new exporter_factory(
-                self::get_database_data_mapper_factory()
+                self::get_legacy_data_mapper_factory()
             );
         }
 
@@ -98,7 +108,7 @@ class container {
     public static function get_manager_factory() : manager_factory {
         if (is_null(self::$managerfactory)) {
             self::$managerfactory = new manager_factory(
-                self::get_database_data_mapper_factory()
+                self::get_legacy_data_mapper_factory()
             );
         }
 

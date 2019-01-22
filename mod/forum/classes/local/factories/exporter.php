@@ -30,7 +30,7 @@ use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\exporters\author as author_exporter;
 use mod_forum\local\exporters\discussion as discussion_exporter;
 use mod_forum\local\exporters\post as post_exporter;
@@ -42,10 +42,10 @@ use stdClass;
  * data_mapper factory.
  */
 class exporter {
-    private $dbdatamapperfactory;
+    private $legacydatamapperfactory;
 
-    public function __construct(database_data_mapper_factory $dbdatamapperfactory) {
-        $this->dbdatamapperfactory = $dbdatamapperfactory;
+    public function __construct(legacy_data_mapper_factory $legacydatamapperfactory) {
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
     }
 
     public function get_discussion_exporter(discussion_entity $discussion, array $exportedposts = []) : discussion_exporter {
@@ -69,7 +69,7 @@ class exporter {
         }
 
         return new posts_exporter($posts, [
-            'databasedatamapperfactory' => $this->dbdatamapperfactory,
+            'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'forum' => $forum,
             'discussion' => $discussion,
             'coursemodule' => $coursemodule,
