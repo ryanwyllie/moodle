@@ -98,7 +98,7 @@ class discussion {
         $forum = $this->forum;
 
         // Make sure we can render.
-        if (!$capabilitymanager->can_view_discussions($user, $forum)) {
+        if (!$capabilitymanager->can_view_discussions($user)) {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
@@ -115,15 +115,15 @@ class discussion {
             ]
         ]);
 
-        if ($capabilitymanager->can_subscribe($user, $forum)) {
+        if ($capabilitymanager->can_subscribe($user)) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html();
         }
 
-        if ($capabilitymanager->can_move_discussions($user, $forum)) {
+        if ($capabilitymanager->can_move_discussions($user)) {
             $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html();
         }
 
-        if ($capabilitymanager->can_pin_discussions($user, $forum)) {
+        if ($capabilitymanager->can_pin_discussions($user)) {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html();
         }
 

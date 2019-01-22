@@ -32,12 +32,12 @@ use mod_forum\local\vault;
  * Vault class.
  */
 class forum extends vault {
-    public function get_from_cmid(int $id) {
-        $records = $this->get_from_cmids([$id]);
+    public function get_from_course_module_id(int $id) {
+        $records = $this->get_from_course_module_ids([$id]);
         return count($records) ? $records[0] : null;
     }
 
-    public function get_from_cmids(array $ids) : array {
+    public function get_from_course_module_ids(array $ids) : array {
         $strategy = $this->get_sql_strategy();
         $alias = $strategy->get_table_alias();
         list($insql, $params) = $this->get_db()->get_in_or_equal($ids);

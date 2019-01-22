@@ -26,8 +26,8 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\discussion;
-use mod_forum\local\entities\forum;
+use mod_forum\local\entities\discussion as discussion_entity;
+use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
@@ -63,11 +63,11 @@ class renderer {
     }
 
     public function get_discussion_renderer(
-        forum $forum,
-        discussion $discussion
+        forum_entity $forum,
+        discussion_entity $discussion
     ) : discussion_renderer {
 
-        $capabilitymanager = $this->managerfactory->get_capability_manager();
+        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
         $rendererbase = $this->rendererbase;
         $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
         $notifications = [];
