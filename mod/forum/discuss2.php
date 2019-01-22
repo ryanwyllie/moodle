@@ -49,9 +49,9 @@ if (!$discussion) {
     throw new \moodle_exception('Unable to find discussion with id ' . $discussionid);
 }
 
-$course = $DB->get_record('course', ['id' => $discussion->get_course_id()], '*', MUST_EXIST);
 $forumvault = $vaultfactory->get_forum_vault();
 $forum = $forumvault->get_from_id($discussion->get_forum_id());
+$course = $forum->get_course_record();
 
 if (!$forum) {
     throw new \moodle_exception('Unable to find forum with id ' . $discussion->get_forum_id());

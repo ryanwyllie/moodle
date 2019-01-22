@@ -36,6 +36,7 @@ use cm_info;
 class forum {
     private $context;
     private $coursemodule;
+    private $course;
     private $id;
     private $courseid;
     private $type;
@@ -65,6 +66,7 @@ class forum {
     public function __construct(
         context $context,
         \stdClass $coursemodule,
+        \stdClass $course,
         int $id,
         int $courseid,
         string $type,
@@ -93,6 +95,7 @@ class forum {
     ) {
         $this->context = $context;
         $this->coursemodule = $coursemodule;
+        $this->course = $course;
         $this->id = $id;
         $this->courseid = $courseid;
         $this->type = $type;
@@ -126,6 +129,10 @@ class forum {
 
     public function get_course_module_record() : \stdClass {
         return $this->coursemodule;
+    }
+
+    public function get_course_record() : \stdClass {
+        return $this->course;
     }
 
     public function get_id() : int {

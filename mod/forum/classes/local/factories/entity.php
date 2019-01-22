@@ -40,10 +40,11 @@ use moodle_url;
  * Vault factory.
  */
 class entity {
-    public function get_forum_from_stdClass(stdClass $record, context $context, \stdClass $coursemodule) : forum_entity {
+    public function get_forum_from_stdClass(stdClass $record, context $context, \stdClass $coursemodule, \stdClass $course) : forum_entity {
         return new forum_entity(
             $context,
             $coursemodule,
+            $course,
             $record->id,
             $record->course,
             $record->type,
