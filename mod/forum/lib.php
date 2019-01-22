@@ -7257,55 +7257,6 @@ function forum_get_context($forumid, $context = null) {
 }
 
 /**
- * Mark the activity completed (if required) and trigger the course_module_viewed event.
- *
- * @param  stdClass $forum   forum object
- * @param  stdClass $course  course object
- * @param  stdClass $cm      course module object
- * @param  stdClass $context context object
- * @since Moodle 2.9
- */
-function forum_view($forum, $course, $cm, $context) {
-
-    // Completion.
-    $completion = new completion_info($course);
-    $completion->set_module_viewed($cm);
-
-    // Trigger course_module_viewed event.
-
-    $params = array(
-        'context' => $context,
-        'objectid' => $forum->id
-    );
-
-    $event = \mod_forum\event\course_module_viewed::create($params);
-    $event->add_record_snapshot('course_modules', $cm);
-    $event->add_record_snapshot('course', $course);
-    $event->add_record_snapshot('forum', $forum);
-    $event->trigger();
-}
-
-/**
- * Trigger the discussion viewed event
- *
- * @param  stdClass $modcontext module context object
- * @param  stdClass $forum      forum object
- * @param  stdClass $discussion discussion object
- * @since Moodle 2.9
- */
-function forum_discussion_view($modcontext, $forum, $discussion) {
-    $params = array(
-        'context' => $modcontext,
-        'objectid' => $discussion->id,
-    );
-
-    $event = \mod_forum\event\discussion_viewed::create($params);
-    $event->add_record_snapshot('forum_discussions', $discussion);
-    $event->add_record_snapshot('forum', $forum);
-    $event->trigger();
-}
-
-/**
  * Set the discussion to pinned and trigger the discussion pinned event
  *
  * @param  stdClass $modcontext module context object

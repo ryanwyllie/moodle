@@ -28,6 +28,8 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\managers\capability as capability_manager;
+use mod_forum\local\managers\url as url_manager;
+use mod_forum\local\managers\event as event_manager;
 
 /**
  * Managers factory.
@@ -46,5 +48,13 @@ class manager {
             $this->dbdatamapperfactory->get_discussion_data_mapper(),
             $this->dbdatamapperfactory->get_post_data_mapper()
         );
+    }
+
+    public function get_url_manager() : url_manager {
+        return new url_manager();
+    }
+
+    public function get_event_manager() : event_manager {
+        return new event_manager();
     }
 }

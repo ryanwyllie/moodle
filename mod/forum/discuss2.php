@@ -88,11 +88,9 @@ if ($node && $post->id != $discussion->firstpost) {
 */
 
 // Trigger discussion viewed event.
-$discussiondatamapper = $dbdatamapperfactory->get_discussion_data_mapper();
-$forumdatamapper = $dbdatamapperfactory->get_forum_data_mapper();
-$discussionrecord = $discussiondatamapper->to_db_records([$discussion])[0];
-$forumrecord = $forumdatamapper->to_db_records([$forum])[0];
-forum_discussion_view($forum->get_context(), $forumrecord, $discussionrecord);
+$managerfactory = mod_forum\local\container::get_manager_factory();
+$eventmanager = $managerfactory->get_event_manager();
+$eventmanager->mark_discussion_as_viewed($forum, $discussion);
 
 unset($SESSION->fromdiscussion);
 
