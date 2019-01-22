@@ -32,7 +32,7 @@ use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
-use mod_forum\local\vaults\sql_strategies\single_table_with_module_context as module_context_strategy;
+use mod_forum\local\vaults\sql_strategies\single_table_with_module_context_course as module_context_course_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_user as with_user_strategy;
 use moodle_database;
 
@@ -49,7 +49,7 @@ class vault {
     }
 
     public function get_forum_vault() : forum_vault {
-        $strategy = new module_context_strategy($this->db, 'forum', 'forum');
+        $strategy = new module_context_course_strategy($this->db, 'forum', 'forum');
         return new forum_vault(
             $this->db,
             $strategy,

@@ -32,7 +32,7 @@ use moodle_database;
 /**
  * Vault class.
  */
-class single_table_with_module_context implements sql_strategy_interface {
+class single_table_with_module_context_course implements sql_strategy_interface {
     private $db;
     private $table;
     private $modulename;
@@ -55,18 +55,21 @@ class single_table_with_module_context implements sql_strategy_interface {
         $alias = $this->get_table_alias();
 
         $forumfields = $this->db->get_preload_columns($this->get_table(), $alias);
-        $cmfields = $this->db->get_preload_columns('course_modules', 'cm_');
+        $coursemodulefields = $this->db->get_preload_columns('course_modules', 'cm_');
+        $coursefields = $this->db->get_preload_columns('course', 'c_');
 
         $fields = implode(', ', [
             $this->db->get_preload_columns_sql($forumfields, $alias),
-            context_helper::get_preload_record_columns_sql('c'),
-            $this->db->get_preload_columns_sql($cmfields, 'cm'),
+            context_helper::get_preload_record_columns_sql('ctx'),
+            $this->db->get_preload_columns_sql($coursemodulefields, 'cm'),
+            $this->db->get_preload_columns_sql($coursefields, 'c'),
         ]);
 
         $tables = '{' . $this->get_table() . '} ' . $alias;
         $tables .= ' JOIN {modules} m ON m.name = \'' . $this->modulename . '\'';
-        $tables .= ' JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = ' . $alias . '.id';
-        $tables .= ' JOIN {context} c ON c.contextlevel = ' . CONTEXT_MODULE .  ' AND c.instanceid = cm.id';
+        $tables .= " JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = {$alias}.id";
+        $tables .= ' JOIN {context} ctx ON ctx.contextlevel = ' . CONTEXT_MODULE .  ' AND ctx.instanceid = cm.id';
+        $tables .= " JOIN {course} c ON c.id = {$alias}.course";
 
         $selectsql = 'SELECT ' . $fields . ' FROM ' . $tables;
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
