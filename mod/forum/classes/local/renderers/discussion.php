@@ -202,9 +202,9 @@ class discussion {
     }
 
     private function get_exported_discussion(array $posts) : array {
-        $discussion = $this->discussion;
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
-            $discussion,
+            $this->forum,
+            $this->discussion,
             $posts
         );
 

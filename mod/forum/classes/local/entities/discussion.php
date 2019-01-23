@@ -132,4 +132,8 @@ class discussion {
     public function is_first_post(post_entity $post) : bool {
         return $this->get_first_post_id() === $post->get_id();
     }
+
+    public function has_started() : bool {
+        return $this->get_time_start() > time();
+    }
 }

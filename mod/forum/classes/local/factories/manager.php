@@ -50,8 +50,8 @@ class manager {
         );
     }
 
-    public function get_url_manager() : url_manager {
-        return new url_manager();
+    public function get_url_manager(forum_entity $forum) : url_manager {
+        return new url_manager($forum);
     }
 
     public function get_event_manager() : event_manager {

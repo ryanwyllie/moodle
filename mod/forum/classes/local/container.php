@@ -85,7 +85,8 @@ class container {
     public static function get_exporter_factory() : exporter_factory {
         if (is_null(self::$exporterfactory)) {
             self::$exporterfactory = new exporter_factory(
-                self::get_legacy_data_mapper_factory()
+                self::get_legacy_data_mapper_factory(),
+                self::get_manager_factory()
             );
         }
 

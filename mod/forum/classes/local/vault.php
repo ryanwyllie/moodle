@@ -51,21 +51,25 @@ class vault {
         $this->datamapper = $datamapper;
     }
 
-    public function get_db() : moodle_database {
+    protected function get_db() : moodle_database {
         return $this->db;
     }
 
-    public function get_sql_strategy() : sql_strategy_interface {
+    protected function get_sql_strategy() : sql_strategy_interface {
         return $this->sqlstrategy;
     }
 
-    public function get_data_mapper() : db_data_mapper_interface {
+    protected function get_data_mapper() : db_data_mapper_interface {
         return $this->datamapper;
+    }
+
+    protected function transform_db_records_to_entities(array $records) {
+        return $this->get_data_mapper()->from_db_records($records);
     }
 
     public function get_from_id(int $id) {
         $records = $this->get_from_ids([$id]);
-        return count($records) ? $records[0] : null;
+        return count($records) ? array_shift($records) : null;
     }
 
     public function get_from_ids(array $ids) {
@@ -76,10 +80,6 @@ class vault {
         $sql = $strategy->generate_get_records_sql($wheresql);
         $records = $this->get_db()->get_records_sql($sql, $params);
 
-        return $this->transform_db_records_to_entities(array_values($records));
-    }
-
-    protected function transform_db_records_to_entities(array $records) {
-        return $this->get_data_mapper()->from_db_records($records);
+        return $this->transform_db_records_to_entities($records);
     }
 }
