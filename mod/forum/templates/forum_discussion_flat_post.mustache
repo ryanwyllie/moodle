@@ -29,69 +29,12 @@
     {
     }
 }}
-<article id="p{{id}}" class="relativelink" data-post-id="{{id}}">
-    <div class="d-flex border p-2">
-        <div style="width: 45px; height: 45px">
-            {{#author.profileimageurl}}
-            <img class="rounded-circle w-100" src="{{{author.profileimageurl}}}">
-            {{/author.profileimageurl}}
+{{< mod_forum/forum_discussion_post }}
+    {{$replies}}
+        <div class="pt-2">
+            {{#replies}}
+                {{> mod_forum/forum_discussion_flat_post }}
+            {{/replies}}
         </div>
-        <div class="d-flex flex-column ml-2 w-100">
-            <header class="mb-2">
-                <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
-                <address>
-                    {{#author.profileurl}}
-                    by <a href="{{{author.profileurl}}}">{{author.fullname}}</a>
-                    {{/author.profileurl}}
-                    {{^author.profileurl}}
-                        {{author.fullname}}
-                    {{/author.profileurl}}
-                    {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
-                </address>
-            </header>
-            <div>
-                {{{message}}}
-            </div>
-            <div class="d-flex justify-content-end">
-                {{#capabilities}}
-                    {{#view}}
-                        <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-link" aria-hidden="true"></i>
-                        </a>
-                    {{/view}}
-                    {{#hasparent}}
-                        <a href="{{urls.viewparent}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-level-up" aria-hidden="true"></i>
-                        </a>
-                    {{/hasparent}}
-                    {{#edit}}
-                        <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-edit" aria-hidden="true"></i>
-                        </a>
-                    {{/edit}}
-                    {{#split}}
-                        <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-code-fork" aria-hidden="true"></i>
-                        </a>
-                    {{/split}}
-                    {{#delete}}
-                        <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-trash" aria-hidden="true"></i>
-                        </a>
-                    {{/delete}}
-                    {{#reply}}
-                        <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-reply" aria-hidden="true"></i>
-                        </a>
-                    {{/reply}}
-                {{/capabilities}}
-            </div>
-        </div>
-    </div>
-
-    <div class="pt-2">
-        {{#replies}}
-            {{> mod_forum/forum_discussion_flat_post }}
-        {{/replies}}
-    </div>
-</article>
+    {{/replies}}
+{{/ mod_forum/forum_discussion_post }}
