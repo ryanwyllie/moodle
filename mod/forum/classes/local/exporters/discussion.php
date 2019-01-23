@@ -77,7 +77,9 @@ class discussion extends exporter {
      */
     protected static function define_related() {
         return [
-            'exportedposts' => 'stdClass[]'
+            'exportedposts' => 'stdClass[]',
+            'capabilitymanager' => 'mod_forum\local\managers\capability',
+            'urlmanager' => 'mod_forum\local\managers\url',
         ];
     }
 }

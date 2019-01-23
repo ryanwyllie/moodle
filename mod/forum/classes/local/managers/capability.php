@@ -107,10 +107,8 @@ class capability {
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record($discussion);
         $context = $this->get_context();
-        // TODO: Change this to use entity helper.
-        $modinfo = get_fast_modinfo($forum->get_course_id());
-        $coursemodule = $modinfo->instances['forum'][$forum->get_id()];
-        $course = $coursemodule->get_course();
+        $coursemodule = $forum->get_course_module_record();
+        $course = $forum->get_course_record();
 
         return forum_user_can_post($forumrecord, $discussionrecord, $user, $coursemodule, $course, $context);
     }
@@ -120,16 +118,27 @@ class capability {
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record($discussion);
         $postrecord = $this->get_post_record($post);
-        // TODO: Change this to use entity helper.
-        $modinfo = get_fast_modinfo($forum->get_course_id());
-        $coursemodule = $modinfo->instances['forum'][$forum->get_id()];
+        $coursemodule = $forum->get_course_module_record();
         return forum_user_can_see_post($forumrecord, $discussionrecord, $postrecord, $user, $coursemodule, false);
     }
 
     public function can_edit_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
         global $CFG;
-        return ($post->is_owned_by_user($user) && $post->get_age() < $CFG->maxeditingtime) ||
-            has_capability('mod/forum:editanypost', $this->get_context(), $user);
+
+        $context = $this->get_context();
+        $ownpost = $post->is_owned_by_user($user);
+        $ineditingtime = $post->get_age() < $CFG->maxeditingtime;
+
+        switch ($forum->get_type()) {
+            case 'news':
+                // Allow editing of news posts once the discussion has started.
+                $ineditingtime = !$post->has_parent() && $discussion->has_started();
+                break;
+            case 'single':
+                return $discussion->is_first_post($post) && has_capability('moodle/course:manageactivities', $context, $user);
+        }
+
+        return ($ownpost && $ineditingtime) || has_capability('mod/forum:editanypost', $context, $user);
     }
 
     public function can_delete_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
@@ -148,6 +157,14 @@ class capability {
             return ($ownpost && $ineditingtime && has_capability('mod/forum:deleteownpost', $context, $user)) ||
                 has_capability('mod/forum:deleteanypost', $context, $user);
         }
+    }
+
+    public function can_split_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
+        return $this->can_split_discussions($user) && !$post->has_parent();
+    }
+
+    public function can_reply_to_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
+        return $this->can_post_in_discussion($user, $discussion);
     }
 
     protected function get_forum() : forum_entity {

@@ -34,7 +34,7 @@ use mod_forum\local\vault;
 class forum extends vault {
     public function get_from_course_module_id(int $id) {
         $records = $this->get_from_course_module_ids([$id]);
-        return count($records) ? $records[0] : null;
+        return count($records) ? array_shift($records) : null;
     }
 
     public function get_from_course_module_ids(array $ids) : array {
@@ -45,6 +45,6 @@ class forum extends vault {
         $sql = $strategy->generate_get_records_sql($wheresql);
         $records = $this->get_db()->get_records_sql($sql, $params);
 
-        return $this->transform_db_records_to_entities(array_values($records));
+        return $this->transform_db_records_to_entities($records);
     }
 }

@@ -57,6 +57,7 @@ class post extends exporter {
             'message' => ['type' => PARAM_RAW],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],
+            'hasparent' => ['type' => PARAM_BOOL],
             'parentid' => [
                 'type' => PARAM_INT,
                 'optional' => true,
@@ -64,7 +65,24 @@ class post extends exporter {
                 'null' => NULL_ALLOWED
             ],
             'timecreated' => ['type' => PARAM_INT],
-            'cansee' => ['type' => PARAM_BOOL]
+            'capabilities' => [
+                'type' => [
+                    'view' => ['type' => PARAM_BOOL],
+                    'edit' => ['type' => PARAM_BOOL],
+                    'delete' => ['type' => PARAM_BOOL],
+                    'split' => ['type' => PARAM_BOOL],
+                    'reply' => ['type' => PARAM_BOOL]
+                ]
+            ],
+            'urls' => [
+                'type' => [
+                    'view' => ['type' => PARAM_URL],
+                    'viewparent' => ['type' => PARAM_URL],
+                    'edit' => ['type' => PARAM_URL],
+                    'delete' => ['type' => PARAM_URL],
+                    'split' => ['type' => PARAM_URL]
+                ]
+            ]
         ];
     }
 
@@ -76,22 +94,36 @@ class post extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
         $post = $this->post;
+        $discussion = $this->related['discussion'];
         $author = $post->get_author();
         $exportedauthor = (new author_exporter($author, ['context' => $this->related['context']]))->export($output);
         $user = $this->related['user'];
-        $coursemodule = $this->related['coursemodule'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
-        $canseepost = forum_user_can_see_post($forumrecord, $discussionrecord, $postrecord, $user, $coursemodule);
 
-        $subject = $canseepost ? $post->get_subject() : get_string('forumsubjecthidden','forum');
-        $message = $canseepost ? format_text($post->get_message(), $post->get_message_format()) : get_string('forumbodyhidden','forum');
-        $authorid = $canseepost ? $exportedauthor->id : null;
-        $fullname = $canseepost ? $exportedauthor->fullname : get_string('forumauthorhidden', 'forum');
-        $profileurl = $canseepost ? $exportedauthor->profileurl : null;
-        $profileimageurl = $canseepost ? $exportedauthor->profileimageurl : null;
-        $timecreated = $canseepost ? $post->get_time_created() : null;
+        $capabilitymanager = $this->related['capabilitymanager'];
+        $canview = $capabilitymanager->can_view_post($user, $discussion, $post);
+        $canedit = $capabilitymanager->can_view_post($user, $discussion, $post);
+        $candelete = $capabilitymanager->can_view_post($user, $discussion, $post);
+        $cansplit = $capabilitymanager->can_view_post($user, $discussion, $post);
+        $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
+
+        $urlmanager = $this->related['urlmanager'];
+        $viewurl = $urlmanager->get_view_post_url_from_post($post);
+        $viewparenturl = $post->has_parent() ? $urlmanager->get_view_post_url_from_post_id($post->get_discussion_id(), $post->get_parent_id()) : null;
+        $editurl = $urlmanager->get_edit_post_url_from_post($post);
+        $deleteurl = $urlmanager->get_delete_post_url_from_post($post);
+        $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
+        $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
+
+        $subject = $canview ? $post->get_subject() : get_string('forumsubjecthidden','forum');
+        $message = $canview ? format_text($post->get_message(), $post->get_message_format()) : get_string('forumbodyhidden','forum');
+        $authorid = $canview ? $exportedauthor->id : null;
+        $fullname = $canview ? $exportedauthor->fullname : get_string('forumauthorhidden', 'forum');
+        $profileurl = $canview ? $exportedauthor->profileurl : null;
+        $profileimageurl = $canview ? $exportedauthor->profileimageurl : null;
+        $timecreated = $canview ? $post->get_time_created() : null;
 
         return [
             'id' => $post->get_id(),
@@ -104,9 +136,24 @@ class post extends exporter {
                 'profileurl' => $profileurl,
                 'profileimageurl' => $profileimageurl
             ],
+            'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
-            'cansee' => $canseepost
+            'capabilities' => [
+                'view' => $canview,
+                'edit' => $canedit,
+                'delete' => $candelete,
+                'split' => $cansplit,
+                'reply' => $canreply
+            ],
+            'urls' => [
+                'view' => $viewurl->out(),
+                'viewparent' => $viewurl ? $viewurl->out() : null,
+                'edit' => $editurl->out(),
+                'delete' => $deleteurl->out(),
+                'split' => $spliturl->out(),
+                'reply' => $replyurl->out()
+            ]
         ];
     }
 
@@ -118,9 +165,10 @@ class post extends exporter {
     protected static function define_related() {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
+            'capabilitymanager' => 'mod_forum\local\managers\capability',
+            'urlmanager' => 'mod_forum\local\managers\url',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
-            'coursemodule' => 'stdClass',
             'user' => 'stdClass',
             'context' => 'context'
         ];
