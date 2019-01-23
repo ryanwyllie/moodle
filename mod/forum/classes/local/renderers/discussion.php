@@ -134,15 +134,15 @@ class discussion {
     private function get_template(int $displaymode) : string {
         switch ($displaymode) {
             case FORUM_MODE_FLATOLDEST:
-                return 'mod_forum/forum_discussion_flat_posts';
+                return 'mod_forum/forum_discussion_flat';
             case FORUM_MODE_FLATNEWEST:
-                return 'mod_forum/forum_discussion_flat_posts';
+                return 'mod_forum/forum_discussion_flat';
             case FORUM_MODE_THREADED:
-                return 'mod_forum/forum_discussion_threaded_posts';
+                return 'mod_forum/forum_discussion_threaded';
             case FORUM_MODE_NESTED:
-                return 'mod_forum/forum_discussion_nested_posts';
+                return 'mod_forum/forum_discussion_nested';
             default;
-                return 'mod_forum/forum_discussion_nested_posts';
+                return 'mod_forum/forum_discussion_nested';
         }
     }
 

@@ -1,0 +1,97 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_forum/forum_post_email_htmlemail
+
+    Template which defines a forum post for sending in a single-post HTML email.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+<article id="p{{id}}" class="relativelink" data-post-id="{{id}}">
+    <div class="d-flex border p-2">
+        {{#author}}
+            <div style="width: 45px; height: 45px">
+                    {{#profileimageurl}}
+                        <img class="rounded-circle w-100" src="{{{.}}}">
+                    {{/profileimageurl}}
+            </div>
+        {{/author}}
+        <div class="d-flex flex-column ml-2 w-100">
+            <header class="mb-2">
+                <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
+                <address>
+                    {{#author}}
+                        {{#profileurl}}
+                        by <a href="{{{.}}}">{{fullname}}</a>
+                        {{/profileurl}}
+                        {{^profileurl}}
+                            {{fullname}}
+                        {{/profileurl}}
+                        {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
+                    {{/author}}
+                </address>
+            </header>
+            <div>
+                {{{message}}}
+            </div>
+            <div class="d-flex justify-content-end">
+                {{#capabilities}}
+                    {{#view}}
+                        <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-link" aria-hidden="true"></i>
+                        </a>
+                    {{/view}}
+                    {{#hasparent}}
+                        <a href="{{urls.viewparent}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-level-up" aria-hidden="true"></i>
+                        </a>
+                    {{/hasparent}}
+                    {{#edit}}
+                        <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-edit" aria-hidden="true"></i>
+                        </a>
+                    {{/edit}}
+                    {{#split}}
+                        <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-code-fork" aria-hidden="true"></i>
+                        </a>
+                    {{/split}}
+                    {{#delete}}
+                        <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-trash" aria-hidden="true"></i>
+                        </a>
+                    {{/delete}}
+                    {{#reply}}
+                        <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-reply" aria-hidden="true"></i>
+                        </a>
+                    {{/reply}}
+                {{/capabilities}}
+            </div>
+        </div>
+    </div>
+
+    {{$replies}}{{/replies}}
+</article>
