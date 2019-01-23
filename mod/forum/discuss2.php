@@ -57,6 +57,14 @@ if (!$forum) {
     throw new \moodle_exception('Unable to find forum with id ' . $discussion->get_forum_id());
 }
 
+$managerfactory = mod_forum\local\container::get_manager_factory();
+$capabilitymanager = $managerfactory->get_capability_manager($forum);
+
+// Make sure we can render.
+if (!$capabilitymanager->can_view_discussions($USER)) {
+    throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
+}
+
 $cm = $forum->get_course_module_record();
 
 require_course_login($course, true, $cm);

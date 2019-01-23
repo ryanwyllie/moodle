@@ -54,11 +54,16 @@ class exporter {
         $this->managerfactory = $managerfactory;
     }
 
-    public function get_discussion_exporter(forum_entity $forum, discussion_entity $discussion, array $exportedposts = []) : discussion_exporter {
+    public function get_discussion_exporter(
+        stdClass $user,
+        forum_entity $forum,
+        discussion_entity $discussion
+    ) : discussion_exporter {
         return new discussion_exporter($discussion, [
-            'exportedposts' => $exportedposts,
+            'forum' => $forum,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
-            'urlmanager' => $this->managerfactory->get_url_manager($forum)
+            'urlmanager' => $this->managerfactory->get_url_manager($forum),
+            'user' => $user
         ]);
     }
 
@@ -68,7 +73,6 @@ class exporter {
 
     public function get_posts_exporter(
         stdClass $user,
-        context $context,
         forum_entity $forum,
         discussion_entity $discussion,
         array $posts
@@ -80,7 +84,7 @@ class exporter {
             'forum' => $forum,
             'discussion' => $discussion,
             'user' => $user,
-            'context' => $context
+            'context' => $forum->get_context()
         ]);
     }
 

@@ -102,6 +102,18 @@ class capability {
             !forum_user_has_posted($this->get_forum()->get_id(), $discussion->get_id(), $user->id);
     }
 
+    public function can_subscribe_to_discussion(stdClass $user, discussion_entity $discussion) : bool {
+        return $this->can_subscribe($user);
+    }
+
+    public function can_move_discussion(stdClass $user, discussion_entity $discussion) : bool {
+        return $this->can_move_discussions($user);
+    }
+
+    public function can_pin_discussion(stdClass $user, discussion_entity $discussion) : bool {
+        return $this->can_pin_discussions($user);
+    }
+
     public function can_post_in_discussion(stdClass $user, discussion_entity $discussion) : bool {
         $forum = $this->get_forum();
         $forumrecord = $this->get_forum_record();

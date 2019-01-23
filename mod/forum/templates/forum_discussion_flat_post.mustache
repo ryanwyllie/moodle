@@ -52,21 +52,25 @@
             <div>
                 {{{message}}}
             </div>
-            {{#cansee}}
-                <div class="d-flex justify-content-end">
-                    <a href="#" class="btn btn-link btn-icon icon-size-3">
-                        <i class="fa fa-link" aria-hidden="true"></i>
-                    </a>
-                    {{#parentid}}
-                    <a href="#p{{.}}" class="btn btn-link btn-icon icon-size-3">
-                        <i class="fa fa-level-up" aria-hidden="true"></i>
-                    </a>
-                    {{/parentid}}
-                    <a href="#" class="btn btn-link btn-icon icon-size-3">
-                        <i class="fa fa-reply" aria-hidden="true"></i>
-                    </a>
-                </div>
-            {{/cansee}}
+            <div class="d-flex justify-content-end">
+                {{#capabilities}}
+                    {{#view}}
+                        <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-link" aria-hidden="true"></i>
+                        </a>
+                    {{/view}}
+                    {{#hasparent}}
+                        <a href="{{urls.viewparent}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-level-up" aria-hidden="true"></i>
+                        </a>
+                    {{/hasparent}}
+                    {{#reply}}
+                        <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-reply" aria-hidden="true"></i>
+                        </a>
+                    {{/reply}}
+                {{/capabilities}}
+            </div>
         </div>
     </div>
 
