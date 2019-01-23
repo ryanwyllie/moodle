@@ -141,7 +141,7 @@ class capability {
         $ownpost = $post->is_owned_by_user($user);
         $ineditingtime = $post->get_age() < $CFG->maxeditingtime;
 
-        switch ($forum->get_type()) {
+        switch ($this->forum->get_type()) {
             case 'news':
                 // Allow editing of news posts once the discussion has started.
                 $ineditingtime = !$post->has_parent() && $discussion->has_started();
@@ -172,7 +172,7 @@ class capability {
     }
 
     public function can_split_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
-        return $this->can_split_discussions($user) && !$post->has_parent();
+        return $this->can_split_discussions($user) && $post->has_parent();
     }
 
     public function can_reply_to_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {

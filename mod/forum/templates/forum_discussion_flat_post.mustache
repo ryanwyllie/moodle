@@ -64,6 +64,21 @@
                             <i class="fa fa-level-up" aria-hidden="true"></i>
                         </a>
                     {{/hasparent}}
+                    {{#edit}}
+                        <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-edit" aria-hidden="true"></i>
+                        </a>
+                    {{/edit}}
+                    {{#split}}
+                        <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-code-fork" aria-hidden="true"></i>
+                        </a>
+                    {{/split}}
+                    {{#delete}}
+                        <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
+                            <i class="fa fa-trash" aria-hidden="true"></i>
+                        </a>
+                    {{/delete}}
                     {{#reply}}
                         <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
                             <i class="fa fa-reply" aria-hidden="true"></i>
