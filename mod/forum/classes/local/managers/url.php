@@ -80,14 +80,6 @@ class url {
         return $this->get_discussion_view_url_from_discussion_id($post->get_discussion_id());
     }
 
-    public function get_course_module_edit_url_from_course_module_id(int $coursemoduleid) : moodle_url {
-        return new moodle_url('/course/modedit.php', [
-            'update' => $coursemoduleid,
-            'sesskey' => sesskey(),
-            'return' => 1
-        ]);
-    }
-
     public function get_view_post_url_from_post_id(int $discussionid, int $postid) : moodle_url {
         $url = $this->get_discussion_view_url_from_discussion_id($discussionid);
         $url->set_anchor('p' . $postid);
@@ -99,9 +91,17 @@ class url {
     }
 
     public function get_edit_post_url_from_post(post_entity $post) : moodle_url {
-        return new moodle_url('/mod/forum/post.php', [
-            'edit' => $post->get_id()
-        ]);
+        if ($this->forum->get_type() == 'single') {
+            return new moodle_url('/course/modedit.php', [
+                'update' => $this->forum->get_course_module_record()->id,
+                'sesskey' => sesskey(),
+                'return' => 1
+            ]);
+        } else {
+            return new moodle_url('/mod/forum/post.php', [
+                'edit' => $post->get_id()
+            ]);
+        }
     }
 
     public function get_split_discussion_at_post_url_from_post(post_entity $post) : moodle_url {

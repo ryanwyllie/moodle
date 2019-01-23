@@ -54,7 +54,7 @@ class post extends exporter {
         return [
             'id' => ['type' => PARAM_INT],
             'subject' => ['type' => PARAM_TEXT],
-            'message' => ['type' => PARAM_RAW],
+            'message' => ['type' => PARAM_TEXT],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],
             'hasparent' => ['type' => PARAM_BOOL],
@@ -77,10 +77,16 @@ class post extends exporter {
             'urls' => [
                 'type' => [
                     'view' => ['type' => PARAM_URL],
-                    'viewparent' => ['type' => PARAM_URL],
+                    'viewparent' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
                     'edit' => ['type' => PARAM_URL],
                     'delete' => ['type' => PARAM_URL],
-                    'split' => ['type' => PARAM_URL]
+                    'split' => ['type' => PARAM_URL],
+                    'reply' => ['type' => PARAM_URL]
                 ]
             ]
         ];
@@ -93,11 +99,15 @@ class post extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        global $CFG;
+
         $post = $this->post;
+        $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
         $author = $post->get_author();
         $exportedauthor = (new author_exporter($author, ['context' => $this->related['context']]))->export($output);
         $user = $this->related['user'];
+        $context = $this->related['context'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
@@ -117,13 +127,41 @@ class post extends exporter {
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
 
-        $subject = $canview ? $post->get_subject() : get_string('forumsubjecthidden','forum');
-        $message = $canview ? format_text($post->get_message(), $post->get_message_format()) : get_string('forumbodyhidden','forum');
-        $authorid = $canview ? $exportedauthor->id : null;
-        $fullname = $canview ? $exportedauthor->fullname : get_string('forumauthorhidden', 'forum');
-        $profileurl = $canview ? $exportedauthor->profileurl : null;
-        $profileimageurl = $canview ? $exportedauthor->profileimageurl : null;
-        $timecreated = $canview ? $post->get_time_created() : null;
+        if ($canview) {
+            $subject = $post->get_subject();
+            $authorid = $exportedauthor->id;
+            $fullname = $exportedauthor->fullname;
+            $profileurl = $exportedauthor->profileurl;
+            $profileimageurl = $exportedauthor->profileimageurl;
+            $timecreated = $post->get_time_created();
+            $message = file_rewrite_pluginfile_urls(
+                $post->get_message(),
+                'pluginfile.php',
+                $context->id,
+                'mod_forum',
+                'post',
+                $post->get_id()
+            );
+
+            if (!empty($CFG->enableplagiarism)) {
+                require_once($CFG->libdir.'/plagiarismlib.php');
+                $message .= plagiarism_get_links([
+                    'userid' => $post->get_user_id(),
+                    'content' => $message,
+                    'cmid' => $forum->get_course_module_record()->id,
+                    'course' => $post->get_course_id(),
+                    'forum' => $forum->get_id()
+                ]);
+            }
+        } else {
+            $subject = get_string('forumsubjecthidden','forum');
+            $message = get_string('forumbodyhidden','forum');
+            $authorid = null;
+            $fullname = get_string('forumauthorhidden', 'forum');
+            $profileurl = null;
+            $profileimageurl = null;
+            $timecreated = null;
+        }
 
         return [
             'id' => $post->get_id(),
@@ -148,7 +186,7 @@ class post extends exporter {
             ],
             'urls' => [
                 'view' => $viewurl->out(),
-                'viewparent' => $viewurl ? $viewurl->out() : null,
+                'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
                 'edit' => $editurl->out(),
                 'delete' => $deleteurl->out(),
                 'split' => $spliturl->out(),

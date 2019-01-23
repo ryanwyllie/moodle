@@ -103,8 +103,9 @@ class discussion {
         }
 
         $nestedposts = $this->get_exported_posts($user, $displaymode);
-        $exporteddiscussion = $this->get_exported_discussion($nestedposts);
+        $exporteddiscussion = $this->get_exported_discussion($user);
         $exporteddiscussion = array_merge($exporteddiscussion, [
+            'posts' => $nestedposts,
             'html' => [
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'notifications' => $this->get_notifications(),
@@ -115,15 +116,15 @@ class discussion {
             ]
         ]);
 
-        if ($capabilitymanager->can_subscribe($user)) {
+        if ($exporteddiscussion['capabilities']['subscribe']) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html();
         }
 
-        if ($capabilitymanager->can_move_discussions($user)) {
+        if ($exporteddiscussion['capabilities']['move']) {
             $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html();
         }
 
-        if ($capabilitymanager->can_pin_discussions($user)) {
+        if ($exporteddiscussion['capabilities']['pin']) {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html();
         }
 
@@ -157,12 +158,10 @@ class discussion {
     private function get_exported_posts(stdClass $user, int $displaymode) : array {
         $forum = $this->forum;
         $discussion = $this->discussion;
-        $context = $forum->get_context();
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $postexporter = $this->exporterfactory->get_posts_exporter(
             $user,
-            $context,
             $forum,
             $discussion,
             $posts
@@ -201,11 +200,11 @@ class discussion {
         return $nestedposts;
     }
 
-    private function get_exported_discussion(array $posts) : array {
+    private function get_exported_discussion(stdClass $user) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
+            $user,
             $this->forum,
-            $this->discussion,
-            $posts
+            $this->discussion
         );
 
         return (array) $discussionexporter->export($this->renderer);
@@ -332,10 +331,8 @@ class discussion {
     }
 
     private function get_neighbour_links_html() {
-        // TODO: Remove this and use the entity object to get the course module.
         $forum = $this->forum;
-        $modinfo = get_fast_modinfo($forum->get_course_id());
-        $coursemodule = $modinfo->instances['forum'][$forum->get_id()];
+        $coursemodule = $forum->get_course_module_record();
         $neighbours = forum_get_discussion_neighbours($coursemodule, $this->discussionrecord, $this->forumrecord);
         return $this->renderer->neighbouring_discussion_navigation($neighbours['prev'], $neighbours['next']);
     }

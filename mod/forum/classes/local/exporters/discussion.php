@@ -50,9 +50,13 @@ class discussion extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
-            'posts' => [
-                'type' => post_exporter::read_properties_definition(),
-                'multiple' => true
+            'capabilities' => [
+                'type' => [
+                    'subscribe' => ['type' => PARAM_BOOL],
+                    'move' => ['type' => PARAM_BOOL],
+                    'pin' => ['type' => PARAM_BOOL],
+                    'post' => ['type' => PARAM_BOOL]
+                ]
             ]
         ];
     }
@@ -64,9 +68,19 @@ class discussion extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        $capabilitymanager = $this->related['capabilitymanager'];
+        $forum = $this->related['forum'];
+        $user = $this->related['user'];
+        $discussion = $this->discussion;
+
         return [
             'id' => $this->discussion->get_id(),
-            'posts' => $this->related['exportedposts']
+            'capabilities' => [
+                'subscribe' => $capabilitymanager->can_subscribe_to_discussion($user, $discussion),
+                'move' => $capabilitymanager->can_move_discussion($user, $discussion),
+                'pin' => $capabilitymanager->can_pin_discussion($user, $discussion),
+                'post' => $capabilitymanager->can_post_in_discussion($user, $discussion)
+            ]
         ];
     }
 
@@ -77,9 +91,10 @@ class discussion extends exporter {
      */
     protected static function define_related() {
         return [
-            'exportedposts' => 'stdClass[]',
+            'forum' => 'mod_forum\local\entities\forum',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
+            'user' => 'stdClass',
         ];
     }
 }
