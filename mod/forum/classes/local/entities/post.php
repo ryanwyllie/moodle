@@ -26,6 +26,8 @@ namespace mod_forum\local\entities;
 
 defined('MOODLE_INTERNAL') || die();
 
+use stdClass;
+
 /**
  * Post class.
  */
@@ -154,6 +156,6 @@ class post {
     }
 
     public function is_owned_by_user(stdClass $user) : bool {
-        return $this->get_author()->get_id() === $user->id;
+        return $this->get_author()->get_id() == $user->id;
     }
 }

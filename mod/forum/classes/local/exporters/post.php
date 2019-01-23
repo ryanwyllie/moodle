@@ -111,12 +111,13 @@ class post extends exporter {
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
+        $isdeleted = $post->is_deleted();
 
         $capabilitymanager = $this->related['capabilitymanager'];
         $canview = $capabilitymanager->can_view_post($user, $discussion, $post);
-        $canedit = $capabilitymanager->can_view_post($user, $discussion, $post);
-        $candelete = $capabilitymanager->can_view_post($user, $discussion, $post);
-        $cansplit = $capabilitymanager->can_view_post($user, $discussion, $post);
+        $canedit = $capabilitymanager->can_edit_post($user, $discussion, $post);
+        $candelete = $capabilitymanager->can_delete_post($user, $discussion, $post);
+        $cansplit = $capabilitymanager->can_split_post($user, $discussion, $post);
         $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
 
         $urlmanager = $this->related['urlmanager'];
@@ -127,7 +128,7 @@ class post extends exporter {
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
 
-        if ($canview) {
+        if ($canview && !$isdeleted) {
             $subject = $post->get_subject();
             $authorid = $exportedauthor->id;
             $fullname = $exportedauthor->fullname;
@@ -154,10 +155,10 @@ class post extends exporter {
                 ]);
             }
         } else {
-            $subject = get_string('forumsubjecthidden','forum');
-            $message = get_string('forumbodyhidden','forum');
+            $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden','forum');
+            $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden','forum');
             $authorid = null;
-            $fullname = get_string('forumauthorhidden', 'forum');
+            $fullname = $isdeleted ? null : get_string('forumauthorhidden', 'forum');
             $profileurl = null;
             $profileimageurl = null;
             $timecreated = null;
