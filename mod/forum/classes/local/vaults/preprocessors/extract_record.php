@@ -22,30 +22,32 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults\build_steps;
+namespace mod_forum\local\vaults\preprocessors;
 
 defined('MOODLE_INTERNAL') || die();
 
-use user_picture;
+use moodle_database;
 
 /**
  * Build step.
  */
-class extract_preload_user {
-    private $idalias;
+class extract_record {
+    private $db;
+    private $table;
     private $alias;
 
-    public function __construct(string $idalias, string $alias) {
-        $this->idalias = $idalias;
+    public function __construct(moodle_database $db, string $table, string $alias) {
+        $this->db = $db;
+        $this->table = $table;
         $this->alias = $alias;
     }
 
     public function execute(array $records) : array {
-        $idalias = $this->idalias;
-        $alias = $this->alias;
+        $db = $this->db;
+        $fields = $this->db->get_preload_columns($this->table, $this->alias);
 
-        return array_map(function($record) use ($idalias, $alias) {
-            return user_picture::unalias($record, null, $idalias, $alias);
+        return array_map(function($record) use ($db, $fields) {
+            return $db->extract_fields_from_object($fields, $record);
         }, $records);
     }
 }

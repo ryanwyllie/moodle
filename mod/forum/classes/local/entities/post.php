@@ -43,10 +43,11 @@ class post {
     private $message;
     private $messageformat;
     private $messagetrust;
-    private $attachment;
+    private $hasattachments;
     private $totalscore;
     private $mailnow;
     private $deleted;
+    private $attachments;
 
     public function __construct(
         int $id,
@@ -60,10 +61,11 @@ class post {
         string $message,
         int $messageformat,
         bool $messagetrust,
-        string $attachment,
+        bool $hasattachments,
         int $totalscore,
         bool $mailnow,
-        bool $deleted
+        bool $deleted,
+        array $attachments = []
     ) {
         $this->id = $id;
         $this->discussionid = $discussionid;
@@ -76,10 +78,11 @@ class post {
         $this->message = $message;
         $this->messageformat = $messageformat;
         $this->messagetrust = $messagetrust;
-        $this->attachment = $attachment;
+        $this->hasattachments = $hasattachments;
         $this->totalscore = $totalscore;
         $this->mailnow = $mailnow;
         $this->deleted = $deleted;
+        $this->attachments = $attachments;
     }
 
     public function get_id() : int {
@@ -131,8 +134,12 @@ class post {
         return $this->messagetrust;
     }
 
-    public function get_attachment() : string {
-        return $this->attachment;
+    public function has_attachments() : string {
+        return $this->hasattachments;
+    }
+
+    public function get_attachments() : array {
+        return $this->attachments;
     }
 
     public function get_total_score() : int {

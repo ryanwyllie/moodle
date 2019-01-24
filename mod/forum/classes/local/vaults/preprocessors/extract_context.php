@@ -15,23 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * SQL strategy interface.
+ * Build step.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults\sql_strategies;
+namespace mod_forum\local\vaults\preprocessors;
 
 defined('MOODLE_INTERNAL') || die();
 
+use context;
+use context_helper;
+
 /**
- * SQL strategy interface.
+ * Build step.
  */
-interface sql_strategy_interface {
-    public function get_table() : string;
-    public function get_table_alias() : string;
-    public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string;
-    public function get_preprocessors() : array;
+class extract_context {
+    public function execute(array $records) : array {
+        return array_map(function($record) {
+            $contextid = $record->ctxid;
+            context_helper::preload_from_record($record);
+            $context = context::instance_by_id($contextid);
+            return $context;
+        }, $records);
+    }
 }

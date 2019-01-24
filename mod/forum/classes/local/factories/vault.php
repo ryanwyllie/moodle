@@ -54,7 +54,7 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_forum_data_mapper(),
-            $strategy->get_build_steps()
+            $strategy->get_preprocessors()
         );
     }
 
@@ -64,7 +64,7 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_discussion_data_mapper(),
-            $strategy->get_build_steps()
+            $strategy->get_preprocessors()
         );
     }
 
@@ -74,7 +74,7 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_post_data_mapper(),
-            $strategy->get_build_steps()
+            $strategy->get_preprocessors()
         );
     }
 
@@ -84,7 +84,7 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_author_data_mapper(),
-            $strategy->get_build_steps()
+            $strategy->get_preprocessors()
         );
     }
 }

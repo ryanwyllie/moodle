@@ -22,23 +22,30 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults\build_steps;
+namespace mod_forum\local\vaults\preprocessors;
 
 defined('MOODLE_INTERNAL') || die();
 
-use context;
-use context_helper;
+use user_picture;
 
 /**
  * Build step.
  */
-class extract_preload_context {
+class extract_user {
+    private $idalias;
+    private $alias;
+
+    public function __construct(string $idalias, string $alias) {
+        $this->idalias = $idalias;
+        $this->alias = $alias;
+    }
+
     public function execute(array $records) : array {
-        return array_map(function($record) {
-            $contextid = $record->ctxid;
-            context_helper::preload_from_record($record);
-            $context = context::instance_by_id($contextid);
-            return $context;
+        $idalias = $this->idalias;
+        $alias = $this->alias;
+
+        return array_map(function($record) use ($idalias, $alias) {
+            return user_picture::unalias($record, null, $idalias, $alias);
         }, $records);
     }
 }
