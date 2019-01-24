@@ -15,44 +15,39 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Build step.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\vaults\sql_strategies;
+namespace mod_forum\local\vaults\build_steps;
 
 defined('MOODLE_INTERNAL') || die();
 
+use moodle_database;
+
 /**
- * Vault class.
+ * Build step.
  */
-class single_table implements sql_strategy_interface {
+class extract_preload_record {
+    private $db;
     private $table;
+    private $alias;
 
-    public function __construct(string $table) {
+    public function __construct(moodle_database $db, string $table, string $alias) {
+        $this->db = $db;
         $this->table = $table;
+        $this->alias = $alias;
     }
 
-    public function get_table() : string {
-        return $this->table;
-    }
+    public function execute(array $records) : array {
+        $db = $this->db;
+        $fields = $this->db->get_preload_columns($this->table, $this->alias);
 
-    public function get_table_alias() : string {
-        return 't';
-    }
-
-    public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
-        $selectsql = 'SELECT * FROM {' . $this->get_table() . '} ' . $this->get_table_alias();
-        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
-        $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
-
-        return $selectsql;
-    }
-
-    public function get_build_steps() : array {
-        return [];
+        return array_map(function($record) use ($db, $fields) {
+            return $db->extract_fields_from_object($fields, $record);
+        }, $records);
     }
 }

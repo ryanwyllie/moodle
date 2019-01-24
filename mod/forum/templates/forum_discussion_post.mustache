@@ -60,32 +60,32 @@
                 {{#capabilities}}
                     {{#view}}
                         <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-link" aria-hidden="true"></i>
+                            {{#str}} permalink, mod_forum {{/str}}
                         </a>
                     {{/view}}
                     {{#hasparent}}
                         <a href="{{urls.viewparent}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-level-up" aria-hidden="true"></i>
+                            {{#str}} parent, mod_forum {{/str}}
                         </a>
                     {{/hasparent}}
                     {{#edit}}
                         <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-edit" aria-hidden="true"></i>
+                            {{#str}} edit, mod_forum {{/str}}
                         </a>
                     {{/edit}}
                     {{#split}}
                         <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-code-fork" aria-hidden="true"></i>
+                            {{#str}} prune, mod_forum {{/str}}
                         </a>
                     {{/split}}
                     {{#delete}}
                         <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-trash" aria-hidden="true"></i>
+                            {{#str}} delete, mod_forum {{/str}}
                         </a>
                     {{/delete}}
                     {{#reply}}
                         <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
-                            <i class="fa fa-reply" aria-hidden="true"></i>
+                            {{#str}} reply, mod_forum {{/str}}
                         </a>
                     {{/reply}}
                 {{/capabilities}}

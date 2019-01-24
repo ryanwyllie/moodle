@@ -44,24 +44,13 @@ class forum implements db_data_mapper_interface {
         $this->entityfactory = $entityfactory;
     }
 
-    public function from_db_records(array $records) : array {
+    public function from_db_records(array $results) : array {
         $entityfactory = $this->entityfactory;
 
-        $forumfields = $this->db->get_preload_columns('forum', 't');
-        $coursemodulefields = $this->db->get_preload_columns('course_modules', 'cm_');
-        $coursefields = $this->db->get_preload_columns('course', 'c_');
-
-        return array_map(function($record) use ($entityfactory, $forumfields, $coursemodulefields, $coursefields) {
-            $contextid = $record->ctxid;
-            context_helper::preload_from_record($record);
-            $context = context::instance_by_id($contextid);
-
-            $forumrecord = $this->db->extract_fields_from_object($forumfields, $record);
-            $coursemodule = $this->db->extract_fields_from_object($coursemodulefields, $record);
-            $course = $this->db->extract_fields_from_object($coursefields, $record);
-
+        return array_map(function(array $result) use ($entityfactory) {
+            [$record, $forumrecord, $coursemodule, $course, $context] = $result;
             return $entityfactory->get_forum_from_stdClass($forumrecord, $context, $coursemodule, $course);
-        }, $records);
+        }, $results);
     }
 
     public function to_db_records(array $forums) : array {

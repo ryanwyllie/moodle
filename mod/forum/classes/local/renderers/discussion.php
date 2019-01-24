@@ -101,6 +101,15 @@ class discussion {
         }
 
         $nestedposts = $this->get_exported_posts($user, $displaymode);
+        $nestedposts = array_map(function($exportedpost) use ($forum) {
+            if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
+                // Remove the author from any posts
+                unset($exportedpost->author);
+            }
+
+            return $exportedpost;
+        }, $nestedposts);
+
         $exporteddiscussion = $this->get_exported_discussion($user);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'posts' => $nestedposts,
@@ -167,7 +176,7 @@ class discussion {
         ['posts' => $exportedposts] = (array) $postexporter->export($this->renderer);
 
         $nestedposts = [];
-        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies) {
+        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $forum) {
             if (!isset($candidate->replies)) {
                 $candidate->replies = [];
             }

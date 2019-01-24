@@ -33,4 +33,5 @@ interface sql_strategy_interface {
     public function get_table() : string;
     public function get_table_alias() : string;
     public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string;
+    public function get_build_steps() : array;
 }

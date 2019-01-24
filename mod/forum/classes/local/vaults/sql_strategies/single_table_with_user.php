@@ -26,6 +26,7 @@ namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\vaults\build_steps\extract_preload_user;
 use user_picture;
 
 /**
@@ -33,6 +34,8 @@ use user_picture;
  */
 class single_table_with_user implements sql_strategy_interface {
     private $table;
+    private const USER_ID_ALIAS = 'userpictureid';
+    private const USER_ALIAS = 'userrecord';
 
     public function __construct(string $table) {
         $this->table = $table;
@@ -48,7 +51,7 @@ class single_table_with_user implements sql_strategy_interface {
 
     public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $alias = $this->get_table_alias();
-        $fields = $alias . '.*, ' . user_picture::fields('u', null, 'userpictureid', 'userrecord');
+        $fields = $alias . '.*, ' . user_picture::fields('u', null, self::USER_ID_ALIAS, self::USER_ALIAS);
         $tables = '{' . $this->get_table() . '} ' . $alias;
         $tables .= ' JOIN {user} u ON u.id = ' . $alias . '.userid';
 
@@ -57,5 +60,9 @@ class single_table_with_user implements sql_strategy_interface {
         $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
 
         return $selectsql;
+    }
+
+    public function get_build_steps() : array {
+        return [new extract_preload_user(self::USER_ID_ALIAS, self::USER_ALIAS)];
     }
 }
