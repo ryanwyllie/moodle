@@ -37,6 +37,7 @@ class forum {
     private $context;
     private $coursemodule;
     private $course;
+    private $effectivegroupmode;
     private $id;
     private $courseid;
     private $type;
@@ -67,6 +68,7 @@ class forum {
         context $context,
         \stdClass $coursemodule,
         \stdClass $course,
+        int $effectivegroupmode,
         int $id,
         int $courseid,
         string $type,
@@ -96,6 +98,7 @@ class forum {
         $this->context = $context;
         $this->coursemodule = $coursemodule;
         $this->course = $course;
+        $this->effectivegroupmode = $effectivegroupmode;
         $this->id = $id;
         $this->courseid = $courseid;
         $this->type = $type;
@@ -129,6 +132,10 @@ class forum {
 
     public function get_course_module_record() : \stdClass {
         return $this->coursemodule;
+    }
+
+    public function get_effective_groupmode() : int {
+        return $this->effectivegroupmode;
     }
 
     public function get_course_record() : \stdClass {
