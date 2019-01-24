@@ -49,7 +49,10 @@ class post implements db_data_mapper_interface {
         $entityfactory = $this->entityfactory;
 
         return array_map(function(array $result) use ($entityfactory) {
-            [$record, $authorrecord] = $result;
+            [
+                'record' => $record,
+                'user' => $authorrecord,
+            ] = $result;
             $author = $entityfactory->get_author_from_stdClass($authorrecord);
             // TODO: Add read status tracking in here.
             // forum_tp_is_post_old() forum_tp_is_post_read();

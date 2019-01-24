@@ -48,7 +48,12 @@ class forum implements db_data_mapper_interface {
         $entityfactory = $this->entityfactory;
 
         return array_map(function(array $result) use ($entityfactory) {
-            [$record, $forumrecord, $coursemodule, $course, $context] = $result;
+            [
+                'forum' => $forumrecord,
+                'course_module' => $coursemodule,
+                'course' => $course,
+                'context' => $context,
+            ] = $result;
             return $entityfactory->get_forum_from_stdClass($forumrecord, $context, $coursemodule, $course);
         }, $results);
     }
