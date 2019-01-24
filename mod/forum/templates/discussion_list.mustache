@@ -1,0 +1,82 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_forum/discussion_list
+
+    Template to display the list of forum discussions.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * TODO
+
+    Example context (json):
+    {
+    }
+}}
+<span id="{{uniqid}}">
+    {{#notifications}}
+        {{> core/notification}}
+    {{/notifications}}
+
+    {{#capabilities.create}}
+        <div class="forumaddnew">
+            <a href="{{urls.create}}" class="btn btn-primary">
+                {{$discussion_create_text}}
+                    {{#str}}addanewdiscussion, forum{{/str}}
+                {{/discussion_create_text}}
+            </a>
+        </div>
+    {{/capabilities.create}}
+
+    {{#has_any_discussions}}
+        <table class="table table-hover table-striped">
+            {{> mod_forum/discussion_list_header}}
+            <tbody>
+                {{#discussions}}
+                    {{> mod_forum/discussion_list_entry}}
+                {{/discussions}}
+            </tbody>
+        </table>
+        {{#pageno}}
+            <a href="{{{prev_page_link}}}">Previous</a>
+        {{/pageno}}
+        {{#more_pages}}
+            <a href="{{{next_page_link}}}">Next</a>
+        {{/more_pages}}
+        {{#can_create_discussion}}
+            <div class="forumaddnew">
+                <a href="{{create_discussion_link}}" class="btn btn-primary">{{create_discussion_link_text}}</a>
+            </div>
+        {{/can_create_discussion}}
+    {{/has_any_discussions}}
+    {{^has_any_discussions}}
+        <div class="forumnodiscuss">
+            {{nodiscussionstring}}
+        </div>
+    {{/has_any_discussions}}
+
+</span>
+{{#js}}
+    require(['mod_forum/discussion_list'], function(View) {
+        View.init("{{uniqid}}");
+    });
+{{/js}}

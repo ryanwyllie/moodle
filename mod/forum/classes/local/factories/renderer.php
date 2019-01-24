@@ -33,6 +33,7 @@ use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
+use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use context;
 use moodle_url;
 use renderer_base;
@@ -92,6 +93,25 @@ class renderer {
             $this->vaultfactory,
             $capabilitymanager,
             $baseurl,
+            $notifications
+        );
+    }
+
+    public function get_discussion_list_renderer(
+        forum_entity $forum
+    ) : discussion_list_renderer {
+
+        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+        $rendererbase = $this->rendererbase;
+        $notifications = [];
+
+        return new discussion_list_renderer(
+            $forum,
+            $rendererbase,
+            $this->legacydatamapperfactory,
+            $this->exporterfactory,
+            $this->vaultfactory,
+            $capabilitymanager,
             $notifications
         );
     }
