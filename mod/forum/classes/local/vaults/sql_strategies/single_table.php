@@ -52,7 +52,7 @@ class single_table implements sql_strategy_interface {
         return $selectsql;
     }
 
-    public function get_build_steps() : array {
+    public function get_preprocessors() : array {
         return [];
     }
 }

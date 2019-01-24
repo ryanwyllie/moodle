@@ -26,28 +26,26 @@ namespace mod_forum\local\vaults\build_steps;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\vaults\sql_strategies\sql_strategy_interface;
 use moodle_database;
 
 /**
  * Build step.
  */
-class extract_preload_record {
+class load_additional_records {
     private $db;
-    private $table;
-    private $alias;
+    private $strategy;
+    private $getwhereandorderbysqlcallback;
 
-    public function __construct(moodle_database $db, string $table, string $alias) {
+    public function __construct(moodle_database $db, sql_strategy_interface $strategy, callable $getwhereandorderbysqlcallback) {
         $this->db = $db;
-        $this->table = $table;
-        $this->alias = $alias;
+        $this->strategy = $strategy;
+        $this->getwhereandorderbysqlcallback = $getwhereandorderbysqlcallback;
     }
 
     public function execute(array $records) : array {
-        $db = $this->db;
-        $fields = $this->db->get_preload_columns($this->table, $this->alias);
+        [$wheresql, $params, $orderbysql] = $this->getwhereandorderbysqlcallback($this->strategy, $records);
 
-        return array_map(function($record) use ($db, $fields) {
-            return $db->extract_fields_from_object($fields, $record);
-        }, $records);
+        $sql = $strategy->generate_get_records_sql($wheresql, $orderbysql);
     }
 }

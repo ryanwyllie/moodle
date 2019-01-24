@@ -71,7 +71,7 @@ class post implements db_data_mapper_interface {
                 'message' => $post->get_message(),
                 'messageformat' => $post->get_message_format(),
                 'messagetrust' => $post->is_message_trusted(),
-                'attachment' => $post->get_attachment(),
+                'attachment' => $post->has_attachments(),
                 'totalscore' => $post->get_total_score(),
                 'mailnow' => $post->should_mail_now(),
                 'deleted' => $post->is_deleted()

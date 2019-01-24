@@ -26,7 +26,7 @@ namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vaults\build_steps\extract_preload_user;
+use mod_forum\local\vaults\preprocessors\extract_user;
 use user_picture;
 
 /**
@@ -62,7 +62,7 @@ class single_table_with_user implements sql_strategy_interface {
         return $selectsql;
     }
 
-    public function get_build_steps() : array {
-        return [new extract_preload_user(self::USER_ID_ALIAS, self::USER_ALIAS)];
+    public function get_preprocessors() : array {
+        return [new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS)];
     }
 }

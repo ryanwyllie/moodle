@@ -38,18 +38,18 @@ class vault {
     private $sqlstrategy;
     private $db;
     private $datamapper;
-    private $buildsteps;
+    private $preprocessors;
 
     public function __construct(
         moodle_database $db,
         sql_strategy_interface $sqlstrategy,
         db_data_mapper_interface $datamapper,
-        array $buildsteps = []
+        array $preprocessors = []
     ) {
         $this->db = $db;
         $this->sqlstrategy = $sqlstrategy;
         $this->datamapper = $datamapper;
-        $this->buildsteps = $buildsteps;
+        $this->preprocessors = $preprocessors;
     }
 
     protected function get_db() : moodle_database {
@@ -69,7 +69,7 @@ class vault {
             return [$record];
         }, $records);
 
-        $result = array_reduce($this->buildsteps, function($carry, $step) use ($records) {
+        $result = array_reduce($this->preprocessors, function($carry, $step) use ($records) {
             $dependencies = $step->execute($records);
 
             foreach ($dependencies as $index => $dependency) {

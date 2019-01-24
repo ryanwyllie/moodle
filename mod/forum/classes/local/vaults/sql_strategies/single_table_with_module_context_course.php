@@ -26,8 +26,8 @@ namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vaults\build_steps\extract_preload_context;
-use mod_forum\local\vaults\build_steps\extract_preload_record;
+use mod_forum\local\vaults\preprocessors\extract_context;
+use mod_forum\local\vaults\preprocessors\extract_record;
 use context_helper;
 use moodle_database;
 
@@ -80,12 +80,12 @@ class single_table_with_module_context_course implements sql_strategy_interface 
         return $selectsql;
     }
 
-    public function get_build_steps() : array {
+    public function get_preprocessors() : array {
         return [
-            new extract_preload_record($this->db, $this->get_table(), $this->get_table_alias()),
-            new extract_preload_record($this->db, 'course_modules', 'cm_'),
-            new extract_preload_record($this->db, 'course', 'c_'),
-            new extract_preload_context(),
+            new extract_record($this->db, $this->get_table(), $this->get_table_alias()),
+            new extract_record($this->db, 'course_modules', 'cm_'),
+            new extract_record($this->db, 'course', 'c_'),
+            new extract_context(),
         ];
     }
 }
