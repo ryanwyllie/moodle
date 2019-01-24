@@ -54,7 +54,7 @@ class post extends exporter {
         return [
             'id' => ['type' => PARAM_INT],
             'subject' => ['type' => PARAM_TEXT],
-            'message' => ['type' => PARAM_TEXT],
+            'message' => ['type' => PARAM_RAW],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],
             'hasparent' => ['type' => PARAM_BOOL],
@@ -154,6 +154,16 @@ class post extends exporter {
                     'forum' => $forum->get_id()
                 ]);
             }
+
+            $message = format_text(
+                $message,
+                $post->get_message_format(),
+                (object) [
+                    'para' => false,
+                    'trusted' => $post->is_message_trusted(),
+                    'context' => $context
+                ]
+            );
         } else {
             $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden','forum');
             $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden','forum');

@@ -38,17 +38,18 @@ class vault {
     private $sqlstrategy;
     private $db;
     private $datamapper;
-    private $includecontext;
-    private $contextlevel;
+    private $buildsteps;
 
     public function __construct(
         moodle_database $db,
         sql_strategy_interface $sqlstrategy,
-        db_data_mapper_interface $datamapper
+        db_data_mapper_interface $datamapper,
+        array $buildsteps = []
     ) {
         $this->db = $db;
         $this->sqlstrategy = $sqlstrategy;
         $this->datamapper = $datamapper;
+        $this->buildsteps = $buildsteps;
     }
 
     protected function get_db() : moodle_database {
@@ -64,7 +65,22 @@ class vault {
     }
 
     protected function transform_db_records_to_entities(array $records) {
-        return $this->get_data_mapper()->from_db_records($records);
+        $result = array_map(function($record) {
+            return [$record];
+        }, $records);
+
+        $result = array_reduce($this->buildsteps, function($carry, $step) use ($records) {
+            $dependencies = $step->execute($records);
+
+            foreach ($dependencies as $index => $dependency) {
+                // Add the new dependency to the list.
+                $carry[$index] = array_merge($carry[$index], [$dependency]);
+            }
+
+            return $carry;
+        }, $result);
+
+        return $this->get_data_mapper()->from_db_records($result);
     }
 
     public function get_from_id(int $id) {

@@ -32,7 +32,6 @@ use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\vaults\author as author_vault;
 use context;
 use stdClass;
-use user_picture;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -46,16 +45,16 @@ class post implements db_data_mapper_interface {
         $this->entityfactory = $entityfactory;
     }
 
-    public function from_db_records(array $records) : array {
+    public function from_db_records(array $results) : array {
         $entityfactory = $this->entityfactory;
 
-        return array_map(function(stdClass $record) use ($entityfactory) {
-            $authorrecord = user_picture::unalias($record, null, 'userpictureid', 'userrecord');
+        return array_map(function(array $result) use ($entityfactory) {
+            [$record, $authorrecord] = $result;
             $author = $entityfactory->get_author_from_stdClass($authorrecord);
             // TODO: Add read status tracking in here.
             // forum_tp_is_post_old() forum_tp_is_post_read();
             return $entityfactory->get_post_from_stdClass($record, $author);
-        }, $records);
+        }, $results);
     }
 
     public function to_db_records(array $posts) : array {

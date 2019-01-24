@@ -53,22 +53,38 @@ class vault {
         return new forum_vault(
             $this->db,
             $strategy,
-            $this->datamapperfactory->get_forum_data_mapper()
+            $this->datamapperfactory->get_forum_data_mapper(),
+            $strategy->get_build_steps()
         );
     }
 
     public function get_discussion_vault() : discussion_vault {
         $strategy = new single_table_strategy('forum_discussions');
-        return new discussion_vault($this->db, $strategy, $this->datamapperfactory->get_discussion_data_mapper());
+        return new discussion_vault(
+            $this->db,
+            $strategy,
+            $this->datamapperfactory->get_discussion_data_mapper(),
+            $strategy->get_build_steps()
+        );
     }
 
     public function get_post_vault() : post_vault {
         $strategy = new with_user_strategy('forum_posts');
-        return new post_vault($this->db, $strategy, $this->datamapperfactory->get_post_data_mapper());
+        return new post_vault(
+            $this->db,
+            $strategy,
+            $this->datamapperfactory->get_post_data_mapper(),
+            $strategy->get_build_steps()
+        );
     }
 
     public function get_author_vault() : author_vault {
         $strategy = new single_table_strategy('user');
-        return new author_vault($this->db, $strategy, $this->datamapperfactory->get_author_data_mapper());
+        return new author_vault(
+            $this->db,
+            $strategy,
+            $this->datamapperfactory->get_author_data_mapper(),
+            $strategy->get_build_steps()
+        );
     }
 }

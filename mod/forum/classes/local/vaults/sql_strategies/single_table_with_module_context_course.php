@@ -26,6 +26,8 @@ namespace mod_forum\local\vaults\sql_strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\vaults\build_steps\extract_preload_context;
+use mod_forum\local\vaults\build_steps\extract_preload_record;
 use context_helper;
 use moodle_database;
 
@@ -54,12 +56,12 @@ class single_table_with_module_context_course implements sql_strategy_interface 
     public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $alias = $this->get_table_alias();
 
-        $forumfields = $this->db->get_preload_columns($this->get_table(), $alias);
+        $tablefields = $this->db->get_preload_columns($this->get_table(), $alias);
         $coursemodulefields = $this->db->get_preload_columns('course_modules', 'cm_');
         $coursefields = $this->db->get_preload_columns('course', 'c_');
 
         $fields = implode(', ', [
-            $this->db->get_preload_columns_sql($forumfields, $alias),
+            $this->db->get_preload_columns_sql($tablefields, $alias),
             context_helper::get_preload_record_columns_sql('ctx'),
             $this->db->get_preload_columns_sql($coursemodulefields, 'cm'),
             $this->db->get_preload_columns_sql($coursefields, 'c'),
@@ -76,5 +78,14 @@ class single_table_with_module_context_course implements sql_strategy_interface 
         $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
 
         return $selectsql;
+    }
+
+    public function get_build_steps() : array {
+        return [
+            new extract_preload_record($this->db, $this->get_table(), $this->get_table_alias()),
+            new extract_preload_record($this->db, 'course_modules', 'cm_'),
+            new extract_preload_record($this->db, 'course', 'c_'),
+            new extract_preload_context(),
+        ];
     }
 }

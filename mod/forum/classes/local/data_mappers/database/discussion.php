@@ -41,12 +41,13 @@ class discussion implements db_data_mapper_interface {
         $this->entityfactory = $entityfactory;
     }
 
-    public function from_db_records(array $records) : array {
+    public function from_db_records(array $results) : array {
         $entityfactory = $this->entityfactory;
 
-        return array_map(function(stdClass $record) use ($entityfactory) {
+        return array_map(function(array $result) use ($entityfactory) {
+            [$record] = $result;
             return $entityfactory->get_discussion_from_stdClass($record);
-        }, $records);
+        }, $results);
     }
 
     public function to_db_records(array $discussions) : array {
