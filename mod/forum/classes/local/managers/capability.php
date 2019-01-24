@@ -64,9 +64,49 @@ class capability {
         $this->context = $forum->get_context();
     }
 
-    public function can_subscribe(stdClass $user) : bool {
+    public function can_subscribe_to_forum(stdClass $user) : bool {
         return !is_guest($this->get_context(), $user) &&
             subscriptions::is_subscribable($this->get_forum_record());
+    }
+
+    public function can_create_discussions(stdClass $user, int $groupid) : bool {
+        if (isguestuser($user) or !isloggedin()) {
+            return false;
+        }
+
+        switch ($this->forum->get_type()) {
+            case 'news':
+                $capability = 'mod/forum:addnews';
+                break;
+            case 'qanda':
+                $capability = 'mod/forum:addquestion';
+                break;
+            default:
+                $capability = 'mod/forum:startdiscussion';
+        }
+
+        if (!has_capability($capability, $this->forum->get_context(), $user)) {
+            return false;
+        }
+
+        return $this->can_post_to_group($user, $groupid);
+    }
+
+    public function can_post_to_group(\stdClass $user, int $groupid) {
+        if (empty($this->forum->get_effective_groupmode()) || $this->forum->get_effective_groupmode() === NOGROUPS) {
+            // This discussion is not in a group mode.
+            return true;
+        }
+
+        if (has_capability('moodle/site:accessallgroups', $this->get_context(), $user)) {
+            // This user has access to all groups.
+            return true;
+        }
+
+        // This is a group discussion for a forum in separate groups mode.
+        // Check if the user is a member.
+        // This is the most expensive check.
+        return groups_is_member($groupid, $this->user->id);
     }
 
     public function can_view_discussions(stdClass $user) : bool {
@@ -103,7 +143,7 @@ class capability {
     }
 
     public function can_subscribe_to_discussion(stdClass $user, discussion_entity $discussion) : bool {
-        return $this->can_subscribe($user);
+        return $this->can_subscribe_to_forum($user);
     }
 
     public function can_move_discussion(stdClass $user, discussion_entity $discussion) : bool {

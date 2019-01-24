@@ -41,10 +41,15 @@ use moodle_url;
  */
 class entity {
     public function get_forum_from_stdClass(stdClass $record, context $context, \stdClass $coursemodule, \stdClass $course) : forum_entity {
+        // Note: cm_info::create loads a cm_info in the context of the current user.
+        // Only use properties which relate to all users rather than a specific user.
+        $cm = \cm_info::create($coursemodule);
+
         return new forum_entity(
             $context,
             $coursemodule,
             $course,
+            $cm->effectivegroupmode,
             $record->id,
             $record->course,
             $record->type,

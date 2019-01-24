@@ -92,8 +92,6 @@ class discussion {
     }
 
     public function render(stdClass $user, int $displaymode, post_entity $post) : string {
-        global $PAGE, $USER;
-
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
