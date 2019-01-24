@@ -96,7 +96,7 @@ class entity {
         );
     }
 
-    public function get_post_from_stdClass(stdClass $record, author_entity $author) : post_entity {
+    public function get_post_from_stdClass(stdClass $record, author_entity $author, array $attachments = []) : post_entity {
         return new post_entity(
             $record->id,
             $record->discussion,
@@ -112,7 +112,8 @@ class entity {
             $record->attachment,
             $record->totalscore,
             $record->mailnow,
-            $record->deleted
+            $record->deleted,
+            $attachments
         );
     }
 

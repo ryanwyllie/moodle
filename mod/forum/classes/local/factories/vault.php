@@ -33,7 +33,8 @@ use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_module_context_course as module_context_course_strategy;
-use mod_forum\local\vaults\sql_strategies\single_table_with_user as with_user_strategy;
+use mod_forum\local\vaults\sql_strategies\post as post_sql_strategy;
+use file_storage;
 use moodle_database;
 
 /**
@@ -42,10 +43,12 @@ use moodle_database;
 class vault {
     private $datamapperfactory;
     private $db;
+    private $filestorage;
 
-    public function __construct(moodle_database $db, data_mapper_factory $datamapperfactory) {
+    public function __construct(moodle_database $db, data_mapper_factory $datamapperfactory, file_storage $filestorage) {
         $this->db = $db;
         $this->datamapperfactory = $datamapperfactory;
+        $this->filestorage = $filestorage;
     }
 
     public function get_forum_vault() : forum_vault {
@@ -69,7 +72,7 @@ class vault {
     }
 
     public function get_post_vault() : post_vault {
-        $strategy = new with_user_strategy('forum_posts');
+        $strategy = new post_sql_strategy($this->filestorage);
         return new post_vault(
             $this->db,
             $strategy,
