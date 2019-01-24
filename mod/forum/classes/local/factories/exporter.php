@@ -33,6 +33,7 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\exporters\author as author_exporter;
+use mod_forum\local\exporters\forum as forum_exporter;
 use mod_forum\local\exporters\discussion as discussion_exporter;
 use mod_forum\local\exporters\post as post_exporter;
 use mod_forum\local\exporters\posts as posts_exporter;
@@ -52,6 +53,23 @@ class exporter {
     ) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->managerfactory = $managerfactory;
+    }
+
+    public function get_forum_exporter(
+        stdClass $user,
+        forum_entity $forum,
+        int $currentgroup
+    ) : forum_exporter {
+        return new forum_exporter($forum, [
+            'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
+            'urlmanager' => $this->managerfactory->get_url_manager($forum),
+            'user' => $user,
+            'currentgroup' => $currentgroup,
+        ]);
+    }
+
+    public function get_forum_export_structure() {
+        return forum_exporter::get_read_structure();
     }
 
     public function get_discussion_exporter(

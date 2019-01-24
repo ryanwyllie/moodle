@@ -54,6 +54,12 @@ class url {
         return $this->get_course_url_from_courseid($forum->get_course_id());
     }
 
+    public function get_discussion_create_url(forum_entity $forum) : moodle_url {
+        return new moodle_url('/mod/forum/post.php', [
+            'forum' => $forum->get_id(),
+        ]);
+    }
+
     public function get_forum_view_url_from_forum(forum_entity $forum) : moodle_url {
         return new moodle_url('/mod/forum/discussions.php', [
             'f' => $forum->get_id(),
