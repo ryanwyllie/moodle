@@ -82,10 +82,10 @@ class single_table_with_module_context_course implements sql_strategy_interface 
 
     public function get_preprocessors() : array {
         return [
-            new extract_record($this->db, $this->get_table(), $this->get_table_alias()),
-            new extract_record($this->db, 'course_modules', 'cm_'),
-            new extract_record($this->db, 'course', 'c_'),
-            new extract_context(),
+            'forum' => new extract_record($this->db, $this->get_table(), $this->get_table_alias()),
+            'course_module' => new extract_record($this->db, 'course_modules', 'cm_'),
+            'course' => new extract_record($this->db, 'course', 'c_'),
+            'context' => new extract_context(),
         ];
     }
 }

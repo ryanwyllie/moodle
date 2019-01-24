@@ -45,7 +45,9 @@ class discussion implements db_data_mapper_interface {
         $entityfactory = $this->entityfactory;
 
         return array_map(function(array $result) use ($entityfactory) {
-            [$record] = $result;
+            [
+                'record' => $record,
+            ] = $result;
             return $entityfactory->get_discussion_from_stdClass($record);
         }, $results);
     }

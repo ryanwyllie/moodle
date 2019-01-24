@@ -63,6 +63,8 @@ class single_table_with_user implements sql_strategy_interface {
     }
 
     public function get_preprocessors() : array {
-        return [new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS)];
+        return [
+            'user' => new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS),
+        ];
     }
 }

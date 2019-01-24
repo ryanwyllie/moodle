@@ -66,15 +66,16 @@ class vault {
 
     protected function transform_db_records_to_entities(array $records) {
         $result = array_map(function($record) {
-            return [$record];
+            return ['record' => $record];
         }, $records);
 
-        $result = array_reduce($this->preprocessors, function($carry, $step) use ($records) {
+        $result = array_reduce(array_keys($this->preprocessors), function($carry, $preprocessor) use ($records) {
+            $step = $this->preprocessors[$preprocessor];
             $dependencies = $step->execute($records);
 
             foreach ($dependencies as $index => $dependency) {
                 // Add the new dependency to the list.
-                $carry[$index] = array_merge($carry[$index], [$dependency]);
+                $carry[$index] = array_merge($carry[$index], [$preprocessor => $dependency]);
             }
 
             return $carry;
