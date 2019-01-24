@@ -52,11 +52,12 @@ class post implements db_data_mapper_interface {
             [
                 'record' => $record,
                 'user' => $authorrecord,
+                'attachments' => $attachments
             ] = $result;
             $author = $entityfactory->get_author_from_stdClass($authorrecord);
             // TODO: Add read status tracking in here.
             // forum_tp_is_post_old() forum_tp_is_post_read();
-            return $entityfactory->get_post_from_stdClass($record, $author);
+            return $entityfactory->get_post_from_stdClass($record, $author, $attachments);
         }, $results);
     }
 

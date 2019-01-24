@@ -27,35 +27,44 @@ namespace mod_forum\local\vaults\sql_strategies;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\vaults\preprocessors\extract_user;
+use mod_forum\local\vaults\preprocessors\load_files;
+use file_storage;
 use user_picture;
 
 /**
  * Vault class.
  */
-class single_table_with_user implements sql_strategy_interface {
+class post implements sql_strategy_interface {
     private $table;
+    private $filestorage;
     private const USER_ID_ALIAS = 'userpictureid';
     private const USER_ALIAS = 'userrecord';
 
-    public function __construct(string $table) {
-        $this->table = $table;
+    public function __construct(file_storage $filestorage) {
+        $this->filestorage = $filestorage;
     }
 
     public function get_table() : string {
-        return $this->table;
+        return 'forum_posts';
     }
 
     public function get_table_alias() : string {
-        return 't';
+        return 'p';
     }
 
     public function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
+        $table = $this->get_table();
         $alias = $this->get_table_alias();
-        $fields = $alias . '.*, ' . user_picture::fields('u', null, self::USER_ID_ALIAS, self::USER_ALIAS);
-        $tables = '{' . $this->get_table() . '} ' . $alias;
-        $tables .= ' JOIN {user} u ON u.id = ' . $alias . '.userid';
+        $fields = $alias . '.*, ctx.id as contextid, ' . user_picture::fields('u', null, self::USER_ID_ALIAS, self::USER_ALIAS);
+        $tables = "{{$table}} {$alias}";
+        $tables .= " JOIN {user} u ON u.id = {$alias}.userid";
+        $tables .= " JOIN {forum_discussions} d ON {$alias}.discussion = d.id";
+        $tables .= " JOIN {forum} f ON d.forum = f.id";
+        $tables .= " JOIN {modules} m ON m.name = 'forum'";
+        $tables .= " JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = f.id";
+        $tables .= " JOIN {context} ctx ON ctx.instanceid = cm.id AND ctx.contextlevel = " . CONTEXT_MODULE;
 
-        $selectsql = 'SELECT ' . $fields . ' FROM ' . $tables;
+        $selectsql = "SELECT {$fields} FROM {$tables}";
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
         $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
 
@@ -65,6 +74,7 @@ class single_table_with_user implements sql_strategy_interface {
     public function get_preprocessors() : array {
         return [
             'user' => new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS),
+            'attachments' => new load_files($this->filestorage, 'contextid', 'id')
         ];
     }
 }

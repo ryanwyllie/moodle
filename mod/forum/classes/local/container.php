@@ -99,7 +99,8 @@ class container {
         if (is_null(self::$vaultfactory)) {
             self::$vaultfactory = new vault_factory(
                 $DB,
-                self::get_database_data_mapper_factory()
+                self::get_database_data_mapper_factory(),
+                get_file_storage()
             );
         }
 
