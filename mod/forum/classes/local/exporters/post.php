@@ -88,6 +88,27 @@ class post extends exporter {
                     'split' => ['type' => PARAM_URL],
                     'reply' => ['type' => PARAM_URL]
                 ]
+            ],
+            'attachments' => [
+                'multiple' => true,
+                'type' => [
+                    'filename' => ['type' => PARAM_FILE],
+                    'mimetype' => ['type' => PARAM_TEXT],
+                    'contextid' => ['type' => PARAM_INT],
+                    'component' => ['type' => PARAM_TEXT],
+                    'filearea' => ['type' => PARAM_TEXT],
+                    'itemid' => ['type' => PARAM_INT],
+                    'urls' => [
+                        'type' => [
+                            'file' => ['type' => PARAM_URL]
+                        ]
+                    ],
+                    'html' => [
+                        'type' => [
+                            'icon' => ['type' => PARAM_RAW]
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -174,6 +195,38 @@ class post extends exporter {
             $timecreated = null;
         }
 
+        $attachments = array_map(function($attachment) use ($output, $CFG) {
+            $filename = $attachment->get_filename();
+            $contextid = $attachment->get_contextid();
+            $component = $attachment->get_component();
+            $filearea = $attachment->get_filearea();
+            $itemid = $attachment->get_itemid();
+            $iconhtml = $output->pix_icon(
+                file_file_icon($attachment),
+                get_mimetype_description($attachment),
+                'moodle',
+                ['class' => 'icon']
+            );
+            $fileurl = file_encode_url(
+                $CFG->wwwroot.'/pluginfile.php',
+                '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
+            );
+            return [
+                'filename' => $filename,
+                'mimetype' => $attachment->get_mimetype(),
+                'contextid' => $contextid,
+                'component' => $get_component,
+                'filearea' => $filearea,
+                'itemid' => $itemid,
+                'urls' => [
+                    'file' => $fileurl
+                ],
+                'html' => [
+                    'icon' => $iconhtml
+                ]
+            ];
+        }, $post->get_attachments());
+
         return [
             'id' => $post->get_id(),
             'subject' => $subject,
@@ -202,7 +255,8 @@ class post extends exporter {
                 'delete' => $deleteurl->out(),
                 'split' => $spliturl->out(),
                 'reply' => $replyurl->out()
-            ]
+            ],
+            'attachments' => $attachments
         ];
     }
 
