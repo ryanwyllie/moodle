@@ -56,6 +56,20 @@
             <div>
                 {{{message}}}
             </div>
+            <div>
+                {{#attachments}}
+                    {{#isimage}}
+                        <br><img src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
+                    {{/isimage}}
+                {{/attachments}}
+            </div>
+            <div>
+                {{#attachments}}
+                    {{^isimage}}
+                        <br><a href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
+                    {{/isimage}}
+                {{/attachments}}
+            </div>
             <div class="d-flex justify-content-end">
                 {{#capabilities}}
                     {{#view}}
@@ -63,11 +77,11 @@
                             {{#str}} permalink, mod_forum {{/str}}
                         </a>
                     {{/view}}
-                    {{#hasparent}}
-                        <a href="{{urls.viewparent}}" class="btn btn-link btn-icon icon-size-3">
+                    {{#urls.viewparent}}
+                        <a href="{{.}}" class="btn btn-link btn-icon icon-size-3">
                             {{#str}} parent, mod_forum {{/str}}
                         </a>
-                    {{/hasparent}}
+                    {{/urls.viewparent}}
                     {{#edit}}
                         <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
                             {{#str}} edit, mod_forum {{/str}}

@@ -197,6 +197,7 @@ class post extends exporter {
 
         $attachments = array_map(function($attachment) use ($output, $CFG) {
             $filename = $attachment->get_filename();
+            $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
             $component = $attachment->get_component();
             $filearea = $attachment->get_filearea();
@@ -211,13 +212,15 @@ class post extends exporter {
                 $CFG->wwwroot.'/pluginfile.php',
                 '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
             );
+            $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
             return [
                 'filename' => $filename,
-                'mimetype' => $attachment->get_mimetype(),
+                'mimetype' => $mimetype,
                 'contextid' => $contextid,
-                'component' => $get_component,
+                'component' => $component,
                 'filearea' => $filearea,
                 'itemid' => $itemid,
+                'isimage' => $isimage,
                 'urls' => [
                     'file' => $fileurl
                 ],
