@@ -34,7 +34,7 @@ use stdClass;
 /**
  * Forum class.
  */
-class discussion implements db_data_mapper_interface {
+class discussion_summary implements db_data_mapper_interface {
     private $entityfactory;
 
     public function __construct(entity_factory $entityfactory) {
@@ -46,14 +46,17 @@ class discussion implements db_data_mapper_interface {
 
         return array_map(function(array $result) use ($entityfactory) {
             [
-                'record' => $record,
-                // TODO: This breaks for discussion reads which use the discussions_in_forum strategy.
-                // Need to discuss with Ryan.
+                'discussion' => $discussion,
                 'firstpost' => $firstpost,
                 'firstpostauthor' => $firstpostauthor,
                 'latestpostauthor' => $latestpostauthor,
             ] = $result;
-            return $entityfactory->get_discussion_from_stdClass($record);
+            return $entityfactory->get_discussion_summary_from_stdClass(
+                $discussion,
+                $firstpost,
+                $firstpostauthor,
+                $latestpostauthor
+            );
         }, $results);
     }
 

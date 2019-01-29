@@ -39,6 +39,9 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * Nested discussion renderer class.
  */
 class discussion_list {
+    public const SORTORDER_NEWEST_FIRST = 1;
+    public const SORTORDER_OLDEST_FIRST = 2;
+
     private $forum;
     private $forumrecord;
     private $renderer;
@@ -69,7 +72,7 @@ class discussion_list {
         $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
     }
 
-    public function render(\stdClass $user, int $currentgroup) : string {
+    public function render(\stdClass $user, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) : string {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -81,27 +84,52 @@ class discussion_list {
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
             $this->forum,
-            $currentgroup
+            $groupid
         );
 
-        $forumview = array_merge((array) $forumexporter->export($this->renderer), [
-            'discussions' => [],
-        ]);
+        $forumview = array_merge(
+                (array) $forumexporter->export($this->renderer),
+                (array) $this->get_exported_discussions($user, $groupid, $sortorder, $pageno, $pagesize)
+            );
+
+        print_object($forumview);
 
         return $this->renderer->render_from_template($this->get_template(), $forumview);
     }
 
-    private function get_exported_discussions(\stdClass $user) {
+    private function get_exported_discussions(\stdClass $user, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) {
         $forum = $this->forum;
-        $discussionvault = $this->vaultfactory->get_discussion_vault();
-        $discussions = $discussionvault->get_from_forum_id_and_group($discussion->get_id(), $this->get_order_by($displaymode));
-        $postexporter = $this->exporterfactory->get_posts_exporter(
+        $discussionvault = $this->vaultfactory->get_discussions_in_forum_vault();
+        $discussions = $discussionvault->get_from_forum_id_and_group(
+            $forum->get_id(),
+            $groupid,
+            $sortorder,
+            $this->get_page_size($pagesize),
+            $this->get_page_number($pageno));
+
+        $postvault = $this->vaultfactory->get_post_vault();
+        $posts = $postvault->get_from_discussion_ids(array_keys($discussions));
+
+        $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+
+        $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
             $user,
             $forum,
-            $discussion,
-            $posts
+            $discussions,
+            $groupsbyauthorid
         );
-        ['posts' => $exportedposts] = (array) $postexporter->export($this->renderer);
+
+        return $summaryexporter->export($this->renderer);
+    }
+
+    private function get_page_size() : int {
+        // TODO
+        return 50;
+    }
+
+    private function get_page_number() : int {
+        // TODO
+        return 0;
     }
 
     private function get_template() : string {
@@ -118,5 +146,41 @@ class discussion_list {
             default:
                 return 'mod_forum/discussion_list';
         }
+    }
+
+    private function get_author_groups_from_posts(array $posts) : array {
+        $course = $this->forum->get_course_record();
+        $coursemodule = $this->forum->get_course_module_record();
+        $authorids = array_reduce($posts, function($carry, $post) {
+            $carry[$post->get_author()->get_id()] = true;
+            return $carry;
+        }, []);
+        $authorids[3] = 1;
+        $authorids[11] = 1;
+        $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
+
+        $authorgroups = array_reduce($authorgroups, function($carry, $group) {
+            // Clean up data returned from groups_get_all_groups.
+            $userid = $group->userid;
+            $groupid = $group->groupid;
+
+            unset($group->userid);
+            unset($group->groupid);
+            $group->id = $groupid;
+
+            if (!isset($carry[$userid])) {
+                $carry[$userid] = [$group];
+            } else {
+                $carry[$userid][] = $group;
+            }
+
+            return $carry;
+        }, []);
+
+        foreach (array_diff(array_keys($authorids), array_keys($authorgroups)) as $authorid) {
+            $authorgroups[$authorid] = [];
+        }
+
+        return $authorgroups;
     }
 }

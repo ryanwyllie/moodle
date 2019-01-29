@@ -35,6 +35,7 @@ use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\exporters\author as author_exporter;
 use mod_forum\local\exporters\forum as forum_exporter;
 use mod_forum\local\exporters\discussion as discussion_exporter;
+use mod_forum\local\exporters\discussion_summaries as discussion_summaries_exporter;
 use mod_forum\local\exporters\post as post_exporter;
 use mod_forum\local\exporters\posts as posts_exporter;
 use context;
@@ -58,7 +59,7 @@ class exporter {
     public function get_forum_exporter(
         stdClass $user,
         forum_entity $forum,
-        int $currentgroup
+        ?int $currentgroup
     ) : forum_exporter {
         return new forum_exporter($forum, [
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
@@ -87,6 +88,24 @@ class exporter {
 
     public function get_discussion_export_structure() {
         return discussion_exporter::get_read_structure();
+    }
+
+    public function get_discussion_summaries_exporter(
+        stdClass $user,
+        forum_entity $forum,
+        array $discussions,
+        array $groupsbyauthorid = []
+    ) : discussion_summaries_exporter {
+        return new discussion_summaries_exporter($discussions, $groupsbyauthorid, [
+            'forum' => $forum,
+            'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
+            'urlmanager' => $this->managerfactory->get_url_manager($forum),
+            'user' => $user,
+        ]);
+    }
+
+    public function get_discussion_summaries_export_structure() {
+        return discussion_summaries_exporter::get_read_structure();
     }
 
     public function get_posts_exporter(

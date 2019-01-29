@@ -33,6 +33,9 @@ $forumvault = $vaultfactory->get_forum_vault();
 // TODO Deprecate the 'f' usage?
 $cmid = optional_param('id', null, PARAM_INT);
 $forumid = optional_param('f', null, PARAM_INT);
+$pageno = optional_param('p', 0, PARAM_INT);
+$pagesize = optional_param('s', 0, PARAM_INT);
+$sortorder = optional_param('o', null, PARAM_INT);
 
 if ($cmid) {
     $forum = $forumvault->get_from_course_module_id($cmid);
@@ -42,9 +45,10 @@ if ($cmid) {
     $forum = $forumvault->get_from_id($forumid);
     $urlmanager = $managerfactory->get_url_manager($forum);
     $url = $urlmanager->get_forum_view_url_from_forum($forum);
+} else {
+    required_param('id', PARAM_INT);
+    // TODO Improve error.
 }
-
-// TODO Show an error - nothing to fetch.
 
 $PAGE->set_url($url);
 
@@ -100,6 +104,10 @@ echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionlistrenderer = $rendererfactory->get_discussion_list_renderer($forum);
-echo $discussionlistrenderer->render($USER, groups_get_activity_group($cm));
+$groupid = groups_get_activity_group($cm);
+if (false === $groupid) {
+    $groupid = null;
+}
+echo $discussionlistrenderer->render($USER, $groupid, $sortorder, $pageno, $pagesize);
 
 echo $OUTPUT->footer();

@@ -30,6 +30,7 @@ use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\data_mappers\database\author as author_data_mapper;
 use mod_forum\local\data_mappers\database\discussion as discussion_data_mapper;
+use mod_forum\local\data_mappers\database\discussion_summary as discussion_summary_data_mapper;
 use mod_forum\local\data_mappers\database\forum as forum_data_mapper;
 use mod_forum\local\data_mappers\database\post as post_data_mapper;
 use moodle_database;
@@ -52,6 +53,10 @@ class database_data_mapper {
 
     public function get_discussion_data_mapper() : discussion_data_mapper {
         return new discussion_data_mapper($this->entityfactory);
+    }
+
+    public function get_discussion_summary_data_mapper() : discussion_summary_data_mapper {
+        return new discussion_summary_data_mapper($this->entityfactory);
     }
 
     public function get_post_data_mapper() : post_data_mapper {
