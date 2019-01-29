@@ -42,4 +42,19 @@ class post extends vault {
 
         return $this->transform_db_records_to_entities($records);
     }
+
+    public function get_from_discussion_ids(array $discussionids) : array {
+        $strategy = $this->get_sql_strategy();
+        $alias = $strategy->get_table_alias();
+
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
+
+        $wheresql = "{$alias}.discussion {$insql}";
+
+        $sql = $strategy->generate_get_records_sql($wheresql, '');
+        $records = $this->get_db()->get_records_sql($sql, $params);
+
+        return $this->transform_db_records_to_entities($records);
+
+    }
 }

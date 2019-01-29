@@ -47,14 +47,123 @@
         </div>
     {{/capabilities.create}}
 
-    {{#has_any_discussions}}
+    {{#discussions.0}}
         <table class="table table-hover table-striped">
-            {{> mod_forum/discussion_list_header}}
+            {{$discussion_list_header}}
+            <thead>
+                <tr>
+                    <th scope="col">&nbsp;</th>
+                    <th scope="col" class="p-l-0">{{#str}}discussion, mod_forum{{/str}}</th>
+                    <th scope="col" class="author">{{#str}}startedby, mod_forum{{/str}}</th>
+                    {{#has_any_group}}
+                        <th scope="col" class="group">{{#str}}group{{/str}}</th>
+                    {{/has_any_group}}
+                    {{#can_see_discussions}}
+                        <th scope="col" class="text-center">{{#str}}replies, mod_forum{{/str}}</th>
+                        {{#can_track_reads}}
+                            <th scope="col" class="text-center">{{#str}}unread, mod_forum{{/str}}</th>
+                        {{/can_track_reads}}
+                    {{/can_see_discussions}}
+                    <th scope="col" class="lastpost">{{#str}}lastpost, mod_forum{{/str}}</th>
+                    {{#can_subscribe}}
+                        <th scope="col" class="discussionsubscription"></th>
+                    {{/can_subscribe}}
+                </tr>
+            </thead>
+            {{/discussion_list_header}}
+            {{$discussion_list_body}}
             <tbody>
                 {{#discussions}}
-                    {{> mod_forum/discussion_list_entry}}
+                {{$discussion_list_entry}}
+                    <tr>
+                        <td scope="col" class="pinned p-0 text-center align-middle">
+                            {{#discussion.pinned}}
+                                {{#pix}}i/pinned, mod_forum, {{#str}}discussionpinned, mod_forum{{/str}}{{/pix}}
+                            {{/discussion.pinned}}
+                        </td>
+                        <td scope="col" class="topic p-0">
+                            <a class="p-3 p-l-0 w-100 h-100 d-block" href="{{url}}">{{subject}}</a>
+                        </td>
+                        <td scope="col" class="author">
+                            {{#author}}
+                                <a href="{{profilelink}}">
+                                    <div class="d-flex flex-row">
+                                        <div class="align-middle p-0">
+                                            <a href="{{profileurl}}">
+                                                <img {{!
+                                                    }} class="h-auto rounded-circle" {{!
+                                                    }} src="{{profileimageurl}}" {{!
+                                                    }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
+                                                    }}>
+                                            </a>
+                                        </div>
+                                        <div class="align-middle p-2">
+                                            <a href="{{profileurl}}">{{fullname}}</a>
+                                        </div>
+                                    </div>
+                                </a>
+                            {{/author}}
+                        </td>
+                        {{#has_any_group}}
+                            {{> mod_forum/discussion_list_entry_group}}
+                        {{/has_any_group}}
+                        {{#can_see_discussions}}
+                            <td scope="col" class="p-0 text-center">
+                                <a href="{{url}}" class="p-3 w-100 h-100 d-block">
+                                    {{replies}}
+                                </a>
+                            </td>
+                            {{#can_track_reads}}
+                                <td scope="col" class=p-0 "text-center">
+                                    {{#unread}}
+                                        {{! TODO Rewrite as AJAX}}
+                                        <a href="" class="p-3 w-100 h-100 d-block">{{unread}} {{#pix}}t/markasread, core, {{#str}}markallread, mod_forum{{/str}}{{/pix}}</a>
+                                    {{/unread}}
+                                    {{^unread}}
+                                        <span class="p-3 w-100 h-100 d-block">
+                                            0
+                                        </span>
+                                    {{/unread}}
+                                </td>
+                            {{/can_track_reads}}
+                        {{/can_see_discussions}}
+                        <td scope="col" class="text-left">
+                            {{#modifier}}
+                                <div class="d-flex flex-row">
+                                    <div class="align-middle p-0">
+                                        <a href="{{profileurl}}">
+                                            <img {{!
+                                                }} class="h-auto rounded-circle" {{!
+                                                }} src="{{profileimageurl}}" {{!
+                                                }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
+                                                }}>
+                                        </a>
+                                    </div>
+                                    <div class="p-2 p-t-0 p-b-0 d-inline-flex flex-column">
+                                        <div>
+                                            <a href="{{profileurl}}">{{fullname}}</a>
+                                        </div>
+                                        <div>
+                                            <a href="{{url}}">{{#userdate}}
+                                                {{timemodified}}, {{#str}}strftimerecentfull{{/str}}
+                                            {{/userdate}}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {{/modifier}}
+                        </td>
+                        {{#can_subscribe}}
+                            <td scope="col" class="p-0 align-middle">
+                                {{#subscription_toggle_form}}
+                                    {{> mod_forum/discussion_subscription_toggle}}
+                                {{/subscription_toggle_form}}
+                            </td>
+                        {{/can_subscribe}}
+                    </tr>
+                {{/discussion_list_entry}}
                 {{/discussions}}
             </tbody>
+            {{/discussion_list_body}}
         </table>
         {{#pageno}}
             <a href="{{{prev_page_link}}}">Previous</a>
@@ -67,12 +176,12 @@
                 <a href="{{create_discussion_link}}" class="btn btn-primary">{{create_discussion_link_text}}</a>
             </div>
         {{/can_create_discussion}}
-    {{/has_any_discussions}}
-    {{^has_any_discussions}}
+    {{/discussions.0}}
+    {{^discussions.0}}
         <div class="forumnodiscuss">
             {{nodiscussionstring}}
         </div>
-    {{/has_any_discussions}}
+    {{/discussions.0}}
 
 </span>
 {{#js}}

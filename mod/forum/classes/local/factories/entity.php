@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
+use mod_forum\local\entities\discussion_summary as discussion_summary_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use stdClass;
@@ -136,6 +137,22 @@ class entity {
             $record->lastnamephonetic,
             $record->alternatename,
             $record->imagealt
+        );
+    }
+
+    public function get_discussion_summary_from_stdClass(
+        stdClass $discussion,
+        stdClass $firstpost,
+        stdClass $firstpostauthor,
+        stdClass $latestpostauthor
+    ) : discussion_summary_entity {
+
+        $firstpostauthorentity = $this->get_author_from_stdClass($firstpostauthor);
+        return new discussion_summary_entity(
+            $this->get_discussion_from_stdClass($discussion),
+            $this->get_post_from_stdClass($firstpost, $firstpostauthorentity),
+            $firstpostauthorentity,
+            $this->get_author_from_stdClass($latestpostauthor)
         );
     }
 }

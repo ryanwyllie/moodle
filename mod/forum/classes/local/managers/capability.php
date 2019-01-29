@@ -69,7 +69,7 @@ class capability {
             subscriptions::is_subscribable($this->get_forum_record());
     }
 
-    public function can_create_discussions(stdClass $user, int $groupid) : bool {
+    public function can_create_discussions(stdClass $user, ?int $groupid) : bool {
         if (isguestuser($user) or !isloggedin()) {
             return false;
         }
@@ -92,7 +92,7 @@ class capability {
         return $this->can_post_to_group($user, $groupid);
     }
 
-    public function can_post_to_group(\stdClass $user, int $groupid) {
+    public function can_post_to_group(\stdClass $user, ?int $groupid) {
         if (empty($this->forum->get_effective_group_mode()) || $this->forum->get_effective_group_mode() === NOGROUPS) {
             // This discussion is not in a group mode.
             return true;
@@ -100,6 +100,10 @@ class capability {
 
         if (has_capability('moodle/site:accessallgroups', $this->get_context(), $user)) {
             // This user has access to all groups.
+            return true;
+        }
+
+        if (null === $groupid) {
             return true;
         }
 

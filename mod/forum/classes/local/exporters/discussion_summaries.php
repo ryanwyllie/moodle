@@ -34,11 +34,13 @@ use renderer_base;
 /**
  * Forum class.
  */
-class discussion_list extends exporter {
-    private $forum;
+class discussion_summaries extends exporter {
+    private $discussions;
+    private $groupsbyauthorid;
 
-    public function __construct(forum_entity $forum, $related = []) {
-        $this->discussion = $discussion;
+    public function __construct(array $discussions, $groupsbyauthorid, $related = []) {
+        $this->discussions = $discussions;
+        $this->groupsbyauthorid = $groupsbyauthorid;
         return parent::__construct([], $related);
     }
 
@@ -49,13 +51,10 @@ class discussion_list extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'id' => ['type' => PARAM_INT],
-            'capabilities' => [
-                'type' => [
-                    'create' => ['type' => PARAM_BOOL],
-                    'subscribe' => ['type' => PARAM_BOOL],
-                ]
-            ]
+            'discussions' => [
+                'type' => discussion_summary::read_properties_definition(),
+                'multiple' => true
+            ],
         ];
     }
 
@@ -66,21 +65,17 @@ class discussion_list extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $capabilitymanager = $this->related['capabilitymanager'];
-        $user = $this->related['user'];
-        $cm = $this->related['cm'];
+        $exporteddiscussions = [];
+        $related = $this->related;
 
-        $x = [
-            'id' => $this->forum->get_id(),
-            'capabilities' => [
-                'create' => false,
-                //'create' => false, //$capabilitymanager->can_create_discussions_in_group($user),
-                'subscribe' => $capabilitymanager->can_subscribe_to_forum($user),
-            ]
+        foreach ($this->discussions as $discussion) {
+            $exporter = new discussion_summary($discussion, $this->groupsbyauthorid, $related);
+            $exporteddiscussions[] = $exporter->export($output);
+        }
+
+        return [
+            'discussions' => $exporteddiscussions,
         ];
-
-        var_dump($x);
-        return $x;
     }
 
     /**

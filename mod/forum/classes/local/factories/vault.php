@@ -34,6 +34,7 @@ use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\preprocessors\load_files as load_files_preprocessor;
 use mod_forum\local\vaults\preprocessors\post_read_user_list as post_read_user_list_preprocessor;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
+use mod_forum\local\vaults\sql_strategies\discussions_in_forum as discussions_in_forum;
 use mod_forum\local\vaults\sql_strategies\single_table_with_module_context_course as module_context_course_strategy;
 use mod_forum\local\vaults\sql_strategies\post as post_sql_strategy;
 use file_storage;
@@ -69,6 +70,16 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_discussion_data_mapper(),
+            $strategy->get_preprocessors()
+        );
+    }
+
+    public function get_discussions_in_forum_vault() : discussion_vault {
+        $strategy = new discussions_in_forum($this->db, 'forum_discussions');
+        return new discussion_vault(
+            $this->db,
+            $strategy,
+            $this->datamapperfactory->get_discussion_summary_data_mapper(),
             $strategy->get_preprocessors()
         );
     }
