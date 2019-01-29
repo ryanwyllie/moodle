@@ -37,9 +37,11 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class author extends exporter {
     private $author;
+    private $authorgroups;
 
-    public function __construct(author_entity $author, $related = []) {
+    public function __construct(author_entity $author, array $authorgroups = [], $related = []) {
         $this->author = $author;
+        $this->authorgroups = $authorgroups;
         return parent::__construct([], $related);
     }
 
@@ -53,7 +55,23 @@ class author extends exporter {
             'id' => ['type' => PARAM_INT],
             'fullname' => ['type' => PARAM_TEXT],
             'profileurl' => ['type' => PARAM_URL],
-            'profileimageurl' => ['type' => PARAM_URL]
+            'profileimageurl' => ['type' => PARAM_URL],
+            'groups' => [
+                'multiple' => true,
+                'type' => [
+                    'id' => ['type' => PARAM_INT],
+                    'urls' => [
+                        'type' => [
+                            'image' => [
+                                'type' => PARAM_URL,
+                                'optional' => true,
+                                'default' => null,
+                                'null' => NULL_ALLOWED
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         ];
     }
 
@@ -64,11 +82,22 @@ class author extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        $groups = array_map(function($group) {
+            $imageurl = get_group_picture_url($group, $group->courseid);
+            return [
+                'id' => $group->id,
+                'urls' => [
+                    'image' => $imageurl ? $imageurl->out() : null
+                ]
+            ];
+        }, $this->authorgroups);
+
         return [
             'id' => $this->author->get_id(),
             'fullname' => $this->author->get_full_name(),
             'profileurl' => $this->author->get_profile_url()->out(false),
-            'profileimageurl' => $this->author->get_profile_image_url()->out(false)
+            'profileimageurl' => $this->author->get_profile_image_url()->out(false),
+            'groups' => $groups
         ];
     }
 

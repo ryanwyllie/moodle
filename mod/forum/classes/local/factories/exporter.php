@@ -93,9 +93,10 @@ class exporter {
         stdClass $user,
         forum_entity $forum,
         discussion_entity $discussion,
-        array $posts
+        array $posts,
+        array $groupsbyauthorid = []
     ) : posts_exporter {
-        return new posts_exporter($posts, [
+        return new posts_exporter($posts, $groupsbyauthorid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
