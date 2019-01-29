@@ -93,7 +93,7 @@ class capability {
     }
 
     public function can_post_to_group(\stdClass $user, int $groupid) {
-        if (empty($this->forum->get_effective_groupmode()) || $this->forum->get_effective_groupmode() === NOGROUPS) {
+        if (empty($this->forum->get_effective_group_mode()) || $this->forum->get_effective_group_mode() === NOGROUPS) {
             // This discussion is not in a group mode.
             return true;
         }

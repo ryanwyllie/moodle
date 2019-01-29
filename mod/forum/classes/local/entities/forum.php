@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use context;
 use cm_info;
+use stdClass;
 
 /**
  * Forum class.
@@ -66,8 +67,8 @@ class forum {
 
     public function __construct(
         context $context,
-        \stdClass $coursemodule,
-        \stdClass $course,
+        stdClass $coursemodule,
+        stdClass $course,
         int $effectivegroupmode,
         int $id,
         int $courseid,
@@ -130,15 +131,15 @@ class forum {
         return $this->context;
     }
 
-    public function get_course_module_record() : \stdClass {
+    public function get_course_module_record() : stdClass {
         return $this->coursemodule;
     }
 
-    public function get_effective_groupmode() : int {
+    public function get_effective_group_mode() : int {
         return $this->effectivegroupmode;
     }
 
-    public function get_course_record() : \stdClass {
+    public function get_course_record() : stdClass {
         return $this->course;
     }
 

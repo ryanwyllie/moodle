@@ -39,9 +39,11 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class post extends exporter {
     private $post;
+    private $authorgroups;
 
-    public function __construct(post_entity $post, $related = []) {
+    public function __construct(post_entity $post, array $authorgroups = [], $related = []) {
         $this->post = $post;
+        $this->authorgroups = $authorgroups;
         return parent::__construct([], $related);
     }
 
@@ -123,10 +125,11 @@ class post extends exporter {
         global $CFG;
 
         $post = $this->post;
+        $authorgroups = $this->authorgroups;
         $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
         $author = $post->get_author();
-        $exportedauthor = (new author_exporter($author, ['context' => $this->related['context']]))->export($output);
+        $exportedauthor = (new author_exporter($author, $authorgroups, ['context' => $this->related['context']]))->export($output);
         $user = $this->related['user'];
         $context = $this->related['context'];
         $forumrecord = $this->get_forum_record();
@@ -155,6 +158,7 @@ class post extends exporter {
             $fullname = $exportedauthor->fullname;
             $profileurl = $exportedauthor->profileurl;
             $profileimageurl = $exportedauthor->profileimageurl;
+            $groups = $exportedauthor->groups;
             $timecreated = $post->get_time_created();
             $message = file_rewrite_pluginfile_urls(
                 $post->get_message(),
@@ -193,6 +197,7 @@ class post extends exporter {
             $profileurl = null;
             $profileimageurl = null;
             $timecreated = null;
+            $groups = [];
         }
 
         $attachments = array_map(function($attachment) use ($output, $CFG) {
@@ -239,7 +244,8 @@ class post extends exporter {
                 'id' => $authorid,
                 'fullname' => $fullname,
                 'profileurl' => $profileurl,
-                'profileimageurl' => $profileimageurl
+                'profileimageurl' => $profileimageurl,
+                'groups' => $groups
             ],
             'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,

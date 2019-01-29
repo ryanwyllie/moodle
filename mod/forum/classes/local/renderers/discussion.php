@@ -91,7 +91,7 @@ class discussion {
         $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
-    public function render(stdClass $user, int $displaymode, post_entity $post) : string {
+    public function render(stdClass $user, int $displaymode, post_entity $frompost) : string {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -167,13 +167,15 @@ class discussion {
         $discussion = $this->discussion;
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
-        $postexporter = $this->exporterfactory->get_posts_exporter(
+        $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+        $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $forum,
             $discussion,
-            $posts
+            $posts,
+            $groupsbyauthorid
         );
-        ['posts' => $exportedposts] = (array) $postexporter->export($this->renderer);
+        ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
         $nestedposts = [];
         $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $forum) {
@@ -205,6 +207,34 @@ class discussion {
         } while (!empty($exportedposts));
 
         return $nestedposts;
+    }
+
+    private function get_author_groups_from_posts(array $posts) : array {
+        $course = $this->forum->get_course_record();
+        $coursemodule = $this->forum->get_course_module_record();
+        $authorids = array_reduce($posts, function($carry, $post) {
+            $carry[$post->get_author()->get_id()] = true;
+            return $carry;
+        }, []);
+        $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
+
+        return array_reduce($authorgroups, function($carry, $group) {
+            // Clean up data returned from groups_get_all_groups.
+            $userid = $group->userid;
+            $groupid = $group->groupid;
+
+            unset($group->userid);
+            unset($group->groupid);
+            $group->id = $groupid;
+
+            if (!isset($carry[$userid])) {
+                $carry[$userid] = [$group];
+            } else {
+                $carry[$userid][] = $group;
+            }
+
+            return $carry;
+        }, []);
     }
 
     private function get_exported_discussion(stdClass $user) : array {

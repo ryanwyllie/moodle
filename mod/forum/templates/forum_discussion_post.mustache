@@ -32,10 +32,13 @@
 <article id="p{{id}}" class="relativelink" data-post-id="{{id}}">
     <div class="d-flex border p-2">
         {{#author}}
-            <div style="width: 45px; height: 45px">
+            <div style="width: 45px;">
                     {{#profileimageurl}}
                         <img class="rounded-circle w-100" src="{{{.}}}">
                     {{/profileimageurl}}
+                    {{#groups}}
+                        <img class="rounded-circle w-100" src="{{urls.image}}">
+                    {{/groups}}
             </div>
         {{/author}}
         <div class="d-flex flex-column ml-2 w-100">
@@ -56,20 +59,16 @@
             <div>
                 {{{message}}}
             </div>
-            <div>
-                {{#attachments}}
-                    {{#isimage}}
-                        <br><img src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
-                    {{/isimage}}
-                {{/attachments}}
-            </div>
-            <div>
-                {{#attachments}}
-                    {{^isimage}}
-                        <br><a href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
-                    {{/isimage}}
-                {{/attachments}}
-            </div>
+            {{#attachments}}
+                {{#isimage}}
+                    <img class="d-block" src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
+                {{/isimage}}
+            {{/attachments}}
+            {{#attachments}}
+                {{^isimage}}
+                    <a class="d-block" href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
+                {{/isimage}}
+            {{/attachments}}
             <div class="d-flex justify-content-end">
                 {{#capabilities}}
                     {{#view}}

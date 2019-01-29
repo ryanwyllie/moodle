@@ -37,9 +37,11 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class posts extends exporter {
     private $posts;
+    private $groupsbyauthorid;
 
-    public function __construct(array $posts, $related = []) {
+    public function __construct(array $posts, array $groupsbyauthorid = [], $related = []) {
         $this->posts = $posts;
+        $this->groupsbyauthorid = $groupsbyauthorid;
         return parent::__construct([], $related);
     }
 
@@ -65,13 +67,16 @@ class posts extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
         $related = $this->related;
+        $groupsbyauthorid = $this->groupsbyauthorid;
         $nestedposts = $this->sort_posts_into_replies($this->posts);
-        $exportposts = function($posts) use ($related, $output, &$exportposts) {
+        $exportposts = function($posts) use ($related, $groupsbyauthorid, $output, &$exportposts) {
             $exportedposts = [];
 
             foreach ($posts as $record) {
                 list($post, $replies) = $record;
-                $exporter = new post_exporter($post, $related);
+                $authorid = $post->get_author()->get_id();
+                $authorgroups = isset($groupsbyauthorid[$authorid]) ? $groupsbyauthorid[$authorid] : [];
+                $exporter = new post_exporter($post, $authorgroups, $related);
                 $exportedposts[] = $exporter->export($output);
                 $exportedposts = array_merge($exportedposts, $exportposts($replies));
             }
