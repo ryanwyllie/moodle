@@ -15,20 +15,34 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * data_mapper interface.
+ * Vault class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\local\data_mappers\database;
+namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\vault;
+
 /**
- * data_mapper interface.
+ * Vault class.
  */
-interface db_data_mapper_interface {
-    public function from_db_records(array $records);
+class post_read_receipt_collection extends vault {
+    public function get_from_user_id_and_post_ids(int $userid, array $postids) {
+        $strategy = $this->get_sql_strategy();
+        $alias = $strategy->get_table_alias();
+        [$postidinsql, $params] = $this->get_db()->get_in_or_equal($postids);
+        $params[] = $userid;
+
+        $wheresql = "{$alias}.postid {$postidinsql}";
+        $wheresql .= " AND {$alias}.userid = ?";
+        $sql = $strategy->generate_get_records_sql($wheresql);
+        $records = $this->get_db()->get_records_sql($sql, $params);
+
+        return $this->transform_db_records_to_entities($records);
+    }
 }

@@ -168,12 +168,14 @@ class discussion {
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+        $readreceiptcollection = $this->get_read_receipt_collection_for_posts($user, $posts);
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $forum,
             $discussion,
             $posts,
-            $groupsbyauthorid
+            $groupsbyauthorid,
+            $readreceiptcollection
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
@@ -235,6 +237,14 @@ class discussion {
 
             return $carry;
         }, []);
+    }
+
+    private function get_read_receipt_collection_for_posts(stdClass $user, array $posts) {
+        $postids = array_map(function($post) {
+            return $post->get_id();
+        }, $posts);
+        $vault = $this->vaultfactory->get_post_read_receipt_collection_vault();
+        return $vault->get_from_user_id_and_post_ids($user->id, $postids);
     }
 
     private function get_exported_discussion(stdClass $user) : array {

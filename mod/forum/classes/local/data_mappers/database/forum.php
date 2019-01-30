@@ -26,21 +26,15 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\entity as entity_factory;
-use context;
-use context_helper;
-use moodle_database;
 
 /**
  * Forum class.
  */
 class forum implements db_data_mapper_interface {
     private $entityfactory;
-    private $db;
 
-    public function __construct(moodle_database $db, entity_factory $entityfactory) {
-        $this->db = $db;
+    public function __construct(entity_factory $entityfactory) {
         $this->entityfactory = $entityfactory;
     }
 
@@ -56,37 +50,5 @@ class forum implements db_data_mapper_interface {
             ] = $result;
             return $entityfactory->get_forum_from_stdClass($forumrecord, $context, $coursemodule, $course);
         }, $results);
-    }
-
-    public function to_db_records(array $forums) : array {
-        return array_map(function(forum_entity $forum) {
-            return (object) [
-                'id' => $forum->get_id(),
-                'course' => $forum->get_course_id(),
-                'type' => $forum->get_type(),
-                'name' => $forum->get_name(),
-                'intro' => $forum->get_intro(),
-                'introformat' => $forum->get_intro_format(),
-                'assessed' => $forum->is_assessed(),
-                'assesstimestart' => $forum->get_assess_time_start(),
-                'assesstimefinish' => $forum->get_assess_time_finish(),
-                'scale' => $forum->get_scale(),
-                'maxbytes' => $forum->get_max_bytes(),
-                'maxattachments' => $forum->get_max_attachments(),
-                'forcesubscribe' => $forum->is_subscription_forced(),
-                'trackingtype' => $forum->get_tracking_type(),
-                'rsstype' => $forum->get_rss_type(),
-                'rssarticles' => $forum->get_rss_articles(),
-                'timemodified' => $forum->get_time_modified(),
-                'warnafter' => $forum->get_warn_after(),
-                'blockafter' => $forum->get_block_after(),
-                'blockperiod' => $forum->get_block_period(),
-                'completiondiscussions' => $forum->get_completion_discussions(),
-                'completionreplies' => $forum->get_completion_replies(),
-                'completionposts' => $forum->get_completion_posts(),
-                'displaywordcount' => $forum->should_display_word_count(),
-                'lockdiscussionafter' => $forum->get_lock_discussions_after()
-            ];
-        }, $forums);
     }
 }

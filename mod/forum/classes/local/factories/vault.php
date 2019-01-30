@@ -31,6 +31,7 @@ use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
+use mod_forum\local\vaults\post_read_receipt_collection as post_read_receipt_collection_vault;
 use mod_forum\local\vaults\preprocessors\load_files as load_files_preprocessor;
 use mod_forum\local\vaults\preprocessors\post_read_user_list as post_read_user_list_preprocessor;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
@@ -106,6 +107,16 @@ class vault {
             $this->db,
             $strategy,
             $this->datamapperfactory->get_author_data_mapper(),
+            $strategy->get_preprocessors()
+        );
+    }
+
+    public function get_post_read_receipt_collection_vault() : post_read_receipt_collection_vault {
+        $strategy = new single_table_strategy('forum_read');
+        return new post_read_receipt_collection_vault(
+            $this->db,
+            $strategy,
+            $this->datamapperfactory->get_post_read_receipt_collection_data_mapper(),
             $strategy->get_preprocessors()
         );
     }

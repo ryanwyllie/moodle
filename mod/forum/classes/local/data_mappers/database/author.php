@@ -26,7 +26,6 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\factories\entity as entity_factory;
 
 /**
@@ -48,14 +47,5 @@ class author implements db_data_mapper_interface {
             ] = $result;
             return $entityfactory->get_author_from_stdClass($record);
         }, $results);
-    }
-
-    public function to_db_records(array $authors) : array {
-        return array_map(function(author_entity $author) {
-            return (object) [
-                'id' => $author->get_id(),
-                'fullname' => $author->get_full_name()
-            ];
-        }, $authors);
     }
 }
