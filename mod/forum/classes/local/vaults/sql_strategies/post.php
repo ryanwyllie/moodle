@@ -27,8 +27,6 @@ namespace mod_forum\local\vaults\sql_strategies;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\vaults\preprocessors\extract_user;
-use mod_forum\local\vaults\preprocessors\load_files;
-use file_storage;
 use user_picture;
 
 /**
@@ -36,13 +34,8 @@ use user_picture;
  */
 class post implements sql_strategy_interface {
     private $table;
-    private $filestorage;
     private const USER_ID_ALIAS = 'userpictureid';
     private const USER_ALIAS = 'userrecord';
-
-    public function __construct(file_storage $filestorage) {
-        $this->filestorage = $filestorage;
-    }
 
     public function get_table() : string {
         return 'forum_posts';
@@ -73,8 +66,7 @@ class post implements sql_strategy_interface {
 
     public function get_preprocessors() : array {
         return [
-            'user' => new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS),
-            'attachments' => new load_files($this->filestorage, 'contextid', 'id')
+            'user' => new extract_user(self::USER_ID_ALIAS, self::USER_ALIAS)
         ];
     }
 }

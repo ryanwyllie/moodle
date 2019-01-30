@@ -96,7 +96,12 @@ class entity {
         );
     }
 
-    public function get_post_from_stdClass(stdClass $record, author_entity $author, array $attachments = []) : post_entity {
+    public function get_post_from_stdClass(
+        stdClass $record,
+        author_entity $author,
+        array $attachments = [],
+        array $useridreadlist = []
+    ) : post_entity {
         return new post_entity(
             $record->id,
             $record->discussion,
@@ -113,20 +118,24 @@ class entity {
             $record->totalscore,
             $record->mailnow,
             $record->deleted,
-            $attachments
+            $attachments,
+            $useridreadlist
         );
     }
 
     public function get_author_from_stdClass(stdClass $record) : author_entity {
-        global $PAGE;
-
-        $userpicture = new user_picture($record);
-        $userpicture->size = 1;
         return new author_entity(
             $record->id,
+            $record->picture,
+            $record->firstname,
+            $record->lastname,
             fullname($record),
-            new moodle_url('/user/view.php', ['id' => $record->id]),
-            $userpicture->get_url($PAGE)
+            $record->email,
+            $record->middlename,
+            $record->firstnamephonetic,
+            $record->lastnamephonetic,
+            $record->alternatename,
+            $record->imagealt
         );
     }
 }
