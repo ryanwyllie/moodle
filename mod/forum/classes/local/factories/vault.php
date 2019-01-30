@@ -31,6 +31,8 @@ use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
+use mod_forum\local\vaults\preprocessors\load_files as load_files_preprocessor;
+use mod_forum\local\vaults\preprocessors\post_read_user_list as post_read_user_list_preprocessor;
 use mod_forum\local\vaults\sql_strategies\single_table as single_table_strategy;
 use mod_forum\local\vaults\sql_strategies\single_table_with_module_context_course as module_context_course_strategy;
 use mod_forum\local\vaults\sql_strategies\post as post_sql_strategy;
@@ -72,12 +74,18 @@ class vault {
     }
 
     public function get_post_vault() : post_vault {
-        $strategy = new post_sql_strategy($this->filestorage);
+        $strategy = new post_sql_strategy();
         return new post_vault(
             $this->db,
             $strategy,
             $this->datamapperfactory->get_post_data_mapper(),
-            $strategy->get_preprocessors()
+            array_merge(
+                $strategy->get_preprocessors(),
+                [
+                    'attachments' => new load_files_preprocessor($this->filestorage, 'contextid', 'id'),
+                    'useridreadlist' => new post_read_user_list_preprocessor($this->db)
+                ]
+            )
         );
     }
 

@@ -33,9 +33,9 @@
     <div class="d-flex border p-2">
         {{#author}}
             <div style="width: 45px;">
-                    {{#profileimageurl}}
+                    {{#urls.profileimage}}
                         <img class="rounded-circle w-100" src="{{{.}}}">
-                    {{/profileimageurl}}
+                    {{/urls.profileimage}}
                     {{#groups}}
                         <img class="rounded-circle w-100" src="{{urls.image}}">
                     {{/groups}}
@@ -46,12 +46,12 @@
                 <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
                 <address>
                     {{#author}}
-                        {{#profileurl}}
+                        {{#urls.profile}}
                         by <a href="{{{.}}}">{{fullname}}</a>
-                        {{/profileurl}}
-                        {{^profileurl}}
+                        {{/urls.profile}}
+                        {{^urls.profile}}
                             {{fullname}}
-                        {{/profileurl}}
+                        {{/urls.profile}}
                         {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
                     {{/author}}
                 </address>

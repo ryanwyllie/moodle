@@ -26,10 +26,13 @@ namespace mod_forum\local\managers;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use moodle_url;
+use user_picture;
 
 /**
  * A URL manager for the forum.
@@ -39,9 +42,11 @@ use moodle_url;
  */
 class url {
     private $forum;
+    private $legacydatamapperfactory;
 
-    public function __construct(forum_entity $forum) {
+    public function __construct(forum_entity $forum, legacy_data_mapper_factory $legacydatamapperfactory) {
         $this->forum = $forum;
+        $this->legacydatamapperfactory = $legacydatamapperfactory;
     }
 
     public function get_course_url_from_courseid(int $courseid) : moodle_url {
@@ -126,5 +131,22 @@ class url {
         return new moodle_url('/mod/forum/post.php#mformforum', [
             'reply' => $post->get_id()
         ]);
+    }
+
+    public function get_author_profile_url(author_entity $author) : moodle_url {
+        return new moodle_url('/user/view.php', [
+            'id' => $author->get_id()
+        ]);
+    }
+
+    public function get_author_profile_image_url(author_entity $author) : moodle_url {
+        global $PAGE;
+
+        $datamapper = $this->legacydatamapperfactory->get_author_data_mapper();
+        $record = $datamapper->to_legacy_object($author);
+        $userpicture = new user_picture($record);
+        $userpicture->size = 1;
+
+        return $userpicture->get_url($PAGE);
     }
 }

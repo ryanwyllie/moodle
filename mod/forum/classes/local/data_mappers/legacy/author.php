@@ -37,7 +37,16 @@ class author {
         return array_map(function(author_entity $author) {
             return (object) [
                 'id' => $author->get_id(),
-                'fullname' => $author->get_full_name()
+                'picture' => $author->get_picture_item_id(),
+                'firstname' => $author->get_first_name(),
+                'lastname' => $author->get_last_name(),
+                'fullname' => $author->get_full_name(),
+                'email' => $author->get_email(),
+                'middlename' => $author->get_middle_name(),
+                'firstnamephonetic' => $author->get_first_name_phonetic(),
+                'lastnamephonetic' => $author->get_last_name_phonetic(),
+                'alternatename' => $author->get_alternate_name(),
+                'imagealt' => $author->get_image_alt()
             ];
         }, $authors);
     }

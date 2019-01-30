@@ -48,6 +48,7 @@ class post {
     private $mailnow;
     private $deleted;
     private $attachments;
+    private $useridreadlist;
 
     public function __construct(
         int $id,
@@ -65,7 +66,8 @@ class post {
         int $totalscore,
         bool $mailnow,
         bool $deleted,
-        array $attachments = []
+        array $attachments = [],
+        array $useridreadlist = []
     ) {
         $this->id = $id;
         $this->discussionid = $discussionid;
@@ -83,6 +85,7 @@ class post {
         $this->mailnow = $mailnow;
         $this->deleted = $deleted;
         $this->attachments = $attachments;
+        $this->useridreadlist = $useridreadlist;
     }
 
     public function get_id() : int {
@@ -158,11 +161,14 @@ class post {
         return time() - $this->get_time_created();
     }
 
-    public function is_read() : bool {
-        return forum_tp_is_post_old();
-    }
-
     public function is_owned_by_user(stdClass $user) : bool {
         return $this->get_author()->get_id() == $user->id;
+    }
+
+    public function has_user_read_post(stdClass $user) : bool {
+        global $CFG;
+        $isoldpost = ($this->get_time_modified() < (time() - ($CFG->forum_oldpostdays * 24 * 3600)));
+
+        return $isoldpost || in_array($user->id, $this->useridreadlist);
     }
 }

@@ -31,35 +31,84 @@ defined('MOODLE_INTERNAL') || die();
  */
 class author {
     private $id;
+    private $pictureitemid;
+    private $firstname;
+    private $lastname;
     private $fullname;
-    private $profileurl;
-    private $profileimageurl;
+    private $email;
+    private $middlename;
+    private $firstnamephonetic;
+    private $lastnamephonetic;
+    private $alternatename;
+    private $imagealt;
 
     public function __construct(
         int $id,
+        int $pictureitemid,
+        string $firstname,
+        string $lastname,
         string $fullname,
-        \moodle_url $profileurl,
-        \moodle_url $profileimageurl
+        string $email,
+        string $middlename = null,
+        string $firstnamephonetic = null,
+        string $lastnamephonetic = null,
+        string $alternatename = null,
+        string $imagealt = null
     ) {
         $this->id = $id;
+        $this->pictureitemid = $pictureitemid;
+        $this->firstname = $firstname;
+        $this->lastname = $lastname;
         $this->fullname = $fullname;
-        $this->profileurl = $profileurl;
-        $this->profileimageurl = $profileimageurl;
+        $this->email = $email;
+        $this->middlename = $middlename;
+        $this->firstnamephonetic = $firstnamephonetic;
+        $this->lastnamephonetic = $lastnamephonetic;
+        $this->alternatename = $alternatename;
+        $this->imagealt = $imagealt;
     }
 
     public function get_id() : int {
         return $this->id;
     }
 
+    public function get_picture_item_id() : int {
+        return $this->pictureitemid;
+    }
+
+    public function get_first_name() : string {
+        return $this->firstname;
+    }
+
+    public function get_last_name() : string {
+        return $this->lastname;
+    }
+
     public function get_full_name() : string {
         return $this->fullname;
     }
 
-    public function get_profile_url() : \moodle_url {
-        return $this->profileurl;
+    public function get_email() : string {
+        return $this->email;
     }
 
-    public function get_profile_image_url() : \moodle_url {
-        return $this->profileimageurl;
+    public function get_middle_name() : ?string {
+        return $this->middlename;
+    }
+
+    public function get_first_name_phonetic() : ?string {
+        return $this->firstnamephonetic;
+    }
+
+    public function get_last_name_phonetic() : ?string {
+        return $this->lastnamephonetic;
+    }
+
+    public function get_alternate_name() : ?string {
+        return $this->alternatename;
+    }
+
+    public function get_image_alt() : ?string {
+        return $this->alternatename;
     }
 }

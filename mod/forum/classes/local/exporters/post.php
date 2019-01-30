@@ -67,6 +67,7 @@ class post extends exporter {
                 'null' => NULL_ALLOWED
             ],
             'timecreated' => ['type' => PARAM_INT],
+            'isread' => ['type' => PARAM_BOOL],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
@@ -129,7 +130,6 @@ class post extends exporter {
         $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
         $author = $post->get_author();
-        $exportedauthor = (new author_exporter($author, $authorgroups, ['context' => $this->related['context']]))->export($output);
         $user = $this->related['user'];
         $context = $this->related['context'];
         $forumrecord = $this->get_forum_record();
@@ -152,13 +152,11 @@ class post extends exporter {
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
 
+        $authorexporter = new author_exporter($author, $authorgroups, $canview, $this->related);
+        $exportedauthor = $authorexporter->export($output);
+
         if ($canview && !$isdeleted) {
             $subject = $post->get_subject();
-            $authorid = $exportedauthor->id;
-            $fullname = $exportedauthor->fullname;
-            $profileurl = $exportedauthor->profileurl;
-            $profileimageurl = $exportedauthor->profileimageurl;
-            $groups = $exportedauthor->groups;
             $timecreated = $post->get_time_created();
             $message = file_rewrite_pluginfile_urls(
                 $post->get_message(),
@@ -170,7 +168,7 @@ class post extends exporter {
             );
 
             if (!empty($CFG->enableplagiarism)) {
-                require_once($CFG->libdir.'/plagiarismlib.php');
+                require_once($CFG->libdir . '/plagiarismlib.php');
                 $message .= plagiarism_get_links([
                     'userid' => $post->get_user_id(),
                     'content' => $message,
@@ -192,15 +190,63 @@ class post extends exporter {
         } else {
             $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden','forum');
             $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden','forum');
-            $authorid = null;
-            $fullname = $isdeleted ? null : get_string('forumauthorhidden', 'forum');
-            $profileurl = null;
-            $profileimageurl = null;
             $timecreated = null;
-            $groups = [];
+
+            if ($isdeleted) {
+                $exportedauthor['fullname'] = null;
+            }
         }
 
-        $attachments = array_map(function($attachment) use ($output, $CFG) {
+        return [
+            'id' => $post->get_id(),
+            'subject' => $subject,
+            'message' => $message,
+            'messageformat' => $post->get_message_format(),
+            'author' => $exportedauthor,
+            'hasparent' => $post->has_parent(),
+            'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
+            'timecreated' => $timecreated,
+            'isread' => $post->has_user_read_post($user),
+            'capabilities' => [
+                'view' => $canview,
+                'edit' => $canedit,
+                'delete' => $candelete,
+                'split' => $cansplit,
+                'reply' => $canreply
+            ],
+            'urls' => [
+                'view' => $viewurl->out(),
+                'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
+                'edit' => $editurl->out(),
+                'delete' => $deleteurl->out(),
+                'split' => $spliturl->out(),
+                'reply' => $replyurl->out()
+            ],
+            'attachments' => $this->get_attachments($post, $output)
+        ];
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return [
+            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
+            'capabilitymanager' => 'mod_forum\local\managers\capability',
+            'urlmanager' => 'mod_forum\local\managers\url',
+            'forum' => 'mod_forum\local\entities\forum',
+            'discussion' => 'mod_forum\local\entities\discussion',
+            'user' => 'stdClass',
+            'context' => 'context'
+        ];
+    }
+
+    private function get_attachments($post, $output) {
+        global $CFG;
+
+        return array_map(function($attachment) use ($output, $CFG) {
             $filename = $attachment->get_filename();
             $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
@@ -214,7 +260,7 @@ class post extends exporter {
                 ['class' => 'icon']
             );
             $fileurl = file_encode_url(
-                $CFG->wwwroot.'/pluginfile.php',
+                $CFG->wwwroot . '/pluginfile.php',
                 '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
             );
             $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
@@ -234,56 +280,6 @@ class post extends exporter {
                 ]
             ];
         }, $post->get_attachments());
-
-        return [
-            'id' => $post->get_id(),
-            'subject' => $subject,
-            'message' => $message,
-            'messageformat' => $post->get_message_format(),
-            'author' => [
-                'id' => $authorid,
-                'fullname' => $fullname,
-                'profileurl' => $profileurl,
-                'profileimageurl' => $profileimageurl,
-                'groups' => $groups
-            ],
-            'hasparent' => $post->has_parent(),
-            'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
-            'timecreated' => $timecreated,
-            'capabilities' => [
-                'view' => $canview,
-                'edit' => $canedit,
-                'delete' => $candelete,
-                'split' => $cansplit,
-                'reply' => $canreply
-            ],
-            'urls' => [
-                'view' => $viewurl->out(),
-                'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
-                'edit' => $editurl->out(),
-                'delete' => $deleteurl->out(),
-                'split' => $spliturl->out(),
-                'reply' => $replyurl->out()
-            ],
-            'attachments' => $attachments
-        ];
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return [
-            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
-            'capabilitymanager' => 'mod_forum\local\managers\capability',
-            'urlmanager' => 'mod_forum\local\managers\url',
-            'forum' => 'mod_forum\local\entities\forum',
-            'discussion' => 'mod_forum\local\entities\discussion',
-            'user' => 'stdClass',
-            'context' => 'context'
-        ];
     }
 
     private function get_forum_record() {

@@ -38,10 +38,12 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 class author extends exporter {
     private $author;
     private $authorgroups;
+    private $canview;
 
-    public function __construct(author_entity $author, array $authorgroups = [], $related = []) {
+    public function __construct(author_entity $author, array $authorgroups = [], $canview = true, $related = []) {
         $this->author = $author;
         $this->authorgroups = $authorgroups;
+        $this->canview = $canview;
         return parent::__construct([], $related);
     }
 
@@ -52,10 +54,18 @@ class author extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'id' => ['type' => PARAM_INT],
-            'fullname' => ['type' => PARAM_TEXT],
-            'profileurl' => ['type' => PARAM_URL],
-            'profileimageurl' => ['type' => PARAM_URL],
+            'id' => [
+                'type' => PARAM_INT,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
+            'fullname' => [
+                'type' => PARAM_TEXT,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
             'groups' => [
                 'multiple' => true,
                 'type' => [
@@ -71,6 +81,22 @@ class author extends exporter {
                         ]
                     ]
                 ]
+            ],
+            'urls' => [
+                'type' => [
+                    'profile' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'profileimage' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                ]
             ]
         ];
     }
@@ -82,23 +108,40 @@ class author extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $groups = array_map(function($group) {
-            $imageurl = get_group_picture_url($group, $group->courseid);
+        $author = $this->author;
+        $urlmanager = $this->related['urlmanager'];
+
+        if ($this->canview) {
+            $groups = array_map(function($group) {
+                $imageurl = get_group_picture_url($group, $group->courseid);
+                return [
+                    'id' => $group->id,
+                    'urls' => [
+                        'image' => $imageurl ? $imageurl->out() : null
+                    ]
+                ];
+            }, $this->authorgroups);
+
             return [
-                'id' => $group->id,
+                'id' => $author->get_id(),
+                'fullname' => $author->get_full_name(),
+                'groups' => $groups,
                 'urls' => [
-                    'image' => $imageurl ? $imageurl->out() : null
+                    'profile' => ($urlmanager->get_author_profile_url($author))->out(),
+                    'profileimage' => ($urlmanager->get_author_profile_image_url($author))->out()
                 ]
             ];
-        }, $this->authorgroups);
-
-        return [
-            'id' => $this->author->get_id(),
-            'fullname' => $this->author->get_full_name(),
-            'profileurl' => $this->author->get_profile_url()->out(false),
-            'profileimageurl' => $this->author->get_profile_image_url()->out(false),
-            'groups' => $groups
-        ];
+        } else {
+            return [
+                'id' => null,
+                'fullname' => get_string('forumauthorhidden', 'mod_forum'),
+                'groups' => [],
+                'urls' => [
+                    'profile' => null,
+                    'profileimage' => null
+                ]
+            ];
+        }
     }
 
     /**
@@ -108,6 +151,7 @@ class author extends exporter {
      */
     protected static function define_related() {
         return [
+            'urlmanager' => 'mod_forum\local\managers\url',
             'context' => 'context'
         ];
     }
