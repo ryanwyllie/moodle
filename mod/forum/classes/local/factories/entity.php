@@ -31,6 +31,7 @@ use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\discussion_summary as discussion_summary_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\entities\post_read_receipt_collection as post_read_receipt_collection_entity;
 use stdClass;
 use context;
 use cm_info;
@@ -100,8 +101,7 @@ class entity {
     public function get_post_from_stdClass(
         stdClass $record,
         author_entity $author,
-        array $attachments = [],
-        array $useridreadlist = []
+        array $attachments = []
     ) : post_entity {
         return new post_entity(
             $record->id,
@@ -119,8 +119,7 @@ class entity {
             $record->totalscore,
             $record->mailnow,
             $record->deleted,
-            $attachments,
-            $useridreadlist
+            $attachments
         );
     }
 
@@ -154,5 +153,9 @@ class entity {
             $firstpostauthorentity,
             $this->get_author_from_stdClass($latestpostauthor)
         );
+    }
+
+    public function get_post_read_receipt_collection_from_stdClasses(array $records) : post_read_receipt_collection_entity {
+        return new post_read_receipt_collection_entity($records);
     }
 }

@@ -26,10 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\factories\entity as entity_factory;
-use context;
-use stdClass;
 
 /**
  * Forum class.
@@ -55,25 +52,5 @@ class discussion implements db_data_mapper_interface {
             ] = $result;
             return $entityfactory->get_discussion_from_stdClass($record);
         }, $results);
-    }
-
-    public function to_db_records(array $discussions) : array {
-        return array_map(function(discussion_entity $discussion) {
-            return (object) [
-                'id' => $discussion->get_id(),
-                'course' => $discussion->get_course_id(),
-                'forum' => $discussion->get_forum_id(),
-                'name' => $discussion->get_name(),
-                'firstpost' => $discussion->get_first_post_id(),
-                'userid' => $discussion->get_user_id(),
-                'groupid' => $discussion->get_group_id(),
-                'assessed' => $discussion->is_assessed(),
-                'timemodified' => $discussion->get_time_modified(),
-                'usermodified' => $discussion->get_user_modified(),
-                'timestart' => $discussion->get_time_start(),
-                'timeend' => $discussion->get_time_end(),
-                'pinned' => $discussion->is_pinned()
-            ];
-        }, $discussions);
     }
 }

@@ -132,6 +132,7 @@ class post extends exporter {
         $author = $post->get_author();
         $user = $this->related['user'];
         $context = $this->related['context'];
+        $readreceiptcollection = $this->related['readreceiptcollection'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
@@ -206,7 +207,7 @@ class post extends exporter {
             'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
-            'isread' => $post->has_user_read_post($user),
+            'isread' => $readreceiptcollection->has_user_read_post($user, $post),
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
@@ -235,6 +236,7 @@ class post extends exporter {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
+            'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection',
             'urlmanager' => 'mod_forum\local\managers\url',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',

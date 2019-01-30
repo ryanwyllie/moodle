@@ -33,22 +33,20 @@ use mod_forum\local\data_mappers\database\discussion as discussion_data_mapper;
 use mod_forum\local\data_mappers\database\discussion_summary as discussion_summary_data_mapper;
 use mod_forum\local\data_mappers\database\forum as forum_data_mapper;
 use mod_forum\local\data_mappers\database\post as post_data_mapper;
-use moodle_database;
+use mod_forum\local\data_mappers\database\post_read_receipt_collection as post_read_receipt_collection_data_mapper;
 
 /**
  * Exporter data_mapper factory.
  */
 class database_data_mapper {
-    private $db;
     private $entityfactory;
 
-    public function __construct(moodle_database $db, entity_factory $entityfactory) {
-        $this->db = $db;
+    public function __construct(entity_factory $entityfactory) {
         $this->entityfactory = $entityfactory;
     }
 
     public function get_forum_data_mapper() : forum_data_mapper {
-        return new forum_data_mapper($this->db, $this->entityfactory);
+        return new forum_data_mapper($this->entityfactory);
     }
 
     public function get_discussion_data_mapper() : discussion_data_mapper {
@@ -65,5 +63,9 @@ class database_data_mapper {
 
     public function get_author_data_mapper() : author_data_mapper {
         return new author_data_mapper($this->entityfactory);
+    }
+
+    public function get_post_read_receipt_collection_data_mapper() : post_read_receipt_collection_data_mapper {
+        return new post_read_receipt_collection_data_mapper($this->entityfactory);
     }
 }

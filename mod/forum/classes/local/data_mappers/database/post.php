@@ -26,14 +26,7 @@ namespace mod_forum\local\data_mappers\database;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\container;
-use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
-use mod_forum\local\vaults\author as author_vault;
-use context;
-use stdClass;
-
-require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
  * Forum class.
@@ -55,31 +48,8 @@ class post implements db_data_mapper_interface {
                 'attachments' => $attachments
             ] = $result;
             $author = $entityfactory->get_author_from_stdClass($authorrecord);
-            // TODO: Add read status tracking in here.
-            // forum_tp_is_post_old() forum_tp_is_post_read();
+
             return $entityfactory->get_post_from_stdClass($record, $author, $attachments);
         }, $results);
-    }
-
-    public function to_db_records(array $posts) : array {
-        return array_map(function(post_entity $post) {
-            return (object) [
-                'id' => $post->get_id(),
-                'discussion' => $post->get_discussion_id(),
-                'parent' => $post->get_parent_id(),
-                'userid' => $post->get_author()->get_id(),
-                'created' => $post->get_time_created(),
-                'modified' => $post->get_time_modified(),
-                'mailed' => $post->has_been_mailed(),
-                'subject' => $post->get_subject(),
-                'message' => $post->get_message(),
-                'messageformat' => $post->get_message_format(),
-                'messagetrust' => $post->is_message_trusted(),
-                'attachment' => $post->has_attachments(),
-                'totalscore' => $post->get_total_score(),
-                'mailnow' => $post->should_mail_now(),
-                'deleted' => $post->is_deleted()
-            ];
-        }, $posts);
     }
 }
