@@ -65,9 +65,9 @@
                         {{/can_track_reads}}
                     {{/can_see_discussions}}
                     <th scope="col" class="lastpost">{{#str}}lastpost, mod_forum{{/str}}</th>
-                    {{#can_subscribe}}
+                    {{#capabilities.subscribe}}
                         <th scope="col" class="discussionsubscription"></th>
-                    {{/can_subscribe}}
+                    {{/capabilities.subscribe}}
                 </tr>
             </thead>
             {{/discussion_list_header}}
@@ -82,27 +82,27 @@
                             {{/discussion.pinned}}
                         </td>
                         <td scope="col" class="topic p-0">
-                            <a class="p-3 p-l-0 w-100 h-100 d-block" href="{{url}}">{{subject}}</a>
+                            <a class="p-3 p-l-0 w-100 h-100 d-block" href="{{discussion.urls.view}}">{{discussion.name}}</a>
                         </td>
                         <td scope="col" class="author">
-                            {{#author}}
-                                <a href="{{profilelink}}">
+                            {{#firstpostauthor}}
+                                <a href="{{urls.profile}}">
                                     <div class="d-flex flex-row">
                                         <div class="align-middle p-0">
-                                            <a href="{{profileurl}}">
+                                            <a href="{{urls.profile}}">
                                                 <img {{!
-                                                    }} class="h-auto rounded-circle" {{!
-                                                    }} src="{{profileimageurl}}" {{!
+                                                    }} class="h-auto rounded-circle userpicture" {{!
+                                                    }} src="{{urls.profileimage}}" {{!
                                                     }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
                                                     }}>
                                             </a>
                                         </div>
                                         <div class="align-middle p-2">
-                                            <a href="{{profileurl}}">{{fullname}}</a>
+                                            <a href="{{urls.profile}}">{{fullname}}</a>
                                         </div>
                                     </div>
                                 </a>
-                            {{/author}}
+                            {{/firstpostauthor}}
                         </td>
                         {{#has_any_group}}
                             {{> mod_forum/discussion_list_entry_group}}
@@ -128,37 +128,33 @@
                             {{/can_track_reads}}
                         {{/can_see_discussions}}
                         <td scope="col" class="text-left">
-                            {{#modifier}}
+                            {{#latestpostauthor}}
                                 <div class="d-flex flex-row">
                                     <div class="align-middle p-0">
-                                        <a href="{{profileurl}}">
+                                        <a href="{{urls.profile}}">
                                             <img {{!
-                                                }} class="h-auto rounded-circle" {{!
-                                                }} src="{{profileimageurl}}" {{!
+                                                }} class="h-auto rounded-circle userpicture" {{!
+                                                }} src="{{urls.profileimage}}" {{!
                                                 }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
                                                 }}>
                                         </a>
                                     </div>
                                     <div class="p-2 p-t-0 p-b-0 d-inline-flex flex-column">
                                         <div>
-                                            <a href="{{profileurl}}">{{fullname}}</a>
+                                            <a href="{{urls.profile}}">{{fullname}}</a>
                                         </div>
                                         <div>
                                             <a href="{{url}}">{{#userdate}}
-                                                {{timemodified}}, {{#str}}strftimerecentfull{{/str}}
+                                                {{discussion.times.modified}}, {{#str}}strftimerecentfull{{/str}}
                                             {{/userdate}}</a>
                                         </div>
                                     </div>
                                 </div>
-                            {{/modifier}}
+                            {{/latestpostauthor}}
                         </td>
-                        {{#can_subscribe}}
-                            <td scope="col" class="p-0 align-middle">
-                                {{#subscription_toggle_form}}
-                                    {{> mod_forum/discussion_subscription_toggle}}
-                                {{/subscription_toggle_form}}
-                            </td>
-                        {{/can_subscribe}}
+                        <td scope="col" class="p-0 align-middle">
+                            {{> mod_forum/discussion_subscription_toggle}}
+                        </td>
                     </tr>
                 {{/discussion_list_entry}}
                 {{/discussions}}

@@ -80,10 +80,12 @@ class exporter {
         discussion_entity $discussion
     ) : discussion_exporter {
         return new discussion_exporter($discussion, [
+            'context' => $forum->get_context(),
             'forum' => $forum,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
-            'user' => $user
+            'user' => $user,
+            'legacydatamapperfactory' => $this->legacydatamapperfactory,
         ]);
     }
 
@@ -98,6 +100,8 @@ class exporter {
         array $groupsbyauthorid = []
     ) : discussion_summaries_exporter {
         return new discussion_summaries_exporter($discussions, $groupsbyauthorid, [
+            'legacydatamapperfactory' => $this->legacydatamapperfactory,
+            'context' => $forum->get_context(),
             'forum' => $forum,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
