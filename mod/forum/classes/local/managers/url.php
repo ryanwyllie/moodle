@@ -145,7 +145,7 @@ class url {
         $datamapper = $this->legacydatamapperfactory->get_author_data_mapper();
         $record = $datamapper->to_legacy_object($author);
         $userpicture = new user_picture($record);
-        $userpicture->size = 1;
+        $userpicture->size = 2;
 
         return $userpicture->get_url($PAGE);
     }

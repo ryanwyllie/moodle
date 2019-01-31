@@ -120,6 +120,8 @@ class discussion_summary extends exporter {
      */
     protected static function define_related() {
         return [
+            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
+            'context' => 'context',
             'forum' => 'mod_forum\local\entities\forum',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
