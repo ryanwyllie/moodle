@@ -37,18 +37,18 @@
         }} class="p-3" {{!
         }} data-type="subscription-toggle" {{!
         }} data-action="toggle" {{!
-        }} data-discussionid="{{discussionid}}" {{!
-        }} data-forumid="{{forumid}}"  {{!
-        }}{{#is_subscribed}}{{!
+        }} data-discussionid="{{id}}" {{!
+        }} data-forumid="{{forum}}"  {{!
+        }}{{#userstate.subscribed}}{{!
             }} data-targetstate="0" {{!
-        }}{{/is_subscribed}}{{!
-        }}{{^is_subscribed}}{{!
+        }}{{/userstate.subscribed}}{{!
+        }}{{^userstate.subscribed}}{{!
             }} data-targetstate="1" {{!
-        }}{{/is_subscribed}}{{!
+        }}{{/userstate.subscribed}}{{!
         }}{{#include_text}} data-includetext="1" {{/include_text}} {{!
         }}{{^include_text}} data-includetext="0" {{/include_text}} {{!
         }}>
-        {{#is_subscribed}}
+        {{#userstate.subscribed}}
             {{!
                 Note: There is no space between the pix, and the string.
             }}
@@ -56,8 +56,8 @@
             }}{{#include_text}}{{!
                 }}{{#str}}subscribed, mod_forum{{/str}}{{!
             }}{{/include_text}}
-        {{/is_subscribed}}
-        {{^is_subscribed}}
+        {{/userstate.subscribed}}
+        {{^userstate.subscribed}}
             {{!
                 Note: There is no space between the pix, and the string.
             }}
@@ -65,6 +65,6 @@
             }}{{#include_text}}{{!
                 }}{{#str}}unsubscribed, mod_forum{{/str}}{{!
             }}{{/include_text}}
-        {{/is_subscribed}}
+        {{/userstate.subscribed}}
     </a>
 {{/capabilities.subscribe}}

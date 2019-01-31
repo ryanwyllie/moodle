@@ -56,8 +56,8 @@ class discussion_list extends vault {
         // - Most recent editor
         $tablefields = $db->get_preload_columns(self::TABLE, $alias);
         $postfields = $db->get_preload_columns('forum_posts', 'p_');
-        $firstauthorfields = user_picture::fields('fa', null, self::FIRST_AUTHOR_ID_ALIAS, self::FIRST_AUTHOR_ALIAS);
-        $latestuserfields = user_picture::fields('la', null, self::LATEST_AUTHOR_ID_ALIAS, self::LATEST_AUTHOR_ALIAS);
+        $firstauthorfields = \user_picture::fields('fa', null, self::FIRST_AUTHOR_ID_ALIAS, self::FIRST_AUTHOR_ALIAS);
+        $latestuserfields = \user_picture::fields('la', null, self::LATEST_AUTHOR_ID_ALIAS, self::LATEST_AUTHOR_ALIAS);
 
         $fields = implode(', ', [
             $db->get_preload_columns_sql($tablefields, $alias),

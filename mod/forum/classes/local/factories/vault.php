@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\vaults\author as author_vault;
 use mod_forum\local\vaults\discussion as discussion_vault;
+use mod_forum\local\vaults\discussion_list as discussion_list_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
 use mod_forum\local\vaults\post_read_receipt_collection as post_read_receipt_collection_vault;
@@ -63,8 +64,8 @@ class vault {
         );
     }
 
-    public function get_discussions_in_forum_vault() : discussion_vault {
-        return new discussion_vault(
+    public function get_discussions_in_forum_vault() : discussion_list_vault {
+        return new discussion_list_vault(
             $this->db,
             $this->entityfactory
         );
