@@ -92,8 +92,6 @@ class discussion_list {
                 (array) $this->get_exported_discussions($user, $groupid, $sortorder, $pageno, $pagesize)
             );
 
-        print_object($forumview);
-
         return $this->renderer->render_from_template($this->get_template(), $forumview);
     }
 

@@ -56,7 +56,6 @@ if (!$forum) {
     throw new \moodle_exception('Unable to find forum with id ' . $forumid);
 }
 
-$dbdatamapperfactory = mod_forum\local\container::get_database_data_mapper_factory();
 $capabilitymanager = $managerfactory->get_capability_manager($forum);
 $eventmanager = $managerfactory->get_event_manager();
 

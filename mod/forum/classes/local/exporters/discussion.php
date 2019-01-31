@@ -50,6 +50,7 @@ class discussion extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
+            'forum' => ['type' => PARAM_INT],
             'pinned' => ['type' => PARAM_BOOL],
             'name' => ['type' => PARAM_TEXT],
             'times' => [
@@ -98,14 +99,15 @@ class discussion extends exporter {
         $viewurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
 
         return [
-            'id' => $this->discussion->get_id(),
-            'pinned' => $this->discussion->is_pinned(),
+            'id' => $discussion->get_id(),
+            'forum' => $forum->get_id(),
+            'pinned' => $discussion->is_pinned(),
             // TODO format_string.
-            'name' => $this->discussion->get_name(),
+            'name' => $discussion->get_name(),
             'times' => [
-                'modified' => $this->discussion->get_time_modified(),
-                'start' => $this->discussion->get_time_start(),
-                'end' => $this->discussion->get_time_end(),
+                'modified' => $discussion->get_time_modified(),
+                'start' => $discussion->get_time_start(),
+                'end' => $discussion->get_time_end(),
             ],
             'userstate' => [
                 'subscribed' => \mod_forum\subscriptions::is_subscribed($user->id, $forumrecord, $discussion->get_id()),

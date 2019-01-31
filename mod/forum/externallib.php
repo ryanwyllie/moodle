@@ -1189,4 +1189,144 @@ class mod_forum_external extends external_api {
         );
     }
 
+    /**
+     * Set the subscription state.
+     *
+     * @param   int     $forumid
+     * @param   int     $discussionid
+     * @param   bool    $targetstate
+     * @param   bool    $includetext
+     * @return  \stdClass
+     */
+    public static function set_subscription_state($forumid, $discussionid, $targetstate, $includetext) {
+        global $DB, $PAGE, $USER;
+
+        $params = self::validate_parameters(self::set_subscription_state_parameters(), [
+            'forumid' => $forumid,
+            'discussionid' => $discussionid,
+            'targetstate' => $targetstate,
+            'includetext' => $includetext,
+        ]);
+
+        $vaultfactory = mod_forum\local\container::get_vault_factory();
+        $forumvault = $vaultfactory->get_forum_vault();
+        $forum = $forumvault->get_from_id($params['forumid']);
+        $course = $forum->get_course_record();
+
+        self::validate_context($forum->get_context());
+
+        $managerfactory = mod_forum\local\container::get_manager_factory();
+        $capabilitymanager = $managerfactory->get_capability_manager($forum);
+        $discussionvault = $vaultfactory->get_discussion_vault();
+        $discussion = $discussionvault->get_from_id($discussionid);
+        $legacydatamapperfactory = mod_forum\local\container::get_legacy_data_mapper_factory();
+
+        $forumrecord = $legacydatamapperfactory->get_forum_data_mapper()->to_legacy_object($forum);
+        $discussionrecord = $legacydatamapperfactory->get_discussion_data_mapper()->to_legacy_object($discussion);
+
+        if (!\mod_forum\subscriptions::is_subscribable($forumrecord)) {
+            // Nothing to do. We won't actually output any content here though.
+            throw new \moodle_exception('cannotsubscribe', 'mod_forum');
+        }
+
+        if (\mod_forum\subscriptions::is_subscribed($USER->id, $forumrecord, $discussion->get_id(), $cm)) {
+            \mod_forum\subscriptions::unsubscribe_user_from_discussion($USER->id, $discussionrecord, $context);
+        } else {
+            \mod_forum\subscriptions::subscribe_user_to_discussion($USER->id, $discussionrecord, $context);
+        }
+
+        $exporterfactory = mod_forum\local\container::get_exporter_factory();
+        $exporter = $exporterfactory->get_discussion_exporter($USER, $forum, $discussion);
+        return $exporter->export($PAGE->get_renderer('mod_forum'));
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function set_subscription_state_parameters() {
+        return new external_function_parameters(
+            [
+                'forumid' => new external_value(PARAM_INT, 'Forum that the discussion is in', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'discussionid' => new external_value(PARAM_INT, 'The discussion to subscribe or unsubscribe', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'targetstate' => new external_value(PARAM_INT, 'The target state', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'includetext' => new external_value(PARAM_BOOL, 'Whether to include the state in text form', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+            ]
+        );
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description
+     */
+    public static function set_subscription_state_returns() {
+        return \mod_forum\local\exporters\discussion::get_read_structure();
+    }
+
+    /**
+     * Set the pin state.
+     * TODO
+     *
+     * @param   int     $forumid
+     * @param   int     $discussionid
+     * @param   bool    $targetstate
+     * @return  \stdClass
+     */
+    public static function set_pin_state($forumid, $discussionid, $targetstate) {
+        global $DB, $PAGE;
+
+        $params = self::validate_parameters(self::set_pin_state_parameters(), [
+            'forumid' => $forumid,
+            'discussionid' => $discussionid,
+            'targetstate' => $targetstate,
+        ]);
+
+        $forum = \mod_forum\factory::get_forum_by_id($params['forumid']);
+
+        self::validate_context($forum->get_context());
+
+        if (!$forum->can_subscribe()) {
+            // Nothing to do. We won't actually output any content here though.
+            throw new \moodle_exception('cannotsubscribe', 'mod_forum');
+        }
+
+        $discussion = $DB->get_record('forum_discussions', ['id' => $discussionid]);
+        $forum->set_discussion_pin($discussion, $targetstate);
+
+        $renderer = $PAGE->get_renderer('mod_forum');
+
+        return (new \mod_forum\output\discussion_pin_toggle($forum, $discussion))
+            ->export_for_template($renderer);
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function set_pin_state_parameters() {
+        return new external_function_parameters(
+            [
+                'forumid' => new external_value(PARAM_INT, 'Forum that the discussion is in', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'discussionid' => new external_value(PARAM_INT, 'The discussion to pin or unpin', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'targetstate' => new external_value(PARAM_INT, 'The target state', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+            ]
+        );
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description
+     */
+    public static function set_pin_state_returns() {
+        return new external_single_structure([
+            'can_pin' => new external_value(PARAM_BOOL, 'Whether the user can pin this discussion or not'),
+            'is_pinned' => new external_value(PARAM_BOOL, 'Whether the user is currently pinned'),
+            'forumid' => new external_value(PARAM_INT, 'The Forum ID'),
+            'discussionid' => new external_value(PARAM_INT, 'The Discussion ID'),
+        ]);
+    }
 }

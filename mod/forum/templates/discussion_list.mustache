@@ -74,7 +74,7 @@
             {{$discussion_list_body}}
             <tbody>
                 {{#discussions}}
-                {{$discussion_list_entry}}
+                    {{#discussion}}
                     <tr>
                         <td scope="col" class="pinned p-0 text-center align-middle">
                             {{#discussion.pinned}}
@@ -156,7 +156,7 @@
                             {{> mod_forum/discussion_subscription_toggle}}
                         </td>
                     </tr>
-                {{/discussion_list_entry}}
+                    {{/discussion}}
                 {{/discussions}}
             </tbody>
             {{/discussion_list_body}}
