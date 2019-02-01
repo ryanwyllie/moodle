@@ -32,23 +32,28 @@ use mod_forum\local\vault;
  * Vault class.
  */
 class discussion extends vault {
-    public function get_from_forum_id_and_group(int $forumid, ?int $groupid, ?int $sortorder, int $pagesize, int $pageno) {
-        $strategy = $this->get_sql_strategy();
-        $alias = $strategy->get_table_alias();
-        $wheresql = "{$alias}.forum = :forumid";
-        $params = [
-            'forumid' => $forumid,
-        ];
+    private const TABLE = 'forum_discussions';
 
-        if (null !== $groupid) {
-            $wheresql .= " AND {$alias}.groupid = :groupid";
-            $params['groupid'] = $groupid;
-        }
+    protected function get_table_alias() : string {
+        return 'd';
+    }
 
-        $limitfrom = $pageno * $pagesize;
-        $sql = $strategy->generate_get_records_sql($wheresql, $strategy->get_sort_order($sortorder));
-        $records = $this->get_db()->get_records_sql($sql, $params, $limitfrom, $pagesize);
+    protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
+        $selectsql = 'SELECT * FROM {' . self::TABLE . '} ' . $this->get_table_alias();
+        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
+        $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
 
-        return $this->transform_db_records_to_entities($records);
+        return $selectsql;
+    }
+
+    protected function from_db_records(array $results) {
+        $entityfactory = $this->get_entity_factory();
+
+        return array_map(function(array $result) use ($entityfactory) {
+            [
+                'record' => $record,
+            ] = $result;
+            return $entityfactory->get_discussion_from_stdClass($record);
+        }, $results);
     }
 }

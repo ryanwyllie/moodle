@@ -27,7 +27,6 @@ namespace mod_forum\local;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\factories\renderer as renderer_factory;
-use mod_forum\local\factories\database_data_mapper as database_data_mapper_factory;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
@@ -62,16 +61,6 @@ class container {
         return self::$rendererfactory;
     }
 
-    public static function get_database_data_mapper_factory() : database_data_mapper_factory {
-        if (is_null(self::$databasedatamapperfactory)) {
-            self::$databasedatamapperfactory = new database_data_mapper_factory(
-                self::get_entity_factory()
-            );
-        }
-
-        return self::$databasedatamapperfactory;
-    }
-
     public static function get_legacy_data_mapper_factory() : legacy_data_mapper_factory {
         if (is_null(self::$legacydatamapperfactory)) {
             self::$legacydatamapperfactory = new legacy_data_mapper_factory();
@@ -97,7 +86,7 @@ class container {
         if (is_null(self::$vaultfactory)) {
             self::$vaultfactory = new vault_factory(
                 $DB,
-                self::get_database_data_mapper_factory(),
+                self::get_entity_factory(),
                 get_file_storage()
             );
         }

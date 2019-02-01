@@ -100,12 +100,20 @@ class discussion_list {
     private function get_exported_discussions(\stdClass $user, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) {
         $forum = $this->forum;
         $discussionvault = $this->vaultfactory->get_discussions_in_forum_vault();
-        $discussions = $discussionvault->get_from_forum_id_and_group(
-            $forum->get_id(),
-            $groupid,
-            $sortorder,
-            $this->get_page_size($pagesize),
-            $this->get_page_number($pageno));
+        if ($groupid === null) {
+            $discussions = $discussionvault->get_from_forum_id(
+                $forum->get_id(),
+                $sortorder,
+                $this->get_page_size($pagesize),
+                $this->get_page_number($pageno));
+        } else {
+            $discussions = $discussionvault->get_from_forum_id_and_group_id(
+                $forum->get_id(),
+                $groupid,
+                $sortorder,
+                $this->get_page_size($pagesize),
+                $this->get_page_number($pageno));
+        }
 
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_ids(array_keys($discussions));

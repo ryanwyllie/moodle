@@ -26,51 +26,48 @@ namespace mod_forum\local;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\data_mappers\database\db_data_mapper_interface;
-use mod_forum\local\vaults\sql_strategies\sql_strategy_interface;
-use context_helper;
+use mod_forum\local\factories\entity as entity_factory;
 use moodle_database;
 
 /**
  * Vault class.
  */
-class vault {
-    private $sqlstrategy;
+abstract class vault {
     private $db;
-    private $datamapper;
-    private $preprocessors;
+    private $entityfactory;
 
     public function __construct(
         moodle_database $db,
-        sql_strategy_interface $sqlstrategy,
-        db_data_mapper_interface $datamapper,
-        array $preprocessors = []
+        entity_factory $entityfactory
     ) {
         $this->db = $db;
-        $this->sqlstrategy = $sqlstrategy;
-        $this->datamapper = $datamapper;
-        $this->preprocessors = $preprocessors;
+        $this->entityfactory = $entityfactory;
+    }
+
+    abstract protected function get_table_alias() : string;
+    abstract protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string;
+    abstract protected function from_db_records(array $results);
+
+    protected function get_preprocessors() : array {
+        return [];
     }
 
     protected function get_db() : moodle_database {
         return $this->db;
     }
 
-    protected function get_sql_strategy() : sql_strategy_interface {
-        return $this->sqlstrategy;
-    }
-
-    protected function get_data_mapper() : db_data_mapper_interface {
-        return $this->datamapper;
+    protected function get_entity_factory() : entity_factory {
+        return $this->entityfactory;
     }
 
     protected function transform_db_records_to_entities(array $records) {
+        $preprocessors = $this->get_preprocessors();
         $result = array_map(function($record) {
             return ['record' => $record];
         }, $records);
 
-        $result = array_reduce(array_keys($this->preprocessors), function($carry, $preprocessor) use ($records) {
-            $step = $this->preprocessors[$preprocessor];
+        $result = array_reduce(array_keys($preprocessors), function($carry, $preprocessor) use ($records, $preprocessors) {
+            $step = $preprocessors[$preprocessor];
             $dependencies = $step->execute($records);
 
             foreach ($dependencies as $index => $dependency) {
@@ -81,7 +78,7 @@ class vault {
             return $carry;
         }, $result);
 
-        return $this->get_data_mapper()->from_db_records($result);
+        return $this->from_db_records($result);
     }
 
     public function get_from_id(int $id) {
@@ -90,11 +87,10 @@ class vault {
     }
 
     public function get_from_ids(array $ids) {
-        $strategy = $this->get_sql_strategy();
-        $alias = $strategy->get_table_alias();
+        $alias = $this->get_table_alias();
         list($insql, $params) = $this->get_db()->get_in_or_equal($ids);
         $wheresql = $alias . '.id ' . $insql;
-        $sql = $strategy->generate_get_records_sql($wheresql);
+        $sql = $this->generate_get_records_sql($wheresql);
         $records = $this->get_db()->get_records_sql($sql, $params);
 
         return $this->transform_db_records_to_entities($records);
