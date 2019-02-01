@@ -138,7 +138,7 @@ class posts extends exporter {
             'urlmanager' => 'mod_forum\local\managers\url',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
-            'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection',
+            'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection?',
             'user' => 'stdClass',
             'context' => 'context'
         ];
