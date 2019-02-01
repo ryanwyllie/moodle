@@ -32,5 +32,28 @@ use mod_forum\local\vault;
  * Vault class.
  */
 class author extends vault {
+    private const TABLE = 'forum_posts';
 
+    protected function get_table_alias() : string {
+        return 'a';
+    }
+
+    protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
+        $selectsql = 'SELECT * FROM {' . self::TABLE . '} ' . $this->get_table_alias();
+        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
+        $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
+
+        return $selectsql;
+    }
+
+    protected function from_db_records(array $results) {
+        $entityfactory = $this->get_entity_factory();
+
+        return array_map(function(array $result) use ($entityfactory) {
+            [
+                'record' => $record,
+            ] = $result;
+            return $entityfactory->get_author_from_stdClass($record);
+        }, $results);
+    }
 }

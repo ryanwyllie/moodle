@@ -40,7 +40,6 @@ if ($displaymode) {
 
 $displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
 $vaultfactory = mod_forum\local\container::get_vault_factory();
-$dbdatamapperfactory = mod_forum\local\container::get_database_data_mapper_factory();
 
 $discussionvault = $vaultfactory->get_discussion_vault();
 $discussion = $discussionvault->get_from_id($discussionid);

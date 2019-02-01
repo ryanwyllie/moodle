@@ -32,15 +32,37 @@ use mod_forum\local\vault;
  * Vault class.
  */
 class post_read_receipt_collection extends vault {
+    private const TABLE = 'forum_read';
+
+    protected function get_table_alias() : string {
+        return 'fr';
+    }
+
+    protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
+        $selectsql = 'SELECT * FROM {' . self::TABLE . '} ' . $this->get_table_alias();
+        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
+        $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
+
+        return $selectsql;
+    }
+
+    protected function from_db_records(array $results) {
+        $entityfactory = $this->get_entity_factory();
+        $records = array_map(function($result) {
+            return $result['record'];
+        }, $results);
+
+        return $entityfactory->get_post_read_receipt_collection_from_stdClasses($records);
+    }
+
     public function get_from_user_id_and_post_ids(int $userid, array $postids) {
-        $strategy = $this->get_sql_strategy();
-        $alias = $strategy->get_table_alias();
+        $alias = $this->get_table_alias();
         [$postidinsql, $params] = $this->get_db()->get_in_or_equal($postids);
         $params[] = $userid;
 
         $wheresql = "{$alias}.postid {$postidinsql}";
         $wheresql .= " AND {$alias}.userid = ?";
-        $sql = $strategy->generate_get_records_sql($wheresql);
+        $sql = $this->generate_get_records_sql($wheresql);
         $records = $this->get_db()->get_records_sql($sql, $params);
 
         return $this->transform_db_records_to_entities($records);
