@@ -67,7 +67,12 @@ class post extends exporter {
                 'null' => NULL_ALLOWED
             ],
             'timecreated' => ['type' => PARAM_INT],
-            'isread' => ['type' => PARAM_BOOL],
+            'unread' => [
+                'type' => PARAM_BOOL,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
@@ -207,7 +212,7 @@ class post extends exporter {
             'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
-            'isread' => $readreceiptcollection->has_user_read_post($user, $post),
+            'unread' => $readreceiptcollection ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
@@ -236,7 +241,7 @@ class post extends exporter {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
-            'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection',
+            'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection?',
             'urlmanager' => 'mod_forum\local\managers\url',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',

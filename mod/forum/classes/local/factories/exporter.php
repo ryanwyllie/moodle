@@ -119,7 +119,7 @@ class exporter {
         discussion_entity $discussion,
         array $posts,
         array $groupsbyauthorid = [],
-        post_read_receipt_collection_entity $readreceiptcollection
+        post_read_receipt_collection_entity $readreceiptcollection = null
     ) : posts_exporter {
         return new posts_exporter($posts, $groupsbyauthorid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,

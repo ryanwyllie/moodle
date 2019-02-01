@@ -39,10 +39,10 @@ class post_read_receipt_collection {
         foreach ($records as $record) {
             $postid = $record->postid;
 
-            if (isset($this->$receiptsbypostid[$postid])) {
-                $this->$receiptsbypostid[$postid][] = $record;
+            if (isset($this->receiptsbypostid[$postid])) {
+                $this->receiptsbypostid[$postid][] = $record;
             } else {
-                $this->$receiptsbypostid[$postid] = [$record];
+                $this->receiptsbypostid[$postid] = [$record];
             }
         }
     }

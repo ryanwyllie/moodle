@@ -50,7 +50,7 @@ class post_read_user_list {
             $postid = $readrecord->postid;
             $userid = $readrecord->userid;
 
-            if (isset($readrecord[$postid])) {
+            if (isset($readrecord->{$postid})) {
                 $carry[$postid][] = $userid;
             } else {
                 $carry[$postid] = [$userid];

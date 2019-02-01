@@ -164,11 +164,13 @@ class discussion {
 
     private function get_exported_posts(stdClass $user, int $displaymode) : array {
         $forum = $this->forum;
+        $forumrecord = $this->forumrecord;
+        $istracked = forum_tp_is_tracked($forumrecord, $user);
         $discussion = $this->discussion;
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
-        $readreceiptcollection = $this->get_read_receipt_collection_for_posts($user, $posts);
+        $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $forum,
