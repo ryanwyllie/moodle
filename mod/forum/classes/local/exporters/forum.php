@@ -50,6 +50,11 @@ class forum extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
+            'state' => [
+                'type' => [
+                    'groupmode' => ['type' => PARAM_INT],
+                ],
+            ],
             // TODO name, description.
             'capabilities' => [
                 'type' => [
@@ -80,6 +85,9 @@ class forum extends exporter {
 
         return [
             'id' => $this->forum->get_id(),
+            'state' => [
+                'groupmode' => $this->forum->get_effective_group_mode(),
+            ],
             'capabilities' => [
                 'viewdiscussions' => $capabilitymanager->can_view_discussions($user),
                 'create' => $capabilitymanager->can_create_discussions($user, $currentgroup),

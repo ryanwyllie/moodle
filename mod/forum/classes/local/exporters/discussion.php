@@ -53,6 +53,17 @@ class discussion extends exporter {
             'forumid' => ['type' => PARAM_INT],
             'pinned' => ['type' => PARAM_BOOL],
             'name' => ['type' => PARAM_TEXT],
+            'group' => [
+                'type' => [
+                    'name' => ['type' => PARAM_TEXT],
+                    'urls' => [
+                        'type' => [
+                            'picture' => [PARAM_URL],
+                            'userlist' => [PARAM_URL],
+                        ],
+                    ],
+                ],
+            ],
             'times' => [
                 'type' => [
                     'modified' => ['type' => PARAM_INT],
@@ -98,12 +109,33 @@ class discussion extends exporter {
 
         $viewurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
 
+        // TODO Group exporter.
+        $groupdata = null;
+        if ($group = groups_get_group($discussion->get_group_id())) {
+            $groupdata = [
+                'name' => $group->name,
+                'urls' => [],
+            ];
+            $canviewparticipants = $capabilitymanager->can_view_participants($user, $discussion);
+            if (!$group->hidepicture) {
+                $groupdata['urls']['picture'] = get_group_picture_url($group, $forum->get_course_id());
+            }
+            if ($canviewparticipants) {
+                $groupdata['urls']['userlist'] = new \moodle_url('/user/index.php', [
+                    'id' => $forum->get_course_id(),
+                    'group' => $group->id,
+                ]);
+            }
+            print_object($groupdata);
+        }
+
         return [
             'id' => $discussion->get_id(),
             'forumid' => $forum->get_id(),
             'pinned' => $discussion->is_pinned(),
             // TODO format_string.
             'name' => $discussion->get_name(),
+            'group' => $groupdata,
             'times' => [
                 'modified' => $discussion->get_time_modified(),
                 'start' => $discussion->get_time_start(),
