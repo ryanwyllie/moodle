@@ -37,7 +37,7 @@
         {{> core/notification}}
     {{/notifications}}
 
-    {{#capabilities.create}}
+    {{#forum.capabilities.create}}
         <div class="forumaddnew">
             <a href="{{urls.create}}" class="btn btn-primary">
                 {{$discussion_create_text}}
@@ -45,9 +45,9 @@
                 {{/discussion_create_text}}
             </a>
         </div>
-    {{/capabilities.create}}
+    {{/forum.capabilities.create}}
 
-    {{#discussions.0}}
+    {{#state.hasdiscussions}}
         <table class="table table-hover table-striped">
             {{$discussion_list_header}}
             <thead>
@@ -58,23 +58,22 @@
                     {{#has_any_group}}
                         <th scope="col" class="group">{{#str}}group{{/str}}</th>
                     {{/has_any_group}}
-                    {{#can_see_discussions}}
+                    {{#forum.capabilities.viewdiscussions}}
                         <th scope="col" class="text-center">{{#str}}replies, mod_forum{{/str}}</th>
                         {{#can_track_reads}}
                             <th scope="col" class="text-center">{{#str}}unread, mod_forum{{/str}}</th>
                         {{/can_track_reads}}
-                    {{/can_see_discussions}}
+                    {{/forum.capabilities.viewdiscussions}}
                     <th scope="col" class="lastpost">{{#str}}lastpost, mod_forum{{/str}}</th>
-                    {{#capabilities.subscribe}}
+                    {{#forum.capabilities.subscribe}}
                         <th scope="col" class="discussionsubscription"></th>
-                    {{/capabilities.subscribe}}
+                    {{/forum.capabilities.subscribe}}
                 </tr>
             </thead>
             {{/discussion_list_header}}
             {{$discussion_list_body}}
             <tbody>
-                {{#discussions}}
-                    {{#discussion}}
+                {{#summaries}}
                     <tr>
                         <td scope="col" class="pinned p-0 text-center align-middle">
                             {{#discussion.pinned}}
@@ -107,7 +106,7 @@
                         {{#has_any_group}}
                             {{> mod_forum/discussion_list_entry_group}}
                         {{/has_any_group}}
-                        {{#can_see_discussions}}
+                        {{#forum.capabilities.viewdiscussions}}
                             <td scope="col" class="p-0 text-center">
                                 <a href="{{url}}" class="p-3 w-100 h-100 d-block">
                                     {{replies}}
@@ -126,7 +125,7 @@
                                     {{/unread}}
                                 </td>
                             {{/can_track_reads}}
-                        {{/can_see_discussions}}
+                        {{/forum.capabilities.viewdiscussions}}
                         <td scope="col" class="text-left">
                             {{#latestpostauthor}}
                                 <div class="d-flex flex-row">
@@ -153,11 +152,12 @@
                             {{/latestpostauthor}}
                         </td>
                         <td scope="col" class="p-0 align-middle">
-                            {{> mod_forum/discussion_subscription_toggle}}
+                            {{#discussion}}
+                                {{> mod_forum/discussion_subscription_toggle}}
+                            {{/discussion}}
                         </td>
                     </tr>
-                    {{/discussion}}
-                {{/discussions}}
+                {{/summaries}}
             </tbody>
             {{/discussion_list_body}}
         </table>
@@ -172,12 +172,12 @@
                 <a href="{{create_discussion_link}}" class="btn btn-primary">{{create_discussion_link_text}}</a>
             </div>
         {{/can_create_discussion}}
-    {{/discussions.0}}
-    {{^discussions.0}}
+    {{/state.hasdiscussions}}
+    {{^state.hasdiscussions}}
         <div class="forumnodiscuss">
             {{nodiscussionstring}}
         </div>
-    {{/discussions.0}}
+    {{/state.hasdiscussions}}
 
 </span>
 {{#js}}

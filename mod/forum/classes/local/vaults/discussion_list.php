@@ -149,4 +149,11 @@ class discussion_list extends vault {
 
         return $this->transform_db_records_to_entities($records);
     }
+
+    public function get_post_count_for_discussion_ids(array $discussionids) : array {
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
+        $sql = "SELECT discussion, COUNT(1) FROM {forum_posts} p WHERE p.discussion {$insql} GROUP BY discussion";
+
+        return $this->get_db()->get_records_sql_menu($sql, $params);
+    }
 }

@@ -53,6 +53,7 @@ class forum extends exporter {
             // TODO name, description.
             'capabilities' => [
                 'type' => [
+                    'viewdiscussions' => ['type' => PARAM_BOOL],
                     'create' => ['type' => PARAM_BOOL],
                     'subscribe' => ['type' => PARAM_BOOL],
                 ]
@@ -80,6 +81,7 @@ class forum extends exporter {
         return [
             'id' => $this->forum->get_id(),
             'capabilities' => [
+                'viewdiscussions' => $capabilitymanager->can_view_discussions($user),
                 'create' => $capabilitymanager->can_create_discussions($user, $currentgroup),
                 'subscribe' => $capabilitymanager->can_subscribe_to_forum($user),
             ],

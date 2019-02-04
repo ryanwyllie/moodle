@@ -37,10 +37,12 @@ use renderer_base;
 class discussion_summaries extends exporter {
     private $discussions;
     private $groupsbyauthorid;
+    private $discussionpostcount;
 
-    public function __construct(array $discussions, $groupsbyauthorid, $related = []) {
+    public function __construct(array $discussions, $groupsbyauthorid, $discussionpostcount, $related = []) {
         $this->discussions = $discussions;
         $this->groupsbyauthorid = $groupsbyauthorid;
+        $this->discussionpostcount = $discussionpostcount;
         return parent::__construct([], $related);
     }
 
@@ -51,9 +53,14 @@ class discussion_summaries extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'discussions' => [
+            'summaries' => [
                 'type' => discussion_summary::read_properties_definition(),
                 'multiple' => true
+            ],
+            'state' => [
+                'type' => [
+                    'hasdiscussions' => ['type' => PARAM_BOOL],
+                ],
             ],
         ];
     }
@@ -69,12 +76,20 @@ class discussion_summaries extends exporter {
         $related = $this->related;
 
         foreach ($this->discussions as $discussion) {
-            $exporter = new discussion_summary($discussion, $this->groupsbyauthorid, $related);
+            $exporter = new discussion_summary(
+                    $discussion,
+                    $this->groupsbyauthorid,
+                    $this->discussionpostcount[$discussion->get_discussion()->get_id()],
+                    $related
+                );
             $exporteddiscussions[] = $exporter->export($output);
         }
 
         return [
-            'discussions' => $exporteddiscussions,
+            'summaries' => $exporteddiscussions,
+            'state' => [
+                'hasdiscussions' => !empty($exporteddiscussions),
+            ],
         ];
     }
 

@@ -87,10 +87,15 @@ class discussion_list {
             $groupid
         );
 
+        $discussions = $this->get_exported_discussions($user, $groupid, $sortorder, $pageno, $pagesize);
+
         $forumview = array_merge(
-                (array) $forumexporter->export($this->renderer),
-                (array) $this->get_exported_discussions($user, $groupid, $sortorder, $pageno, $pagesize)
+                [
+                    'forum' => (array) $forumexporter->export($this->renderer),
+                ],
+                (array) $discussions
             );
+        print_object($forumview);
 
         return $this->renderer->render_from_template($this->get_template(), $forumview);
     }
@@ -113,16 +118,19 @@ class discussion_list {
                 $this->get_page_number($pageno));
         }
 
-        $postvault = $this->vaultfactory->get_post_vault();
-        $posts = $postvault->get_from_discussion_ids(array_keys($discussions));
+        $discussionids = array_keys($discussions);
 
+        $postvault = $this->vaultfactory->get_post_vault();
+        $posts = $postvault->get_from_discussion_ids($discussionids);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+        $postcounts = $discussionvault->get_post_count_for_discussion_ids($discussionids);
 
         $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
             $user,
             $forum,
             $discussions,
-            $groupsbyauthorid
+            $groupsbyauthorid,
+            $postcounts
         );
 
         return $summaryexporter->export($this->renderer);
