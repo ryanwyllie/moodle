@@ -98,9 +98,9 @@ class exporter {
         forum_entity $forum,
         array $discussions,
         array $groupsbyauthorid = [],
-        array $discussionpostcount = []
+        array $discussionreplycount = []
     ) : discussion_summaries_exporter {
-        return new discussion_summaries_exporter($discussions, $groupsbyauthorid, $discussionpostcount, [
+        return new discussion_summaries_exporter($discussions, $groupsbyauthorid, $discussionreplycount, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'context' => $forum->get_context(),
             'forum' => $forum,
