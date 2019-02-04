@@ -111,16 +111,23 @@ class discussion_list extends vault {
     }
 
     public function get_sort_order(?int $sortmethod) : string {
+        global $CFG;
+
         $alias = $this->get_table_alias();
-        // TODO this is actually much more complex because of pinned posts.
+
         // TODO consider user favourites...
-        switch ($sortmethod) {
-            case discussion_list_renderer::SORTORDER_OLDEST_FIRST:
-                return "{$alias}.pinned DESC, {$alias}.timemodified ASC";
-            case discussion_list_renderer::SORTORDER_NEWEST_FIRST:
-            default:
-                return "{$alias}.pinned DESC, {$alias}.timemodified DESC";
+        $keyfield = "{$alias}.timemodified";
+        $direction = "DESC";
+
+        if ($sortmethod == discussion_list_renderer::SORTORDER_OLDEST_FIRST) {
+            $direction = "ASC";
         }
+
+        if (!empty($CFG->forum_enabletimedposts)) {
+            $keyfield = "CASE WHEN {$keyfield} < {$alias}.timestart THEN {$alias}.timestart ELSE {$keyfield} END";
+        }
+
+        return "{$alias}.pinned DESC, {$keyfield} {$direction}";
     }
 
     public function get_from_forum_id(int $forumid, ?int $sortorder, int $limit, int $offset) {
