@@ -36,10 +36,12 @@ use renderer_base;
 class discussion_summary extends exporter {
     private $summary;
     private $groupsbyauthorid;
+    private $postcount;
 
-    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, $related = []) {
+    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $postcount, $related = []) {
         $this->summary = $summary;
         $this->groupsbyauthorid = $groupsbyauthorid;
+        $this->postcount = $postcount;
         return parent::__construct([], $related);
     }
 
@@ -53,6 +55,9 @@ class discussion_summary extends exporter {
             'id' => ['type' => PARAM_INT],
             'discussion' => [
                 'type' => discussion::read_properties_definition(),
+            ],
+            'replies' => [
+                'type' => ['type' => PARAM_INT],
             ],
             'firstpostauthor' => [
                 'type' => author::read_properties_definition(),
@@ -108,6 +113,7 @@ class discussion_summary extends exporter {
         return [
             'id' => $discussion->get_id(),
             'discussion' => $discussionexporter->export($output),
+            'replies' => $this->postcount - 1,
             'firstpostauthor' => $firstpostauthor->export($output),
             'latestpostauthor' => $latestpostauthor->export($output),
         ];

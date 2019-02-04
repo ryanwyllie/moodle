@@ -50,7 +50,7 @@ class discussion extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
-            'forum' => ['type' => PARAM_INT],
+            'forumid' => ['type' => PARAM_INT],
             'pinned' => ['type' => PARAM_BOOL],
             'name' => ['type' => PARAM_TEXT],
             'times' => [
@@ -100,7 +100,7 @@ class discussion extends exporter {
 
         return [
             'id' => $discussion->get_id(),
-            'forum' => $forum->get_id(),
+            'forumid' => $forum->get_id(),
             'pinned' => $discussion->is_pinned(),
             // TODO format_string.
             'name' => $discussion->get_name(),
