@@ -106,6 +106,8 @@ class discussion_list {
         if ($groupid === null) {
             $discussions = $discussionvault->get_from_forum_id(
                 $forum->get_id(),
+                $this->capabilitymanager->can_view_hidden_posts($user),
+                $user->id,
                 $sortorder,
                 $this->get_page_size($pagesize),
                 $this->get_page_number($pageno));
@@ -113,6 +115,8 @@ class discussion_list {
             $discussions = $discussionvault->get_from_forum_id_and_group_id(
                 $forum->get_id(),
                 $groupid,
+                $this->capabilitymanager->can_view_hidden_posts($user),
+                $user->id,
                 $sortorder,
                 $this->get_page_size($pagesize),
                 $this->get_page_number($pageno));

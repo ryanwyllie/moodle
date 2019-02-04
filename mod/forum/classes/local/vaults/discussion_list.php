@@ -130,12 +130,38 @@ class discussion_list extends vault {
         return "{$alias}.pinned DESC, {$keyfield} {$direction}";
     }
 
-    public function get_from_forum_id(int $forumid, ?int $sortorder, int $limit, int $offset) {
+    protected function get_hidden_post_sql(bool $includehiddendiscussions, int $includepostsforuser) {
+        $wheresql = '';
+        $params = [];
+        if (!$includehiddendiscussions) {
+            $wheresql = " AND ((d.timestart <= :timestart AND (d.timeend = 0 OR d.timeend > :timesend))";
+            $params['timestart'] = $now;
+            $params['timeend'] = $now;
+            if (isloggedin()) {
+                $timelimit .= " OR d.userid = :byuser";
+                $params['byuser'] = $includepostsforuser;
+            }
+            $wheresql .= ")";
+        }
+
+        return [
+            'wheresql' => $wheresql,
+            'params' => $params,
+        ];
+    }
+
+    public function get_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
         $wheresql = "{$alias}.forum = :forumid";
-        $params = [
+        [
+            'wheresql' => $hiddensql,
+            'params' =>  $hiddenparams
+        ] = $this->get_hidden_post_sql($includehiddendiscussions, $includepostsforuser);
+        $wheresql .= $hiddensql;
+
+        $params = array_merge($hiddenparams, [
             'forumid' => $forumid,
-        ];
+        ]);
 
         $sql = $this->generate_get_records_sql($wheresql, $this->get_sort_order($sortorder));
         $records = $this->get_db()->get_records_sql($sql, $params, $offset, $limit);
@@ -143,14 +169,20 @@ class discussion_list extends vault {
         return $this->transform_db_records_to_entities($records);
     }
 
-    public function get_from_forum_id_and_group_id(int $forumid, int $groupid, ?int $sortorder, int $limit, int $offset) {
+    public function get_from_forum_id_and_group_id(int $forumid, int $groupid, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
         $wheresql = "{$alias}.forum = :forumid AND ({$alias}.groupid = :groupid OR {$alias}.groupid = :allgroupsid)";
-        $params = [
+        [
+            'wheresql' => $hiddensql,
+            'params' =>  $hiddenparams
+        ] = $this->get_hidden_post_sql($includehiddendiscussions, $includepostsforuser);
+        $wheresql .= $hiddensql;
+
+        $params = array_merge($hiddenparams, [
             'forumid' => $forumid,
             'groupid' => $groupid,
             'allgroupsid' => -1,
-        ];
+        ]);
 
         $sql = $this->generate_get_records_sql($wheresql, $this->get_sort_order($sortorder));
         $records = $this->get_db()->get_records_sql($sql, $params, $offset, $limit);
