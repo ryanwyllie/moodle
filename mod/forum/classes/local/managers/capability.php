@@ -258,4 +258,8 @@ class capability {
 
         return $result;
     }
+
+    public function can_view_hidden_posts(stdClass $user) : bool {
+        return has_capability('mod/forum:viewhiddentimedposts', $this->get_context(), $user);
+    }
 }
