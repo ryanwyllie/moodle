@@ -123,14 +123,14 @@ class discussion_list {
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_ids($discussionids);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
-        $postcounts = $discussionvault->get_post_count_for_discussion_ids($discussionids);
+        $replycounts = $discussionvault->get_reply_count_for_discussion_ids($discussionids);
 
         $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
             $user,
             $forum,
             $discussions,
             $groupsbyauthorid,
-            $postcounts
+            $replycounts
         );
 
         return $summaryexporter->export($this->renderer);
