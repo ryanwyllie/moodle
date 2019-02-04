@@ -242,4 +242,20 @@ class capability {
     protected function get_post_record(post_entity $post) : stdClass {
         return $this->postdatamapper->to_legacy_object($post);
     }
+
+    public function can_view_participants(stdClass $user, discussion_entity $discussion) : bool {
+        $result = course_can_view_participants($this->get_context());
+
+        if ($this->forum->get_type() === 'qanda') {
+            if (!has_capability('mod/forum:viewqandawithoutposting', $this->get_context(), $user)) {
+                $result = false;
+            }
+
+            if ($result && !forum_user_has_posted($this->get_forum()->get_id(), $discussion->get_id(), $user->id)) {
+                $result = false;
+            }
+        }
+
+        return $result;
+    }
 }

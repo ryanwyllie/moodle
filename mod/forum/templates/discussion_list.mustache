@@ -55,9 +55,9 @@
                     <th scope="col">&nbsp;</th>
                     <th scope="col" class="p-l-0">{{#str}}discussion, mod_forum{{/str}}</th>
                     <th scope="col" class="author">{{#str}}startedby, mod_forum{{/str}}</th>
-                    {{#has_any_group}}
+                    {{#forum.state.groupmode}}
                         <th scope="col" class="group">{{#str}}group{{/str}}</th>
-                    {{/has_any_group}}
+                    {{/forum.state.groupmode}}
                     {{#forum.capabilities.viewdiscussions}}
                         <th scope="col" class="text-center">{{#str}}replies, mod_forum{{/str}}</th>
                         {{#can_track_reads}}
@@ -103,9 +103,30 @@
                                 </a>
                             {{/firstpostauthor}}
                         </td>
-                        {{#has_any_group}}
-                            {{> mod_forum/discussion_list_entry_group}}
-                        {{/has_any_group}}
+                        {{#forum.state.groupmode}}
+                            <td scope="col" class="group">
+                                {{#discussion.group}}
+                                    {{#urls.picture}}
+                                        {{#urls.userlist}}
+                                            <a href="{{{urls.userlist}}}">
+                                                <img class="border rounded h-auto rounded-circle" src="{{{urls.picture}}}">
+                                            </a>
+                                        {{/urls.userlist}}
+                                        {{^urls.userlist}}
+                                            <img class="border rounded h-auto rounded-circle" src="{{{urls.picture}}}">
+                                        {{/urls.userlist}}
+                                    {{/urls.picture}}
+                                    {{^urls.picture}}
+                                        {{#urls.userlist}}
+                                            <a href="{{{urls.userlist}}}">{{name}}</a>
+                                        {{/urls.userlist}}
+                                        {{^urls.userlist}}
+                                            {{name}}
+                                        {{/urls.userlist}}
+                                    {{/urls.picture}}
+                                {{/discussion.group}}
+                            </td>
+                        {{/forum.state.groupmode}}
                         {{#forum.capabilities.viewdiscussions}}
                             <td scope="col" class="p-0 text-center">
                                 <a href="{{url}}" class="p-3 w-100 h-100 d-block">

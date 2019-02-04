@@ -145,10 +145,11 @@ class discussion_list extends vault {
 
     public function get_from_forum_id_and_group_id(int $forumid, int $groupid, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
-        $wheresql = "{$alias}.forum = :forumid AND {$alias}.groupid = :groupid";
+        $wheresql = "{$alias}.forum = :forumid AND ({$alias}.groupid = :groupid OR {$alias}.groupid = :allgroupsid)";
         $params = [
             'forumid' => $forumid,
-            'groupid' => $groupid
+            'groupid' => $groupid,
+            'allgroupsid' => -1,
         ];
 
         $sql = $this->generate_get_records_sql($wheresql, $this->get_sort_order($sortorder));
@@ -158,6 +159,9 @@ class discussion_list extends vault {
     }
 
     public function get_post_count_for_discussion_ids(array $discussionids) : array {
+       if (empty($discussionids)) {
+            return [];
+        }
         list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
         $sql = "SELECT discussion, COUNT(1) FROM {forum_posts} p WHERE p.discussion {$insql} GROUP BY discussion";
 
@@ -165,6 +169,9 @@ class discussion_list extends vault {
     }
 
     public function get_reply_count_for_discussion_ids(array $discussionids) : array {
+        if (empty($discussionids)) {
+            return [];
+        }
         list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
         $sql = "SELECT discussion, COUNT(1) FROM {forum_posts} p WHERE p.discussion {$insql} AND p.parent > 0 GROUP BY discussion";
 

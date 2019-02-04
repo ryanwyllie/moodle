@@ -76,10 +76,12 @@ class discussion_summaries extends exporter {
         $related = $this->related;
 
         foreach ($this->discussions as $discussion) {
+            $discussionid = $discussion->get_discussion()->get_id();
+            $replycount = isset($this->discussionreplycount[$discussionid]) ? $this->discussionreplycount[$discussionid] : 0;
             $exporter = new discussion_summary(
                     $discussion,
                     $this->groupsbyauthorid,
-                    $this->discussionreplycount[$discussion->get_discussion()->get_id()],
+                    $replycount,
                     $related
                 );
             $exporteddiscussions[] = $exporter->export($output);

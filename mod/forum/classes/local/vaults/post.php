@@ -113,6 +113,10 @@ class post extends vault {
     }
 
     public function get_from_discussion_ids(array $discussionids) : array {
+        if (empty($discussionids)) {
+            return [];
+        }
+
         $alias = $this->get_table_alias();
 
         list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
