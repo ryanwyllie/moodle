@@ -66,9 +66,7 @@ class url {
     }
 
     public function get_forum_view_url_from_forum(forum_entity $forum) : moodle_url {
-        return new moodle_url('/mod/forum/discussions.php', [
-            'f' => $forum->get_id(),
-        ]);
+        return $this->get_forum_view_url_from_course_module_id($forum->get_course_module_record()->id);
     }
 
     public function get_forum_view_url_from_course_module_id(int $coursemoduleid) : moodle_url {

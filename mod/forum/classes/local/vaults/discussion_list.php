@@ -32,7 +32,10 @@ use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocess
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 
 /**
- * Vault class.
+ * Discussion list vault.
+ *
+ * @package    mod_forum
+ * @copyright  2019 Andrew Nicols <andrew@nicols.co.uk>
  */
 class discussion_list extends vault {
     private const TABLE = 'forum_discussions';
@@ -134,11 +137,12 @@ class discussion_list extends vault {
         $wheresql = '';
         $params = [];
         if (!$includehiddendiscussions) {
-            $wheresql = " AND ((d.timestart <= :timestart AND (d.timeend = 0 OR d.timeend > :timesend))";
+            $now = time();
+            $wheresql = " AND ((d.timestart <= :timestart AND (d.timeend = 0 OR d.timeend > :timeend))";
             $params['timestart'] = $now;
             $params['timeend'] = $now;
             if (isloggedin()) {
-                $timelimit .= " OR d.userid = :byuser";
+                $wheresql .= " OR d.userid = :byuser";
                 $params['byuser'] = $includepostsforuser;
             }
             $wheresql .= ")";
@@ -169,18 +173,26 @@ class discussion_list extends vault {
         return $this->transform_db_records_to_entities($records);
     }
 
-    public function get_from_forum_id_and_group_id(int $forumid, int $groupid, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
+    public function get_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
-        $wheresql = "{$alias}.forum = :forumid AND ({$alias}.groupid = :groupid OR {$alias}.groupid = :allgroupsid)";
+
+        $wheresql = "{$alias}.forum = :forumid AND ";
+        $groupparams = [];
+        if (empty($groupids)) {
+            $wheresql .= "{$alias}.groupid = :allgroupsid";
+        } else {
+            list($insql, $groupparams) = $this->get_db()->get_in_or_equal($groupids, SQL_PARAMS_NAMED, 'gid');
+            $wheresql .= "({$alias}.groupid = :allgroupsid OR {$alias}.groupid {$insql})";
+        }
+
         [
             'wheresql' => $hiddensql,
             'params' =>  $hiddenparams
         ] = $this->get_hidden_post_sql($includehiddendiscussions, $includepostsforuser);
         $wheresql .= $hiddensql;
 
-        $params = array_merge($hiddenparams, [
+        $params = array_merge($hiddenparams, $groupparams, [
             'forumid' => $forumid,
-            'groupid' => $groupid,
             'allgroupsid' => -1,
         ]);
 

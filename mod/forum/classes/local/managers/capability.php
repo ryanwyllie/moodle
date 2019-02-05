@@ -92,13 +92,17 @@ class capability {
         return $this->can_post_to_group($user, $groupid);
     }
 
+    public function can_access_all_groups(stdClass $user) {
+        return has_capability('moodle/site:accessallgroups', $this->get_context(), $user);
+    }
+
     public function can_post_to_group(\stdClass $user, ?int $groupid) {
         if (empty($this->forum->get_effective_group_mode()) || $this->forum->get_effective_group_mode() === NOGROUPS) {
             // This discussion is not in a group mode.
             return true;
         }
 
-        if (has_capability('moodle/site:accessallgroups', $this->get_context(), $user)) {
+        if ($this->can_access_all_groups($user)) {
             // This user has access to all groups.
             return true;
         }
@@ -110,7 +114,7 @@ class capability {
         // This is a group discussion for a forum in separate groups mode.
         // Check if the user is a member.
         // This is the most expensive check.
-        return groups_is_member($groupid, $this->user->id);
+        return groups_is_member($groupid, $user->id);
     }
 
     public function can_view_discussions(stdClass $user) : bool {

@@ -54,12 +54,19 @@ class discussion extends exporter {
             'pinned' => ['type' => PARAM_BOOL],
             'name' => ['type' => PARAM_TEXT],
             'group' => [
+                'optional' => true,
                 'type' => [
                     'name' => ['type' => PARAM_TEXT],
                     'urls' => [
                         'type' => [
-                            'picture' => [PARAM_URL],
-                            'userlist' => [PARAM_URL],
+                            'picture' => [
+                                'optional' => true,
+                                'type' => PARAM_URL,
+                            ],
+                            'userlist' => [
+                                'optional' => true,
+                                'type' => PARAM_URL,
+                            ],
                         ],
                     ],
                 ],
@@ -118,24 +125,25 @@ class discussion extends exporter {
             ];
             $canviewparticipants = $capabilitymanager->can_view_participants($user, $discussion);
             if (!$group->hidepicture) {
-                $groupdata['urls']['picture'] = get_group_picture_url($group, $forum->get_course_id());
+                $url = get_group_picture_url($group, $forum->get_course_id());
+                if (!empty($url)) {
+                    $groupdata['urls']['picture'] = $url->out(false);
+                }
             }
             if ($canviewparticipants) {
-                $groupdata['urls']['userlist'] = new \moodle_url('/user/index.php', [
+                $groupdata['urls']['userlist'] = (new \moodle_url('/user/index.php', [
                     'id' => $forum->get_course_id(),
                     'group' => $group->id,
-                ]);
+                ]))->out(false);
             }
-            print_object($groupdata);
         }
 
-        return [
+        $data = [
             'id' => $discussion->get_id(),
             'forumid' => $forum->get_id(),
             'pinned' => $discussion->is_pinned(),
             // TODO format_string.
             'name' => $discussion->get_name(),
-            'group' => $groupdata,
             'times' => [
                 'modified' => $discussion->get_time_modified(),
                 'start' => $discussion->get_time_start(),
@@ -154,6 +162,12 @@ class discussion extends exporter {
                 'view' => $viewurl->out(),
             ],
         ];
+
+        if ($groupdata) {
+            $data['group'] = $groupdata;
+        }
+
+        return $data;
     }
 
     private function get_forum_record() {

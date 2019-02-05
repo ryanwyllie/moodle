@@ -102,6 +102,7 @@ class renderer {
     ) : discussion_list_renderer {
 
         $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+        $urlmanager = $this->managerfactory->get_url_manager($forum);
         $rendererbase = $this->rendererbase;
         $notifications = [];
 
@@ -112,6 +113,7 @@ class renderer {
             $this->exporterfactory,
             $this->vaultfactory,
             $capabilitymanager,
+            $urlmanager,
             $notifications
         );
     }
