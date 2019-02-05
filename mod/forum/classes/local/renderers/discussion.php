@@ -360,7 +360,7 @@ class discussion {
         $forum = $this->forum;
         $renderer = $this->renderer;
 
-        if (true || $forum->is_discussion_locked($discussion)) {
+        if ($forum->is_discussion_locked($discussion)) {
             $notifications[] = (new notification(
                 get_string('discussionlocked', 'forum'),
                 notification::NOTIFY_INFO
