@@ -31,26 +31,50 @@ use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
+use mod_forum\local\managers\url as url_manager;
 use renderer_base;
+use stdClass;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Nested discussion renderer class.
+ * The discussion list renderer.
+ *
+ * @package    mod_forum
+ * @copyright  2019 Andrew Nicols <andrew@nicols.co.uk>
  */
 class discussion_list {
+    // TODO Consider how we support additional sortorders.
     public const SORTORDER_NEWEST_FIRST = 1;
     public const SORTORDER_OLDEST_FIRST = 2;
 
+    /** @var forum_entity The forum being rendered */
     private $forum;
+
+    /** @var stdClass The DB record for the forum being rendered */
     private $forumrecord;
+
+    /** @var renderer_base The renderer used to render the view */
     private $renderer;
+
     private $legacydatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
     private $capabilitymanager;
+    private $urlmanager;
     private $notifications;
 
+    /**
+     * Constructor for a new discussion list renderer.
+     *
+     * @param   forum_entity        $forum The forum entity to be rendered
+     * @param   renderer_base       $renderer The renderer used to render the view
+     * @param   legacy_data_mapper_factory $legacy_data_mapper_factory The factory used to fetch a legacy record
+     * @param   exporter_factory    $exporterfactory The factory used to fetch exporter instances
+     * @param   vault_factory       $vaultfactory The factory used to fetch the vault instances
+     * @param   capability_manager  $capabilitymanager The managed used to check capabilities on the forum
+     * @param   array               $notifications A list of any notifications to be displayed within the page
+     */
     public function __construct(
         forum_entity $forum,
         renderer_base $renderer,
@@ -58,6 +82,7 @@ class discussion_list {
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         capability_manager $capabilitymanager,
+        url_manager $urlmanager,
         array $notifications = []
     ) {
         $this->forum = $forum;
@@ -66,13 +91,24 @@ class discussion_list {
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->capabilitymanager = $capabilitymanager;
+        $this->urlmanager = $urlmanager;
         $this->notifications = $notifications;
 
         $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
         $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
     }
 
-    public function render(\stdClass $user, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) : string {
+    /**
+     * Render for the specified user.
+     *
+     * @param   stdClass    $user The user to render for
+     * @param   int         $groupid The group to render
+     * @param   int         $sortorder The sort order to use when selecting the discussions in the list
+     * @param   int         $pageno The zero-indexed page number to use
+     * @param   int         $pagesize The number of discussions to show on the page
+     * @return  string      The rendered content for display
+     */
+    public function render(stdClass $user, \cm_info $cm, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) : string {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -81,29 +117,75 @@ class discussion_list {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
+        $groupids = $this->get_groups_from_groupid($user, $groupid);
+
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
             $this->forum,
             $groupid
         );
 
-        $discussions = $this->get_exported_discussions($user, $groupid, $sortorder, $pageno, $pagesize);
+
+        $discussions = $this->get_exported_discussions($user, $groupids, $sortorder, $pageno, $pagesize);
 
         $forumview = array_merge(
                 [
                     'forum' => (array) $forumexporter->export($this->renderer),
+                    'groupchangemenu' => groups_print_activity_menu($cm, $this->urlmanager->get_forum_view_url_from_forum($forum), true),
                 ],
                 (array) $discussions
             );
-        print_object($forumview);
+        //print_object($forumview);
 
         return $this->renderer->render_from_template($this->get_template(), $forumview);
     }
 
-    private function get_exported_discussions(\stdClass $user, ?int $groupid, ?int $sortorder, ?int $pageno, ?int $pagesize) {
+    /**
+     * Get the list of groups to show based on the current user and requested groupid.
+     *
+     * @param   stdClass    $user The user viewing
+     * @param   int         $groupid The groupid requested
+     * @return  array       The list of groups to show
+     */
+    private function get_groups_from_groupid(stdClass $user, ?int $groupid) : ?array {
+        $forum = $this->forum;
+        $effectivegroupmode = $forum->get_effective_group_mode();
+        if (empty($effectivegroupmode)) {
+            // This forum is not in a group mode. Show all posts always.
+            return null;
+        }
+
+        if (null == $groupid) {
+            // No group was specified.
+            $showallgroups = (VISIBLEGROUPS == $effectivegroupmode);
+            $showallgroups = $showallgroups || $this->capabilitymanager->can_access_all_groups($user);
+            if ($showallgroups) {
+                // Return null to show all groups.
+                return null;
+            } else {
+                // No group was specified. Only show the users current groups.
+                return array_keys(groups_get_all_groups($forum->get_course_id(), $user->id, $forum->get_course_module_record()->groupingid));
+            }
+        } else {
+            // A group was specified. Just show that group.
+            return [$groupid];
+        }
+    }
+
+    /**
+     * Fetch the data used to display the discussions on the current page.
+     *
+     * @param   stdClass    $user The user to render for
+     * @param   int         $groupid The group to render
+     * @param   int         $sortorder The sort order to use when selecting the discussions in the list
+     * @param   int         $pageno The zero-indexed page number to use
+     * @param   int         $pagesize The number of discussions to show on the page
+     * @return  stdClass    The data to use for display
+     */
+    private function get_exported_discussions(stdClass $user, ?array $groupids, ?int $sortorder, ?int $pageno, ?int $pagesize) : stdClass {
         $forum = $this->forum;
         $discussionvault = $this->vaultfactory->get_discussions_in_forum_vault();
-        if ($groupid === null) {
+        if (null === $groupids) {
             $discussions = $discussionvault->get_from_forum_id(
                 $forum->get_id(),
                 $this->capabilitymanager->can_view_hidden_posts($user),
@@ -114,7 +196,7 @@ class discussion_list {
         } else {
             $discussions = $discussionvault->get_from_forum_id_and_group_id(
                 $forum->get_id(),
-                $groupid,
+                $groupids,
                 $this->capabilitymanager->can_view_hidden_posts($user),
                 $user->id,
                 $sortorder,
@@ -140,16 +222,39 @@ class discussion_list {
         return $summaryexporter->export($this->renderer);
     }
 
-    private function get_page_size() : int {
-        // TODO
-        return 50;
+    /**
+     * Fetch the page size to use when displaying the page.
+     *
+     * @param   int         $pagesize The number of discussions to show on the page
+     * @return  int         The normalised page size
+     */
+    private function get_page_size(?int $pagesize) : int {
+        if (null === $pagesize || $pagesize < 0) {
+            $pagesize = self::PAGESIZE_DEFAULT;
+        }
+
+        return $pagesize;
     }
 
-    private function get_page_number() : int {
-        // TODO
-        return 0;
+    /**
+     * Fetch the current page number (zero-indexed).
+     *
+     * @param   int         $pageno The zero-indexed page number to use
+     * @return  int         The normalised page number
+     */
+    private function get_page_number(?int $pageno) : int {
+        if (null === $pageno || $pageno < 0) {
+            $pageno = 0;
+        }
+
+        return $pageno;
     }
 
+    /**
+     * Fetch the name of the template to use for the current forum and view modes.
+     *
+     * @return  string
+     */
     private function get_template() : string {
         switch ($this->forum->get_type()) {
             case 'news':
@@ -166,6 +271,9 @@ class discussion_list {
         }
     }
 
+    /**
+     * TODO - this duplicates an identical function in the discussion renderer.
+     */
     private function get_author_groups_from_posts(array $posts) : array {
         $course = $this->forum->get_course_record();
         $coursemodule = $this->forum->get_course_module_record();
