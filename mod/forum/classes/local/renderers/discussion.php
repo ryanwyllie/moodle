@@ -112,10 +112,10 @@ class discussion {
 
         $exporteddiscussion = $this->get_exported_discussion($user);
         $exporteddiscussion = array_merge($exporteddiscussion, [
+            'notifications' => $this->get_notifications(),
             'posts' => $nestedposts,
             'html' => [
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
-                'notifications' => $this->get_notifications(),
                 'subscribe' => null,
                 'movediscussion' => null,
                 'pindiscussion' => null,
@@ -360,23 +360,27 @@ class discussion {
         $forum = $this->forum;
         $renderer = $this->renderer;
 
-        if ($forum->is_discussion_locked($discussion)) {
-            $notifications[] = $renderer->notification(
+        if (true || $forum->is_discussion_locked($discussion)) {
+            $notifications[] = (new notification(
                 get_string('discussionlocked', 'forum'),
-                notification::NOTIFY_INFO . ' discussionlocked'
-            );
+                notification::NOTIFY_INFO
+            ))
+            ->set_extra_classes(['discussionlocked'])
+            ->set_show_closebutton();
         }
 
         if ($forum->has_blocking_enabled()) {
-            $notifications[] = $renderer->notification(
+            $notifications[] = (new notification(
                 get_string('thisforumisthrottled', 'forum', [
                     'blockafter' => $forum->get_block_after(),
                     'blockperiod' => get_string('secondstotime' . $forum->get_block_period())
-                ]
-            ));
+                ])
+            ))->set_show_closebutton();
         }
 
-        return $notifications;
+        return array_map(function($notification) {
+            return $notification->export_for_template($this->renderer);
+        }, $notifications);
     }
 
     private function get_neighbour_links_html() {
