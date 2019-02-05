@@ -27,6 +27,8 @@ namespace mod_forum\local\vaults;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\vault;
+use mod_forum\local\entities\forum as forum_entity;
+use mod_forum\local\entities\discussion as discussion_entity;
 
 /**
  * Vault class.
@@ -55,5 +57,20 @@ class discussion extends vault {
             ] = $result;
             return $entityfactory->get_discussion_from_stdClass($record);
         }, $results);
+    }
+
+    /**
+     * Get the first discussion in the specified forum.
+     *
+     * @param   forum_entity $forum
+     * @return  discussion_entity
+     */
+    public function get_first_discussion_in_forum(forum_entity $forum) : ?discussion_entity {
+        $records = $this->get_db()->get_records(self::TABLE, [
+            'forum' => $forum->get_id(),
+        ], 'timemodified ASC', '*', 0, 1);
+
+        $records = $this->transform_db_records_to_entities($records);
+        return count($records) ? array_shift($records) : null;
     }
 }
