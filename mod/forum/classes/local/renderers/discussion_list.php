@@ -34,6 +34,7 @@ use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\managers\url as url_manager;
 use renderer_base;
 use stdClass;
+use core\output\notification;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -73,7 +74,7 @@ class discussion_list {
      * @param   exporter_factory    $exporterfactory The factory used to fetch exporter instances
      * @param   vault_factory       $vaultfactory The factory used to fetch the vault instances
      * @param   capability_manager  $capabilitymanager The managed used to check capabilities on the forum
-     * @param   array               $notifications A list of any notifications to be displayed within the page
+     * @param   notification[]      $notifications A list of any notifications to be displayed within the page
      */
     public function __construct(
         forum_entity $forum,
@@ -112,30 +113,29 @@ class discussion_list {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
-        // Make sure we can render.
-        if (!$capabilitymanager->can_view_discussions($user)) {
-            throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
+        if (!$capabilitymanager->can_post_to_group($user, $groupid)) {
+            // Cannot post to the current group.
+            $this->notifications[] = (new notification(
+                get_string('cannotadddiscussion', 'mod_forum'),
+                \core\output\notification::NOTIFY_WARNING
+            ))->set_show_closebutton();
         }
 
         $groupids = $this->get_groups_from_groupid($user, $groupid);
-
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
             $this->forum,
             $groupid
         );
 
-
-        $discussions = $this->get_exported_discussions($user, $groupids, $sortorder, $pageno, $pagesize);
-
         $forumview = array_merge(
                 [
+                    'notifications' => $this->get_notifications(),
                     'forum' => (array) $forumexporter->export($this->renderer),
                     'groupchangemenu' => groups_print_activity_menu($cm, $this->urlmanager->get_forum_view_url_from_forum($forum), true),
                 ],
-                (array) $discussions
+                (array) $this->get_exported_discussions($user, $groupids, $sortorder, $pageno, $pagesize)
             );
-        //print_object($forumview);
 
         return $this->renderer->render_from_template($this->get_template(), $forumview);
     }
@@ -308,5 +308,21 @@ class discussion_list {
         }
 
         return $authorgroups;
+    }
+
+    /**
+     * Get the list of notification for display.
+     *
+     * @return      array
+     */
+    private function get_notifications() : array {
+        $notifications = $this->notifications;
+        $forum = $this->forum;
+        $renderer = $this->renderer;
+        $capabilitymanager = $this->capabilitymanager;
+
+        return array_map(function($notification) {
+            return $notification->export_for_template($this->renderer);
+        }, $notifications);
     }
 }

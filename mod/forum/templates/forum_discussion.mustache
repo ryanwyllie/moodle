@@ -41,7 +41,9 @@
     </div>
 </div>
 
-{{#html.notifications}}{{{.}}}{{/html.notifications}}
+{{#notifications}}
+    {{> core/notification}}
+{{/notifications}}
 
 {{#posts}}
     {{$post}}{{/post}}
