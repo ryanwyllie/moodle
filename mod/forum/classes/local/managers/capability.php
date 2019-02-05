@@ -108,7 +108,7 @@ class capability {
         }
 
         if (null === $groupid) {
-            return true;
+            return $this->can_access_all_groups($user);
         }
 
         // This is a group discussion for a forum in separate groups mode.
