@@ -113,14 +113,6 @@ class discussion_list {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
-        if (!$capabilitymanager->can_post_to_group($user, $groupid)) {
-            // Cannot post to the current group.
-            $this->notifications[] = (new notification(
-                get_string('cannotadddiscussion', 'mod_forum'),
-                \core\output\notification::NOTIFY_WARNING
-            ))->set_show_closebutton();
-        }
-
         $groupids = $this->get_groups_from_groupid($user, $groupid);
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
@@ -130,7 +122,7 @@ class discussion_list {
 
         $forumview = array_merge(
                 [
-                    'notifications' => $this->get_notifications(),
+                    'notifications' => $this->get_notifications($user, $groupid),
                     'forum' => (array) $forumexporter->export($this->renderer),
                     'groupchangemenu' => groups_print_activity_menu($cm, $this->urlmanager->get_forum_view_url_from_forum($forum), true),
                 ],
@@ -315,11 +307,43 @@ class discussion_list {
      *
      * @return      array
      */
-    private function get_notifications() : array {
+    private function get_notifications(stdClass $user, ?int $groupid) : array {
         $notifications = $this->notifications;
         $forum = $this->forum;
         $renderer = $this->renderer;
         $capabilitymanager = $this->capabilitymanager;
+
+        if ($forum->has_blocking_enabled()) {
+            $notifications[] = (new notification(
+                get_string('thisforumisthrottled', 'forum', [
+                    'blockafter' => $forum->get_block_after(),
+                    'blockperiod' => get_string('secondstotime' . $forum->get_block_period())
+                ])
+            ))->set_show_closebutton();
+        }
+
+        if (!$capabilitymanager->can_post_to_group($user, $groupid)) {
+            // Cannot post to the current group.
+            $this->notifications[] = (new notification(
+                get_string('cannotadddiscussion', 'mod_forum'),
+                \core\output\notification::NOTIFY_WARNING
+            ))->set_show_closebutton();
+        }
+
+        if ('qanda' === $forum->get_type() && !$capabilitymanager->can_manage_forum($user)) {
+            $notifications[] = (new notification(
+                get_string('qandanotify', 'forum'),
+                notification::NOTIFY_INFO
+            ))->set_show_closebutton();
+        }
+
+
+        if ('eachuser' === $forum->get_type()) {
+            $notifications[] = (new notification(
+                get_string('allowsdiscussions', 'forum'),
+                notification::NOTIFY_INFO)
+            )->set_show_closebutton();
+        }
 
         return array_map(function($notification) {
             return $notification->export_for_template($this->renderer);

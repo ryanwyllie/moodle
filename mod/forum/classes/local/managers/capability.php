@@ -266,4 +266,8 @@ class capability {
     public function can_view_hidden_posts(stdClass $user) : bool {
         return has_capability('mod/forum:viewhiddentimedposts', $this->get_context(), $user);
     }
+
+    public function can_manage_forum(stdClass $user) {
+        return has_capability('moodle/course:manageactivities', $this->get_context(), $user);
+    }
 }
