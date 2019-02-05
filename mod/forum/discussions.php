@@ -34,7 +34,6 @@ $cmid = required_param('id', PARAM_INT);
 $pageno = optional_param('p', 0, PARAM_INT);
 $pagesize = optional_param('s', 0, PARAM_INT);
 $sortorder = optional_param('o', null, PARAM_INT);
-$changegroup = optional_param('group', -1, PARAM_INT);
 
 $forum = $forumvault->get_from_course_module_id($cmid);
 if (!$forum) {
