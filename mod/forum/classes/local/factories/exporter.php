@@ -120,6 +120,7 @@ class exporter {
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'user' => $user,
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
+            'latestpostid' => null,
         ]);
     }
 

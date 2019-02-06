@@ -95,7 +95,10 @@ class discussion extends exporter {
                 'type' => [
                     'view' => ['type' => PARAM_URL],
                     'viewlatest' => ['type' => PARAM_URL],
-                    'viewfirstunread' => ['type' => PARAM_URL],
+                    'viewfirstunread' => [
+                        'optional' => true,
+                        'type' => PARAM_URL,
+                    ],
                     'markasread' => ['type' => PARAM_URL],
                 ],
             ],
@@ -118,6 +121,7 @@ class discussion extends exporter {
         $discussion = $this->discussion;
 
         // TODO Group exporter.
+        // TODO Get all groups and put them in related.
         $groupdata = null;
         if ($group = groups_get_group($discussion->get_group_id())) {
             $groupdata = [
@@ -128,14 +132,14 @@ class discussion extends exporter {
             if (!$group->hidepicture) {
                 $url = get_group_picture_url($group, $forum->get_course_id());
                 if (!empty($url)) {
-                    $groupdata['urls']['picture'] = $url->out(false);
+                    $groupdata['urls']['picture'] = $url;
                 }
             }
             if ($canviewparticipants) {
                 $groupdata['urls']['userlist'] = (new \moodle_url('/user/index.php', [
                     'id' => $forum->get_course_id(),
                     'group' => $group->id,
-                ]))->out(false);
+                ]));
             }
         }
 
@@ -163,10 +167,16 @@ class discussion extends exporter {
             'urls' => [
                 'view' => $urlmanager->get_discussion_view_url_from_discussion($discussion),
                 'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
-                'viewlatest' => $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion($discussion, $this->related['latestpostid']),
                 'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
             ],
         ];
+
+        if (!empty($this->related['latestpostid'])) {
+            $data['urls']['viewlatest'] = $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion(
+                    $discussion,
+                    $this->related['latestpostid']
+                );
+        }
 
         if ($groupdata) {
             $data['group'] = $groupdata;
@@ -193,7 +203,7 @@ class discussion extends exporter {
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
             'user' => 'stdClass',
-            'latestpostid' => 'int',
+            'latestpostid' => 'int?',
         ];
     }
 }
