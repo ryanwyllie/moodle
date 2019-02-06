@@ -45,10 +45,6 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * @copyright  2019 Andrew Nicols <andrew@nicols.co.uk>
  */
 class discussion_list {
-    // TODO Consider how we support additional sortorders.
-    public const SORTORDER_NEWEST_FIRST = 1;
-    public const SORTORDER_OLDEST_FIRST = 2;
-
     /** @var forum_entity The forum being rendered */
     private $forum;
 
