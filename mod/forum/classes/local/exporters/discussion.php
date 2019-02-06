@@ -162,8 +162,8 @@ class discussion extends exporter {
                 'post' => $capabilitymanager->can_post_in_discussion($user, $discussion)
             ],
             'urls' => [
-                'view' => $viewurl->out(),
-                'markasread' => $markasread->out(),
+                'view' => $viewurl,
+                'markasread' => $markasread,
             ],
         ];
 

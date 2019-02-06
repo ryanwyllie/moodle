@@ -168,6 +168,61 @@ class core_exporter_testcase extends advanced_testcase {
         $this->assertEquals(FORMAT_HTML, $result->stringAformat);
     }
 
+    /**
+     * Ensure that a PARAM_URL which is passed a moodle_url instance is converted to a string version of the URL.
+     */
+    public function test_export_moodle_url() {
+        global $PAGE;
+
+        $url = new \moodle_url('/lib/tests/exporter_test.php', [
+            'id' => 42,
+            'function' => 'test_export_moodle_url',
+        ]);
+
+        $mock = $this->getMockBuilder(\core_exporter_testcase_moodle_url_exporter::class)
+            ->setMethods([
+                'get_other_values',
+            ])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock->method('get_other_values')
+            ->willReturn([
+                'url' => $url,
+            ]);
+
+        $output = $PAGE->get_renderer('core');
+        $result = $mock->export($output);
+
+        $this->assertEquals($url->out(true), $result->url);
+    }
+
+    /**
+     * Ensure that a PARAM_URL which is passed a string URL is treated as a standard URL.
+     */
+    public function test_export_string_url() {
+        global $PAGE;
+
+        $url = 'https://www.example.com/example.png';
+
+        $mock = $this->getMockBuilder(\core_exporter_testcase_moodle_url_exporter::class)
+            ->setMethods([
+                'get_other_values',
+            ])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock->method('get_other_values')
+            ->willReturn([
+                'url' => $url,
+            ]);
+
+        $output = $PAGE->get_renderer('core');
+        $result = $mock->export($output);
+
+        $this->assertEquals($url, $result->url);
+    }
+
     public function test_properties_description() {
         $properties = core_testable_exporter::read_properties_definition();
         // Properties default description.
@@ -252,6 +307,19 @@ class core_testable_exporter extends \core\external\exporter {
     protected function get_format_parameters_for_otherstrings() {
         return [
             'context' => context_system::instance(),
+        ];
+    }
+}
+
+class core_exporter_testcase_moodle_url_exporter extends \core\external\exporter {
+    /**
+     * The list of additional properties.
+     *
+     * @return  array
+     */
+    public static function define_other_properties() : array {
+        return [
+            'url' => ['type' => PARAM_URL],
         ];
     }
 }
