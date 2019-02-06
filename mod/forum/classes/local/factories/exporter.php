@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault factory.
+ * Forum Exporter factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -43,12 +43,24 @@ use context;
 use stdClass;
 
 /**
- * data_mapper factory.
+ * The exporter factory class used to fetch an instance of the different exporter types.
+ *
+ * @package    mod_forum
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  */
 class exporter {
+    /** @var legacy_data_mapper_factory The factory to fetch a legacy data mapper */
     private $legacydatamapperfactory;
+
+    /** @var manager_factory The factory to fetch a new manager */
     private $managerfactory;
 
+    /**
+     * Constructor for the expoter factory.
+     *
+     * @param   legacy_data_mapper_factory $legacydatamapperfactory The factory to fetch a legacy data mapper instance
+     * @param   manager_factory $managerfactory The factory fo fetch a manager instance
+     */
     public function __construct(
         legacy_data_mapper_factory $legacydatamapperfactory,
         manager_factory $managerfactory
@@ -79,10 +91,23 @@ class exporter {
         ]);
     }
 
-    public function get_forum_export_structure() {
+    /**
+     * Fetch the structure of the forum exporter.
+     *
+     * @return  array
+     */
+    public function get_forum_export_structure() : array {
         return forum_exporter::get_read_structure();
     }
 
+    /**
+     * Construct a new discussion exporter for the specified user and forum discussion.
+     *
+     * @param   stdClass        $user The user viewing the forum
+     * @param   forum_entity    $forum The forum being viewed
+     * @param   discussion_entity $discussion The discussion being viewed
+     * @return  discussion_exporter
+     */
     public function get_discussion_exporter(
         stdClass $user,
         forum_entity $forum,
@@ -98,31 +123,69 @@ class exporter {
         ]);
     }
 
+    /**
+     * Fetch the structure of the discussion exporter.
+     *
+     * @return  array
+     */
     public function get_discussion_export_structure() {
         return discussion_exporter::get_read_structure();
     }
 
+    /**
+     * Construct a new discussion summaries exporter for the specified user and set of discussions.
+     *
+     * @param   stdClass        $user The user viewing the forum
+     * @param   forum_entity    $forum The forum being viewed
+     * @param   discussion_entity[] $discussions The set of discussions to be shown
+     * @param   int[]           $discussionreplycount The number of replies for each discussion
+     * @param   int[]           $discussionunreadcount The number of unread posts for each discussion
+     * @return  discussion_summaries_exporter
+     */
     public function get_discussion_summaries_exporter(
         stdClass $user,
         forum_entity $forum,
         array $discussions,
         array $groupsbyauthorid = [],
-        array $discussionreplycount = []
+        array $discussionreplycount = [],
+        array $discussionunreadcount = []
     ) : discussion_summaries_exporter {
-        return new discussion_summaries_exporter($discussions, $groupsbyauthorid, $discussionreplycount, [
-            'legacydatamapperfactory' => $this->legacydatamapperfactory,
-            'context' => $forum->get_context(),
-            'forum' => $forum,
-            'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
-            'urlmanager' => $this->managerfactory->get_url_manager($forum),
-            'user' => $user,
-        ]);
+        return new discussion_summaries_exporter(
+            $discussions,
+            $groupsbyauthorid,
+            $discussionreplycount,
+            $discussionunreadcount,
+            [
+                'legacydatamapperfactory' => $this->legacydatamapperfactory,
+                'context' => $forum->get_context(),
+                'forum' => $forum,
+                'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
+                'urlmanager' => $this->managerfactory->get_url_manager($forum),
+                'user' => $user,
+            ]
+        );
     }
 
+    /**
+     * Fetch the structure of the discussion summaries exporter.
+     *
+     * @return  array
+     */
     public function get_discussion_summaries_export_structure() {
         return discussion_summaries_exporter::get_read_structure();
     }
 
+    /**
+     * Construct a new post exporter for the specified user and set of post.
+     *
+     * @param   stdClass        $user The user viewing the forum
+     * @param   forum_entity    $forum The forum being viewed
+     * @param   discussion_entity $discussion The discussion that the post is in
+     * @param   post_entity[]   $posts The set of posts to be exported
+     * @param   stdClass[]      $groupsbyauthorid The group information indexes by author
+     * @param   post_read_receipt_collection_entity $readreceiptcollection Details of read receipts for each post
+     * @return  post_exporter
+     */
     public function get_posts_exporter(
         stdClass $user,
         forum_entity $forum,
@@ -143,6 +206,11 @@ class exporter {
         ]);
     }
 
+    /**
+     * Fetch the structure of the posts exporter.
+     *
+     * @return  array
+     */
     public function get_posts_export_structure() {
         return posts_exporter::get_read_structure();
     }

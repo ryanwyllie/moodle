@@ -103,7 +103,6 @@ class discussion_summary extends exporter {
             $related
         );
 
-        // TODO Get the last post.
         $latestpostauthor = new author(
             $this->summary->get_latest_post_author(),
             [],
