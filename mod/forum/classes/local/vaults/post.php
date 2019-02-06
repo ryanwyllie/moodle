@@ -34,6 +34,7 @@ use mod_forum\local\vaults\preprocessors\post_read_user_list as post_read_user_l
 use user_picture;
 use moodle_database;
 use file_storage;
+use stdClass;
 
 /**
  * Vault class.
@@ -128,5 +129,50 @@ class post extends vault {
 
         return $this->transform_db_records_to_entities($records);
 
+    }
+
+    /**
+     * Get a mapping of replies to the specified discussions.
+     *
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The number of replies for each discussion returned in an associative array
+     */
+    public function get_reply_count_for_discussion_ids(array $discussionids) : array {
+        if (empty($discussionids)) {
+            return [];
+        }
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
+        $sql = "SELECT discussion, COUNT(1) FROM {" . self::TABLE . "} p WHERE p.discussion {$insql} AND p.parent > 0 GROUP BY discussion";
+
+        return $this->get_db()->get_records_sql_menu($sql, $params);
+    }
+
+    /**
+     * Get a mapping of unread post counts for the specified discussions.
+     *
+     * @param   stdClass    $user The user to fetch counts for
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The count of unread posts for each discussion returned in an associative array
+     */
+    public function get_unread_count_for_discussion_ids(stdClass $user, array $discussionids) : array {
+        global $CFG;
+
+        if (empty($discussionids)) {
+            return [];
+        }
+
+        $alias = $this->get_table_alias();
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids, SQL_PARAMS_NAMED);
+        $sql = "SELECT p.discussion, COUNT(p.id) FROM {" . self::TABLE . "} p
+             LEFT JOIN {forum_read} r ON r.postid = p.id AND r.userid = :userid
+                 WHERE p.discussion {$insql} AND p.modified > :cutofftime AND r.id IS NULL
+              GROUP BY p.discussion";
+
+        $params['userid'] = $user->id;
+        $params['cutofftime'] = floor((new \DateTime())
+            ->sub(new \DateInterval("P{$CFG->forum_oldpostdays}D"))
+            ->format('U') / 60) * 60;
+
+        return $this->get_db()->get_records_sql_menu($sql, $params);
     }
 }
