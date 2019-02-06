@@ -203,6 +203,7 @@ class discussion_list {
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
 
         $replycounts = $postvault->get_reply_count_for_discussion_ids($discussionids);
+        $latestposts = $postvault->get_latest_post_for_discussion_ids($discussionids);
 
         $unreadcounts = [];
         if (forum_tp_can_track_forums($this->forumrecord)) {
@@ -215,7 +216,8 @@ class discussion_list {
             $discussions,
             $groupsbyauthorid,
             $replycounts,
-            $unreadcounts
+            $unreadcounts,
+            $latestposts
         );
 
         return $summaryexporter->export($this->renderer);

@@ -140,6 +140,7 @@ class exporter {
      * @param   discussion_entity[] $discussions The set of discussions to be shown
      * @param   int[]           $discussionreplycount The number of replies for each discussion
      * @param   int[]           $discussionunreadcount The number of unread posts for each discussion
+     * @param   int[]           $latestpostids The latest post id for each discussion
      * @return  discussion_summaries_exporter
      */
     public function get_discussion_summaries_exporter(
@@ -148,13 +149,15 @@ class exporter {
         array $discussions,
         array $groupsbyauthorid = [],
         array $discussionreplycount = [],
-        array $discussionunreadcount = []
+        array $discussionunreadcount = [],
+        array $latestpostid = []
     ) : discussion_summaries_exporter {
         return new discussion_summaries_exporter(
             $discussions,
             $groupsbyauthorid,
             $discussionreplycount,
             $discussionunreadcount,
+            $latestpostid,
             [
                 'legacydatamapperfactory' => $this->legacydatamapperfactory,
                 'context' => $forum->get_context(),

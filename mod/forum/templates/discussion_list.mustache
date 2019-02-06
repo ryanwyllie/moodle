@@ -153,29 +153,30 @@
                             {{/forum.userstate.tracked}}
                         {{/forum.capabilities.viewdiscussions}}
                         <td scope="col" class="text-left">
-                            {{#latestpostauthor}}
+                            {{! TODO Check q&a, eachuser }}
+                            {{#latestpostid}}
                                 <div class="d-flex flex-row">
                                     <div class="align-middle p-0">
-                                        <a href="{{urls.profile}}">
+                                        <a href="{{latestpostauthor.urls.profile}}">
                                             <img {{!
                                                 }} class="h-auto rounded-circle userpicture" {{!
-                                                }} src="{{urls.profileimage}}" {{!
-                                                }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
+                                                }} src="{{latestpostauthor.urls.profileimage}}" {{!
+                                                }} alt="{{#str}}pictureof, moodle, {{latestpostauthor.fullname}}{{/str}}" {{!
                                                 }}>
                                         </a>
                                     </div>
                                     <div class="p-2 p-t-0 p-b-0 d-inline-flex flex-column">
                                         <div>
-                                            <a href="{{urls.profile}}">{{fullname}}</a>
+                                            <a href="{{latestpostauthor.urls.profile}}">{{latestpostauthor.fullname}}</a>
                                         </div>
                                         <div>
-                                            <a href="{{url}}">{{#userdate}}
+                                            <a href="{{{discussion.urls.viewlatest}}}">{{#userdate}}
                                                 {{discussion.times.modified}}, {{#str}}strftimerecentfull{{/str}}
                                             {{/userdate}}</a>
                                         </div>
                                     </div>
                                 </div>
-                            {{/latestpostauthor}}
+                            {{/latestpostid}}
                         </td>
                         <td scope="col" class="p-0 align-middle">
                             {{#discussion}}

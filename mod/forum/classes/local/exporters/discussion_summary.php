@@ -34,16 +34,27 @@ use renderer_base;
  * Forum class.
  */
 class discussion_summary extends exporter {
+    /** @var discussion_summary_entity The discussion summary information */
     private $summary;
+
+    /** @var stdClass[] The group information for each author */
     private $groupsbyauthorid;
+
+    /** @var int The number of replies to the discussion */
     private $replycount;
+
+    /** @var int number of unread posts if the user is tracking these */
     private $unreadcount;
 
-    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $replycount, int $unreadcount, $related = []) {
+    /** @var int The latest post id in the discussion */
+    private $latestpostid;
+
+    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $replycount, int $unreadcount, int $latestpostid, $related = []) {
         $this->summary = $summary;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->replycount = $replycount;
         $this->unreadcount = $unreadcount;
+        $this->latestpostid = $latestpostid;
         return parent::__construct([], $related);
     }
 
@@ -70,6 +81,7 @@ class discussion_summary extends exporter {
             'latestpostauthor' => [
                 'type' => author::read_properties_definition(),
             ],
+            'latestpostid' => ['type' => PARAM_INT],
         ];
     }
 
@@ -85,7 +97,9 @@ class discussion_summary extends exporter {
         $user = $this->related['user'];
         $discussion = $this->summary->get_discussion();
 
-        $discussionexporter = new discussion($discussion, $this->related);
+        $related = (array) (object) $this->related;
+        $related['latestpostid'] = $this->latestpostid;
+        $discussionexporter = new discussion($discussion, $related);
 
         $related = [
             'urlmanager' => $this->related['urlmanager'],
@@ -121,6 +135,7 @@ class discussion_summary extends exporter {
             'unread' => $this->unreadcount,
             'firstpostauthor' => $firstpostauthor->export($output),
             'latestpostauthor' => $latestpostauthor->export($output),
+            'latestpostid' => $this->latestpostid,
         ];
     }
 
