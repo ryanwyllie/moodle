@@ -200,6 +200,7 @@ class discussion_list {
 
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_ids($discussionids);
+        $groupsbyid = $this->get_groups_available_in_forum();
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
 
         $replycounts = $postvault->get_reply_count_for_discussion_ids($discussionids);
@@ -214,6 +215,7 @@ class discussion_list {
             $user,
             $forum,
             $discussions,
+            $groupsbyid,
             $groupsbyauthorid,
             $replycounts,
             $unreadcounts,
@@ -273,6 +275,18 @@ class discussion_list {
     }
 
     /**
+     * Get the groups details for all groups available to the forum.
+     *
+     * @return  stdClass[]
+     */
+    private function get_groups_available_in_forum() : array {
+        $course = $this->forum->get_course_record();
+        $coursemodule = $this->forum->get_course_module_record();
+
+        return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
+    }
+
+    /**
      * TODO - this duplicates an identical function in the discussion renderer.
      */
     private function get_author_groups_from_posts(array $posts) : array {
@@ -282,8 +296,6 @@ class discussion_list {
             $carry[$post->get_author()->get_id()] = true;
             return $carry;
         }, []);
-        $authorids[3] = 1;
-        $authorids[11] = 1;
         $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
 
         $authorgroups = array_reduce($authorgroups, function($carry, $group) {

@@ -38,6 +38,9 @@ class discussion_summary extends exporter {
     private $summary;
 
     /** @var stdClass[] The group information for each author */
+    private $groupsbyid;
+
+    /** @var stdClass[] The group information for each author */
     private $groupsbyauthorid;
 
     /** @var int The number of replies to the discussion */
@@ -49,8 +52,17 @@ class discussion_summary extends exporter {
     /** @var int The latest post id in the discussion */
     private $latestpostid;
 
-    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $replycount, int $unreadcount, int $latestpostid, $related = []) {
+    public function __construct(
+        discussion_summary_entity $summary,
+        array $groupsbyid,
+        array $groupsbyauthorid,
+        int $replycount,
+        int $unreadcount,
+        int $latestpostid,
+        $related = []
+    ) {
         $this->summary = $summary;
+        $this->groupsbyid = $groupsbyid;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->replycount = $replycount;
         $this->unreadcount = $unreadcount;
@@ -99,6 +111,7 @@ class discussion_summary extends exporter {
 
         $related = (array) (object) $this->related;
         $related['latestpostid'] = $this->latestpostid;
+        $related['groupsbyid'] = $this->groupsbyid;
         $discussionexporter = new discussion($discussion, $related);
 
         $related = [

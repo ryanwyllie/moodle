@@ -249,11 +249,25 @@ class discussion {
         return $vault->get_from_user_id_and_post_ids($user->id, $postids);
     }
 
+    /**
+     * Get the groups details for all groups available to the forum.
+     *
+     * @return  stdClass[]
+     * TODO REmove duplication with discussion_list
+     */
+    private function get_groups_available_in_forum() : array {
+        $course = $this->forum->get_course_record();
+        $coursemodule = $this->forum->get_course_module_record();
+
+        return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
+    }
+
     private function get_exported_discussion(stdClass $user) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $user,
             $this->forum,
-            $this->discussion
+            $this->discussion,
+            $this->get_groups_available_in_forum()
         );
 
         return (array) $discussionexporter->export($this->renderer);

@@ -106,12 +106,14 @@ class exporter {
      * @param   stdClass        $user The user viewing the forum
      * @param   forum_entity    $forum The forum being viewed
      * @param   discussion_entity $discussion The discussion being viewed
+     * @param   stdClass[]      $groupsbyid The list of groups in the forum
      * @return  discussion_exporter
      */
     public function get_discussion_exporter(
         stdClass $user,
         forum_entity $forum,
-        discussion_entity $discussion
+        discussion_entity $discussion,
+        array $groupsbyid
     ) : discussion_exporter {
         return new discussion_exporter($discussion, [
             'context' => $forum->get_context(),
@@ -121,6 +123,7 @@ class exporter {
             'user' => $user,
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'latestpostid' => null,
+            'groupsbyid' => $groupsbyid,
         ]);
     }
 
@@ -139,6 +142,8 @@ class exporter {
      * @param   stdClass        $user The user viewing the forum
      * @param   forum_entity    $forum The forum being viewed
      * @param   discussion_entity[] $discussions The set of discussions to be shown
+     * @param   stdClass[]      $groupsbyauthorid The set of groups in an associative array for each author
+     * @param   stdClass[]      $groupsbyid The set of groups in the forum in an associative array for each group
      * @param   int[]           $discussionreplycount The number of replies for each discussion
      * @param   int[]           $discussionunreadcount The number of unread posts for each discussion
      * @param   int[]           $latestpostids The latest post id for each discussion
@@ -148,6 +153,7 @@ class exporter {
         stdClass $user,
         forum_entity $forum,
         array $discussions,
+        array $groupsbyid = [],
         array $groupsbyauthorid = [],
         array $discussionreplycount = [],
         array $discussionunreadcount = [],
@@ -155,6 +161,7 @@ class exporter {
     ) : discussion_summaries_exporter {
         return new discussion_summaries_exporter(
             $discussions,
+            $groupsbyid,
             $groupsbyauthorid,
             $discussionreplycount,
             $discussionunreadcount,
