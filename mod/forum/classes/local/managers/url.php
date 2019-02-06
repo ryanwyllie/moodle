@@ -85,6 +85,13 @@ class url {
         return $this->get_discussion_view_url_from_discussion_id($discussion->get_id());
     }
 
+    public function get_discussion_view_first_unread_post_url_from_discussion(discussion_entity $discussion) {
+        $viewurl = $this->get_discussion_view_url_from_discussion_id($discussion->get_id());
+        $viewurl->set_anchor('unread');
+
+        return $viewurl;
+    }
+
     public function get_discussion_view_latest_post_url_from_discussion_and_discussion(discussion_entity $discussion, ?int $latestpost) {
         $viewurl = $this->get_discussion_view_url_from_discussion_id($discussion->get_id());
         if (null === $latestpost) {

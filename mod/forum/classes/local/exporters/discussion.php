@@ -94,8 +94,9 @@ class discussion extends exporter {
             'urls' => [
                 'type' => [
                     'view' => ['type' => PARAM_URL],
-                    'markasread' => ['type' => PARAM_URL],
                     'viewlatest' => ['type' => PARAM_URL],
+                    'viewfirstunread' => ['type' => PARAM_URL],
+                    'markasread' => ['type' => PARAM_URL],
                 ],
             ],
         ];
@@ -115,10 +116,6 @@ class discussion extends exporter {
         $forumrecord = $this->get_forum_record();
         $user = $this->related['user'];
         $discussion = $this->discussion;
-
-        $viewurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
-        $viewlatesturl = $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion($discussion, $this->related['latestpostid']);
-        $markasread = $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion);
 
         // TODO Group exporter.
         $groupdata = null;
@@ -164,9 +161,10 @@ class discussion extends exporter {
                 'post' => $capabilitymanager->can_post_in_discussion($user, $discussion)
             ],
             'urls' => [
-                'view' => $viewurl,
-                'viewlatest' => $viewlatesturl,
-                'markasread' => $markasread,
+                'view' => $urlmanager->get_discussion_view_url_from_discussion($discussion),
+                'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
+                'viewlatest' => $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion($discussion, $this->related['latestpostid']),
+                'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
             ],
         ];
 
