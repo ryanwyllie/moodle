@@ -142,8 +142,9 @@ class discussion extends exporter {
             'id' => $discussion->get_id(),
             'forumid' => $forum->get_id(),
             'pinned' => $discussion->is_pinned(),
-            // TODO format_string.
-            'name' => $discussion->get_name(),
+            'name' => format_string($discussion->get_name(), true, [
+                'context' => $this->related['forum']->get_context(),
+            ]),
             'times' => [
                 'modified' => $discussion->get_time_modified(),
                 'start' => $discussion->get_time_start(),
