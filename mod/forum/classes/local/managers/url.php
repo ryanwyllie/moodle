@@ -147,6 +147,22 @@ class url {
         ]);
     }
 
+    public function get_export_post_url_from_post(post_entity $post) : ?moodle_url {
+        global $CFG;
+
+        require_once($CFG->libdir . '/portfoliolib.php');
+        $button = new \portfolio_add_button();
+        $button->set_callback_options('forum_portfolio_caller', ['postid' => $post->get_id()], 'mod_forum');
+        if ($post->has_attachments()) {
+            $button->set_formats(PORTFOLIO_FORMAT_RICHHTML);
+        } else {
+            $button->set_formats(PORTFOLIO_FORMAT_PLAINHTML);
+        }
+
+        $url = $button->to_html(PORTFOLIO_ADD_MOODLE_URL);
+        return $url ?: null;
+    }
+
     public function get_author_profile_url(author_entity $author) : moodle_url {
         return new moodle_url('/user/view.php', [
             'id' => $author->get_id()

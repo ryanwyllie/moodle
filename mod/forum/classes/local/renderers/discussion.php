@@ -92,6 +92,8 @@ class discussion {
     }
 
     public function render(stdClass $user, int $displaymode, post_entity $frompost) : string {
+        global $CFG;
+
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -119,7 +121,8 @@ class discussion {
                 'subscribe' => null,
                 'movediscussion' => null,
                 'pindiscussion' => null,
-                'neighbourlinks' => $this->get_neighbour_links_html()
+                'neighbourlinks' => $this->get_neighbour_links_html(),
+                'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html() : null
             ]
         ]);
 
@@ -182,9 +185,16 @@ class discussion {
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
         $nestedposts = [];
-        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $forum) {
+        $seenfirstunread = false;
+        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $seenfirstunread) {
             if (!isset($candidate->replies)) {
                 $candidate->replies = [];
+            }
+
+            $candidate->isfirstunread = false;
+            if (!$seenfirstunread && $candidate->unread) {
+                $candidate->isfirstunread = true;
+                $seenfirstunread = true;
             }
 
             if (empty($unsorted)) {
@@ -217,7 +227,7 @@ class discussion {
         $course = $this->forum->get_course_record();
         $coursemodule = $this->forum->get_course_module_record();
         $authorids = array_reduce($posts, function($carry, $post) {
-            $carry[$post->get_author()->get_id()] = true;
+            $carry[$post->get_author()->get_id()] = [];
             return $carry;
         }, []);
         $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
@@ -238,7 +248,7 @@ class discussion {
             }
 
             return $carry;
-        }, []);
+        }, $authorids);
     }
 
     private function get_read_receipt_collection_for_posts(stdClass $user, array $posts) {
@@ -285,10 +295,7 @@ class discussion {
         );
         $select->set_label(get_string('displaymode', 'forum'), ['class' => 'accesshide']);
 
-        $html = '<div class="discussioncontrol displaymode">';
-        $html .= $this->renderer->render($select);
-        $html .= '</div>';
-        return $html;
+        return $this->renderer->render($select);
     }
 
     private function get_subscription_button_html() : string {
@@ -313,7 +320,6 @@ class discussion {
         $discussion = $this->discussion;
         $courseid = $forum->get_course_id();
 
-        $html = '<div class="discussioncontrol movediscussion">';
         // Popup menu to move discussions to other forums. The discussion in a
         // single discussion forum can't be moved.
         $modinfo = get_fast_modinfo($courseid);
@@ -340,17 +346,17 @@ class discussion {
                 }
             }
             if (!empty($forummenu)) {
-                $html .= '<div class="movediscussionoption">';
+                $html = '<div class="movediscussionoption">';
                 $select = new url_select($forummenu, '',
                         ['/mod/forum/discuss.php?d=' . $discussion->get_id() => get_string("movethisdiscussionto", "forum")],
                         'forummenu', get_string('move'));
                 $html .= $this->renderer->render($select);
                 $html .= "</div>";
+                return $html;
             }
         }
-        $html .= "</div>";
 
-        return $html;
+        return null;
     }
 
     private function get_pin_discussion_html() : string {
@@ -365,7 +371,18 @@ class discussion {
         }
 
         $button = new single_button(new moodle_url('discuss.php', ['pin' => $pinlink, 'd' => $discussion->get_id()]), $pintext, 'post');
-        return html_writer::tag('div', $this->renderer->render($button), ['class' => 'discussioncontrol pindiscussion']);
+        return $this->renderer->render($button);
+    }
+
+    private function get_export_discussion_html() {
+        global $CFG;
+
+        require_once($CFG->libdir . '/portfoliolib.php');
+        $discussion = $this->discussion;
+        $button = new \portfolio_add_button();
+        $button->set_callback_options('forum_portfolio_caller', ['discussionid' => $discussion->get_id()], 'mod_forum');
+        $button = $button->to_html(PORTFOLIO_ADD_FULL_FORM, get_string('exportdiscussion', 'mod_forum'));
+        return $button ?: null;
     }
 
     private function get_notifications() {

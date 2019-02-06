@@ -30,31 +30,38 @@
     }
 }}
 <article id="p{{id}}" class="relativelink" data-post-id="{{id}}">
+    {{#isfirstunread}}<a id="unread"></a>{{/isfirstunread}}
+
     <div class="d-flex border p-2">
-        {{#author}}
-            <div style="width: 45px;">
+        <div style="width: 45px;">
+            {{^isdeleted}}
+                {{#author}}
                     {{#urls.profileimage}}
                         <img class="rounded-circle w-100" src="{{{.}}}">
                     {{/urls.profileimage}}
                     {{#groups}}
                         <img class="rounded-circle w-100" src="{{urls.image}}">
                     {{/groups}}
-            </div>
-        {{/author}}
+                {{/author}}
+            {{/isdeleted}}
+        </div>
+
         <div class="d-flex flex-column ml-2 w-100">
             <header class="mb-2 {{#unread}}bg-info{{/unread}}">
                 <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
-                <address>
-                    {{#author}}
-                        {{#urls.profile}}
-                        by <a href="{{{.}}}">{{fullname}}</a>
-                        {{/urls.profile}}
-                        {{^urls.profile}}
-                            {{fullname}}
-                        {{/urls.profile}}
-                        {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
-                    {{/author}}
-                </address>
+                {{^isdeleted}}
+                    <address>
+                        {{#author}}
+                            {{#urls.profile}}
+                            by <a href="{{{.}}}">{{fullname}}</a>
+                            {{/urls.profile}}
+                            {{^urls.profile}}
+                                {{fullname}}
+                            {{/urls.profile}}
+                            {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
+                        {{/author}}
+                    </address>
+                {{/isdeleted}}
             </header>
             <div>
                 {{{message}}}
@@ -69,40 +76,47 @@
                     <a class="d-block" href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
                 {{/isimage}}
             {{/attachments}}
-            <div class="d-flex justify-content-end">
-                {{#capabilities}}
-                    {{#view}}
-                        <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} permalink, mod_forum {{/str}}
-                        </a>
-                    {{/view}}
-                    {{#urls.viewparent}}
-                        <a href="{{.}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} parent, mod_forum {{/str}}
-                        </a>
-                    {{/urls.viewparent}}
-                    {{#edit}}
-                        <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} edit, mod_forum {{/str}}
-                        </a>
-                    {{/edit}}
-                    {{#split}}
-                        <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} prune, mod_forum {{/str}}
-                        </a>
-                    {{/split}}
-                    {{#delete}}
-                        <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} delete, mod_forum {{/str}}
-                        </a>
-                    {{/delete}}
-                    {{#reply}}
-                        <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
-                            {{#str}} reply, mod_forum {{/str}}
-                        </a>
-                    {{/reply}}
-                {{/capabilities}}
-            </div>
+            {{^isdeleted}}
+                <div class="d-flex justify-content-end">
+                    {{#capabilities}}
+                        {{#view}}
+                            <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} permalink, mod_forum {{/str}}
+                            </a>
+                        {{/view}}
+                        {{#urls.viewparent}}
+                            <a href="{{.}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} parent, mod_forum {{/str}}
+                            </a>
+                        {{/urls.viewparent}}
+                        {{#edit}}
+                            <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} edit, mod_forum {{/str}}
+                            </a>
+                        {{/edit}}
+                        {{#split}}
+                            <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} prune, mod_forum {{/str}}
+                            </a>
+                        {{/split}}
+                        {{#delete}}
+                            <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} delete, mod_forum {{/str}}
+                            </a>
+                        {{/delete}}
+                        {{#reply}}
+                            <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} reply, mod_forum {{/str}}
+                            </a>
+                        {{/reply}}
+                        {{#export}}
+                            <a href="{{urls.export}}" class="btn btn-link btn-icon icon-size-3">
+                                {{#str}} addtoportfolio, core_portfolio {{/str}}
+                            </a>
+                        {{/export}}
+                    {{/capabilities}}
+                </div>
+            {{/isdeleted}}
         </div>
     </div>
 

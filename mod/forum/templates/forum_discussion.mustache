@@ -30,16 +30,17 @@
     }
 }}
 
-{{#html.subscribe}}{{{.}}}{{/html.subscribe}}
-{{#html.neighbourlinks}}{{{.}}}{{/html.neighbourlinks}}
+{{#html}}
+    {{{subscribe}}}
+    {{{neighbourlinks}}}
 
-<div class="discussioncontrols clearfix">
-    <div class="controlscontainer m-b-1">
-        {{{html.modeselectorform}}}
-        {{{html.movediscussion}}}
-        {{{html.pindiscussion}}}
+    <div class="d-flex flex-wrap m-b-1">
+        <div>{{{exportdiscussion}}}</div>
+        <div class="{{#exportdiscussion}}ml-2{{/exportdiscussion}}">{{{modeselectorform}}}</div>
+        <div class="ml-2">{{{movediscussion}}}</div>
+        <div class="ml-2">{{{pindiscussion}}}</div>
     </div>
-</div>
+{{/html}}
 
 {{#notifications}}
     {{> core/notification}}
