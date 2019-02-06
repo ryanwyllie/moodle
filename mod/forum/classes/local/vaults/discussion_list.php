@@ -234,20 +234,4 @@ class discussion_list extends vault {
 
         return $this->transform_db_records_to_entities($records);
     }
-
-    /**
-     * Get a mapping of the total number of posts to the specified discussions.
-     *
-     * @param   int[]       $discussionids The list of discussions to fetch counts for
-     * @return  int[]       The number of replies for each discussion returned in an associative array
-     */
-    public function get_post_count_for_discussion_ids(array $discussionids) : array {
-       if (empty($discussionids)) {
-            return [];
-        }
-        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
-        $sql = "SELECT discussion, COUNT(1) FROM {forum_posts} p WHERE p.discussion {$insql} GROUP BY discussion";
-
-        return $this->get_db()->get_records_sql_menu($sql, $params);
-    }
 }
