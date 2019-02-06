@@ -73,28 +73,61 @@ class post extends exporter {
                 'default' => null,
                 'null' => NULL_ALLOWED
             ],
+            'isdeleted' => ['type' => PARAM_BOOL],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
                     'edit' => ['type' => PARAM_BOOL],
                     'delete' => ['type' => PARAM_BOOL],
                     'split' => ['type' => PARAM_BOOL],
-                    'reply' => ['type' => PARAM_BOOL]
+                    'reply' => ['type' => PARAM_BOOL],
+                    'export' => ['type' => PARAM_BOOL]
                 ]
             ],
             'urls' => [
                 'type' => [
-                    'view' => ['type' => PARAM_URL],
+                    'view' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
                     'viewparent' => [
                         'type' => PARAM_URL,
                         'optional' => true,
                         'default' => null,
                         'null' => NULL_ALLOWED
                     ],
-                    'edit' => ['type' => PARAM_URL],
-                    'delete' => ['type' => PARAM_URL],
-                    'split' => ['type' => PARAM_URL],
-                    'reply' => ['type' => PARAM_URL]
+                    'edit' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'delete' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'split' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'reply' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'export' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
                 ]
             ],
             'attachments' => [
@@ -149,6 +182,7 @@ class post extends exporter {
         $candelete = $capabilitymanager->can_delete_post($user, $discussion, $post);
         $cansplit = $capabilitymanager->can_split_post($user, $discussion, $post);
         $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
+        $canexport = $CFG->enableportfolios && $capabilitymanager->can_export_post($user, $post);
 
         $urlmanager = $this->related['urlmanager'];
         $viewurl = $urlmanager->get_view_post_url_from_post($post);
@@ -157,8 +191,9 @@ class post extends exporter {
         $deleteurl = $urlmanager->get_delete_post_url_from_post($post);
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
+        $exporturl = $urlmanager->get_export_post_url_from_post($post);
 
-        $authorexporter = new author_exporter($author, $authorgroups, $canview, $this->related);
+        $authorexporter = new author_exporter($author, $authorgroups, ($canview && !$isdeleted), $this->related);
         $exportedauthor = $authorexporter->export($output);
 
         if ($canview && !$isdeleted) {
@@ -199,7 +234,7 @@ class post extends exporter {
             $timecreated = null;
 
             if ($isdeleted) {
-                $exportedauthor['fullname'] = null;
+                $exportedauthor->fullname = null;
             }
         }
 
@@ -213,22 +248,25 @@ class post extends exporter {
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
             'unread' => $readreceiptcollection ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
+            'isdeleted' => $isdeleted,
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
                 'delete' => $candelete,
                 'split' => $cansplit,
-                'reply' => $canreply
+                'reply' => $canreply,
+                'export' => $canexport
             ],
             'urls' => [
-                'view' => $viewurl->out(),
+                'view' => $canview ? $viewurl->out() : null,
                 'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
-                'edit' => $editurl->out(),
-                'delete' => $deleteurl->out(),
-                'split' => $spliturl->out(),
-                'reply' => $replyurl->out()
+                'edit' => $canedit ? $editurl->out() : null,
+                'delete' => $candelete ? $deleteurl->out() : null,
+                'split' => $cansplit ? $spliturl->out() : null,
+                'reply' => $canreply ? $replyurl->out() : null,
+                'export' => $canexport && $exporturl ? $exporturl->out() : null
             ],
-            'attachments' => $this->get_attachments($post, $output)
+            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output)
         ];
     }
 
