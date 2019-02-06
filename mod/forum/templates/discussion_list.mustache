@@ -40,7 +40,7 @@
     {{/notifications}}
 
     {{#forum.capabilities.create}}
-        <div class="forumaddnew">
+        <div class="p-t-1 p-b-1">
             <a href="{{forum.urls.create}}" class="btn btn-primary">
                 {{$discussion_create_text}}
                     {{#str}}addanewdiscussion, forum{{/str}}
@@ -201,7 +201,9 @@
     {{/state.hasdiscussions}}
     {{^state.hasdiscussions}}
         <div class="forumnodiscuss">
-            {{nodiscussionstring}}
+            {{$no_discussions_text}}
+                ({{#str}}nodiscussions, forum{{/str}})
+            {{/no_discussions_text}}
         </div>
     {{/state.hasdiscussions}}
 
