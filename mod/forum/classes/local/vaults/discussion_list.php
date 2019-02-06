@@ -134,7 +134,14 @@ class discussion_list extends vault {
         return "{$alias}.pinned DESC, {$keyfield} {$direction}";
     }
 
-    protected function get_hidden_post_sql(bool $includehiddendiscussions, int $includepostsforuser) {
+    /**
+     * Fetch any required SQL to respect timed posts.
+     *
+     * @param   bool        $includehiddendiscussions Whether to include hidden discussions or not
+     * @param   int         $includepostsforuser Which user to include posts for, if any
+     * @return  array       The SQL and parameters to include
+     */
+    protected function get_hidden_post_sql(bool $includehiddendiscussions, ?int $includepostsforuser) {
         $wheresql = '';
         $params = [];
         if (!$includehiddendiscussions) {
@@ -142,7 +149,7 @@ class discussion_list extends vault {
             $wheresql = " AND ((d.timestart <= :timestart AND (d.timeend = 0 OR d.timeend > :timeend))";
             $params['timestart'] = $now;
             $params['timeend'] = $now;
-            if (isloggedin()) {
+            if (null !== $includepostsforuser) {
                 $wheresql .= " OR d.userid = :byuser";
                 $params['byuser'] = $includepostsforuser;
             }
@@ -155,6 +162,18 @@ class discussion_list extends vault {
         ];
     }
 
+    /**
+     * Get each discussion, first post, first and last post author for the given forum, considering timed posts, and
+     * pagination.
+     *
+     * @param   int         $forumid The forum to fetch the discussion set for
+     * @param   bool        $includehiddendiscussions Whether to include hidden discussions or not
+     * @param   int         $includepostsforuser Which user to include posts for, if any
+     * @param   int         $sortorder The sort order to use
+     * @param   int         $limit The number of discussions to fetch
+     * @param   int         $offset The record offset
+     * @return  array       The set of data fetched
+     */
     public function get_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
         $wheresql = "{$alias}.forum = :forumid";
@@ -174,6 +193,19 @@ class discussion_list extends vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Get each discussion, first post, first and last post author for the given forum, and the set of groups to display
+     * considering timed posts, and pagination.
+     *
+     * @param   int         $forumid The forum to fetch the discussion set for
+     * @param   int[]       $groupids The list of real groups to filter on
+     * @param   bool        $includehiddendiscussions Whether to include hidden discussions or not
+     * @param   int         $includepostsforuser Which user to include posts for, if any
+     * @param   int         $sortorder The sort order to use
+     * @param   int         $limit The number of discussions to fetch
+     * @param   int         $offset The record offset
+     * @return  array       The set of data fetched
+     */
     public function get_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
 
@@ -203,6 +235,12 @@ class discussion_list extends vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Get a mapping of the total number of posts to the specified discussions.
+     *
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The number of replies for each discussion returned in an associative array
+     */
     public function get_post_count_for_discussion_ids(array $discussionids) : array {
        if (empty($discussionids)) {
             return [];
@@ -213,6 +251,12 @@ class discussion_list extends vault {
         return $this->get_db()->get_records_sql_menu($sql, $params);
     }
 
+    /**
+     * Get a mapping of replies to the specified discussions.
+     *
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The number of replies for each discussion returned in an associative array
+     */
     public function get_reply_count_for_discussion_ids(array $discussionids) : array {
         if (empty($discussionids)) {
             return [];
@@ -223,6 +267,13 @@ class discussion_list extends vault {
         return $this->get_db()->get_records_sql_menu($sql, $params);
     }
 
+    /**
+     * Get a mapping of unread post counts for the specified discussions.
+     *
+     * @param   stdClass    $user The user to fetch counts for
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The count of unread posts for each discussion returned in an associative array
+     */
     public function get_unread_count_for_discussion_ids(stdClass $user, array $discussionids) : array {
         global $CFG;
 
@@ -238,9 +289,9 @@ class discussion_list extends vault {
               GROUP BY p.discussion";
 
         $params['userid'] = $user->id;
-        $params['cutofftime'] = (new \DateTime())
-            ->sub(new \DateInterval('P1Y'))
-            ->format('U');
+        $params['cutofftime'] = floor((new \DateTime())
+            ->sub(new \DateInterval('P1D'))
+            ->format('U') / 60) * 60;
 
         return $this->get_db()->get_records_sql_menu($sql, $params);
     }
