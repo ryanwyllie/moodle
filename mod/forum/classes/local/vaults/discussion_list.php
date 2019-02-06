@@ -30,6 +30,7 @@ use mod_forum\local\vault;
 use mod_forum\local\vaults\preprocessors\extract_record as extract_record_preprocessor;
 use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocessor;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
+use stdClass;
 
 /**
  * Discussion list vault.
@@ -218,6 +219,28 @@ class discussion_list extends vault {
         }
         list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids);
         $sql = "SELECT discussion, COUNT(1) FROM {forum_posts} p WHERE p.discussion {$insql} AND p.parent > 0 GROUP BY discussion";
+
+        return $this->get_db()->get_records_sql_menu($sql, $params);
+    }
+
+    public function get_unread_count_for_discussion_ids(stdClass $user, array $discussionids) : array {
+        global $CFG;
+
+        if (empty($discussionids)) {
+            return [];
+        }
+
+        $alias = $this->get_table_alias();
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids, SQL_PARAMS_NAMED);
+        $sql = "SELECT p.discussion, COUNT(p.id) FROM {forum_posts} p
+             LEFT JOIN {forum_read} r ON r.postid = p.id AND r.userid = :userid
+                 WHERE p.discussion {$insql} AND p.modified > :cutofftime AND r.id IS NULL
+              GROUP BY p.discussion";
+
+        $params['userid'] = $user->id;
+        $params['cutofftime'] = (new \DateTime())
+            ->sub(new \DateInterval('P1Y'))
+            ->format('U');
 
         return $this->get_db()->get_records_sql_menu($sql, $params);
     }

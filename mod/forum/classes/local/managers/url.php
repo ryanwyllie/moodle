@@ -147,4 +147,23 @@ class url {
 
         return $userpicture->get_url($PAGE);
     }
+
+    public function get_mark_discussion_as_read_url_from_discussion(discussion_entity $discussion) : moodle_url {
+        return new moodle_url('/mod/forum/markposts.php', [
+            'f' => $discussion->get_forum_id(),
+            'd' => $discussion->get_id(),
+            'mark' => 'read',
+            'sesskey' => sesskey(),
+            'return' => $this->get_forum_view_url_from_forum($this->forum)->out(),
+        ]);
+    }
+
+    public function get_mark_all_discussions_as_read_url() : moodle_url {
+        return new moodle_url('/mod/forum/markposts.php', [
+            'f' => $this->forum->get_id(),
+            'mark' => 'read',
+            'sesskey' => sesskey(),
+            'return' => $this->get_forum_view_url_from_forum($this->forum)->out(),
+        ]);
+    }
 }

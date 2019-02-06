@@ -30,6 +30,7 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\exporters\post as post_exporter;
 use core\external\exporter;
 use renderer_base;
+use stdClass;
 
 /**
  * Forum class.
@@ -55,6 +56,11 @@ class forum extends exporter {
                     'groupmode' => ['type' => PARAM_INT],
                 ],
             ],
+            'userstate' => [
+                'type' => [
+                    'tracked' => ['type' => PARAM_INT],
+                ],
+            ],
             // TODO name, description.
             'capabilities' => [
                 'type' => [
@@ -66,6 +72,7 @@ class forum extends exporter {
             'urls' => [
                 'type' => [
                     'create' => ['type' => PARAM_URL],
+                    'markasreade' => ['type' => PARAM_URL],
                 ],
             ],
         ];
@@ -88,13 +95,18 @@ class forum extends exporter {
             'state' => [
                 'groupmode' => $this->forum->get_effective_group_mode(),
             ],
+            'userstate' => [
+                'tracked' => forum_tp_is_tracked($this->get_forum_record(), $this->related['user']),
+            ],
             'capabilities' => [
                 'viewdiscussions' => $capabilitymanager->can_view_discussions($user),
                 'create' => $capabilitymanager->can_create_discussions($user, $currentgroup),
                 'subscribe' => $capabilitymanager->can_subscribe_to_forum($user),
             ],
             'urls' => [
-                'create' => $urlmanager->get_discussion_create_url($this->forum),
+                'create' => $urlmanager->get_discussion_create_url($this->forum)->out(),
+                // TODO Get page no.
+                'markasread' => $urlmanager->get_mark_all_discussions_as_read_url()->out(),
             ],
         ];
     }
@@ -106,10 +118,21 @@ class forum extends exporter {
      */
     protected static function define_related() {
         return [
+            'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
             'user' => 'stdClass',
             'currentgroup' => 'int?',
         ];
+    }
+
+    /**
+     * Get the legacy forum record for this forum.
+     *
+     * @return  stdClass
+     */
+    private function get_forum_record() : stdClass {
+        $forumdbdatamapper = $this->related['legacydatamapperfactory']->get_forum_data_mapper();
+        return $forumdbdatamapper->to_legacy_object($this->forum);
     }
 }

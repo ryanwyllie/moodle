@@ -37,11 +37,13 @@ class discussion_summary extends exporter {
     private $summary;
     private $groupsbyauthorid;
     private $replycount;
+    private $unreadcount;
 
-    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $replycount, $related = []) {
+    public function __construct(discussion_summary_entity $summary, array $groupsbyauthorid, int $replycount, int $unreadcount, $related = []) {
         $this->summary = $summary;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->replycount = $replycount;
+        $this->unreadcount = $unreadcount;
         return parent::__construct([], $related);
     }
 
@@ -57,6 +59,9 @@ class discussion_summary extends exporter {
                 'type' => discussion::read_properties_definition(),
             ],
             'replies' => [
+                'type' => ['type' => PARAM_INT],
+            ],
+            'unread' => [
                 'type' => ['type' => PARAM_INT],
             ],
             'firstpostauthor' => [
@@ -114,6 +119,7 @@ class discussion_summary extends exporter {
             'id' => $discussion->get_id(),
             'discussion' => $discussionexporter->export($output),
             'replies' => $this->replycount,
+            'unread' => $this->unreadcount,
             'firstpostauthor' => $firstpostauthor->export($output),
             'latestpostauthor' => $latestpostauthor->export($output),
         ];
