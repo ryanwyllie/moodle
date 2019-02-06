@@ -45,6 +45,10 @@ class discussion_list extends vault {
     private const LATEST_AUTHOR_ID_ALIAS = 'userpictureid';
     private const LATEST_AUTHOR_ALIAS = 'userrecord';
 
+    // TODO Consider how we support additional sortorders.
+    public const SORTORDER_NEWEST_FIRST = 1;
+    public const SORTORDER_OLDEST_FIRST = 2;
+
     protected function get_table_alias() : string {
         return 'd';
     }
@@ -123,7 +127,7 @@ class discussion_list extends vault {
         $keyfield = "{$alias}.timemodified";
         $direction = "DESC";
 
-        if ($sortmethod == discussion_list_renderer::SORTORDER_OLDEST_FIRST) {
+        if ($sortmethod == self::SORTORDER_OLDEST_FIRST) {
             $direction = "ASC";
         }
 
