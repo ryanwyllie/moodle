@@ -142,7 +142,7 @@ abstract class exporter {
                 continue;
             } else if (!property_exists($record, $property)) {
                 // Whoops, we got something that wasn't defined.
-                throw new coding_exception('Unexpected property ' . $property);
+                throw new coding_exception('Property defined but not provided: ' . $property);
             }
 
             $data->$property = $record->$property;
@@ -151,7 +151,7 @@ abstract class exporter {
             if ($propertyformat = self::get_format_field($properties, $property)) {
                 if (!property_exists($record, $propertyformat)) {
                     // Whoops, we got something that wasn't defined.
-                    throw new coding_exception('Unexpected property ' . $propertyformat);
+                    throw new coding_exception('Property defined but not provided: ' . $propertyformat);
                 }
 
                 $formatparams = $this->get_format_parameters($property);
