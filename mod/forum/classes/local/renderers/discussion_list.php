@@ -207,7 +207,6 @@ class discussion_list {
         $unreadcounts = [];
         if (forum_tp_can_track_forums($this->forumrecord)) {
             $unreadcounts = $discussionvault->get_unread_count_for_discussion_ids($user, $discussionids);
-            print_object($unreadcounts);
         }
 
         $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
