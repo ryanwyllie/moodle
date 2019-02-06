@@ -175,6 +175,8 @@ abstract class exporter {
                     $data->$property = external_format_string($data->$property, $formatparams['context'],
                             $formatparams['striplinks'], $formatparams['options']);
                 }
+            } else if ($definition['type'] === PARAM_URL && $data->$property instanceof \moodle_url) {
+                $data->$property = $data->$property->out();
             }
         }
 
