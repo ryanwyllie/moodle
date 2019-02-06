@@ -134,15 +134,16 @@
                         {{/forum.state.groupmode}}
                         {{#forum.capabilities.viewdiscussions}}
                             <td scope="col" class="p-0 text-center">
-                                <a href="{{url}}" class="p-3 w-100 h-100 d-block">
+                                <a href="{{discussion.urls.view}}" class="p-3 w-100 h-100 d-block">
                                     {{replies}}
                                 </a>
                             </td>
                             {{#forum.userstate.tracked}}
-                                <td scope="col" class="p-0 text-center">
+                                <td scope="col" class="p-0 text-center p-3 w-100 h-100 d-block">
                                     {{#unread}}
                                         {{! TODO Rewrite as AJAX}}
-                                        <a href="{{{discussion.urls.markasread}}}" class="p-3 w-100 h-100 d-block">{{unread}} {{#pix}}t/markasread, core, {{#str}}markalldread, mod_forum{{/str}}{{/pix}}</a>
+                                        <a href="{{{discussion.urls.viewfirstunread}}}">{{unread}}</a>
+                                        <a href="{{{discussion.urls.markasread}}}">{{#pix}}t/markasread, core, {{#str}}markalldread, mod_forum{{/str}}{{/pix}}</a>
                                     {{/unread}}
                                     {{^unread}}
                                         <span class="p-3 w-100 h-100 d-block">
