@@ -202,11 +202,11 @@ class discussion_list {
         $posts = $postvault->get_from_discussion_ids($discussionids);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
 
-        $replycounts = $discussionvault->get_reply_count_for_discussion_ids($discussionids);
+        $replycounts = $postvault->get_reply_count_for_discussion_ids($discussionids);
 
         $unreadcounts = [];
         if (forum_tp_can_track_forums($this->forumrecord)) {
-            $unreadcounts = $discussionvault->get_unread_count_for_discussion_ids($user, $discussionids);
+            $unreadcounts = $postvault->get_unread_count_for_discussion_ids($user, $discussionids);
         }
 
         $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
