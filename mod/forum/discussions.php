@@ -97,6 +97,14 @@ if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 
+if ('single' !== $forum->get_type() && !empty($forum->get_intro())) {
+    $legacydatamapperfactory = mod_forum\local\container::get_legacy_data_mapper_factory();
+    $forumdbdatamapper = $legacydatamapperfactory->get_forum_data_mapper();
+    $forumrecord = $forumdbdatamapper->to_legacy_object($forum);
+
+    echo $OUTPUT->box(format_module_intro('forum', $forumrecord, $cm->id), 'generalbox', 'intro');
+}
+
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionlistrenderer = $rendererfactory->get_discussion_list_renderer($forum);
 
