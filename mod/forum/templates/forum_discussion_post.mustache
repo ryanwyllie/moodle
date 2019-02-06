@@ -66,17 +66,23 @@
             <div>
                 {{{message}}}
             </div>
-            {{#attachments}}
-                {{#isimage}}
-                    <img class="d-block" src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
-                {{/isimage}}
-            {{/attachments}}
-            {{#attachments}}
-                {{^isimage}}
-                    <a class="d-block" href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
-                {{/isimage}}
-            {{/attachments}}
+
             {{^isdeleted}}
+                {{#haswordcount}}
+                    <p class="font-italic"><small>{{#str}} numwords, core, {{wordcount}} {{/str}}</small></p>
+                {{/haswordcount}}
+
+                {{#attachments}}
+                    {{#isimage}}
+                        <img class="d-block" src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
+                    {{/isimage}}
+                {{/attachments}}
+                {{#attachments}}
+                    {{^isimage}}
+                        <a class="d-block" href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
+                    {{/isimage}}
+                {{/attachments}}
+
                 <div class="d-flex justify-content-end">
                     {{#capabilities}}
                         {{#view}}

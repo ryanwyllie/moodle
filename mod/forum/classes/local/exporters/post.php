@@ -74,6 +74,13 @@ class post extends exporter {
                 'null' => NULL_ALLOWED
             ],
             'isdeleted' => ['type' => PARAM_BOOL],
+            'haswordcount' => ['type' => PARAM_BOOL],
+            'wordcount' => [
+                'type' => PARAM_INT,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
@@ -249,6 +256,8 @@ class post extends exporter {
             'timecreated' => $timecreated,
             'unread' => $readreceiptcollection ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
             'isdeleted' => $isdeleted,
+            'haswordcount' => $forum->should_display_word_count(),
+            'wordcount' => $forum->should_display_word_count() ? count_words($message) : null,
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
