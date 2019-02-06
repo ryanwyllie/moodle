@@ -39,6 +39,7 @@ class discussion extends exporter {
 
     public function __construct(discussion_entity $discussion, $related = []) {
         $this->discussion = $discussion;
+
         return parent::__construct([], $related);
     }
 
@@ -121,9 +122,8 @@ class discussion extends exporter {
         $discussion = $this->discussion;
 
         // TODO Group exporter.
-        // TODO Get all groups and put them in related.
         $groupdata = null;
-        if ($group = groups_get_group($discussion->get_group_id())) {
+        if ($discussion->get_group_id() > 0 && $group = $this->related['groupsbyid'][$discussion->get_group_id()]) {
             $groupdata = [
                 'name' => $group->name,
                 'urls' => [],
@@ -203,6 +203,7 @@ class discussion extends exporter {
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
             'user' => 'stdClass',
+            'groupsbyid' => 'stdClass[]',
             'latestpostid' => 'int?',
         ];
     }

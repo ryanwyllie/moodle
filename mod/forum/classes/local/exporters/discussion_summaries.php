@@ -36,6 +36,7 @@ use renderer_base;
  */
 class discussion_summaries extends exporter {
     private $discussions;
+    private $groupsbyid;
     private $groupsbyauthorid;
     private $discussionreplycount;
     private $discussionunreadcount;
@@ -45,6 +46,7 @@ class discussion_summaries extends exporter {
 
     public function __construct(
         array $discussions,
+        array $groupsbyid,
         array $groupsbyauthorid,
         array $discussionreplycount,
         array $discussionunreadcount,
@@ -52,6 +54,7 @@ class discussion_summaries extends exporter {
         array $related = []
     ) {
         $this->discussions = $discussions;
+        $this->groupsbyid = $groupsbyid;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->discussionreplycount = $discussionreplycount;
         $this->discussionunreadcount = $discussionunreadcount;
@@ -95,6 +98,7 @@ class discussion_summaries extends exporter {
             $latestpostid = isset($this->latestpostids[$discussionid]) ? $this->latestpostids[$discussionid] : 0;
             $exporter = new discussion_summary(
                     $discussion,
+                    $this->groupsbyid,
                     $this->groupsbyauthorid,
                     $replycount,
                     $unreadcount,
