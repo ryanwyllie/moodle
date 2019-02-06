@@ -94,6 +94,7 @@ class discussion extends exporter {
             'urls' => [
                 'type' => [
                     'view' => ['type' => PARAM_URL],
+                    'markasread' => ['type' => PARAM_URL],
                 ],
             ],
         ];
@@ -115,6 +116,7 @@ class discussion extends exporter {
         $discussion = $this->discussion;
 
         $viewurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
+        $markasread = $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion);
 
         // TODO Group exporter.
         $groupdata = null;
@@ -161,6 +163,7 @@ class discussion extends exporter {
             ],
             'urls' => [
                 'view' => $viewurl->out(),
+                'markasread' => $markasread->out(),
             ],
         ];
 

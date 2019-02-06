@@ -57,12 +57,21 @@ class exporter {
         $this->managerfactory = $managerfactory;
     }
 
+    /**
+     * Construct a new forum exporter for the specified user and forum.
+     *
+     * @param   stdClass        $user The user viewing the forum
+     * @param   forum_entity    $forum The forum being viewed
+     * @param   int             $groupid The group currently being viewed
+     * @return  forum_exporter
+     */
     public function get_forum_exporter(
         stdClass $user,
         forum_entity $forum,
         ?int $currentgroup
     ) : forum_exporter {
         return new forum_exporter($forum, [
+            'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'user' => $user,

@@ -201,14 +201,22 @@ class discussion_list {
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_ids($discussionids);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+
         $replycounts = $discussionvault->get_reply_count_for_discussion_ids($discussionids);
+
+        $unreadcounts = [];
+        if (forum_tp_can_track_forums($this->forumrecord)) {
+            $unreadcounts = $discussionvault->get_unread_count_for_discussion_ids($user, $discussionids);
+            print_object($unreadcounts);
+        }
 
         $summaryexporter = $this->exporterfactory->get_discussion_summaries_exporter(
             $user,
             $forum,
             $discussions,
             $groupsbyauthorid,
-            $replycounts
+            $replycounts,
+            $unreadcounts
         );
 
         return $summaryexporter->export($this->renderer);
@@ -324,7 +332,7 @@ class discussion_list {
 
         if (!$capabilitymanager->can_post_to_group($user, $groupid)) {
             // Cannot post to the current group.
-            $this->notifications[] = (new notification(
+            $notifications[] = (new notification(
                 get_string('cannotadddiscussion', 'mod_forum'),
                 \core\output\notification::NOTIFY_WARNING
             ))->set_show_closebutton();
