@@ -290,7 +290,7 @@ class discussion_list extends vault {
 
         $params['userid'] = $user->id;
         $params['cutofftime'] = floor((new \DateTime())
-            ->sub(new \DateInterval('P1D'))
+            ->sub(new \DateInterval("P{$CFG->forum_oldpostdays}D"))
             ->format('U') / 60) * 60;
 
         return $this->get_db()->get_records_sql_menu($sql, $params);
