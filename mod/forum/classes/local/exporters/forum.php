@@ -36,8 +36,15 @@ use stdClass;
  * Forum class.
  */
 class forum extends exporter {
+    /** @var forum_entity The entity relating to the forum being displayed */
     private $forum;
 
+    /**
+     * Constructor for the forum exporter.
+     *
+     * @param   forum_entity    $forum The forum being displayed
+     * @param   array           $related The related objects
+     */
     public function __construct(forum_entity $forum, $related = []) {
         $this->forum = $forum;
         return parent::__construct([], $related);
