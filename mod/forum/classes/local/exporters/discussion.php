@@ -95,6 +95,7 @@ class discussion extends exporter {
                 'type' => [
                     'view' => ['type' => PARAM_URL],
                     'markasread' => ['type' => PARAM_URL],
+                    'viewlatest' => ['type' => PARAM_URL],
                 ],
             ],
         ];
@@ -116,6 +117,7 @@ class discussion extends exporter {
         $discussion = $this->discussion;
 
         $viewurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
+        $viewlatesturl = $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion($discussion, $this->related['latestpostid']);
         $markasread = $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion);
 
         // TODO Group exporter.
@@ -163,6 +165,7 @@ class discussion extends exporter {
             ],
             'urls' => [
                 'view' => $viewurl,
+                'viewlatest' => $viewlatesturl,
                 'markasread' => $markasread,
             ],
         ];
@@ -192,6 +195,7 @@ class discussion extends exporter {
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
             'user' => 'stdClass',
+            'latestpostid' => 'int',
         ];
     }
 }

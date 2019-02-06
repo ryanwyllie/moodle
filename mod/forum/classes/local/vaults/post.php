@@ -175,4 +175,34 @@ class post extends vault {
 
         return $this->get_db()->get_records_sql_menu($sql, $params);
     }
+
+    /**
+     * Get a mapping of the most recent post in each discussion based on post creation time.
+     *
+     * @param   int[]       $discussionids The list of discussions to fetch counts for
+     * @return  int[]       The post id of the most recent post for each discussions returned in an associative array
+     */
+    public function get_latest_post_for_discussion_ids(array $discussionids) : array {
+        global $CFG;
+
+        if (empty($discussionids)) {
+            return [];
+        }
+
+        $alias = $this->get_table_alias();
+        list($insql, $params) = $this->get_db()->get_in_or_equal($discussionids, SQL_PARAMS_NAMED);
+
+        $sql = "
+            SELECT p.discussion, MAX(p.id)
+              FROM {" . self::TABLE . "} p
+              JOIN (
+                SELECT mp.discussion, MAX(mp.created) AS created
+                  FROM {" . self::TABLE . "} mp
+                 WHERE mp.discussion {$insql}
+              GROUP BY mp.discussion
+              ) lp ON lp.discussion = p.discussion AND lp.created = p.created
+          GROUP BY p.discussion";
+
+        return $this->get_db()->get_records_sql_menu($sql, $params);
+    }
 }

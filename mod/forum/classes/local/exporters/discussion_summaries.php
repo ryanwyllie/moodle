@@ -40,11 +40,22 @@ class discussion_summaries extends exporter {
     private $discussionreplycount;
     private $discussionunreadcount;
 
-    public function __construct(array $discussions, array $groupsbyauthorid, array $discussionreplycount, array $discussionunreadcount, array $related = []) {
+    /** @var array The latest post in each discussion */
+    private $latestpostids;
+
+    public function __construct(
+        array $discussions,
+        array $groupsbyauthorid,
+        array $discussionreplycount,
+        array $discussionunreadcount,
+        array $latestpostids,
+        array $related = []
+    ) {
         $this->discussions = $discussions;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->discussionreplycount = $discussionreplycount;
         $this->discussionunreadcount = $discussionunreadcount;
+        $this->latestpostids = $latestpostids;
         return parent::__construct([], $related);
     }
 
@@ -81,11 +92,13 @@ class discussion_summaries extends exporter {
             $discussionid = $discussion->get_discussion()->get_id();
             $replycount = isset($this->discussionreplycount[$discussionid]) ? $this->discussionreplycount[$discussionid] : 0;
             $unreadcount = isset($this->discussionunreadcount[$discussionid]) ? $this->discussionunreadcount[$discussionid] : 0;
+            $latestpostid = isset($this->latestpostids[$discussionid]) ? $this->latestpostids[$discussionid] : 0;
             $exporter = new discussion_summary(
                     $discussion,
                     $this->groupsbyauthorid,
                     $replycount,
                     $unreadcount,
+                    $latestpostid,
                     $related
                 );
             $exporteddiscussions[] = $exporter->export($output);

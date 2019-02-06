@@ -85,6 +85,15 @@ class url {
         return $this->get_discussion_view_url_from_discussion_id($discussion->get_id());
     }
 
+    public function get_discussion_view_latest_post_url_from_discussion_and_discussion(discussion_entity $discussion, ?int $latestpost) {
+        $viewurl = $this->get_discussion_view_url_from_discussion_id($discussion->get_id());
+        if (null === $latestpost) {
+            return $viewurl;
+        } else {
+            return new moodle_url($viewurl, ['parent' => $latestpost]);
+        }
+    }
+
     public function get_discussion_view_url_from_post(post_entity $post) : moodle_url {
         return $this->get_discussion_view_url_from_discussion_id($post->get_discussion_id());
     }
