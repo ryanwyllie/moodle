@@ -95,7 +95,6 @@ if ($node && $post->id != $discussion->firstpost) {
 */
 
 // Trigger discussion viewed event.
-$managerfactory = mod_forum\local\container::get_manager_factory();
 $eventmanager = $managerfactory->get_event_manager();
 $eventmanager->mark_discussion_as_viewed($forum, $discussion);
 
