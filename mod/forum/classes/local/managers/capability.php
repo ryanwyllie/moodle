@@ -34,6 +34,7 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\subscriptions;
 use context;
+use context_system;
 use stdClass;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
@@ -279,5 +280,9 @@ class capability {
 
     public function can_manage_forum(stdClass $user) {
         return has_capability('moodle/course:manageactivities', $this->get_context(), $user);
+    }
+
+    public function can_manage_tags(stdClass $user) : bool {
+        return has_capability('moodle/tag:manage', context_system::instance(), $user);
     }
 }
