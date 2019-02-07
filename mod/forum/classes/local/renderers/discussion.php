@@ -36,6 +36,7 @@ use mod_forum\local\managers\capability as capability_manager;
 use core\output\notification;
 use context;
 use context_module;
+use core_tag_tag;
 use html_writer;
 use moodle_exception;
 use moodle_url;
@@ -173,6 +174,7 @@ class discussion {
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+        $tagsbypostid = $this->get_tags_from_posts($posts);
         $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
@@ -180,7 +182,8 @@ class discussion {
             $discussion,
             $posts,
             $groupsbyauthorid,
-            $readreceiptcollection
+            $readreceiptcollection,
+            $tagsbypostid
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
@@ -195,6 +198,29 @@ class discussion {
             if (!$seenfirstunread && $candidate->unread) {
                 $candidate->isfirstunread = true;
                 $seenfirstunread = true;
+            }
+
+            // We have to do some magic with tags here to convert them into a format
+            // that the taglist template is expecting.
+            $tagcount = count($candidate->tags);
+            if ($tagcount > 0) {
+                $limit = 10;
+                $count = 0;
+                $candidate->taglist = [
+                    'tags' => array_map(function($tag) use ($count, $limit) {
+                        $count++;
+                        return array_merge($tag, [
+                            'name' => $tag['displayname'],
+                            'viewurl' => $tag['urls']['view'],
+                            'overlimit' => $count > $limit
+                        ]);
+                    }, $candidate->tags),
+                    'label' => get_string('tags', 'core'),
+                    'tagscount' => $tagcount,
+                    'overflow' => ($tagcount > 10)
+                ];
+            } else {
+                $candidate->taglist = null;
             }
 
             if (empty($unsorted)) {
@@ -249,6 +275,13 @@ class discussion {
 
             return $carry;
         }, $authorids);
+    }
+
+    private function get_tags_from_posts(array $posts) : array {
+        $postids = array_map(function($post) {
+            return $post->get_id();
+        }, $posts);
+        return core_tag_tag::get_items_tags('mod_forum', 'forum_posts', $postids);
     }
 
     private function get_read_receipt_collection_for_posts(stdClass $user, array $posts) {

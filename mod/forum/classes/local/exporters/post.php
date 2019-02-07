@@ -30,6 +30,7 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\exporters\author as author_exporter;
 use core\external\exporter;
 use context;
+use core_tag_tag;
 use renderer_base;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
@@ -39,11 +40,9 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class post extends exporter {
     private $post;
-    private $authorgroups;
 
-    public function __construct(post_entity $post, array $authorgroups = [], $related = []) {
+    public function __construct(post_entity $post, $related = []) {
         $this->post = $post;
-        $this->authorgroups = $authorgroups;
         return parent::__construct([], $related);
     }
 
@@ -157,6 +156,24 @@ class post extends exporter {
                         ]
                     ]
                 ]
+            ],
+            'tags' => [
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED,
+                'multiple' => true,
+                'type' => [
+                    'id' => ['type' => PARAM_INT],
+                    'tagid' => ['type' => PARAM_INT],
+                    'isstandard' => ['type' => PARAM_BOOL],
+                    'name' => ['type' => PARAM_TEXT],
+                    'flag' => ['type' => PARAM_BOOL],
+                    'urls' => [
+                        'type' => [
+                            'view' => ['type' => PARAM_URL]
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -171,7 +188,7 @@ class post extends exporter {
         global $CFG;
 
         $post = $this->post;
-        $authorgroups = $this->authorgroups;
+        $authorgroups = $this->related['authorgroups'];
         $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
         $author = $post->get_author();
@@ -267,15 +284,16 @@ class post extends exporter {
                 'export' => $canexport
             ],
             'urls' => [
-                'view' => $canview ? $viewurl->out() : null,
-                'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
-                'edit' => $canedit ? $editurl->out() : null,
-                'delete' => $candelete ? $deleteurl->out() : null,
-                'split' => $cansplit ? $spliturl->out() : null,
-                'reply' => $canreply ? $replyurl->out() : null,
-                'export' => $canexport && $exporturl ? $exporturl->out() : null
+                'view' => $canview ? $viewurl->out(false) : null,
+                'viewparent' => $viewparenturl ? $viewparenturl->out(false) : null,
+                'edit' => $canedit ? $editurl->out(false) : null,
+                'delete' => $candelete ? $deleteurl->out(false) : null,
+                'split' => $cansplit ? $spliturl->out(false) : null,
+                'reply' => $canreply ? $replyurl->out(false) : null,
+                'export' => $canexport && $exporturl ? $exporturl->out(false) : null
             ],
-            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output)
+            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output),
+            'tags' => $isdeleted ? [] : $this->get_tags()
         ];
     }
 
@@ -293,7 +311,9 @@ class post extends exporter {
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
             'user' => 'stdClass',
-            'context' => 'context'
+            'context' => 'context',
+            'authorgroups' => 'stdClass[]',
+            'tags' => '\core_tag_tag[]?'
         ];
     }
 
@@ -334,6 +354,27 @@ class post extends exporter {
                 ]
             ];
         }, $post->get_attachments());
+    }
+
+    private function get_tags() {
+        $user = $this->related['user'];
+        $context = $this->related['context'];
+        $capabilitymanager = $this->related['capabilitymanager'];
+        $canmanagetags = $capabilitymanager->can_manage_tags($user);
+
+        return array_values(array_map(function($tag) use ($context, $canmanagetags) {
+            $viewurl = core_tag_tag::make_url($tag->tagcollid, $tag->rawname, 0, $context->id);
+            return [
+                'id' => $tag->taginstanceid,
+                'tagid' => $tag->id,
+                'isstandard' => $tag->isstandard,
+                'displayname' => $tag->get_display_name(),
+                'flag' => $canmanagetags && !empty($tag->flag),
+                'urls' => [
+                    'view' => $viewurl->out(false)
+                ]
+            ];
+        }, $this->related['tags'] ?: []));
     }
 
     private function get_forum_record() {

@@ -40,7 +40,7 @@
                         <img class="rounded-circle w-100" src="{{{.}}}">
                     {{/urls.profileimage}}
                     {{#groups}}
-                        <img class="rounded-circle w-100" src="{{urls.image}}">
+                        <img class="rounded-circle w-100" src="{{{urls.image}}}">
                     {{/groups}}
                 {{/author}}
             {{/isdeleted}}
@@ -69,54 +69,59 @@
 
             {{^isdeleted}}
                 {{#haswordcount}}
-                    <p class="font-italic"><small>{{#str}} numwords, core, {{wordcount}} {{/str}}</small></p>
+                    <p class="font-italic mb-0"><small>{{#str}} numwords, core, {{wordcount}} {{/str}}</small></p>
                 {{/haswordcount}}
 
                 {{#attachments}}
                     {{#isimage}}
-                        <img class="d-block" src="{{urls.file}}" alt="{{filename}}" style="max-width: 100%">
+                        <img class="d-block" src="{{{urls.file}}}" alt="{{filename}}" style="max-width: 100%">
                     {{/isimage}}
                 {{/attachments}}
+
+                {{#taglist}}
+                    {{> core_tag/taglist }}
+                {{/taglist}}
+
                 {{#attachments}}
                     {{^isimage}}
-                        <a class="d-block" href="{{urls.file}}">{{{html.icon}}} {{filename}}</a>
+                        <a class="d-block" href="{{{urls.file}}}">{{{html.icon}}} {{filename}}</a>
                     {{/isimage}}
                 {{/attachments}}
 
                 <div class="d-flex justify-content-end">
                     {{#capabilities}}
                         {{#view}}
-                            <a href="{{urls.view}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.view}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} permalink, mod_forum {{/str}}
                             </a>
                         {{/view}}
                         {{#urls.viewparent}}
-                            <a href="{{.}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{.}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} parent, mod_forum {{/str}}
                             </a>
                         {{/urls.viewparent}}
                         {{#edit}}
-                            <a href="{{urls.edit}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.edit}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} edit, mod_forum {{/str}}
                             </a>
                         {{/edit}}
                         {{#split}}
-                            <a href="{{urls.split}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.split}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} prune, mod_forum {{/str}}
                             </a>
                         {{/split}}
                         {{#delete}}
-                            <a href="{{urls.delete}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.delete}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} delete, mod_forum {{/str}}
                             </a>
                         {{/delete}}
                         {{#reply}}
-                            <a href="{{urls.reply}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.reply}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} reply, mod_forum {{/str}}
                             </a>
                         {{/reply}}
                         {{#export}}
-                            <a href="{{urls.export}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.export}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} addtoportfolio, core_portfolio {{/str}}
                             </a>
                         {{/export}}
