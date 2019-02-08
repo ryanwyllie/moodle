@@ -74,7 +74,14 @@
 
                 {{#attachments}}
                     {{#isimage}}
-                        <img class="d-block" src="{{{urls.file}}}" alt="{{filename}}" style="max-width: 100%">
+                        <div>
+                            <img src="{{{urls.file}}}" alt="{{filename}}" style="max-width: 100%">
+                            {{#urls.export}}
+                                <a href="{{{.}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}">
+                                    {{#pix}} t/portfolioadd, core {{/pix}}
+                                </a>
+                            {{/urls.export}}
+                        </div>
                     {{/isimage}}
                 {{/attachments}}
 
@@ -84,7 +91,14 @@
 
                 {{#attachments}}
                     {{^isimage}}
-                        <a class="d-block" href="{{{urls.file}}}">{{{html.icon}}} {{filename}}</a>
+                        <div>
+                            <a href="{{{urls.file}}}">{{{html.icon}}} {{filename}}</a>
+                            {{#urls.export}}
+                                <a href="{{{.}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}">
+                                    {{#pix}} t/portfolioadd, core {{/pix}}
+                                </a>
+                            {{/urls.export}}
+                        </div>
                     {{/isimage}}
                 {{/attachments}}
 
@@ -121,7 +135,7 @@
                             </a>
                         {{/reply}}
                         {{#export}}
-                            <a href="{{{urls.export}}}" class="btn btn-link btn-icon icon-size-3">
+                            <a href="{{{urls.export}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} addtoportfolio, core_portfolio {{/str}}
                             </a>
                         {{/export}}

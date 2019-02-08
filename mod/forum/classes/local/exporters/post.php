@@ -147,7 +147,13 @@ class post extends exporter {
                     'itemid' => ['type' => PARAM_INT],
                     'urls' => [
                         'type' => [
-                            'file' => ['type' => PARAM_URL]
+                            'file' => ['type' => PARAM_URL],
+                            'export' => [
+                                'type' => PARAM_URL,
+                                'optional' => true,
+                                'default' => null,
+                                'null' => NULL_ALLOWED
+                            ]
                         ]
                     ],
                     'html' => [
@@ -292,7 +298,7 @@ class post extends exporter {
                 'reply' => $canreply ? $replyurl->out(false) : null,
                 'export' => $canexport && $exporturl ? $exporturl->out(false) : null
             ],
-            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output),
+            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
             'tags' => $isdeleted ? [] : $this->get_tags()
         ];
     }
@@ -317,10 +323,11 @@ class post extends exporter {
         ];
     }
 
-    private function get_attachments($post, $output) {
+    private function get_attachments(post_entity $post, renderer_base $output, bool $canexport) {
         global $CFG;
 
-        return array_map(function($attachment) use ($output, $CFG) {
+        $urlmanager = $this->related['urlmanager'];
+        return array_map(function($attachment) use ($output, $CFG, $canexport, $post, $urlmanager) {
             $filename = $attachment->get_filename();
             $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
@@ -337,6 +344,7 @@ class post extends exporter {
                 $CFG->wwwroot . '/pluginfile.php',
                 '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
             );
+            $exporturl = $canexport ? $urlmanager->get_export_attachment_url_from_post_and_attachment($post, $attachment) : null;
             $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
             return [
                 'filename' => $filename,
@@ -347,7 +355,8 @@ class post extends exporter {
                 'itemid' => $itemid,
                 'isimage' => $isimage,
                 'urls' => [
-                    'file' => $fileurl
+                    'file' => $fileurl,
+                    'export' => $exporturl ? $exporturl->out(false) : null
                 ],
                 'html' => [
                     'icon' => $iconhtml
