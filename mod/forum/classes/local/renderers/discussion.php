@@ -92,7 +92,7 @@ class discussion {
         $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
-    public function render(stdClass $user, int $displaymode, post_entity $frompost) : string {
+    public function render(stdClass $user, int $displaymode, array $posts) : string {
         global $CFG;
 
         $capabilitymanager = $this->capabilitymanager;
@@ -103,7 +103,7 @@ class discussion {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
-        $nestedposts = $this->get_exported_posts($user, $displaymode);
+        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts);
         $nestedposts = array_map(function($exportedpost) use ($forum) {
             if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
                 // Remove the author from any posts
@@ -157,22 +157,11 @@ class discussion {
         }
     }
 
-    private function get_order_by(int $displaymode) : string {
-        switch ($displaymode) {
-            case FORUM_MODE_FLATNEWEST:
-                return 'created DESC';
-            default;
-                return 'created ASC';
-        }
-    }
-
-    private function get_exported_posts(stdClass $user, int $displaymode) : array {
+    private function get_exported_posts(stdClass $user, int $displaymode, array $posts) : array {
         $forum = $this->forum;
         $forumrecord = $this->forumrecord;
         $istracked = forum_tp_is_tracked($forumrecord, $user);
         $discussion = $this->discussion;
-        $postvault = $this->vaultfactory->get_post_vault();
-        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
         $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
