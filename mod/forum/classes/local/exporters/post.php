@@ -158,7 +158,13 @@ class post extends exporter {
                     ],
                     'html' => [
                         'type' => [
-                            'icon' => ['type' => PARAM_RAW]
+                            'icon' => ['type' => PARAM_RAW],
+                            'plagiarism' => [
+                                'type' => PARAM_RAW,
+                                'optional' => true,
+                                'default' => null,
+                                'null' => NULL_ALLOWED
+                            ],
                         ]
                     ]
                 ]
@@ -229,35 +235,7 @@ class post extends exporter {
         if ($canview && !$isdeleted) {
             $subject = $post->get_subject();
             $timecreated = $post->get_time_created();
-            $message = file_rewrite_pluginfile_urls(
-                $post->get_message(),
-                'pluginfile.php',
-                $context->id,
-                'mod_forum',
-                'post',
-                $post->get_id()
-            );
-
-            if (!empty($CFG->enableplagiarism)) {
-                require_once($CFG->libdir . '/plagiarismlib.php');
-                $message .= plagiarism_get_links([
-                    'userid' => $post->get_user_id(),
-                    'content' => $message,
-                    'cmid' => $forum->get_course_module_record()->id,
-                    'course' => $post->get_course_id(),
-                    'forum' => $forum->get_id()
-                ]);
-            }
-
-            $message = format_text(
-                $message,
-                $post->get_message_format(),
-                (object) [
-                    'para' => false,
-                    'trusted' => $post->is_message_trusted(),
-                    'context' => $context
-                ]
-            );
+            $message = $this->get_message($post);
         } else {
             $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden','forum');
             $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden','forum');
@@ -323,11 +301,61 @@ class post extends exporter {
         ];
     }
 
+    private function get_message(post_entity $post) {
+        $message = file_rewrite_pluginfile_urls(
+            $post->get_message(),
+            'pluginfile.php',
+            $context->id,
+            'mod_forum',
+            'post',
+            $post->get_id()
+        );
+
+        if (!empty($CFG->enableplagiarism)) {
+            require_once($CFG->libdir . '/plagiarismlib.php');
+            $message .= plagiarism_get_links([
+                'userid' => $post->get_author()->get_id(),
+                'content' => $message,
+                'cmid' => $forum->get_course_module_record()->id,
+                'course' => $forum->get_course_id(),
+                'forum' => $forum->get_id()
+            ]);
+        }
+
+        $message = format_text(
+            $message,
+            $post->get_message_format(),
+            (object) [
+                'para' => false,
+                'trusted' => $post->is_message_trusted(),
+                'context' => $context
+            ]
+        );
+
+        return $message;
+    }
+
     private function get_attachments(post_entity $post, renderer_base $output, bool $canexport) {
         global $CFG;
 
         $urlmanager = $this->related['urlmanager'];
-        return array_map(function($attachment) use ($output, $CFG, $canexport, $post, $urlmanager) {
+        $enableplagiarism = $CFG->enableplagiarism;
+        $wwwroot = $CFG->wwwroot;
+        $forum = $this->related['forum'];
+
+        if ($enableplagiarism) {
+            require_once($CFG->libdir . '/plagiarismlib.php' );
+        }
+
+        return array_map(function($attachment) use (
+            $output,
+            $wwwroot,
+            $enableplagiarism,
+            $canexport,
+            $forum,
+            $post,
+            $urlmanager
+        ) {
             $filename = $attachment->get_filename();
             $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
@@ -341,11 +369,24 @@ class post extends exporter {
                 ['class' => 'icon']
             );
             $fileurl = file_encode_url(
-                $CFG->wwwroot . '/pluginfile.php',
+                $wwwroot . '/pluginfile.php',
                 '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
             );
             $exporturl = $canexport ? $urlmanager->get_export_attachment_url_from_post_and_attachment($post, $attachment) : null;
             $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
+
+            if ($enableplagiarism) {
+                $plagiarismhtml = plagiarism_get_links([
+                    'userid' => $post->get_author()->get_id(),
+                    'file' => $attachment,
+                    'cmid' => $forum->get_course_module_record()->id,
+                    'course' => $forum->get_course_id(),
+                    'forum' => $forum->get_id()
+                ]);
+            } else {
+                $plagiarismhtml = null;
+            }
+
             return [
                 'filename' => $filename,
                 'mimetype' => $mimetype,
@@ -359,7 +400,8 @@ class post extends exporter {
                     'export' => $exporturl ? $exporturl->out(false) : null
                 ],
                 'html' => [
-                    'icon' => $iconhtml
+                    'icon' => $iconhtml,
+                    'plagiarism' => $plagiarismhtml
                 ]
             ];
         }, $post->get_attachments());
