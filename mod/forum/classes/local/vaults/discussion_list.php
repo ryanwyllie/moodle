@@ -45,6 +45,8 @@ class discussion_list extends vault {
     private const LATEST_AUTHOR_ID_ALIAS = 'userpictureid';
     private const LATEST_AUTHOR_ALIAS = 'userrecord';
 
+    public const PAGESIZE_DEFAULT = 100;
+
     // TODO Consider how we support additional sortorders.
     public const SORTORDER_NEWEST_FIRST = 1;
     public const SORTORDER_OLDEST_FIRST = 2;
@@ -83,6 +85,16 @@ class discussion_list extends vault {
         $selectsql = 'SELECT ' . $fields . ' FROM ' . $tables;
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
         $selectsql .= $sortsql ? ' ORDER BY ' . $sortsql : '';
+
+        return $selectsql;
+    }
+
+    protected function generate_count_records_sql(string $wheresql = null) : string {
+        $alias = $this->get_table_alias();
+        $db = $this->get_db();
+
+        $selectsql = "SELECT COUNT(1) FROM {" . self::TABLE . "} {$alias}";
+        $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
 
         return $selectsql;
     }
@@ -234,8 +246,54 @@ class discussion_list extends vault {
         ]);
 
         $sql = $this->generate_get_records_sql($wheresql, $this->get_sort_order($sortorder));
+        $this->get_db()->set_debug(true);
         $records = $this->get_db()->get_records_sql($sql, $params, $offset, $limit);
+        $this->get_db()->set_debug(false);
 
         return $this->transform_db_records_to_entities($records);
+    }
+
+    public function get_total_discussion_count_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser) {
+        $alias = $this->get_table_alias();
+
+        $wheresql = "{$alias}.forum = :forumid";
+
+        [
+            'wheresql' => $hiddensql,
+            'params' =>  $hiddenparams
+        ] = $this->get_hidden_post_sql($includehiddendiscussions, $includepostsforuser);
+        $wheresql .= $hiddensql;
+
+        $params = array_merge($hiddenparams, [
+            'forumid' => $forumid,
+        ]);
+
+        return $this->get_db()->count_records_sql($this->generate_count_records_sql($wheresql), $params);
+    }
+
+    public function get_total_discussion_count_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser) {
+        $alias = $this->get_table_alias();
+
+        $wheresql = "{$alias}.forum = :forumid AND ";
+        $groupparams = [];
+        if (empty($groupids)) {
+            $wheresql .= "{$alias}.groupid = :allgroupsid";
+        } else {
+            list($insql, $groupparams) = $this->get_db()->get_in_or_equal($groupids, SQL_PARAMS_NAMED, 'gid');
+            $wheresql .= "({$alias}.groupid = :allgroupsid OR {$alias}.groupid {$insql})";
+        }
+
+        [
+            'wheresql' => $hiddensql,
+            'params' =>  $hiddenparams
+        ] = $this->get_hidden_post_sql($includehiddendiscussions, $includepostsforuser);
+        $wheresql .= $hiddensql;
+
+        $params = array_merge($hiddenparams, $groupparams, [
+            'forumid' => $forumid,
+            'allgroupsid' => -1,
+        ]);
+
+        return $this->get_db()->count_records_sql($this->generate_count_records_sql($wheresql), $params);
     }
 }

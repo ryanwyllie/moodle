@@ -79,7 +79,7 @@ class forum extends exporter {
             'urls' => [
                 'type' => [
                     'create' => ['type' => PARAM_URL],
-                    'markasreade' => ['type' => PARAM_URL],
+                    'markasread' => ['type' => PARAM_URL],
                 ],
             ],
         ];

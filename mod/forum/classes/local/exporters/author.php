@@ -68,6 +68,7 @@ class author extends exporter {
             ],
             'groups' => [
                 'multiple' => true,
+                'optional' => true,
                 'type' => [
                     'id' => ['type' => PARAM_INT],
                     'urls' => [
