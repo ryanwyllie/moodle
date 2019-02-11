@@ -171,6 +171,10 @@ class forum {
         return $this->assessed;
     }
 
+    public function has_rating_aggregate() : bool {
+        return $this->get_rating_aggregate() != RATING_AGGREGATE_NONE;
+    }
+
     public function get_assess_time_start() : int {
         return $this->assesstimestart;
     }
