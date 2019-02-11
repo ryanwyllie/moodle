@@ -35,6 +35,7 @@ use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use context;
+use moodle_page;
 use moodle_url;
 use renderer_base;
 use stdClass;
@@ -48,19 +49,21 @@ class renderer {
     private $vaultfactory;
     private $managerfactory;
     private $rendererbase;
+    private $page;
 
     public function __construct(
         legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         manager_factory $managerfactory,
-        renderer_base $rendererbase
+        moodle_page $page
     ) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->managerfactory = $managerfactory;
-        $this->rendererbase = $rendererbase;
+        $this->page = $page;
+        $this->rendererbase = $page->get_renderer('mod_forum');
     }
 
     public function get_discussion_renderer(
@@ -69,6 +72,7 @@ class renderer {
     ) : discussion_renderer {
 
         $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+        $ratingmanager = $this->managerfactory->get_rating_manager();
         $rendererbase = $this->rendererbase;
         $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
         $notifications = [];
@@ -88,10 +92,12 @@ class renderer {
             $discussion,
             $forum,
             $rendererbase,
+            $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
             $capabilitymanager,
+            $ratingmanager,
             $baseurl,
             $notifications
         );

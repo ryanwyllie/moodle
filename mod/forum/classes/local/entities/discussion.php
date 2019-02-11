@@ -136,4 +136,8 @@ class discussion {
     public function has_started() : bool {
         return $this->get_time_start() > time();
     }
+
+    public function has_group() : bool {
+        return $this->get_group_id() > 0;
+    }
 }

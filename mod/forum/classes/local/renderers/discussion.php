@@ -39,6 +39,7 @@ use context_module;
 use core_tag_tag;
 use html_writer;
 use moodle_exception;
+use moodle_page;
 use moodle_url;
 use rating_manager;
 use renderer_base;
@@ -58,10 +59,12 @@ class discussion {
     private $forum;
     private $forumrecord;
     private $renderer;
+    private $page;
     private $legacydatamapperfactory;
     private $exporterfactory;
     private $vaultfactory;
     private $capabilitymanager;
+    private $ratingmanager;
     private $baseurl;
     private $notifications;
 
@@ -69,21 +72,25 @@ class discussion {
         discussion_entity $discussion,
         forum_entity $forum,
         renderer_base $renderer,
+        moodle_page $page,
         legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         capability_manager $capabilitymanager,
+        rating_manager $ratingmanager,
         moodle_url $baseurl,
         array $notifications = []
     ) {
         $this->discussion = $discussion;
         $this->forum = $forum;
         $this->renderer = $renderer;
+        $this->page = $page;
         $this->baseurl = $baseurl;
         $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->capabilitymanager = $capabilitymanager;
+        $this->ratingmanager = $ratingmanager;
         $this->notifications = $notifications;
 
         $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
@@ -104,7 +111,15 @@ class discussion {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
-        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts);
+        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
+        $ratinginfo = null;
+
+        if (!empty($ratingbypostid)) {
+            $this->ratingmanager->initialise_rating_javascript($this->page);
+            $ratinginfo = (array_values($ratingbypostid))[0]->settings;
+        }
+
+        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid);
         $nestedposts = array_map(function($exportedpost) use ($forum) {
             if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
                 // Remove the author from any posts
@@ -114,7 +129,7 @@ class discussion {
             return $exportedpost;
         }, $nestedposts);
 
-        $exporteddiscussion = $this->get_exported_discussion($user);
+        $exporteddiscussion = $this->get_exported_discussion($user, $ratinginfo);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'posts' => $nestedposts,
@@ -159,14 +174,13 @@ class discussion {
         }
     }
 
-    private function get_exported_posts(stdClass $user, int $displaymode, array $posts) : array {
+    private function get_exported_posts(stdClass $user, int $displaymode, array $posts, array $ratingbypostid = null) : array {
         $forum = $this->forum;
         $forumrecord = $this->forumrecord;
         $istracked = forum_tp_is_tracked($forumrecord, $user);
         $discussion = $this->discussion;
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
-        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
         $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
@@ -303,7 +317,7 @@ class discussion {
             'assesstimefinish' => $forum->get_assess_time_finish()
         ];
 
-        $rm = new rating_manager();
+        $rm = $this->ratingmanager;
         $items = $rm->get_ratings($ratingoptions);
 
         return array_reduce($items, function($carry, $item) {
@@ -325,7 +339,7 @@ class discussion {
         return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
     }
 
-    private function get_exported_discussion(stdClass $user) : array {
+    private function get_exported_discussion(stdClass $user, stdClass $ratinginfo) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $user,
             $this->forum,

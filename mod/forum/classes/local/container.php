@@ -45,7 +45,7 @@ class container {
             self::get_exporter_factory(),
             self::get_vault_factory(),
             self::get_manager_factory(),
-            $PAGE->get_renderer('mod_forum')
+            $PAGE
         );
     }
 
