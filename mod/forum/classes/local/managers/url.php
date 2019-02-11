@@ -66,14 +66,20 @@ class url {
         ]);
     }
 
-    public function get_forum_view_url_from_forum(forum_entity $forum) : moodle_url {
-        return $this->get_forum_view_url_from_course_module_id($forum->get_course_module_record()->id);
+    public function get_forum_view_url_from_forum(forum_entity $forum, ?int $pageno = null) : moodle_url {
+        return $this->get_forum_view_url_from_course_module_id($forum->get_course_module_record()->id, $pageno);
     }
 
-    public function get_forum_view_url_from_course_module_id(int $coursemoduleid) : moodle_url {
-        return new moodle_url('/mod/forum/discussions.php', [
+    public function get_forum_view_url_from_course_module_id(int $coursemoduleid, ?int $pageno = null) : moodle_url {
+        $url = new moodle_url('/mod/forum/discussions.php', [
             'id' => $coursemoduleid,
         ]);
+
+        if (null !== $pageno) {
+            $url->param('page', $pageno);
+        }
+
+        return $url;
     }
 
     public function get_discussion_view_url_from_discussion_id(int $discussionid) : moodle_url {

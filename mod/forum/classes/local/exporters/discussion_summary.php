@@ -81,12 +81,8 @@ class discussion_summary extends exporter {
             'discussion' => [
                 'type' => discussion::read_properties_definition(),
             ],
-            'replies' => [
-                'type' => ['type' => PARAM_INT],
-            ],
-            'unread' => [
-                'type' => ['type' => PARAM_INT],
-            ],
+            'replies' => ['type' => PARAM_INT],
+            'unread' => ['type' => PARAM_INT],
             'firstpostauthor' => [
                 'type' => author::read_properties_definition(),
             ],

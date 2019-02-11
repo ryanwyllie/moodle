@@ -32,6 +32,7 @@ use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\managers\url as url_manager;
+use mod_forum\local\vaults\discussion_list as discussion_list_vault;
 use renderer_base;
 use stdClass;
 use core\output\notification;
@@ -109,6 +110,9 @@ class discussion_list {
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
+        $pagesize = $this->get_page_size($pagesize);
+        $pageno = $this->get_page_number($pageno);
+
         $groupids = $this->get_groups_from_groupid($user, $groupid);
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
@@ -170,7 +174,7 @@ class discussion_list {
      * @param   int         $pagesize The number of discussions to show on the page
      * @return  stdClass    The data to use for display
      */
-    private function get_exported_discussions(stdClass $user, ?array $groupids, ?int $sortorder, ?int $pageno, ?int $pagesize) : stdClass {
+    private function get_exported_discussions(stdClass $user, ?array $groupids, ?int $sortorder, ?int $pageno, ?int $pagesize) {
         $forum = $this->forum;
         $discussionvault = $this->vaultfactory->get_discussions_in_forum_vault();
         if (null === $groupids) {
@@ -193,6 +197,26 @@ class discussion_list {
         }
 
         $discussionids = array_keys($discussions);
+
+        $discussioncount = count($discussionids);
+        if ($discussioncount >= $pagesize) {
+            if (null === $groupids) {
+                $discussioncount = $discussionvault->get_total_discussion_count_from_forum_id(
+                    $forum->get_id(),
+                    $this->capabilitymanager->can_view_hidden_posts($user),
+                    $user->id);
+            } else {
+                $discussioncount = $discussionvault->get_total_discussion_count_from_forum_id_and_group_id(
+                    $forum->get_id(),
+                    $groupids,
+                    $this->capabilitymanager->can_view_hidden_posts($user),
+                    $user->id);
+            }
+        }
+
+        $pagedcontent = new \core\external\paged_content_exporter($pagesize, $pageno, $discussioncount, function ($pageno, $pagelimit) : \moodle_url {
+            return $this->urlmanager->get_forum_view_url_from_forum($this->forum, $pageno);
+        });
 
         $postvault = $this->vaultfactory->get_post_vault();
         $posts = $postvault->get_from_discussion_ids($discussionids);
@@ -228,8 +252,8 @@ class discussion_list {
      * @return  int         The normalised page size
      */
     private function get_page_size(?int $pagesize) : int {
-        if (null === $pagesize || $pagesize < 0) {
-            $pagesize = self::PAGESIZE_DEFAULT;
+        if (null === $pagesize || $pagesize <= 0) {
+            $pagesize = discussion_list_vault::PAGESIZE_DEFAULT;
         }
 
         return $pagesize;
