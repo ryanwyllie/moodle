@@ -34,6 +34,7 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\subscriptions;
 use context;
+use context_system;
 use stdClass;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
@@ -145,6 +146,10 @@ class capability {
         return $forum->get_type() !== 'single' && has_capability('mod/forum:splitdiscussions', $this->get_context(), $user);
     }
 
+    public function can_export_discussions(stdClass $user) : bool {
+        return has_capability('mod/forum:exportdiscussion', $this->get_context(), $user);
+    }
+
     public function must_post_before_viewing_discussion(stdClass $user, discussion_entity $discussion) : bool {
         return !$this->can_view_discussions_without_posting($user) &&
             !forum_user_has_posted($this->get_forum()->get_id(), $discussion->get_id(), $user->id);
@@ -227,6 +232,12 @@ class capability {
         return $this->can_post_in_discussion($user, $discussion);
     }
 
+    public function can_export_post(stdClass $user, post_entity $post) : bool {
+        $context = $this->get_context();
+        return has_capability('mod/forum:exportpost', $context, $user) ||
+            ($post->is_owned_by_user($user) && has_capability('mod/forum:exportownpost', $context, $user));
+    }
+
     protected function get_forum() : forum_entity {
         return $this->forum;
     }
@@ -269,5 +280,9 @@ class capability {
 
     public function can_manage_forum(stdClass $user) {
         return has_capability('moodle/course:manageactivities', $this->get_context(), $user);
+    }
+
+    public function can_manage_tags(stdClass $user) : bool {
+        return has_capability('moodle/tag:manage', context_system::instance(), $user);
     }
 }

@@ -111,9 +111,9 @@ class forum extends exporter {
                 'subscribe' => $capabilitymanager->can_subscribe_to_forum($user),
             ],
             'urls' => [
-                'create' => $urlmanager->get_discussion_create_url($this->forum)->out(),
+                'create' => $urlmanager->get_discussion_create_url($this->forum)->out(false),
                 // TODO Get page no.
-                'markasread' => $urlmanager->get_mark_all_discussions_as_read_url()->out(),
+                'markasread' => $urlmanager->get_mark_all_discussions_as_read_url()->out(false),
             ],
         ];
     }

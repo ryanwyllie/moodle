@@ -36,6 +36,7 @@ use mod_forum\local\managers\capability as capability_manager;
 use core\output\notification;
 use context;
 use context_module;
+use core_tag_tag;
 use html_writer;
 use moodle_exception;
 use moodle_url;
@@ -91,7 +92,9 @@ class discussion {
         $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
-    public function render(stdClass $user, int $displaymode, post_entity $frompost) : string {
+    public function render(stdClass $user, int $displaymode, array $posts) : string {
+        global $CFG;
+
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -100,7 +103,7 @@ class discussion {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
-        $nestedposts = $this->get_exported_posts($user, $displaymode);
+        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts);
         $nestedposts = array_map(function($exportedpost) use ($forum) {
             if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
                 // Remove the author from any posts
@@ -119,7 +122,8 @@ class discussion {
                 'subscribe' => null,
                 'movediscussion' => null,
                 'pindiscussion' => null,
-                'neighbourlinks' => $this->get_neighbour_links_html()
+                'neighbourlinks' => $this->get_neighbour_links_html(),
+                'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html() : null
             ]
         ]);
 
@@ -153,23 +157,13 @@ class discussion {
         }
     }
 
-    private function get_order_by(int $displaymode) : string {
-        switch ($displaymode) {
-            case FORUM_MODE_FLATNEWEST:
-                return 'created DESC';
-            default;
-                return 'created ASC';
-        }
-    }
-
-    private function get_exported_posts(stdClass $user, int $displaymode) : array {
+    private function get_exported_posts(stdClass $user, int $displaymode, array $posts) : array {
         $forum = $this->forum;
         $forumrecord = $this->forumrecord;
         $istracked = forum_tp_is_tracked($forumrecord, $user);
         $discussion = $this->discussion;
-        $postvault = $this->vaultfactory->get_post_vault();
-        $posts = $postvault->get_from_discussion_id($discussion->get_id(), $this->get_order_by($displaymode));
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
+        $tagsbypostid = $this->get_tags_from_posts($posts);
         $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
@@ -177,14 +171,45 @@ class discussion {
             $discussion,
             $posts,
             $groupsbyauthorid,
-            $readreceiptcollection
+            $readreceiptcollection,
+            $tagsbypostid
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
         $nestedposts = [];
-        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $forum) {
+        $seenfirstunread = false;
+        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $seenfirstunread) {
             if (!isset($candidate->replies)) {
                 $candidate->replies = [];
+            }
+
+            $candidate->isfirstunread = false;
+            if (!$seenfirstunread && $candidate->unread) {
+                $candidate->isfirstunread = true;
+                $seenfirstunread = true;
+            }
+
+            // We have to do some magic with tags here to convert them into a format
+            // that the taglist template is expecting.
+            $tagcount = count($candidate->tags);
+            if ($tagcount > 0) {
+                $limit = 10;
+                $count = 0;
+                $candidate->taglist = [
+                    'tags' => array_map(function($tag) use ($count, $limit) {
+                        $count++;
+                        return array_merge($tag, [
+                            'name' => $tag['displayname'],
+                            'viewurl' => $tag['urls']['view'],
+                            'overlimit' => $count > $limit
+                        ]);
+                    }, $candidate->tags),
+                    'label' => get_string('tags', 'core'),
+                    'tagscount' => $tagcount,
+                    'overflow' => ($tagcount > 10)
+                ];
+            } else {
+                $candidate->taglist = null;
             }
 
             if (empty($unsorted)) {
@@ -217,7 +242,7 @@ class discussion {
         $course = $this->forum->get_course_record();
         $coursemodule = $this->forum->get_course_module_record();
         $authorids = array_reduce($posts, function($carry, $post) {
-            $carry[$post->get_author()->get_id()] = true;
+            $carry[$post->get_author()->get_id()] = [];
             return $carry;
         }, []);
         $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
@@ -238,7 +263,14 @@ class discussion {
             }
 
             return $carry;
-        }, []);
+        }, $authorids);
+    }
+
+    private function get_tags_from_posts(array $posts) : array {
+        $postids = array_map(function($post) {
+            return $post->get_id();
+        }, $posts);
+        return core_tag_tag::get_items_tags('mod_forum', 'forum_posts', $postids);
     }
 
     private function get_read_receipt_collection_for_posts(stdClass $user, array $posts) {
@@ -285,10 +317,7 @@ class discussion {
         );
         $select->set_label(get_string('displaymode', 'forum'), ['class' => 'accesshide']);
 
-        $html = '<div class="discussioncontrol displaymode">';
-        $html .= $this->renderer->render($select);
-        $html .= '</div>';
-        return $html;
+        return $this->renderer->render($select);
     }
 
     private function get_subscription_button_html() : string {
@@ -313,7 +342,6 @@ class discussion {
         $discussion = $this->discussion;
         $courseid = $forum->get_course_id();
 
-        $html = '<div class="discussioncontrol movediscussion">';
         // Popup menu to move discussions to other forums. The discussion in a
         // single discussion forum can't be moved.
         $modinfo = get_fast_modinfo($courseid);
@@ -340,17 +368,17 @@ class discussion {
                 }
             }
             if (!empty($forummenu)) {
-                $html .= '<div class="movediscussionoption">';
+                $html = '<div class="movediscussionoption">';
                 $select = new url_select($forummenu, '',
                         ['/mod/forum/discuss.php?d=' . $discussion->get_id() => get_string("movethisdiscussionto", "forum")],
                         'forummenu', get_string('move'));
                 $html .= $this->renderer->render($select);
                 $html .= "</div>";
+                return $html;
             }
         }
-        $html .= "</div>";
 
-        return $html;
+        return null;
     }
 
     private function get_pin_discussion_html() : string {
@@ -365,7 +393,18 @@ class discussion {
         }
 
         $button = new single_button(new moodle_url('discuss.php', ['pin' => $pinlink, 'd' => $discussion->get_id()]), $pintext, 'post');
-        return html_writer::tag('div', $this->renderer->render($button), ['class' => 'discussioncontrol pindiscussion']);
+        return $this->renderer->render($button);
+    }
+
+    private function get_export_discussion_html() {
+        global $CFG;
+
+        require_once($CFG->libdir . '/portfoliolib.php');
+        $discussion = $this->discussion;
+        $button = new \portfolio_add_button();
+        $button->set_callback_options('forum_portfolio_caller', ['discussionid' => $discussion->get_id()], 'mod_forum');
+        $button = $button->to_html(PORTFOLIO_ADD_FULL_FORM, get_string('exportdiscussion', 'mod_forum'));
+        return $button ?: null;
     }
 
     private function get_notifications() {

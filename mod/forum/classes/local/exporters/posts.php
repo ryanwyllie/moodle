@@ -38,10 +38,17 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 class posts extends exporter {
     private $posts;
     private $groupsbyauthorid;
+    private $tagsbypostid;
 
-    public function __construct(array $posts, array $groupsbyauthorid = [], $related = []) {
+    public function __construct(
+        array $posts,
+        array $groupsbyauthorid = [],
+        array $tagsbypostid = [],
+        $related = []
+    ) {
         $this->posts = $posts;
         $this->groupsbyauthorid = $groupsbyauthorid;
+        $this->tagsbypostid = $tagsbypostid;
         return parent::__construct([], $related);
     }
 
@@ -68,15 +75,21 @@ class posts extends exporter {
     protected function get_other_values(renderer_base $output) {
         $related = $this->related;
         $groupsbyauthorid = $this->groupsbyauthorid;
+        $tagsbypostid = $this->tagsbypostid;
         $nestedposts = $this->sort_posts_into_replies($this->posts);
-        $exportposts = function($posts) use ($related, $groupsbyauthorid, $output, &$exportposts) {
+        $exportposts = function($posts) use ($related, $groupsbyauthorid, $tagsbypostid, $output, &$exportposts) {
             $exportedposts = [];
 
             foreach ($posts as $record) {
                 list($post, $replies) = $record;
                 $authorid = $post->get_author()->get_id();
+                $postid = $post->get_id();
                 $authorgroups = isset($groupsbyauthorid[$authorid]) ? $groupsbyauthorid[$authorid] : [];
-                $exporter = new post_exporter($post, $authorgroups, $related);
+                $tags = isset($tagsbypostid[$postid]) ? $tagsbypostid[$postid] : [];
+                $exporter = new post_exporter($post, array_merge($related, [
+                    'authorgroups' => $authorgroups,
+                    'tags' => $tags
+                ]));
                 $exportedposts[] = $exporter->export($output);
                 $exportedposts = array_merge($exportedposts, $exportposts($replies));
             }

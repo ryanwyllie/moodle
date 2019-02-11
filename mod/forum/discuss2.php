@@ -95,7 +95,6 @@ if ($node && $post->id != $discussion->firstpost) {
 */
 
 // Trigger discussion viewed event.
-$managerfactory = mod_forum\local\container::get_manager_factory();
 $eventmanager = $managerfactory->get_event_manager();
 $eventmanager->mark_discussion_as_viewed($forum, $discussion);
 
@@ -111,6 +110,8 @@ echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname
 
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion);
-echo $discussionrenderer->render($USER, $displaymode, $post);
+$orderpostsby = $displaymode == FORUM_MODE_FLATNEWEST ? 'created DESC' : 'created ASC';
+$posts = $postvault->get_from_discussion_id($discussion->get_id(), $orderpostsby);
 
+echo $discussionrenderer->render($USER, $displaymode, $posts);
 echo $OUTPUT->footer();

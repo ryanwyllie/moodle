@@ -203,9 +203,10 @@ class exporter {
         discussion_entity $discussion,
         array $posts,
         array $groupsbyauthorid = [],
-        post_read_receipt_collection_entity $readreceiptcollection = null
+        post_read_receipt_collection_entity $readreceiptcollection = null,
+        array $tagsbypostid = []
     ) : posts_exporter {
-        return new posts_exporter($posts, $groupsbyauthorid, [
+        return new posts_exporter($posts, $groupsbyauthorid, $tagsbypostid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),

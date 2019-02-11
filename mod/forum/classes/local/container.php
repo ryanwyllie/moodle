@@ -37,78 +37,46 @@ use mod_forum\local\factories\vault as vault_factory;
  * Vault class.
  */
 class container {
-    private static $rendererfactory = null;
-    private static $databasedatamapperfactory = null;
-    private static $legacydatamapperfactory = null;
-    private static $exporterfactory = null;
-    private static $vaultfactory = null;
-    private static $managerfactory = null;
-    private static $entityfactory = null;
-
     public static function get_renderer_factory() : renderer_factory {
         global $PAGE;
 
-        if (is_null(self::$rendererfactory)) {
-            self::$rendererfactory = new renderer_factory(
-                self::get_legacy_data_mapper_factory(),
-                self::get_exporter_factory(),
-                self::get_vault_factory(),
-                self::get_manager_factory(),
-                $PAGE->get_renderer('mod_forum')
-            );
-        }
-
-        return self::$rendererfactory;
+        return new renderer_factory(
+            self::get_legacy_data_mapper_factory(),
+            self::get_exporter_factory(),
+            self::get_vault_factory(),
+            self::get_manager_factory(),
+            $PAGE->get_renderer('mod_forum')
+        );
     }
 
     public static function get_legacy_data_mapper_factory() : legacy_data_mapper_factory {
-        if (is_null(self::$legacydatamapperfactory)) {
-            self::$legacydatamapperfactory = new legacy_data_mapper_factory();
-        }
-
-        return self::$legacydatamapperfactory;
+        return new legacy_data_mapper_factory();
     }
 
     public static function get_exporter_factory() : exporter_factory {
-        if (is_null(self::$exporterfactory)) {
-            self::$exporterfactory = new exporter_factory(
-                self::get_legacy_data_mapper_factory(),
-                self::get_manager_factory()
-            );
-        }
-
-        return self::$exporterfactory;
+        return new exporter_factory(
+            self::get_legacy_data_mapper_factory(),
+            self::get_manager_factory()
+        );
     }
 
     public static function get_vault_factory() : vault_factory {
         global $DB;
 
-        if (is_null(self::$vaultfactory)) {
-            self::$vaultfactory = new vault_factory(
-                $DB,
-                self::get_entity_factory(),
-                get_file_storage()
-            );
-        }
-
-        return self::$vaultfactory;
+        return new vault_factory(
+            $DB,
+            self::get_entity_factory(),
+            get_file_storage()
+        );
     }
 
     public static function get_manager_factory() : manager_factory {
-        if (is_null(self::$managerfactory)) {
-            self::$managerfactory = new manager_factory(
-                self::get_legacy_data_mapper_factory()
-            );
-        }
-
-        return self::$managerfactory;
+        return new manager_factory(
+            self::get_legacy_data_mapper_factory()
+        );
     }
 
     public static function get_entity_factory() : entity_factory {
-        if (is_null(self::$entityfactory)) {
-            self::$entityfactory = new entity_factory();
-        }
-
-        return self::$entityfactory;
+        return new entity_factory();
     }
 }

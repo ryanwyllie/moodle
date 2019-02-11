@@ -30,6 +30,7 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\exporters\author as author_exporter;
 use core\external\exporter;
 use context;
+use core_tag_tag;
 use renderer_base;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
@@ -39,11 +40,9 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class post extends exporter {
     private $post;
-    private $authorgroups;
 
-    public function __construct(post_entity $post, array $authorgroups = [], $related = []) {
+    public function __construct(post_entity $post, $related = []) {
         $this->post = $post;
-        $this->authorgroups = $authorgroups;
         return parent::__construct([], $related);
     }
 
@@ -73,28 +72,68 @@ class post extends exporter {
                 'default' => null,
                 'null' => NULL_ALLOWED
             ],
+            'isdeleted' => ['type' => PARAM_BOOL],
+            'haswordcount' => ['type' => PARAM_BOOL],
+            'wordcount' => [
+                'type' => PARAM_INT,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
                     'edit' => ['type' => PARAM_BOOL],
                     'delete' => ['type' => PARAM_BOOL],
                     'split' => ['type' => PARAM_BOOL],
-                    'reply' => ['type' => PARAM_BOOL]
+                    'reply' => ['type' => PARAM_BOOL],
+                    'export' => ['type' => PARAM_BOOL]
                 ]
             ],
             'urls' => [
                 'type' => [
-                    'view' => ['type' => PARAM_URL],
+                    'view' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
                     'viewparent' => [
                         'type' => PARAM_URL,
                         'optional' => true,
                         'default' => null,
                         'null' => NULL_ALLOWED
                     ],
-                    'edit' => ['type' => PARAM_URL],
-                    'delete' => ['type' => PARAM_URL],
-                    'split' => ['type' => PARAM_URL],
-                    'reply' => ['type' => PARAM_URL]
+                    'edit' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'delete' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'split' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'reply' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'export' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
                 ]
             ],
             'attachments' => [
@@ -108,12 +147,42 @@ class post extends exporter {
                     'itemid' => ['type' => PARAM_INT],
                     'urls' => [
                         'type' => [
-                            'file' => ['type' => PARAM_URL]
+                            'file' => ['type' => PARAM_URL],
+                            'export' => [
+                                'type' => PARAM_URL,
+                                'optional' => true,
+                                'default' => null,
+                                'null' => NULL_ALLOWED
+                            ]
                         ]
                     ],
                     'html' => [
                         'type' => [
-                            'icon' => ['type' => PARAM_RAW]
+                            'icon' => ['type' => PARAM_RAW],
+                            'plagiarism' => [
+                                'type' => PARAM_RAW,
+                                'optional' => true,
+                                'default' => null,
+                                'null' => NULL_ALLOWED
+                            ],
+                        ]
+                    ]
+                ]
+            ],
+            'tags' => [
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED,
+                'multiple' => true,
+                'type' => [
+                    'id' => ['type' => PARAM_INT],
+                    'tagid' => ['type' => PARAM_INT],
+                    'isstandard' => ['type' => PARAM_BOOL],
+                    'name' => ['type' => PARAM_TEXT],
+                    'flag' => ['type' => PARAM_BOOL],
+                    'urls' => [
+                        'type' => [
+                            'view' => ['type' => PARAM_URL]
                         ]
                     ]
                 ]
@@ -131,7 +200,7 @@ class post extends exporter {
         global $CFG;
 
         $post = $this->post;
-        $authorgroups = $this->authorgroups;
+        $authorgroups = $this->related['authorgroups'];
         $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
         $author = $post->get_author();
@@ -149,6 +218,7 @@ class post extends exporter {
         $candelete = $capabilitymanager->can_delete_post($user, $discussion, $post);
         $cansplit = $capabilitymanager->can_split_post($user, $discussion, $post);
         $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
+        $canexport = $CFG->enableportfolios && $capabilitymanager->can_export_post($user, $post);
 
         $urlmanager = $this->related['urlmanager'];
         $viewurl = $urlmanager->get_view_post_url_from_post($post);
@@ -157,49 +227,22 @@ class post extends exporter {
         $deleteurl = $urlmanager->get_delete_post_url_from_post($post);
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
+        $exporturl = $urlmanager->get_export_post_url_from_post($post);
 
-        $authorexporter = new author_exporter($author, $authorgroups, $canview, $this->related);
+        $authorexporter = new author_exporter($author, $authorgroups, ($canview && !$isdeleted), $this->related);
         $exportedauthor = $authorexporter->export($output);
 
         if ($canview && !$isdeleted) {
             $subject = $post->get_subject();
             $timecreated = $post->get_time_created();
-            $message = file_rewrite_pluginfile_urls(
-                $post->get_message(),
-                'pluginfile.php',
-                $context->id,
-                'mod_forum',
-                'post',
-                $post->get_id()
-            );
-
-            if (!empty($CFG->enableplagiarism)) {
-                require_once($CFG->libdir . '/plagiarismlib.php');
-                $message .= plagiarism_get_links([
-                    'userid' => $post->get_user_id(),
-                    'content' => $message,
-                    'cmid' => $forum->get_course_module_record()->id,
-                    'course' => $post->get_course_id(),
-                    'forum' => $forum->get_id()
-                ]);
-            }
-
-            $message = format_text(
-                $message,
-                $post->get_message_format(),
-                (object) [
-                    'para' => false,
-                    'trusted' => $post->is_message_trusted(),
-                    'context' => $context
-                ]
-            );
+            $message = $this->get_message($post);
         } else {
             $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden','forum');
             $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden','forum');
             $timecreated = null;
 
             if ($isdeleted) {
-                $exportedauthor['fullname'] = null;
+                $exportedauthor->fullname = null;
             }
         }
 
@@ -213,22 +256,28 @@ class post extends exporter {
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
             'unread' => $readreceiptcollection ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
+            'isdeleted' => $isdeleted,
+            'haswordcount' => $forum->should_display_word_count(),
+            'wordcount' => $forum->should_display_word_count() ? count_words($message) : null,
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
                 'delete' => $candelete,
                 'split' => $cansplit,
-                'reply' => $canreply
+                'reply' => $canreply,
+                'export' => $canexport
             ],
             'urls' => [
-                'view' => $viewurl->out(),
-                'viewparent' => $viewparenturl ? $viewparenturl->out() : null,
-                'edit' => $editurl->out(),
-                'delete' => $deleteurl->out(),
-                'split' => $spliturl->out(),
-                'reply' => $replyurl->out()
+                'view' => $canview ? $viewurl->out(false) : null,
+                'viewparent' => $viewparenturl ? $viewparenturl->out(false) : null,
+                'edit' => $canedit ? $editurl->out(false) : null,
+                'delete' => $candelete ? $deleteurl->out(false) : null,
+                'split' => $cansplit ? $spliturl->out(false) : null,
+                'reply' => $canreply ? $replyurl->out(false) : null,
+                'export' => $canexport && $exporturl ? $exporturl->out(false) : null
             ],
-            'attachments' => $this->get_attachments($post, $output)
+            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
+            'tags' => $isdeleted ? [] : $this->get_tags()
         ];
     }
 
@@ -246,14 +295,67 @@ class post extends exporter {
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
             'user' => 'stdClass',
-            'context' => 'context'
+            'context' => 'context',
+            'authorgroups' => 'stdClass[]',
+            'tags' => '\core_tag_tag[]?'
         ];
     }
 
-    private function get_attachments($post, $output) {
+    private function get_message(post_entity $post) {
+        $message = file_rewrite_pluginfile_urls(
+            $post->get_message(),
+            'pluginfile.php',
+            $context->id,
+            'mod_forum',
+            'post',
+            $post->get_id()
+        );
+
+        if (!empty($CFG->enableplagiarism)) {
+            require_once($CFG->libdir . '/plagiarismlib.php');
+            $message .= plagiarism_get_links([
+                'userid' => $post->get_author()->get_id(),
+                'content' => $message,
+                'cmid' => $forum->get_course_module_record()->id,
+                'course' => $forum->get_course_id(),
+                'forum' => $forum->get_id()
+            ]);
+        }
+
+        $message = format_text(
+            $message,
+            $post->get_message_format(),
+            (object) [
+                'para' => false,
+                'trusted' => $post->is_message_trusted(),
+                'context' => $context
+            ]
+        );
+
+        return $message;
+    }
+
+    private function get_attachments(post_entity $post, renderer_base $output, bool $canexport) {
         global $CFG;
 
-        return array_map(function($attachment) use ($output, $CFG) {
+        $urlmanager = $this->related['urlmanager'];
+        $enableplagiarism = $CFG->enableplagiarism;
+        $wwwroot = $CFG->wwwroot;
+        $forum = $this->related['forum'];
+
+        if ($enableplagiarism) {
+            require_once($CFG->libdir . '/plagiarismlib.php' );
+        }
+
+        return array_map(function($attachment) use (
+            $output,
+            $wwwroot,
+            $enableplagiarism,
+            $canexport,
+            $forum,
+            $post,
+            $urlmanager
+        ) {
             $filename = $attachment->get_filename();
             $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
@@ -267,10 +369,24 @@ class post extends exporter {
                 ['class' => 'icon']
             );
             $fileurl = file_encode_url(
-                $CFG->wwwroot . '/pluginfile.php',
+                $wwwroot . '/pluginfile.php',
                 '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
             );
+            $exporturl = $canexport ? $urlmanager->get_export_attachment_url_from_post_and_attachment($post, $attachment) : null;
             $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
+
+            if ($enableplagiarism) {
+                $plagiarismhtml = plagiarism_get_links([
+                    'userid' => $post->get_author()->get_id(),
+                    'file' => $attachment,
+                    'cmid' => $forum->get_course_module_record()->id,
+                    'course' => $forum->get_course_id(),
+                    'forum' => $forum->get_id()
+                ]);
+            } else {
+                $plagiarismhtml = null;
+            }
+
             return [
                 'filename' => $filename,
                 'mimetype' => $mimetype,
@@ -280,13 +396,36 @@ class post extends exporter {
                 'itemid' => $itemid,
                 'isimage' => $isimage,
                 'urls' => [
-                    'file' => $fileurl
+                    'file' => $fileurl,
+                    'export' => $exporturl ? $exporturl->out(false) : null
                 ],
                 'html' => [
-                    'icon' => $iconhtml
+                    'icon' => $iconhtml,
+                    'plagiarism' => $plagiarismhtml
                 ]
             ];
         }, $post->get_attachments());
+    }
+
+    private function get_tags() {
+        $user = $this->related['user'];
+        $context = $this->related['context'];
+        $capabilitymanager = $this->related['capabilitymanager'];
+        $canmanagetags = $capabilitymanager->can_manage_tags($user);
+
+        return array_values(array_map(function($tag) use ($context, $canmanagetags) {
+            $viewurl = core_tag_tag::make_url($tag->tagcollid, $tag->rawname, 0, $context->id);
+            return [
+                'id' => $tag->taginstanceid,
+                'tagid' => $tag->id,
+                'isstandard' => $tag->isstandard,
+                'displayname' => $tag->get_display_name(),
+                'flag' => $canmanagetags && !empty($tag->flag),
+                'urls' => [
+                    'view' => $viewurl->out(false)
+                ]
+            ];
+        }, $this->related['tags'] ?: []));
     }
 
     private function get_forum_record() {
