@@ -126,16 +126,17 @@ class discussion {
                 'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html() : null
             ]
         ]);
+        $capabilities = (array) $exporteddiscussion['capabilities'];
 
-        if ($exporteddiscussion['capabilities']['subscribe']) {
+        if ($capabilities['subscribe']) {
             $exporteddiscussion['html']['subscribe'] = $this->get_subscription_button_html();
         }
 
-        if ($exporteddiscussion['capabilities']['move']) {
+        if ($capabilities['move']) {
             $exporteddiscussion['html']['movediscussion'] = $this->get_move_discussion_html();
         }
 
-        if ($exporteddiscussion['capabilities']['pin']) {
+        if ($capabilities['pin']) {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html();
         }
 
@@ -197,10 +198,11 @@ class discussion {
                 $count = 0;
                 $candidate->taglist = [
                     'tags' => array_map(function($tag) use ($count, $limit) {
+                        $tag = (array) $tag;
                         $count++;
                         return array_merge($tag, [
                             'name' => $tag['displayname'],
-                            'viewurl' => $tag['urls']['view'],
+                            'viewurl' => ((array) $tag['urls'])['view'],
                             'overlimit' => $count > $limit
                         ]);
                     }, $candidate->tags),

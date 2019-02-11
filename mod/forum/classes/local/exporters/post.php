@@ -145,6 +145,7 @@ class post extends exporter {
                     'component' => ['type' => PARAM_TEXT],
                     'filearea' => ['type' => PARAM_TEXT],
                     'itemid' => ['type' => PARAM_INT],
+                    'isimage' => ['type' => PARAM_BOOL],
                     'urls' => [
                         'type' => [
                             'file' => ['type' => PARAM_URL],
@@ -178,7 +179,7 @@ class post extends exporter {
                     'id' => ['type' => PARAM_INT],
                     'tagid' => ['type' => PARAM_INT],
                     'isstandard' => ['type' => PARAM_BOOL],
-                    'name' => ['type' => PARAM_TEXT],
+                    'displayname' => ['type' => PARAM_TEXT],
                     'flag' => ['type' => PARAM_BOOL],
                     'urls' => [
                         'type' => [
@@ -302,6 +303,7 @@ class post extends exporter {
     }
 
     private function get_message(post_entity $post) {
+        $context = $this->related['context'];
         $message = file_rewrite_pluginfile_urls(
             $post->get_message(),
             'pluginfile.php',
