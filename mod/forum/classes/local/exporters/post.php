@@ -457,7 +457,8 @@ class post extends exporter {
 
     private function get_rating() {
         $rating = $this->related['rating'];
-        $canviewaggregate = $rating->user_can_view_aggregate();
+        $user = $this->related['user'];
+        $canviewaggregate = $rating->user_can_view_aggregate($user->id);
         $ratingmanager = new \rating_manager();
 
         return [
@@ -470,7 +471,7 @@ class post extends exporter {
             'aggregatelabel' => $canviewaggregate ? $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod) : null,
             'count' => $canviewaggregate ? $rating->count : null,
             'capabilities' => [
-                'rate' => $rating->user_can_rate(),
+                'rate' => $rating->user_can_rate($user->id),
                 'viewaggregate' => $canviewaggregate
             ]
         ];

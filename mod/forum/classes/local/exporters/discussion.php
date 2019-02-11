@@ -126,7 +126,7 @@ class discussion extends exporter {
 
         // TODO Group exporter.
         $groupdata = null;
-        if ($discussion->get_group_id() > 0 && $group = $this->related['groupsbyid'][$discussion->get_group_id()]) {
+        if ($discussion->has_group() && $group = $this->related['groupsbyid'][$discussion->get_group_id()]) {
             $groupdata = [
                 'name' => $group->name,
                 'urls' => [],

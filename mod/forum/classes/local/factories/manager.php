@@ -30,6 +30,7 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\managers\url as url_manager;
 use mod_forum\local\managers\event as event_manager;
+use rating_manager;
 
 /**
  * Managers factory.
@@ -56,5 +57,9 @@ class manager {
 
     public function get_event_manager() : event_manager {
         return new event_manager($this->legacydatamapperfactory);
+    }
+
+    public function get_rating_manager() : rating_manager {
+        return new rating_manager();
     }
 }
