@@ -95,7 +95,10 @@ class discussion extends exporter {
             'urls' => [
                 'type' => [
                     'view' => ['type' => PARAM_URL],
-                    'viewlatest' => ['type' => PARAM_URL],
+                    'viewlatest' => [
+                        'optional' => true,
+                        'type' => PARAM_URL
+                    ],
                     'viewfirstunread' => [
                         'optional' => true,
                         'type' => PARAM_URL,

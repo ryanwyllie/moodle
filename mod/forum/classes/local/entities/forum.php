@@ -167,7 +167,7 @@ class forum {
         return $this->introformat;
     }
 
-    public function is_assessed() : bool {
+    public function get_rating_aggregate() : int {
         return $this->assessed;
     }
 

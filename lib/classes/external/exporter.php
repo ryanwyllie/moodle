@@ -485,7 +485,6 @@ abstract class exporter {
                 }
             }
         }
-        print_object($returns);
 
         return new external_single_structure($returns, '', $required, $default);
     }
@@ -565,8 +564,13 @@ abstract class exporter {
             }
 
             if (!empty($definition['multiple'])) {
-                foreach ($record->$property as $key => $value) {
-                    $data->$property[$key] = $this->normalise_exported_data($definition['type'], (object) $record->$property[$key]);
+                if (is_array($record->$property) && empty($record->$property)) {
+                    // An empty array is a valid value for a multiple property.
+                    $data->$property = $record->$property;
+                } else {
+                    foreach ($record->$property as $key => $value) {
+                        $data->$property[$key] = $this->normalise_exported_data($definition['type'], (object) $record->$property[$key]);
+                    }
                 }
                 continue;
             }

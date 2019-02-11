@@ -42,7 +42,7 @@ class forum {
                 'name' => $forum->get_name(),
                 'intro' => $forum->get_intro(),
                 'introformat' => $forum->get_intro_format(),
-                'assessed' => $forum->is_assessed(),
+                'assessed' => $forum->get_rating_aggregate(),
                 'assesstimestart' => $forum->get_assess_time_start(),
                 'assesstimefinish' => $forum->get_assess_time_finish(),
                 'scale' => $forum->get_scale(),
