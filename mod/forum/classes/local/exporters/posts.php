@@ -39,16 +39,19 @@ class posts extends exporter {
     private $posts;
     private $groupsbyauthorid;
     private $tagsbypostid;
+    private $ratingbypostid;
 
     public function __construct(
         array $posts,
         array $groupsbyauthorid = [],
         array $tagsbypostid = [],
+        array $ratingbypostid = [],
         $related = []
     ) {
         $this->posts = $posts;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->tagsbypostid = $tagsbypostid;
+        $this->ratingbypostid = $ratingbypostid;
         return parent::__construct([], $related);
     }
 
@@ -76,8 +79,9 @@ class posts extends exporter {
         $related = $this->related;
         $groupsbyauthorid = $this->groupsbyauthorid;
         $tagsbypostid = $this->tagsbypostid;
+        $ratingbypostid = $this->ratingbypostid;
         $nestedposts = $this->sort_posts_into_replies($this->posts);
-        $exportposts = function($posts) use ($related, $groupsbyauthorid, $tagsbypostid, $output, &$exportposts) {
+        $exportposts = function($posts) use ($related, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, $output, &$exportposts) {
             $exportedposts = [];
 
             foreach ($posts as $record) {
@@ -86,9 +90,11 @@ class posts extends exporter {
                 $postid = $post->get_id();
                 $authorgroups = isset($groupsbyauthorid[$authorid]) ? $groupsbyauthorid[$authorid] : [];
                 $tags = isset($tagsbypostid[$postid]) ? $tagsbypostid[$postid] : [];
+                $rating = isset($ratingbypostid[$postid]) ? $ratingbypostid[$postid] : null;
                 $exporter = new post_exporter($post, array_merge($related, [
                     'authorgroups' => $authorgroups,
-                    'tags' => $tags
+                    'tags' => $tags,
+                    'rating' => $rating
                 ]));
                 $exportedposts[] = $exporter->export($output);
                 $exportedposts = array_merge($exportedposts, $exportposts($replies));

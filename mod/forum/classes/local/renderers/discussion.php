@@ -40,6 +40,7 @@ use core_tag_tag;
 use html_writer;
 use moodle_exception;
 use moodle_url;
+use rating_manager;
 use renderer_base;
 use single_button;
 use single_select;
@@ -165,6 +166,7 @@ class discussion {
         $discussion = $this->discussion;
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
+        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
         $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
@@ -173,7 +175,8 @@ class discussion {
             $posts,
             $groupsbyauthorid,
             $readreceiptcollection,
-            $tagsbypostid
+            $tagsbypostid,
+            $ratingbypostid
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
 
@@ -281,6 +284,32 @@ class discussion {
         }, $posts);
         $vault = $this->vaultfactory->get_post_read_receipt_collection_vault();
         return $vault->get_from_user_id_and_post_ids($user->id, $postids);
+    }
+
+    private function get_ratings_from_posts(stdClass $user, array $posts) {
+        $forum = $this->forum;
+        $postsdatamapper = $this->legacydatamapperfactory->get_post_data_mapper();
+
+        $items = $postsdatamapper->to_legacy_objects($posts);
+        $ratingoptions = (object) [
+            'context' => $forum->get_context(),
+            'component' => 'mod_forum',
+            'ratingarea' => 'post',
+            'items' => $items,
+            'aggregate' => $forum->get_rating_aggregate(),
+            'scaleid' => $forum->get_scale(),
+            'userid' => $user->id,
+            'assesstimestart' => $forum->get_assess_time_start(),
+            'assesstimefinish' => $forum->get_assess_time_finish()
+        ];
+
+        $rm = new rating_manager();
+        $items = $rm->get_ratings($ratingoptions);
+
+        return array_reduce($items, function($carry, $item) {
+            $carry[$item->id] = empty($item->rating) ? null : $item->rating;
+            return $carry;
+        }, []);
     }
 
     /**

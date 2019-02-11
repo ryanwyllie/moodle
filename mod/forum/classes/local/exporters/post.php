@@ -187,6 +187,27 @@ class post extends exporter {
                         ]
                     ]
                 ]
+            ],
+            'rating' => [
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED,
+                'type' => [
+                    'itemid' => ['type' => PARAM_INT],
+                    'scaleid' => ['type' => PARAM_INT],
+                    'userid' => ['type' => PARAM_INT],
+                    'aggregate' => ['type' => PARAM_FLOAT],
+                    'aggregatestr' => ['type' => PARAM_NOTAGS],
+                    'aggregatelabel' => ['type' => PARAM_NOTAGS],
+                    'count' => ['type' => PARAM_INT],
+                    'rating' => ['type' => PARAM_INT],
+                    'capabilities' => [
+                        'type' => [
+                            'rate' => ['type' => PARAM_BOOL],
+                            'viewaggregate' => ['type' => PARAM_BOOL]
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -208,10 +229,12 @@ class post extends exporter {
         $user = $this->related['user'];
         $context = $this->related['context'];
         $readreceiptcollection = $this->related['readreceiptcollection'];
+        $rating = $this->related['rating'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
         $isdeleted = $post->is_deleted();
+        $hasrating = $rating != null;
 
         $capabilitymanager = $this->related['capabilitymanager'];
         $canview = $capabilitymanager->can_view_post($user, $discussion, $post);
@@ -278,7 +301,8 @@ class post extends exporter {
                 'export' => $canexport && $exporturl ? $exporturl->out(false) : null
             ],
             'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
-            'tags' => $isdeleted ? [] : $this->get_tags()
+            'tags' => $isdeleted ? [] : $this->get_tags(),
+            'rating' => (!$isdeleted && $hasrating) ? $this->get_rating() : null
         ];
     }
 
@@ -298,7 +322,8 @@ class post extends exporter {
             'user' => 'stdClass',
             'context' => 'context',
             'authorgroups' => 'stdClass[]',
-            'tags' => '\core_tag_tag[]?'
+            'tags' => '\core_tag_tag[]?',
+            'rating' => 'rating?'
         ];
     }
 
@@ -428,6 +453,27 @@ class post extends exporter {
                 ]
             ];
         }, $this->related['tags'] ?: []));
+    }
+
+    private function get_rating() {
+        $rating = $this->related['rating'];
+        $canviewaggregate = $rating->user_can_view_aggregate();
+        $ratingmanager = new \rating_manager();
+
+        return [
+            'itemid' => $rating->itemid,
+            'scaleid' => $rating->scaleid,
+            'userid' => $rating->userid,
+            'rating' => $rating->rating,
+            'aggregate' => $canviewaggregate ? $rating->aggregate : null,
+            'aggregatestr' => $canviewaggregate ? $rating->get_aggregate_string() : null,
+            'aggregatelabel' => $canviewaggregate ? $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod) : null,
+            'count' => $canviewaggregate ? $rating->count : null,
+            'capabilities' => [
+                'rate' => $rating->user_can_rate(),
+                'viewaggregate' => $canviewaggregate
+            ]
+        ];
     }
 
     private function get_forum_record() {
