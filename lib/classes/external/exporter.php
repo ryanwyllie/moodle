@@ -563,6 +563,11 @@ abstract class exporter {
                 throw new coding_exception('Property defined but not provided: ' . $property);
             }
 
+            if (isset($definition['null']) && $definition['null'] === NULL_ALLOWED && $record->$property === null) {
+                $data->$property = null;
+                continue;
+            }
+
             if (!empty($definition['multiple'])) {
                 if (is_array($record->$property) && empty($record->$property)) {
                     // An empty array is a valid value for a multiple property.
@@ -579,6 +584,7 @@ abstract class exporter {
                 $data->$property = $this->normalise_exported_data($definition['type'], (object) $record->$property);
                 continue;
             }
+
             $data->$property = $record->$property;
             // If the field is PARAM_RAW and has a format field.
             if ($propertyformat = self::get_format_field($properties, $property)) {
@@ -609,7 +615,7 @@ abstract class exporter {
                             $formatparams['striplinks'], $formatparams['options']);
                 }
             } else if ($definition['type'] === PARAM_URL && $data->$property instanceof \moodle_url) {
-                $data->$property = $data->$property->out();
+                $data->$property = $data->$property->out(false);
             }
         }
 
