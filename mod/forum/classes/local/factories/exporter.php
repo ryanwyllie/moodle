@@ -26,6 +26,8 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
+use core_rating\external\rating_exporter;
+use core_rating\external\rating_info_exporter;
 use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
@@ -40,6 +42,7 @@ use mod_forum\local\exporters\discussion_summaries as discussion_summaries_expor
 use mod_forum\local\exporters\post as post_exporter;
 use mod_forum\local\exporters\posts as posts_exporter;
 use context;
+use rating;
 use stdClass;
 
 /**
@@ -96,8 +99,8 @@ class exporter {
      *
      * @return  array
      */
-    public function get_forum_export_structure() : array {
-        return forum_exporter::get_read_structure();
+    public static function get_forum_export_structure() : array {
+        return forum_exporter::read_properties_definition();
     }
 
     /**
@@ -113,7 +116,8 @@ class exporter {
         stdClass $user,
         forum_entity $forum,
         discussion_entity $discussion,
-        array $groupsbyid
+        array $groupsbyid = [],
+        rating $rating = null
     ) : discussion_exporter {
         return new discussion_exporter($discussion, [
             'context' => $forum->get_context(),
@@ -122,8 +126,10 @@ class exporter {
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'user' => $user,
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
+            'exporterfactory' => $this,
             'latestpostid' => null,
             'groupsbyid' => $groupsbyid,
+            'rating' => $rating
         ]);
     }
 
@@ -132,8 +138,8 @@ class exporter {
      *
      * @return  array
      */
-    public function get_discussion_export_structure() {
-        return discussion_exporter::get_read_structure();
+    public static function get_discussion_export_structure() {
+        return discussion_exporter::read_properties_definition();
     }
 
     /**
@@ -182,8 +188,8 @@ class exporter {
      *
      * @return  array
      */
-    public function get_discussion_summaries_export_structure() {
-        return discussion_summaries_exporter::get_read_structure();
+    public static function get_discussion_summaries_export_structure() {
+        return discussion_summaries_exporter::read_properties_definition();
     }
 
     /**
@@ -209,6 +215,7 @@ class exporter {
     ) : posts_exporter {
         return new posts_exporter($posts, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
+            'exporterfactory' => $this,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'forum' => $forum,
@@ -224,7 +231,52 @@ class exporter {
      *
      * @return  array
      */
-    public function get_posts_export_structure() {
-        return posts_exporter::get_read_structure();
+    public static function get_posts_export_structure() {
+        return posts_exporter::read_properties_definition();
+    }
+
+    /**
+     * Construct a new rating exporter for the specified user and rating.
+     *
+     * @param   stdClass        $user The user viewing the forum
+     * @param   rating    $rating The rating to export
+     * @return  rating_exporter
+     */
+    public function get_rating_exporter(
+        stdClass $user,
+        rating $rating
+    ) : rating_exporter {
+        return new rating_exporter($rating, [
+            'user' => $user,
+            'ratingmanager' => $this->managerfactory->get_rating_manager()
+        ]);
+    }
+
+    /**
+     * Fetch the structure of the rating exporter.
+     *
+     * @return  array
+     */
+    public static function get_rating_export_structure() {
+        return rating_exporter::read_properties_definition();
+    }
+
+    /**
+     * Construct a new rating info exporter for the given rating.
+     *
+     * @param   rating    $rating The rating to export
+     * @return  rating_info_exporter
+     */
+    public function get_rating_info_exporter_from_rating(rating $rating) : rating_info_exporter {
+        return new rating_info_exporter($rating->settings, []);
+    }
+
+    /**
+     * Fetch the structure of the rating info exporter.
+     *
+     * @return  array
+     */
+    public static function get_rating_info_export_structure() {
+        return rating_info_exporter::read_properties_definition();
     }
 }

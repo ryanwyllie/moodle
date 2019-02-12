@@ -41,6 +41,7 @@ use html_writer;
 use moodle_exception;
 use moodle_page;
 use moodle_url;
+use rating;
 use rating_manager;
 use renderer_base;
 use single_button;
@@ -112,11 +113,11 @@ class discussion {
         }
 
         $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
-        $ratinginfo = null;
+        $rating = null;
 
         if (!empty($ratingbypostid)) {
             $this->ratingmanager->initialise_rating_javascript($this->page);
-            $ratinginfo = (array_values($ratingbypostid))[0]->settings;
+            $rating = (array_values($ratingbypostid))[0];
         }
 
         $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid);
@@ -129,7 +130,7 @@ class discussion {
             return $exportedpost;
         }, $nestedposts);
 
-        $exporteddiscussion = $this->get_exported_discussion($user, $ratinginfo);
+        $exporteddiscussion = $this->get_exported_discussion($user, $rating);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'posts' => $nestedposts,
@@ -339,12 +340,13 @@ class discussion {
         return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
     }
 
-    private function get_exported_discussion(stdClass $user, stdClass $ratinginfo) : array {
+    private function get_exported_discussion(stdClass $user, rating $rating) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $user,
             $this->forum,
             $this->discussion,
-            $this->get_groups_available_in_forum()
+            $this->get_groups_available_in_forum(),
+            $rating
         );
 
         return (array) $discussionexporter->export($this->renderer);
