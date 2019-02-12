@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\exporters\author as author_exporter;
+use mod_forum\local\factories\exporter as exporter_factory;
 use core\external\exporter;
 use context;
 use core_tag_tag;
@@ -192,22 +193,7 @@ class post extends exporter {
                 'optional' => true,
                 'default' => null,
                 'null' => NULL_ALLOWED,
-                'type' => [
-                    'itemid' => ['type' => PARAM_INT],
-                    'scaleid' => ['type' => PARAM_INT],
-                    'userid' => ['type' => PARAM_INT],
-                    'aggregate' => ['type' => PARAM_FLOAT],
-                    'aggregatestr' => ['type' => PARAM_NOTAGS],
-                    'aggregatelabel' => ['type' => PARAM_NOTAGS],
-                    'count' => ['type' => PARAM_INT],
-                    'rating' => ['type' => PARAM_INT],
-                    'capabilities' => [
-                        'type' => [
-                            'rate' => ['type' => PARAM_BOOL],
-                            'viewaggregate' => ['type' => PARAM_BOOL]
-                        ]
-                    ]
-                ]
+                'type' => exporter_factory::get_rating_export_structure()
             ]
         ];
     }
@@ -302,7 +288,7 @@ class post extends exporter {
             ],
             'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
             'tags' => $isdeleted ? [] : $this->get_tags(),
-            'rating' => (!$isdeleted && $hasrating) ? $this->get_rating() : null
+            'rating' => (!$isdeleted && $hasrating) ? $this->get_rating($output) : null
         ];
     }
 
@@ -314,6 +300,7 @@ class post extends exporter {
     protected static function define_related() {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
+            'exporterfactory' => 'mod_forum\local\factories\exporter',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection?',
             'urlmanager' => 'mod_forum\local\managers\url',
@@ -455,26 +442,11 @@ class post extends exporter {
         }, $this->related['tags'] ?: []));
     }
 
-    private function get_rating() {
+    private function get_rating(renderer_base $rendererbase) {
         $rating = $this->related['rating'];
         $user = $this->related['user'];
-        $canviewaggregate = $rating->user_can_view_aggregate($user->id);
-        $ratingmanager = new \rating_manager();
-
-        return [
-            'itemid' => $rating->itemid,
-            'scaleid' => $rating->scaleid,
-            'userid' => $rating->userid,
-            'rating' => $rating->rating,
-            'aggregate' => $canviewaggregate ? $rating->aggregate : null,
-            'aggregatestr' => $canviewaggregate ? $rating->get_aggregate_string() : null,
-            'aggregatelabel' => $canviewaggregate ? $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod) : null,
-            'count' => $canviewaggregate ? $rating->count : null,
-            'capabilities' => [
-                'rate' => $rating->user_can_rate($user->id),
-                'viewaggregate' => $canviewaggregate
-            ]
-        ];
+        $ratingexporter = $this->related['exporterfactory']->get_rating_exporter($user, $rating);
+        return $ratingexporter->export($rendererbase);
     }
 
     private function get_forum_record() {

@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\exporters\post as post_exporter;
+use mod_forum\local\factories\exporter as exporter_factory;
 use core\external\exporter;
 use renderer_base;
 
@@ -106,6 +107,12 @@ class discussion extends exporter {
                     'markasread' => ['type' => PARAM_URL],
                 ],
             ],
+            'ratinginfo' => [
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED,
+                'type' => exporter_factory::get_rating_info_export_structure()
+            ]
         ];
     }
 
@@ -172,6 +179,7 @@ class discussion extends exporter {
                 'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
                 'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
             ],
+            'ratinginfo' => $this->export_rating_info($output)
         ];
 
         if (!empty($this->related['latestpostid'])) {
@@ -193,6 +201,17 @@ class discussion extends exporter {
         return $forumdbdatamapper->to_legacy_object($this->related['forum']);
     }
 
+    private function export_rating_info(renderer_base $rendererbase) {
+        $rating = $this->related['rating'];
+
+        if (empty($rating)) {
+            return null;
+        }
+
+        $ratinginfoexporter = $this->related['exporterfactory']->get_rating_info_exporter_from_rating($rating);
+        return $ratinginfoexporter->export($rendererbase);
+    }
+
     /**
      * Returns a list of objects that are related.
      *
@@ -201,6 +220,7 @@ class discussion extends exporter {
     protected static function define_related() {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
+            'exporterfactory' => 'mod_forum\local\factories\exporter',
             'context' => 'context',
             'forum' => 'mod_forum\local\entities\forum',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
@@ -208,6 +228,7 @@ class discussion extends exporter {
             'user' => 'stdClass',
             'groupsbyid' => 'stdClass[]',
             'latestpostid' => 'int?',
+            'rating' => '\rating?',
         ];
     }
 }
