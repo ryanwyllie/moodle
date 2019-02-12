@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
+use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
@@ -100,7 +101,12 @@ class discussion {
         $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
-    public function render(stdClass $user, int $displaymode, array $posts) : string {
+    public function render(
+        stdClass $user,
+        int $displaymode,
+        array $posts,
+        ?read_receipt_collection_entity $readreceiptcollection
+    ) : string {
         global $CFG;
 
         $capabilitymanager = $this->capabilitymanager;
@@ -112,7 +118,7 @@ class discussion {
         }
 
         $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
-        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid);
+        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid, $readreceiptcollection);
         $nestedposts = array_map(function($exportedpost) use ($forum) {
             if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
                 // Remove the author from any posts
@@ -167,14 +173,17 @@ class discussion {
         }
     }
 
-    private function get_exported_posts(stdClass $user, int $displaymode, array $posts, array $ratingbypostid = null) : array {
+    private function get_exported_posts(
+        stdClass $user,
+        int $displaymode,
+        array $posts,
+        ?array $ratingbypostid,
+        ?read_receipt_collection_entity $readreceiptcollection
+    ) : array {
         $forum = $this->forum;
-        $forumrecord = $this->forumrecord;
-        $istracked = forum_tp_is_tracked($forumrecord, $user);
         $discussion = $this->discussion;
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
-        $readreceiptcollection = $istracked ? $this->get_read_receipt_collection_for_posts($user, $posts) : null;
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $forum,
@@ -259,14 +268,6 @@ class discussion {
             return $post->get_id();
         }, $posts);
         return core_tag_tag::get_items_tags('mod_forum', 'forum_posts', $postids);
-    }
-
-    private function get_read_receipt_collection_for_posts(stdClass $user, array $posts) {
-        $postids = array_map(function($post) {
-            return $post->get_id();
-        }, $posts);
-        $vault = $this->vaultfactory->get_post_read_receipt_collection_vault();
-        return $vault->get_from_user_id_and_post_ids($user->id, $postids);
     }
 
     private function get_ratings_from_posts(stdClass $user, array $posts) {

@@ -50,7 +50,6 @@ if (!$discussion) {
 
 $forumvault = $vaultfactory->get_forum_vault();
 $forum = $forumvault->get_from_id($discussion->get_forum_id());
-$course = $forum->get_course_record();
 
 if (!$forum) {
     throw new \moodle_exception('Unable to find forum with id ' . $discussion->get_forum_id());
@@ -64,6 +63,7 @@ if (!$capabilitymanager->can_view_discussions($USER)) {
     throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
 }
 
+$course = $forum->get_course_record();
 $cm = $forum->get_course_module_record();
 
 require_course_login($course, true, $cm);
@@ -108,10 +108,38 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 echo $OUTPUT->heading(format_string($discussion->get_name()), 3, 'discussionname');
 
+$datamapperfactory = mod_forum\local\container::get_legacy_data_mapper_factory();
+$forumdatamapper = $datamapperfactory->get_forum_data_mapper();
+$forumrecord = $forumdatamapper->to_legacy_object($forum);
+$istracked = forum_tp_is_tracked($forumrecord, $USER);
+
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion);
 $orderpostsby = $displaymode == FORUM_MODE_FLATNEWEST ? 'created DESC' : 'created ASC';
 $posts = $postvault->get_from_discussion_id($discussion->get_id(), $orderpostsby);
+$postids = array_map(function($post) {
+    return $post->get_id();
+}, $posts);
 
-echo $discussionrenderer->render($USER, $displaymode, $posts);
+if ($istracked) {
+    $readreceiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
+    $readreceiptcollection = $readreceiptvault->get_from_user_id_and_post_ids($user->id, $postids);
+} else {
+    $readreceiptcollection = null;
+}
+
+echo $discussionrenderer->render($USER, $displaymode, $posts, $readreceiptcollection);
 echo $OUTPUT->footer();
+
+if ($istracked && !$CFG->forum_usermarksread) {
+    $unreadpostids = array_reduce($posts, function($carry, $post) use ($USER, $readreceiptcollection) {
+        if ($readreceiptcollection->has_user_read_post($USER, $post)) {
+            $carry[] = $post->get_id();
+        }
+        return $carry;
+    }, []);
+
+    if (!empty($unreadpostids)) {
+        forum_tp_mark_posts_read($user, $unreadpostids);
+    }
+}
