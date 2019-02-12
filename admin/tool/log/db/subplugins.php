@@ -22,4 +22,5 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$subplugins = array('logstore' => 'admin/tool/log/store');
+// TODO: Remove this compatibility layer in a follow up issue.
+$subplugins = (array) json_decode(file_get_contents(__DIR__ . "/subplugins.json"));

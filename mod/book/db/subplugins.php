@@ -24,6 +24,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$subplugins = array(
-    'booktool'       => 'mod/book/tool',
-);
+// TODO: Remove this compatibility layer in a follow up issue.
+$subplugins = (array) json_decode(file_get_contents(__DIR__ . "/subplugins.json"));

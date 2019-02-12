@@ -25,8 +25,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$subplugins = array(
-                    'workshopform'       => 'mod/workshop/form',
-                    'workshopallocation' => 'mod/workshop/allocation',
-                    'workshopeval'       => 'mod/workshop/eval',
-                    );
+// TODO: Remove this compatibility layer in a follow up issue.
+$subplugins = (array) json_decode(file_get_contents(__DIR__ . "/subplugins.json"));

@@ -24,7 +24,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$subplugins = array(
-    'ltisource' => 'mod/lti/source',
-    'ltiservice' => 'mod/lti/service'
-);
+// TODO: Remove this compatibility layer in a follow up issue.
+$subplugins = (array) json_decode(file_get_contents(__DIR__ . "/subplugins.json"));
