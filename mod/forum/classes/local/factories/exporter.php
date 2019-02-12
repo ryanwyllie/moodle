@@ -126,10 +126,8 @@ class exporter {
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'user' => $user,
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
-            'exporterfactory' => $this,
             'latestpostid' => null,
-            'groupsbyid' => $groupsbyid,
-            'rating' => $rating
+            'groupsbyid' => $groupsbyid
         ]);
     }
 
@@ -215,7 +213,6 @@ class exporter {
     ) : posts_exporter {
         return new posts_exporter($posts, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
-            'exporterfactory' => $this,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
             'forum' => $forum,
@@ -233,50 +230,5 @@ class exporter {
      */
     public static function get_posts_export_structure() {
         return posts_exporter::read_properties_definition();
-    }
-
-    /**
-     * Construct a new rating exporter for the specified user and rating.
-     *
-     * @param   stdClass        $user The user viewing the forum
-     * @param   rating    $rating The rating to export
-     * @return  rating_exporter
-     */
-    public function get_rating_exporter(
-        stdClass $user,
-        rating $rating
-    ) : rating_exporter {
-        return new rating_exporter($rating, [
-            'user' => $user,
-            'ratingmanager' => $this->managerfactory->get_rating_manager()
-        ]);
-    }
-
-    /**
-     * Fetch the structure of the rating exporter.
-     *
-     * @return  array
-     */
-    public static function get_rating_export_structure() {
-        return rating_exporter::read_properties_definition();
-    }
-
-    /**
-     * Construct a new rating settings exporter for the given rating.
-     *
-     * @param   rating    $rating The rating to export
-     * @return  rating_info_exporter
-     */
-    public function get_rating_settings_exporter_from_rating(rating $rating) : rating_settings_exporter {
-        return new rating_settings_exporter($rating->settings, []);
-    }
-
-    /**
-     * Fetch the structure of the rating settings exporter.
-     *
-     * @return  array
-     */
-    public static function get_rating_settings_export_structure() {
-        return rating_settings_exporter::read_properties_definition();
     }
 }

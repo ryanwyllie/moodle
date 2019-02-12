@@ -41,7 +41,6 @@ use html_writer;
 use moodle_exception;
 use moodle_page;
 use moodle_url;
-use rating;
 use rating_manager;
 use renderer_base;
 use single_button;
@@ -113,13 +112,6 @@ class discussion {
         }
 
         $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
-        $rating = null;
-
-        if (!empty($ratingbypostid)) {
-            $this->ratingmanager->initialise_rating_javascript($this->page);
-            $rating = (array_values($ratingbypostid))[0];
-        }
-
         $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid);
         $nestedposts = array_map(function($exportedpost) use ($forum) {
             if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
@@ -130,7 +122,7 @@ class discussion {
             return $exportedpost;
         }, $nestedposts);
 
-        $exporteddiscussion = $this->get_exported_discussion($user, $rating);
+        $exporteddiscussion = $this->get_exported_discussion($user);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'posts' => $nestedposts,
@@ -206,30 +198,6 @@ class discussion {
             if (!$seenfirstunread && $candidate->unread) {
                 $candidate->isfirstunread = true;
                 $seenfirstunread = true;
-            }
-
-            // We have to do some magic with tags here to convert them into a format
-            // that the taglist template is expecting.
-            $tagcount = count($candidate->tags);
-            if ($tagcount > 0) {
-                $limit = 10;
-                $count = 0;
-                $candidate->taglist = [
-                    'tags' => array_map(function($tag) use ($count, $limit) {
-                        $tag = (array) $tag;
-                        $count++;
-                        return array_merge($tag, [
-                            'name' => $tag['displayname'],
-                            'viewurl' => ((array) $tag['urls'])['view'],
-                            'overlimit' => $count > $limit
-                        ]);
-                    }, $candidate->tags),
-                    'label' => get_string('tags', 'core'),
-                    'tagscount' => $tagcount,
-                    'overflow' => ($tagcount > 10)
-                ];
-            } else {
-                $candidate->taglist = null;
             }
 
             if (empty($unsorted)) {
@@ -340,13 +308,12 @@ class discussion {
         return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
     }
 
-    private function get_exported_discussion(stdClass $user, rating $rating) : array {
+    private function get_exported_discussion(stdClass $user) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $user,
             $this->forum,
             $this->discussion,
-            $this->get_groups_available_in_forum(),
-            $rating
+            $this->get_groups_available_in_forum()
         );
 
         return (array) $discussionexporter->export($this->renderer);

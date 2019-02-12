@@ -76,7 +76,7 @@ class forum {
         string $name,
         string $intro,
         int $introformat,
-        bool $assessed,
+        int $assessed,
         int $assesstimestart,
         int $assesstimefinish,
         int $scale,

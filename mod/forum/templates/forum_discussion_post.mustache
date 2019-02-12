@@ -88,9 +88,7 @@
                     {{/isimage}}
                 {{/attachments}}
 
-                {{#taglist}}
-                    {{> core_tag/taglist }}
-                {{/taglist}}
+                {{{html.taglist}}}
 
                 {{#attachments}}
                     {{^isimage}}
@@ -107,6 +105,10 @@
                         </div>
                     {{/isimage}}
                 {{/attachments}}
+
+                {{#html.rating}}
+                    <div class="mt-2">{{{.}}}</div>
+                {{/html.rating}}
 
                 <div class="d-flex justify-content-end">
                     {{#capabilities}}

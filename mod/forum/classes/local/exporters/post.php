@@ -189,11 +189,24 @@ class post extends exporter {
                     ]
                 ]
             ],
-            'rating' => [
+            'html' => [
                 'optional' => true,
                 'default' => null,
                 'null' => NULL_ALLOWED,
-                'type' => exporter_factory::get_rating_export_structure()
+                'type' => [
+                    'rating' => [
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED,
+                        'type' => PARAM_RAW
+                    ],
+                    'taglist' => [
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED,
+                        'type' => PARAM_RAW
+                    ]
+                ]
             ]
         ];
     }
@@ -216,11 +229,13 @@ class post extends exporter {
         $context = $this->related['context'];
         $readreceiptcollection = $this->related['readreceiptcollection'];
         $rating = $this->related['rating'];
+        $tags = $this->related['tags'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
         $isdeleted = $post->is_deleted();
         $hasrating = $rating != null;
+        $hastags = !empty($tags);
 
         $capabilitymanager = $this->related['capabilitymanager'];
         $canview = $capabilitymanager->can_view_post($user, $discussion, $post);
@@ -287,8 +302,11 @@ class post extends exporter {
                 'export' => $canexport && $exporturl ? $exporturl->out(false) : null
             ],
             'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
-            'tags' => $isdeleted ? [] : $this->get_tags(),
-            'rating' => (!$isdeleted && $hasrating) ? $this->get_rating($output) : null
+            'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
+            'html' => [
+                'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
+                'taglist' => (!$isdeleted && $hastags) ? $output->tag_list($tags) : null,
+            ]
         ];
     }
 
@@ -300,7 +318,6 @@ class post extends exporter {
     protected static function define_related() {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
-            'exporterfactory' => 'mod_forum\local\factories\exporter',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection?',
             'urlmanager' => 'mod_forum\local\managers\url',
@@ -421,7 +438,7 @@ class post extends exporter {
         }, $post->get_attachments());
     }
 
-    private function get_tags() {
+    private function get_tags(array $tags) {
         $user = $this->related['user'];
         $context = $this->related['context'];
         $capabilitymanager = $this->related['capabilitymanager'];
@@ -439,14 +456,7 @@ class post extends exporter {
                     'view' => $viewurl->out(false)
                 ]
             ];
-        }, $this->related['tags'] ?: []));
-    }
-
-    private function get_rating(renderer_base $rendererbase) {
-        $rating = $this->related['rating'];
-        $user = $this->related['user'];
-        $ratingexporter = $this->related['exporterfactory']->get_rating_exporter($user, $rating);
-        return $ratingexporter->export($rendererbase);
+        }, $tags));
     }
 
     private function get_forum_record() {

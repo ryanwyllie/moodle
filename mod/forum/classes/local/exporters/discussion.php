@@ -106,12 +106,6 @@ class discussion extends exporter {
                     ],
                     'markasread' => ['type' => PARAM_URL],
                 ],
-            ],
-            'ratingsettings' => [
-                'optional' => true,
-                'default' => null,
-                'null' => NULL_ALLOWED,
-                'type' => exporter_factory::get_rating_settings_export_structure()
             ]
         ];
     }
@@ -178,8 +172,7 @@ class discussion extends exporter {
                 'view' => $urlmanager->get_discussion_view_url_from_discussion($discussion),
                 'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
                 'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
-            ],
-            'ratingsettings' => $this->export_rating_settings($output)
+            ]
         ];
 
         if (!empty($this->related['latestpostid'])) {
@@ -201,17 +194,6 @@ class discussion extends exporter {
         return $forumdbdatamapper->to_legacy_object($this->related['forum']);
     }
 
-    private function export_rating_settings(renderer_base $rendererbase) {
-        $rating = $this->related['rating'];
-
-        if (empty($rating)) {
-            return null;
-        }
-
-        $ratingsettingsexporter = $this->related['exporterfactory']->get_rating_settings_exporter_from_rating($rating);
-        return $ratingsettingsexporter->export($rendererbase);
-    }
-
     /**
      * Returns a list of objects that are related.
      *
@@ -220,15 +202,13 @@ class discussion extends exporter {
     protected static function define_related() {
         return [
             'legacydatamapperfactory' => 'mod_forum\local\factories\legacy_data_mapper',
-            'exporterfactory' => 'mod_forum\local\factories\exporter',
             'context' => 'context',
             'forum' => 'mod_forum\local\entities\forum',
             'capabilitymanager' => 'mod_forum\local\managers\capability',
             'urlmanager' => 'mod_forum\local\managers\url',
             'user' => 'stdClass',
             'groupsbyid' => 'stdClass[]',
-            'latestpostid' => 'int?',
-            'rating' => '\rating?',
+            'latestpostid' => 'int?'
         ];
     }
 }
