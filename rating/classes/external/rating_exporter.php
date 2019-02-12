@@ -53,6 +53,10 @@ class rating_exporter extends \core\external\exporter {
             'scaleid' => ['type' => PARAM_INT],
             'userid' => ['type' => PARAM_INT],
             'rating' => ['type' => PARAM_INT],
+            'contextid' => ['type' => PARAM_INT],
+            'component' => ['type' => PARAM_COMPONENT],
+            'ratingarea' => ['type' => PARAM_NOTAGS],
+            'itemuserid' => ['type' => PARAM_INT],
             'aggregate' => [
                 'type' => PARAM_FLOAT,
                 'optional' => true,
@@ -80,7 +84,14 @@ class rating_exporter extends \core\external\exporter {
             'capabilities' => [
                 'type' => [
                     'rate' => ['type' => PARAM_BOOL],
-                    'viewaggregate' => ['type' => PARAM_BOOL]
+                    'viewaggregate' => ['type' => PARAM_BOOL],
+                    'viewall' => ['type' => PARAM_BOOL]
+                ]
+            ],
+            'urls' => [
+                'type' => [
+                    'viewall' => ['type' => PARAM_URL],
+                    'viewallpopup' => ['type' => PARAM_URL]
                 ]
             ]
         ];
@@ -97,13 +108,23 @@ class rating_exporter extends \core\external\exporter {
             'scaleid' => $rating->scaleid,
             'userid' => $rating->userid,
             'rating' => $rating->rating,
+            'contextid' => $rating->context->id,
+            'component' => $rating->component,
+            'ratingarea' => $rating->ratingarea,
+            'itemuserid' => $rating->itemuserid,
             'aggregate' => $canviewaggregate ? $rating->aggregate : null,
             'aggregatestr' => $canviewaggregate ? $rating->get_aggregate_string() : null,
             'aggregatelabel' => $canviewaggregate ? $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod) : null,
             'count' => $canviewaggregate ? $rating->count : null,
             'capabilities' => [
                 'rate' => $rating->user_can_rate($user->id),
-                'viewaggregate' => $canviewaggregate
+                'viewaggregate' => $canviewaggregate,
+                'viewall' => $rating->settings->permissions->viewall && $rating->settings->pluginpermissions->viewall,
+            ],
+            'urls' => [
+                'rate' => $rating->get_rate_url()->out_omit_querystring(),
+                'viewall' => $rating->get_view_ratings_url(false)->out(false),
+                'viewallpopup' => $rating->get_view_ratings_url(true)->out(false)
             ]
         ];
     }
