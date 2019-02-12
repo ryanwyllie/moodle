@@ -27,7 +27,7 @@ namespace mod_forum\local\factories;
 defined('MOODLE_INTERNAL') || die();
 
 use core_rating\external\rating_exporter;
-use core_rating\external\rating_info_exporter;
+use core_rating\external\rating_settings_exporter;
 use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
@@ -262,21 +262,21 @@ class exporter {
     }
 
     /**
-     * Construct a new rating info exporter for the given rating.
+     * Construct a new rating settings exporter for the given rating.
      *
      * @param   rating    $rating The rating to export
      * @return  rating_info_exporter
      */
-    public function get_rating_info_exporter_from_rating(rating $rating) : rating_info_exporter {
-        return new rating_info_exporter($rating->settings, []);
+    public function get_rating_settings_exporter_from_rating(rating $rating) : rating_settings_exporter {
+        return new rating_settings_exporter($rating->settings, []);
     }
 
     /**
-     * Fetch the structure of the rating info exporter.
+     * Fetch the structure of the rating settings exporter.
      *
      * @return  array
      */
-    public static function get_rating_info_export_structure() {
-        return rating_info_exporter::read_properties_definition();
+    public static function get_rating_settings_export_structure() {
+        return rating_settings_exporter::read_properties_definition();
     }
 }

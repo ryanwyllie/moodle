@@ -107,11 +107,11 @@ class discussion extends exporter {
                     'markasread' => ['type' => PARAM_URL],
                 ],
             ],
-            'ratinginfo' => [
+            'ratingsettings' => [
                 'optional' => true,
                 'default' => null,
                 'null' => NULL_ALLOWED,
-                'type' => exporter_factory::get_rating_info_export_structure()
+                'type' => exporter_factory::get_rating_settings_export_structure()
             ]
         ];
     }
@@ -179,7 +179,7 @@ class discussion extends exporter {
                 'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
                 'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
             ],
-            'ratinginfo' => $this->export_rating_info($output)
+            'ratingsettings' => $this->export_rating_settings($output)
         ];
 
         if (!empty($this->related['latestpostid'])) {
@@ -201,15 +201,15 @@ class discussion extends exporter {
         return $forumdbdatamapper->to_legacy_object($this->related['forum']);
     }
 
-    private function export_rating_info(renderer_base $rendererbase) {
+    private function export_rating_settings(renderer_base $rendererbase) {
         $rating = $this->related['rating'];
 
         if (empty($rating)) {
             return null;
         }
 
-        $ratinginfoexporter = $this->related['exporterfactory']->get_rating_info_exporter_from_rating($rating);
-        return $ratinginfoexporter->export($rendererbase);
+        $ratingsettingsexporter = $this->related['exporterfactory']->get_rating_settings_exporter_from_rating($rating);
+        return $ratingsettingsexporter->export($rendererbase);
     }
 
     /**

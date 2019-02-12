@@ -27,21 +27,22 @@ use renderer_base;
 use stdClass;
 
 /**
- * Class for exporting rating information from an stdClass.
+ * Class for exporting rating settings from an stdClass.
  *
  * @copyright  2019 Ryan Wyllie
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class rating_info_exporter extends \core\external\exporter {
-    private $ratinginfo;
+class rating_settings_exporter extends \core\external\exporter {
+    private $ratingsettings;
 
-    public function __construct(stdClass $ratinginfo, $related = []) {
-        $this->ratinginfo = $ratinginfo;
+    public function __construct(stdClass $ratingsettings, $related = []) {
+        $this->ratingsettings = $ratingsettings;
         return parent::__construct([], $related);
     }
 
     public static function define_other_properties() {
         return [
+            'aggregationmethod' => ['type' => PARAM_INT],
             'capabilities' => [
                 'type' => [
                     'view' => ['type' => PARAM_BOOL],
@@ -74,10 +75,10 @@ class rating_info_exporter extends \core\external\exporter {
     }
 
     protected function get_other_values(renderer_base $output) {
-        $ratinginfo = $this->ratinginfo;
-        $permissions = $ratinginfo->permissions;
-        $pluginpermissions = $ratinginfo->pluginpermissions;
-        $scale = $ratinginfo->scale;
+        $ratingsettings = $this->ratingsettings;
+        $permissions = $ratingsettings->permissions;
+        $pluginpermissions = $ratingsettings->pluginpermissions;
+        $scale = $ratingsettings->scale;
         $exportedscaleitems = [];
 
         foreach ($scale->scaleitems as $key => $value) {
@@ -88,6 +89,7 @@ class rating_info_exporter extends \core\external\exporter {
         }
 
         return [
+            'aggregationmethod' => $ratingsettings->aggregationmethod,
             'capabilities' => [
                 'view' => $permissions->view && $pluginpermissions->view,
                 'viewany' => $permissions->viewany && $pluginpermissions->viewany,
