@@ -35,6 +35,8 @@ use moodle_url;
 use stored_file;
 use user_picture;
 
+require_once($CFG->dirroot . '/mod/forum/lib.php');
+
 /**
  * A URL manager for the forum.
  *
@@ -168,6 +170,42 @@ class url {
 
         $url = $button->to_html(PORTFOLIO_ADD_MOODLE_URL);
         return $url ?: null;
+    }
+
+    public function get_mark_post_as_read_url_from_post(post_entity $post, int $displaymode = FORUM_MODE_THREADED) : moodle_url {
+        $params = [
+            'd' => $post->get_discussion_id(),
+            'postid' => $post->get_id(),
+            'mark' => 'read'
+        ];
+
+        $url = new moodle_url('/mod/forum/discuss.php', $params);
+
+        if ($displaymode == FORUM_MODE_THREADED) {
+            $url->param('parent', $post->get_parent_id());
+        } else {
+            $url->set_anchor('p' . $post->get_id());
+        }
+
+        return $url;
+    }
+
+    public function get_mark_post_as_unread_url_from_post(post_entity $post, int $displaymode = FORUM_MODE_THREADED) : moodle_url {
+        $params = [
+            'd' => $post->get_discussion_id(),
+            'postid' => $post->get_id(),
+            'mark' => 'unread'
+        ];
+
+        $url = new moodle_url('/mod/forum/discuss.php', $params);
+
+        if ($displaymode == FORUM_MODE_THREADED) {
+            $url->param('parent', $post->get_parent_id());
+        } else {
+            $url->set_anchor('p' . $post->get_id());
+        }
+
+        return $url;
     }
 
     public function get_export_attachment_url_from_post_and_attachment(post_entity $post, stored_file $attachment) : ?moodle_url {

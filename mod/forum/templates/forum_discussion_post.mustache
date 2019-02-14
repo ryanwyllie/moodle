@@ -117,6 +117,18 @@
                                 {{#str}} permalink, mod_forum {{/str}}
                             </a>
                         {{/view}}
+                        {{#controlreadstatus}}
+                            {{#unread}}
+                                <a href="{{{urls.markasread}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} markread, mod_forum {{/str}}
+                                </a>
+                            {{/unread}}
+                            {{^unread}}
+                                <a href="{{{urls.markasunread}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} markunread, mod_forum {{/str}}
+                                </a>
+                            {{/unread}}
+                        {{/controlreadstatus}}
                         {{#urls.viewparent}}
                             <a href="{{{.}}}" class="btn btn-link btn-icon icon-size-3">
                                 {{#str}} parent, mod_forum {{/str}}

@@ -123,7 +123,7 @@ $postids = array_map(function($post) {
 
 if ($istracked) {
     $readreceiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
-    $readreceiptcollection = $readreceiptvault->get_from_user_id_and_post_ids($user->id, $postids);
+    $readreceiptcollection = $readreceiptvault->get_from_user_id_and_post_ids($USER->id, $postids);
 } else {
     $readreceiptcollection = null;
 }

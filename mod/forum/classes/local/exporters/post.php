@@ -88,10 +88,14 @@ class post extends exporter {
                     'delete' => ['type' => PARAM_BOOL],
                     'split' => ['type' => PARAM_BOOL],
                     'reply' => ['type' => PARAM_BOOL],
-                    'export' => ['type' => PARAM_BOOL]
+                    'export' => ['type' => PARAM_BOOL],
+                    'controlreadstatus' => ['type' => PARAM_BOOL]
                 ]
             ],
             'urls' => [
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED,
                 'type' => [
                     'view' => [
                         'type' => PARAM_URL,
@@ -135,6 +139,18 @@ class post extends exporter {
                         'default' => null,
                         'null' => NULL_ALLOWED
                     ],
+                    'markasread' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'markasunread' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ]
                 ]
             ],
             'attachments' => [
@@ -243,7 +259,8 @@ class post extends exporter {
         $candelete = $capabilitymanager->can_delete_post($user, $discussion, $post);
         $cansplit = $capabilitymanager->can_split_post($user, $discussion, $post);
         $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
-        $canexport = $CFG->enableportfolios && $capabilitymanager->can_export_post($user, $post);
+        $canexport = $capabilitymanager->can_export_post($user, $post);
+        $cancontrolreadstatus = $capabilitymanager->can_manually_control_post_read_status($user);
 
         $urlmanager = $this->related['urlmanager'];
         $viewurl = $urlmanager->get_view_post_url_from_post($post);
@@ -253,6 +270,8 @@ class post extends exporter {
         $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
         $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
         $exporturl = $urlmanager->get_export_post_url_from_post($post);
+        $markasreadurl = $urlmanager->get_mark_post_as_read_url_from_post($post);
+        $markasunreadurl = $urlmanager->get_mark_post_as_unread_url_from_post($post);
 
         $authorexporter = new author_exporter($author, $authorgroups, ($canview && !$isdeleted), $this->related);
         $exportedauthor = $authorexporter->export($output);
@@ -290,7 +309,8 @@ class post extends exporter {
                 'delete' => $candelete,
                 'split' => $cansplit,
                 'reply' => $canreply,
-                'export' => $canexport
+                'export' => $canexport,
+                'controlreadstatus' => $cancontrolreadstatus
             ],
             'urls' => [
                 'view' => $canview ? $viewurl->out(false) : null,
@@ -299,7 +319,9 @@ class post extends exporter {
                 'delete' => $candelete ? $deleteurl->out(false) : null,
                 'split' => $cansplit ? $spliturl->out(false) : null,
                 'reply' => $canreply ? $replyurl->out(false) : null,
-                'export' => $canexport && $exporturl ? $exporturl->out(false) : null
+                'export' => $canexport && $exporturl ? $exporturl->out(false) : null,
+                'markasread' => $cancontrolreadstatus ? $markasreadurl->out(false) : null,
+                'markasunread' => $cancontrolreadstatus ? $markasunreadurl->out(false) : null,
             ],
             'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
             'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
