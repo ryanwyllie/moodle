@@ -118,6 +118,7 @@ abstract class exporter {
      * @return stdClass
      */
     final public function export(renderer_base $output) {
+        $data = new stdClass();
         $properties = self::read_properties_definition();
         $values = (array) $this->data;
 
@@ -129,7 +130,55 @@ abstract class exporter {
         $values += $othervalues;
         $record = (object) $values;
 
-        return $this->normalise_exported_data($properties, $record);
+        foreach ($properties as $property => $definition) {
+            if (isset($data->$property)) {
+                // This happens when we have already defined the format properties.
+                continue;
+            } else if (!property_exists($record, $property) && array_key_exists('default', $definition)) {
+                // We have a default value for this property.
+                $record->$property = $definition['default'];
+            } else if (!property_exists($record, $property) && !empty($definition['optional'])) {
+                // Fine, this property can be omitted.
+                continue;
+            } else if (!property_exists($record, $property)) {
+                // Whoops, we got something that wasn't defined.
+                throw new coding_exception('Unexpected property ' . $property);
+            }
+
+            $data->$property = $record->$property;
+
+            // If the field is PARAM_RAW and has a format field.
+            if ($propertyformat = self::get_format_field($properties, $property)) {
+                if (!property_exists($record, $propertyformat)) {
+                    // Whoops, we got something that wasn't defined.
+                    throw new coding_exception('Unexpected property ' . $propertyformat);
+                }
+
+                $formatparams = $this->get_format_parameters($property);
+                $format = $record->$propertyformat;
+
+                list($text, $format) = external_format_text($data->$property, $format, $formatparams['context'],
+                    $formatparams['component'], $formatparams['filearea'], $formatparams['itemid'], $formatparams['options']);
+
+                $data->$property = $text;
+                $data->$propertyformat = $format;
+
+            } else if ($definition['type'] === PARAM_TEXT) {
+                $formatparams = $this->get_format_parameters($property);
+
+                if (!empty($definition['multiple'])) {
+                    foreach ($data->$property as $key => $value) {
+                        $data->{$property}[$key] = external_format_string($value, $formatparams['context'],
+                            $formatparams['striplinks'], $formatparams['options']);
+                    }
+                } else {
+                    $data->$property = external_format_string($data->$property, $formatparams['context'],
+                            $formatparams['striplinks'], $formatparams['options']);
+                }
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -536,90 +585,6 @@ abstract class exporter {
         }
 
         return new external_single_structure($returns);
-    }
-
-    /**
-     * Normalise all exported data.
-     *
-     * @param array $properties The list of properties
-     * @param \stdClass $record The set of data relating to these properties
-     * @return stdClass
-     */
-    protected function normalise_exported_data($properties, $record) {
-        $data = new stdClass();
-
-        foreach ($properties as $property => $definition) {
-            if (isset($data->$property)) {
-                // This happens when we have already defined the format properties.
-                continue;
-            } else if (!property_exists($record, $property) && array_key_exists('default', $definition)) {
-                // We have a default value for this property.
-                $record->$property = $definition['default'];
-            } else if (!property_exists($record, $property) && !empty($definition['optional'])) {
-                // Fine, this property can be omitted.
-                continue;
-            } else if (!property_exists($record, $property)) {
-                // Whoops, we got something that wasn't defined.
-                throw new coding_exception('Property defined but not provided: ' . $property);
-            }
-
-            if (isset($definition['null']) && $definition['null'] === NULL_ALLOWED && $record->$property === null) {
-                $data->$property = null;
-                continue;
-            }
-
-            if (!empty($definition['multiple'])) {
-                if (is_array($record->$property) && empty($record->$property)) {
-                    // An empty array is a valid value for a multiple property.
-                    $data->$property = $record->$property;
-                } else {
-                    foreach ($record->$property as $key => $value) {
-                        $data->$property[$key] = $this->normalise_exported_data($definition['type'], (object) $record->$property[$key]);
-                    }
-                }
-                continue;
-            }
-
-            if (is_array($definition['type'])) {
-                $data->$property = $this->normalise_exported_data($definition['type'], (object) $record->$property);
-                continue;
-            }
-
-            $data->$property = $record->$property;
-            // If the field is PARAM_RAW and has a format field.
-            if ($propertyformat = self::get_format_field($properties, $property)) {
-                if (!property_exists($record, $propertyformat)) {
-                    // Whoops, we got something that wasn't defined.
-                    throw new coding_exception('Property defined but not provided: ' . $propertyformat);
-                }
-
-                $formatparams = $this->get_format_parameters($property);
-                $format = $record->$propertyformat;
-
-                list($text, $format) = external_format_text($data->$property, $format, $formatparams['context'],
-                    $formatparams['component'], $formatparams['filearea'], $formatparams['itemid'], $formatparams['options']);
-
-                $data->$property = $text;
-                $data->$propertyformat = $format;
-
-            } else if ($definition['type'] === PARAM_TEXT) {
-                $formatparams = $this->get_format_parameters($property);
-
-                if (!empty($definition['multiple'])) {
-                    foreach ($data->$property as $key => $value) {
-                        $data->{$property}[$key] = external_format_string($value, $formatparams['context'],
-                            $formatparams['striplinks'], $formatparams['options']);
-                    }
-                } else {
-                    $data->$property = external_format_string($data->$property, $formatparams['context'],
-                            $formatparams['striplinks'], $formatparams['options']);
-                }
-            } else if ($definition['type'] === PARAM_URL && $data->$property instanceof \moodle_url) {
-                $data->$property = $data->$property->out(false);
-            }
-        }
-
-        return $data;
     }
 
 }

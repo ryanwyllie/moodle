@@ -169,9 +169,9 @@ class discussion extends exporter {
                 'post' => $capabilitymanager->can_post_in_discussion($user, $discussion)
             ],
             'urls' => [
-                'view' => $urlmanager->get_discussion_view_url_from_discussion($discussion),
-                'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion),
-                'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion),
+                'view' => $urlmanager->get_discussion_view_url_from_discussion($discussion)->out(false),
+                'viewfirstunread' => $urlmanager->get_discussion_view_first_unread_post_url_from_discussion($discussion)->out(false),
+                'markasread' => $urlmanager->get_mark_discussion_as_read_url_from_discussion($discussion)->out(false),
             ]
         ];
 
@@ -179,7 +179,7 @@ class discussion extends exporter {
             $data['urls']['viewlatest'] = $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion(
                     $discussion,
                     $this->related['latestpostid']
-                );
+                )->out(false);
         }
 
         if ($groupdata) {
