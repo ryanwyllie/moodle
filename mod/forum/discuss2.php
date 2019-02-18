@@ -116,10 +116,10 @@ $istracked = forum_tp_is_tracked($forumrecord, $USER);
 $rendererfactory = mod_forum\local\container::get_renderer_factory();
 $discussionrenderer = $rendererfactory->get_discussion_renderer($forum, $discussion);
 $orderpostsby = $displaymode == FORUM_MODE_FLATNEWEST ? 'created DESC' : 'created ASC';
-$posts = $postvault->get_from_discussion_id($discussion->get_id(), $orderpostsby);
+$replies = $postvault->get_replies_to_post($post, $orderpostsby);
 $postids = array_map(function($post) {
     return $post->get_id();
-}, $posts);
+}, array_merge([$post], array_values($replies)));
 
 if ($istracked) {
     $readreceiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
@@ -128,7 +128,7 @@ if ($istracked) {
     $readreceiptcollection = null;
 }
 
-echo $discussionrenderer->render($USER, $displaymode, $post, $posts, $readreceiptcollection);
+echo $discussionrenderer->render($USER, $displaymode, $post, $replies, $readreceiptcollection);
 echo $OUTPUT->footer();
 
 if ($istracked && !$CFG->forum_usermarksread) {

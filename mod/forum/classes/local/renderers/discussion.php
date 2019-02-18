@@ -201,9 +201,9 @@ class discussion {
 
             $exportedpost->replies = [];
 
-            $candidate->isfirstunread = false;
-            if (!$seenfirstunread && $candidate->unread) {
-                $candidate->isfirstunread = true;
+            $exportedpost->isfirstunread = false;
+            if (!$seenfirstunread && $exportedpost->unread) {
+                $exportedpost->isfirstunread = true;
                 $seenfirstunread = true;
             }
 

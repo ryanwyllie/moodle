@@ -131,7 +131,7 @@ class post extends vault {
         return $this->transform_db_records_to_entities($records);
     }
 
-    public function get_replies_to_post(post_entity $post) : array {
+    public function get_replies_to_post(post_entity $post, string $orderby = 'created ASC') : array {
         $alias = $this->get_table_alias();
         $params = [$post->get_discussion_id(), $post->get_time_created()];
         $wheresql = "{$alias}.discussion = ? and {$alias}.created > ?";
@@ -139,8 +139,36 @@ class post extends vault {
         $sql = $this->generate_get_records_sql($wheresql, $orderbysql);
         $records = $this->get_db()->get_records_sql($sql, $params);
         $posts = $this->transform_db_records_to_entities($records);
+        $sorter = $this->get_entity_factory()->get_posts_sorter();
+        $sortedposts = $sorter->sort_into_children($posts);
+        $replies = [];
 
+        foreach ($sortedposts as $candidate) {
+            [$candidatepost, $candidatereplies] = $candidate;
+            if ($candidatepost->has_parent() && $candidatepost->get_parent_id() == $post->get_id()) {
+                $replies[] = $candidate;
+            }
+        }
 
+        if (empty($replies)) {
+            return $replies;
+        }
+
+        $getreplypostids = function($candidates) use (&$getreplypostids) {
+            $ids = [];
+
+            foreach ($candidates as $candidate) {
+                [$reply, $replies] = $candidate;
+                $ids = array_merge($ids, [$reply->get_id()], $getreplypostids($replies));
+            }
+
+            return $ids;
+        };
+        $replypostids = $getreplypostids($replies);
+
+        return array_filter($posts, function($post) use ($replypostids) {
+            return in_array($post->get_id(), $replypostids);
+        });
     }
 
     /**

@@ -263,15 +263,15 @@ class post extends exporter {
         $cancontrolreadstatus = $capabilitymanager->can_manually_control_post_read_status($user);
 
         $urlmanager = $this->related['urlmanager'];
-        $viewurl = $urlmanager->get_view_post_url_from_post($post);
+        $viewurl = $canview ? $urlmanager->get_view_post_url_from_post($post) : null;
         $viewparenturl = $post->has_parent() ? $urlmanager->get_view_post_url_from_post_id($post->get_discussion_id(), $post->get_parent_id()) : null;
-        $editurl = $urlmanager->get_edit_post_url_from_post($post);
-        $deleteurl = $urlmanager->get_delete_post_url_from_post($post);
-        $spliturl = $urlmanager->get_split_discussion_at_post_url_from_post($post);
-        $replyurl = $urlmanager->get_reply_to_post_url_from_post($post);
-        $exporturl = $urlmanager->get_export_post_url_from_post($post);
-        $markasreadurl = $urlmanager->get_mark_post_as_read_url_from_post($post);
-        $markasunreadurl = $urlmanager->get_mark_post_as_unread_url_from_post($post);
+        $editurl = $canedit ? $urlmanager->get_edit_post_url_from_post($post) : null;
+        $deleteurl = $candelete ? $urlmanager->get_delete_post_url_from_post($post) : null;
+        $spliturl = $cansplit ? $urlmanager->get_split_discussion_at_post_url_from_post($post) : null;
+        $replyurl = $canreply ? $urlmanager->get_reply_to_post_url_from_post($post) : null;
+        $exporturl = $canexport ? $urlmanager->get_export_post_url_from_post($post) : null;
+        $markasreadurl = $cancontrolreadstatus ? $urlmanager->get_mark_post_as_read_url_from_post($post) : null;
+        $markasunreadurl = $cancontrolreadstatus ? $urlmanager->get_mark_post_as_unread_url_from_post($post) : null;
 
         $authorexporter = new author_exporter($author, $authorgroups, ($canview && !$isdeleted), $this->related);
         $exportedauthor = $authorexporter->export($output);
@@ -313,15 +313,15 @@ class post extends exporter {
                 'controlreadstatus' => $cancontrolreadstatus
             ],
             'urls' => [
-                'view' => $canview ? $viewurl->out(false) : null,
+                'view' => $viewurl ? $viewurl->out(false) : null,
                 'viewparent' => $viewparenturl ? $viewparenturl->out(false) : null,
-                'edit' => $canedit ? $editurl->out(false) : null,
-                'delete' => $candelete ? $deleteurl->out(false) : null,
-                'split' => $cansplit ? $spliturl->out(false) : null,
-                'reply' => $canreply ? $replyurl->out(false) : null,
-                'export' => $canexport && $exporturl ? $exporturl->out(false) : null,
-                'markasread' => $cancontrolreadstatus ? $markasreadurl->out(false) : null,
-                'markasunread' => $cancontrolreadstatus ? $markasunreadurl->out(false) : null,
+                'edit' => $editurl ? $editurl->out(false) : null,
+                'delete' => $deleteurl ? $deleteurl->out(false) : null,
+                'split' => $spliturl ? $spliturl->out(false) : null,
+                'reply' => $replyurl ? $replyurl->out(false) : null,
+                'export' => $exporturl && $exporturl ? $exporturl->out(false) : null,
+                'markasread' => $markasreadurl ? $markasreadurl->out(false) : null,
+                'markasunread' => $markasunreadurl ? $markasunreadurl->out(false) : null,
             ],
             'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
             'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
