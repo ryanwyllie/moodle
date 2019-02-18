@@ -1,0 +1,72 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Vault class.
+ *
+ * @package    mod_forum
+ * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace mod_forum\local\vaults;
+
+defined('MOODLE_INTERNAL') || die();
+
+use mod_forum\local\entities\post as post_entity;
+use context;
+use file_storage;
+
+/**
+ * Vault class.
+ */
+class post_attachment {
+    private const COMPONENT = 'mod_forum';
+    private const FILE_AREA = 'attachment';
+    private const SORT = 'filename';
+    private const INCLUDE_DIRECTORIES = false;
+    private $filestorage;
+
+    public function __construct(file_storage $filestorage) {
+        $this->filestorage = $filestorage;
+    }
+
+    public function get_attachments_for_posts(context $context, array $posts) {
+        $itemids = array_map(function($post) {
+            return $post->get_id();
+        }, $posts);
+
+        $files = $this->filestorage->get_area_files(
+            $context->id,
+            self::COMPONENT,
+            self::FILE_AREA,
+            $itemids,
+            self::SORT,
+            self::INCLUDE_DIRECTORIES
+        );
+
+        $filesbyid = array_reduce($posts, function($carry, $post) {
+            $carry[$post->get_id()] = [];
+            return $carry;
+        }, []);
+
+        return array_reduce($files, function($carry, $file) {
+            $itemid = $file->get_itemid();
+            $carry[$itemid] = array_merge($carry[$itemid], [$file]);
+            return $carry;
+        }, $filesbyid);
+    }
+}

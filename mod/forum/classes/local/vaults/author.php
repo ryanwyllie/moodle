@@ -26,12 +26,12 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vault;
+use mod_forum\local\db_table_vault;
 
 /**
  * Vault class.
  */
-class author extends vault {
+class author extends db_table_vault {
     private const TABLE = 'forum_posts';
 
     protected function get_table_alias() : string {

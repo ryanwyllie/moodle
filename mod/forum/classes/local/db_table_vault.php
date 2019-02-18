@@ -32,7 +32,7 @@ use moodle_database;
 /**
  * Vault class.
  */
-abstract class vault {
+abstract class db_table_vault {
     private $db;
     private $entityfactory;
 

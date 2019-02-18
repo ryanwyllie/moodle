@@ -101,8 +101,7 @@ class entity {
 
     public function get_post_from_stdClass(
         stdClass $record,
-        author_entity $author,
-        array $attachments = []
+        author_entity $author
     ) : post_entity {
         return new post_entity(
             $record->id,
@@ -119,8 +118,7 @@ class entity {
             $record->attachment,
             $record->totalscore,
             $record->mailnow,
-            $record->deleted,
-            $attachments
+            $record->deleted
         );
     }
 

@@ -246,6 +246,7 @@ class post extends exporter {
         $readreceiptcollection = $this->related['readreceiptcollection'];
         $rating = $this->related['rating'];
         $tags = $this->related['tags'];
+        $attachments = $this->related['attachments'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
@@ -323,7 +324,7 @@ class post extends exporter {
                 'markasread' => $markasreadurl ? $markasreadurl->out(false) : null,
                 'markasunread' => $markasunreadurl ? $markasunreadurl->out(false) : null,
             ],
-            'attachments' => $isdeleted ? [] : $this->get_attachments($post, $output, $canexport),
+            'attachments' => (!$isdeleted && !empty($attachments)) ? $this->get_attachments($attachments, $output, $canexport) : [],
             'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
             'html' => [
                 'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
@@ -348,6 +349,7 @@ class post extends exporter {
             'user' => 'stdClass',
             'context' => 'context',
             'authorgroups' => 'stdClass[]',
+            'attachments' => '\stored_file[]?',
             'tags' => '\core_tag_tag[]?',
             'rating' => 'rating?'
         ];
@@ -388,7 +390,7 @@ class post extends exporter {
         return $message;
     }
 
-    private function get_attachments(post_entity $post, renderer_base $output, bool $canexport) {
+    private function get_attachments(array $attachments, renderer_base $output, bool $canexport) {
         global $CFG;
 
         $urlmanager = $this->related['urlmanager'];
@@ -457,7 +459,7 @@ class post extends exporter {
                     'plagiarism' => $plagiarismhtml
                 ]
             ];
-        }, $post->get_attachments());
+        }, $attachments);
     }
 
     private function get_tags(array $tags) {

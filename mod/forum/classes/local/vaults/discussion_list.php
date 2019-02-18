@@ -26,7 +26,7 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vault;
+use mod_forum\local\db_table_vault;
 use mod_forum\local\vaults\preprocessors\extract_record as extract_record_preprocessor;
 use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocessor;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
@@ -38,7 +38,7 @@ use stdClass;
  * @package    mod_forum
  * @copyright  2019 Andrew Nicols <andrew@nicols.co.uk>
  */
-class discussion_list extends vault {
+class discussion_list extends db_table_vault {
     private const TABLE = 'forum_discussions';
     private const FIRST_AUTHOR_ID_ALIAS = 'userpictureid';
     private const FIRST_AUTHOR_ALIAS = 'userrecord';

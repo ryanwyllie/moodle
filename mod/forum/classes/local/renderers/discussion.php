@@ -179,6 +179,7 @@ class discussion {
         $posts = array_merge([$firstpost], array_values($replies));
         $forum = $this->forum;
         $discussion = $this->discussion;
+        $attachmentsbypostid = $this->get_attachments_for_posts($posts);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
         $postsexporter = $this->exporterfactory->get_posts_exporter(
@@ -186,6 +187,7 @@ class discussion {
             $forum,
             $discussion,
             $posts,
+            $attachmentsbypostid,
             $groupsbyauthorid,
             $readreceiptcollection,
             $tagsbypostid,
@@ -226,6 +228,12 @@ class discussion {
             $exportedfirstpost->replies = $exportedposts;
             return [$exportedfirstpost];
         }
+    }
+
+    private function get_attachments_for_posts(array $posts) : array {
+        $forum = $this->forum;
+        $postattachmentvault = $this->vaultfactory->get_post_attachment_vault();
+        return $postattachmentvault->get_attachments_for_posts($forum->get_context(), $posts);
     }
 
     private function get_author_groups_from_posts(array $posts) : array {

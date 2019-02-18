@@ -47,7 +47,6 @@ class post {
     private $totalscore;
     private $mailnow;
     private $deleted;
-    private $attachments;
 
     public function __construct(
         int $id,
@@ -64,8 +63,7 @@ class post {
         bool $hasattachments,
         int $totalscore,
         bool $mailnow,
-        bool $deleted,
-        array $attachments = []
+        bool $deleted
     ) {
         $this->id = $id;
         $this->discussionid = $discussionid;
@@ -82,7 +80,6 @@ class post {
         $this->totalscore = $totalscore;
         $this->mailnow = $mailnow;
         $this->deleted = $deleted;
-        $this->attachments = $attachments;
     }
 
     public function get_id() : int {
@@ -136,10 +133,6 @@ class post {
 
     public function has_attachments() : string {
         return $this->hasattachments;
-    }
-
-    public function get_attachments() : array {
-        return $this->attachments;
     }
 
     public function get_total_score() : int {

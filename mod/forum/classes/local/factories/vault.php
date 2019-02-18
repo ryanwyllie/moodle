@@ -32,6 +32,7 @@ use mod_forum\local\vaults\discussion as discussion_vault;
 use mod_forum\local\vaults\discussion_list as discussion_list_vault;
 use mod_forum\local\vaults\forum as forum_vault;
 use mod_forum\local\vaults\post as post_vault;
+use mod_forum\local\vaults\post_attachment as post_attachment_vault;
 use mod_forum\local\vaults\post_read_receipt_collection as post_read_receipt_collection_vault;
 use file_storage;
 use moodle_database;
@@ -74,8 +75,7 @@ class vault {
     public function get_post_vault() : post_vault {
         return new post_vault(
             $this->db,
-            $this->entityfactory,
-            $this->filestorage
+            $this->entityfactory
         );
     }
 
@@ -90,6 +90,12 @@ class vault {
         return new post_read_receipt_collection_vault(
             $this->db,
             $this->entityfactory
+        );
+    }
+
+    public function get_post_attachment_vault() : post_attachment_vault {
+        return new post_attachment_vault(
+            $this->filestorage
         );
     }
 }

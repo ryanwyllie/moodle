@@ -26,12 +26,12 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vault;
+use mod_forum\local\db_table_vault;
 
 /**
  * Vault class.
  */
-class post_read_receipt_collection extends vault {
+class post_read_receipt_collection extends db_table_vault {
     private const TABLE = 'forum_read';
 
     protected function get_table_alias() : string {

@@ -26,14 +26,14 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\vault;
+use mod_forum\local\db_table_vault;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 
 /**
  * Vault class.
  */
-class discussion extends vault {
+class discussion extends db_table_vault {
     private const TABLE = 'forum_discussions';
 
     protected function get_table_alias() : string {
