@@ -165,5 +165,11 @@
         </div>
     </div>
 
-    {{$replies}}{{/replies}}
+    {{$replies}}
+        <div class="pt-2">
+            {{#replies}}
+                {{> mod_forum/forum_discussion_post }}
+            {{/replies}}
+        </div>
+    {{/replies}}
 </article>

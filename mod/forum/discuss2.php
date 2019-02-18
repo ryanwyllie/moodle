@@ -128,7 +128,7 @@ if ($istracked) {
     $readreceiptcollection = null;
 }
 
-echo $discussionrenderer->render($USER, $displaymode, $posts, $readreceiptcollection);
+echo $discussionrenderer->render($USER, $displaymode, $post, $posts, $readreceiptcollection);
 echo $OUTPUT->footer();
 
 if ($istracked && !$CFG->forum_usermarksread) {

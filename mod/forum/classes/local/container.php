@@ -45,6 +45,7 @@ class container {
             self::get_exporter_factory(),
             self::get_vault_factory(),
             self::get_manager_factory(),
+            self::get_entity_factory(),
             $PAGE
         );
     }

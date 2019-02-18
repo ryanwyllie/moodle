@@ -32,6 +32,7 @@ use mod_forum\local\entities\discussion_summary as discussion_summary_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\entities\post_read_receipt_collection as post_read_receipt_collection_entity;
+use mod_forum\local\entities\sorter as sorter_entity;
 use stdClass;
 use context;
 use cm_info;
@@ -157,5 +158,27 @@ class entity {
 
     public function get_post_read_receipt_collection_from_stdClasses(array $records) : post_read_receipt_collection_entity {
         return new post_read_receipt_collection_entity($records);
+    }
+
+    public function get_posts_sorter() : sorter_entity {
+        return new sorter_entity(
+            function(post_entity $post) {
+                return $post->get_id();
+            },
+            function(post_entity $post) {
+                return $post->get_parent_id();
+            }
+        );
+    }
+
+    public function get_exported_posts_sorter() : sorter_entity {
+        return new sorter_entity(
+            function(stdClass $post) {
+                return $post->id;
+            },
+            function(stdClass $post) {
+                return $post->parentid;
+            }
+        );
     }
 }

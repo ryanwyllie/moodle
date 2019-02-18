@@ -30,6 +30,7 @@ use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
+use mod_forum\local\entities\sorter as sorter_entity;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
@@ -68,6 +69,7 @@ class discussion {
     private $ratingmanager;
     private $baseurl;
     private $notifications;
+    private $exportedpostsorter;
 
     public function __construct(
         discussion_entity $discussion,
@@ -79,6 +81,7 @@ class discussion {
         vault_factory $vaultfactory,
         capability_manager $capabilitymanager,
         rating_manager $ratingmanager,
+        sorter_entity $exportedpostsorter,
         moodle_url $baseurl,
         array $notifications = []
     ) {
@@ -93,6 +96,7 @@ class discussion {
         $this->capabilitymanager = $capabilitymanager;
         $this->ratingmanager = $ratingmanager;
         $this->notifications = $notifications;
+        $this->exportedpostsorter = $exportedpostsorter;
 
         $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
         $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
@@ -104,7 +108,8 @@ class discussion {
     public function render(
         stdClass $user,
         int $displaymode,
-        array $posts,
+        post_entity $firstpost,
+        array $replies,
         ?read_receipt_collection_entity $readreceiptcollection
     ) : string {
         global $CFG;
@@ -117,21 +122,14 @@ class discussion {
             throw new moodle_exception('noviewdiscussionspermission', 'mod_forum');
         }
 
+        $posts = array_merge([$firstpost], array_values($replies));
         $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
-        $nestedposts = $this->get_exported_posts($user, $displaymode, $posts, $ratingbypostid, $readreceiptcollection);
-        $nestedposts = array_map(function($exportedpost) use ($forum) {
-            if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
-                // Remove the author from any posts
-                unset($exportedpost->author);
-            }
-
-            return $exportedpost;
-        }, $nestedposts);
+        $exportedposts = $this->get_exported_posts($user, $displaymode, $firstpost, $replies, $ratingbypostid, $readreceiptcollection);
 
         $exporteddiscussion = $this->get_exported_discussion($user);
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
-            'posts' => $nestedposts,
+            'posts' => $exportedposts,
             'html' => [
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'subscribe' => null,
@@ -141,6 +139,7 @@ class discussion {
                 'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html() : null
             ]
         ]);
+
         $capabilities = (array) $exporteddiscussion['capabilities'];
 
         if ($capabilities['subscribe']) {
@@ -160,26 +159,24 @@ class discussion {
 
     private function get_template(int $displaymode) : string {
         switch ($displaymode) {
-            case FORUM_MODE_FLATOLDEST:
-                return 'mod_forum/forum_discussion_flat';
-            case FORUM_MODE_FLATNEWEST:
-                return 'mod_forum/forum_discussion_flat';
             case FORUM_MODE_THREADED:
                 return 'mod_forum/forum_discussion_threaded';
             case FORUM_MODE_NESTED:
                 return 'mod_forum/forum_discussion_nested';
             default;
-                return 'mod_forum/forum_discussion_nested';
+                return 'mod_forum/forum_discussion';
         }
     }
 
     private function get_exported_posts(
         stdClass $user,
         int $displaymode,
-        array $posts,
+        post_entity $firstpost,
+        array $replies,
         ?array $ratingbypostid,
         ?read_receipt_collection_entity $readreceiptcollection
     ) : array {
+        $posts = array_merge([$firstpost], array_values($replies));
         $forum = $this->forum;
         $discussion = $this->discussion;
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
@@ -195,13 +192,14 @@ class discussion {
             $ratingbypostid
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
-
-        $nestedposts = [];
         $seenfirstunread = false;
-        $sortintoreplies = function($candidate, $unsorted) use (&$sortintoreplies, $seenfirstunread) {
-            if (!isset($candidate->replies)) {
-                $candidate->replies = [];
+        $exportedposts = array_map(function($exportedpost) use ($forum, $seenfirstunread) {
+            if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
+                // Remove the author from any posts that don't have a parent.
+                unset($exportedpost->author);
             }
+
+            $exportedpost->replies = [];
 
             $candidate->isfirstunread = false;
             if (!$seenfirstunread && $candidate->unread) {
@@ -209,30 +207,25 @@ class discussion {
                 $seenfirstunread = true;
             }
 
-            if (empty($unsorted)) {
-                return [$candidate, $unsorted];
-            }
+            return $exportedpost;
+        }, $exportedposts);
 
-            $next = array_shift($unsorted);
+        if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
+            $sortedposts = $this->exportedpostsorter->sort_into_children($exportedposts);
+            $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
+                return array_map(function($postdata) use (&$sortintoreplies) {
+                    [$post, $replies] = $postdata;
+                    $post->replies = $sortintoreplies($replies);
+                    return $post;
+                }, $nestedposts);
+            };
 
-            if ($next->parentid == $candidate->id) {
-                [$next, $unsorted] = $sortintoreplies($next, $unsorted);
-                $candidate->replies[] = $next;
-
-                return $sortintoreplies($candidate, $unsorted);
-            } else {
-                array_unshift($unsorted, $next);
-                return [$candidate, $unsorted];
-            }
-        };
-
-        do {
-            $candidate = array_shift($exportedposts);
-            [$candidate, $exportedposts] = $sortintoreplies($candidate, $exportedposts);
-            $nestedposts[] = $candidate;
-        } while (!empty($exportedposts));
-
-        return $nestedposts;
+            return $sortintoreplies($sortedposts);
+        } else {
+            $exportedfirstpost = array_shift($exportedposts);
+            $exportedfirstpost->replies = $exportedposts;
+            return [$exportedfirstpost];
+        }
     }
 
     private function get_author_groups_from_posts(array $posts) : array {

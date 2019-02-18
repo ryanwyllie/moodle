@@ -80,12 +80,8 @@ class posts extends exporter {
         $groupsbyauthorid = $this->groupsbyauthorid;
         $tagsbypostid = $this->tagsbypostid;
         $ratingbypostid = $this->ratingbypostid;
-        $nestedposts = $this->sort_posts_into_replies($this->posts);
-        $exportposts = function($posts) use ($related, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, $output, &$exportposts) {
-            $exportedposts = [];
-
-            foreach ($posts as $record) {
-                list($post, $replies) = $record;
+        $exportedposts = array_map(
+            function($post) use ($related, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, $output) {
                 $authorid = $post->get_author()->get_id();
                 $postid = $post->get_id();
                 $authorgroups = isset($groupsbyauthorid[$authorid]) ? $groupsbyauthorid[$authorid] : [];
@@ -96,53 +92,14 @@ class posts extends exporter {
                     'tags' => $tags,
                     'rating' => $rating
                 ]));
-                $exportedposts[] = $exporter->export($output);
-                $exportedposts = array_merge($exportedposts, $exportposts($replies));
-            }
-
-            return $exportedposts;
-        };
+                return $exporter->export($output);
+            },
+            $this->posts
+        );
 
         return [
-            'posts' => $exportposts($nestedposts)
+            'posts' => $exportedposts
         ];
-    }
-
-    private function sort_posts_into_replies($posts) : array {
-        $postids = array_map(function($post) {
-            return $post->get_id();
-        }, $posts);
-
-        list($parents, $replies) = array_reduce($posts, function($carry, $post) use ($postids) {
-            $parentid = $post->get_parent_id();
-
-            if (in_array($parentid, $postids)) {
-                // This post is a reply to another post in the list so add it to the replies list.
-                $carry[1][] = $post;
-            } else {
-                // This post isn't replying to anything in our list so it's a parent.
-                $carry[0][] = $post;
-            }
-
-            return $carry;
-        }, [[], []]);
-
-        if (empty($replies)) {
-            return array_map(function($parent) {
-                return [$parent, []];
-            }, $parents);
-        }
-
-        $sortedreplies = $this->sort_posts_into_replies($replies);
-
-        return array_map(function($parent) use ($sortedreplies) {
-            return [
-                $parent,
-                array_filter($sortedreplies, function($replydata) use ($parent) {
-                    return $replydata[0]->get_parent_id() == $parent->get_id();
-                })
-            ];
-        }, $parents);
     }
 
     /**

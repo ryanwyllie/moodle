@@ -30,6 +30,7 @@ use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
+use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
@@ -48,6 +49,7 @@ class renderer {
     private $exporterfactory;
     private $vaultfactory;
     private $managerfactory;
+    private $entityfactory;
     private $rendererbase;
     private $page;
 
@@ -56,12 +58,14 @@ class renderer {
         exporter_factory $exporterfactory,
         vault_factory $vaultfactory,
         manager_factory $managerfactory,
+        entity_factory $entityfactory,
         moodle_page $page
     ) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
         $this->exporterfactory = $exporterfactory;
         $this->vaultfactory = $vaultfactory;
         $this->managerfactory = $managerfactory;
+        $this->entityfactory = $entityfactory;
         $this->page = $page;
         $this->rendererbase = $page->get_renderer('mod_forum');
     }
@@ -98,6 +102,7 @@ class renderer {
             $this->vaultfactory,
             $capabilitymanager,
             $ratingmanager,
+            $this->entityfactory->get_exported_posts_sorter(),
             $baseurl,
             $notifications
         );

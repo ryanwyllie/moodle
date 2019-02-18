@@ -27,6 +27,7 @@ namespace mod_forum\local\vaults;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\vault;
+use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocessor;
 use mod_forum\local\vaults\preprocessors\load_files as load_files_preprocessor;
@@ -128,6 +129,17 @@ class post extends vault {
         $records = $this->get_db()->get_records_sql($sql, $params);
 
         return $this->transform_db_records_to_entities($records);
+    }
+
+    public function get_replies_to_post(post_entity $post) : array {
+        $alias = $this->get_table_alias();
+        $params = [$post->get_discussion_id(), $post->get_time_created()];
+        $wheresql = "{$alias}.discussion = ? and {$alias}.created > ?";
+        $orderbysql = $alias . '.' . $orderby;
+        $sql = $this->generate_get_records_sql($wheresql, $orderbysql);
+        $records = $this->get_db()->get_records_sql($sql, $params);
+        $posts = $this->transform_db_records_to_entities($records);
+
 
     }
 
