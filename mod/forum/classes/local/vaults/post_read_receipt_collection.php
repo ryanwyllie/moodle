@@ -26,8 +26,6 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\db_table_vault;
-
 /**
  * Vault class.
  */

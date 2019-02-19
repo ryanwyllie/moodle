@@ -26,7 +26,6 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\db_table_vault;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocessor;
@@ -65,8 +64,7 @@ class post extends db_table_vault {
         return array_merge(
             parent::get_preprocessors(),
             [
-                'user' => new extract_user_preprocessor(self::USER_ID_ALIAS, self::USER_ALIAS),
-                'useridreadlist' => new post_read_user_list_preprocessor($this->get_db())
+                'user' => new extract_user_preprocessor(self::USER_ID_ALIAS, self::USER_ALIAS)
             ]
         );
     }

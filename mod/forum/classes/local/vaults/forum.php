@@ -26,7 +26,6 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_forum\local\db_table_vault;
 use mod_forum\local\vaults\preprocessors\extract_context as extract_context_preprocessor;
 use mod_forum\local\vaults\preprocessors\extract_record as extract_record_preprocessor;
 use context_helper;
