@@ -154,8 +154,6 @@ class discussion {
             $exporteddiscussion['html']['pindiscussion'] = $this->get_pin_discussion_html();
         }
 
-        print_object($exporteddiscussion);
-
         return $this->renderer->render_from_template($this->get_template($displaymode), $exporteddiscussion);
     }
 

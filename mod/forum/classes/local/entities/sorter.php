@@ -38,15 +38,16 @@ class sorter {
         $this->getparentid = $getparentid;
     }
 
-    public function sort_into_children(array $items) : array {
-        $ids = array_map(function($item) {
-            return ($this->getid)($item);
-        }, $items);
+    public function sort_into_children(array $items, array $seenitems = []) : array {
+        $ids = array_reduce($items, function($carry, $item) {
+            $carry[($this->getid)($item)] = true;
+            return $carry;
+        }, []);
 
         [$parents, $replies] = array_reduce($items, function($carry, $item) use ($ids) {
             $parentid = ($this->getparentid)($item);
 
-            if (in_array($parentid, $ids)) {
+            if (!empty($ids[$parentid])) {
                 // This is a child to another item in the list so add it to the children list.
                 $carry[1][] = $item;
             } else {
@@ -66,11 +67,12 @@ class sorter {
         $sortedreplies = $this->sort_into_children($replies);
 
         return array_map(function($parent) use ($sortedreplies) {
+            $parentid = ($this->getid)($parent);
             return [
                 $parent,
-                array_filter($sortedreplies, function($replydata) use ($parent) {
-                    return ($this->getparentid)($replydata[0]) == ($this->getid)($parent);
-                })
+                array_values(array_filter($sortedreplies, function($replydata) use ($parentid) {
+                    return ($this->getparentid)($replydata[0]) == $parentid;
+                }))
             ];
         }, $parents);
     }
