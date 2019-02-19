@@ -100,14 +100,13 @@ class entity {
     }
 
     public function get_post_from_stdClass(
-        stdClass $record,
-        author_entity $author
+        stdClass $record
     ) : post_entity {
         return new post_entity(
             $record->id,
             $record->discussion,
             $record->parent,
-            $author,
+            $record->userid,
             $record->created,
             $record->modified,
             $record->mailed,

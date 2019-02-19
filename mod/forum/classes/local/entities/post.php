@@ -35,7 +35,7 @@ class post {
     private $id;
     private $discussionid;
     private $parentid;
-    private $author;
+    private $authorid;
     private $timecreated;
     private $timemodified;
     private $mailed;
@@ -52,7 +52,7 @@ class post {
         int $id,
         int $discussionid,
         int $parentid,
-        author $author,
+        int $authorid,
         int $timecreated,
         int $timemodified,
         bool $mailed,
@@ -68,7 +68,7 @@ class post {
         $this->id = $id;
         $this->discussionid = $discussionid;
         $this->parentid = $parentid;
-        $this->author = $author;
+        $this->authorid = $authorid;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->mailed = $mailed;
@@ -98,8 +98,8 @@ class post {
         return $this->get_parent_id() > 0;
     }
 
-    public function get_author() : author {
-        return $this->author;
+    public function get_author_id() : int {
+        return $this->authorid;
     }
 
     public function get_time_created() : int {
@@ -152,6 +152,6 @@ class post {
     }
 
     public function is_owned_by_user(stdClass $user) : bool {
-        return $this->get_author()->get_id() == $user->id;
+        return $this->get_author_id() == $user->id;
     }
 }

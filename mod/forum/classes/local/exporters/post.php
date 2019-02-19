@@ -240,13 +240,14 @@ class post extends exporter {
         $authorgroups = $this->related['authorgroups'];
         $forum = $this->related['forum'];
         $discussion = $this->related['discussion'];
-        $author = $post->get_author();
+        $author = $this->related['author'];
         $user = $this->related['user'];
         $context = $this->related['context'];
         $readreceiptcollection = $this->related['readreceiptcollection'];
         $rating = $this->related['rating'];
         $tags = $this->related['tags'];
         $attachments = $this->related['attachments'];
+        $includehtml = $this->related['includehtml'];
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record();
         $postrecord = $this->get_post_record();
@@ -326,10 +327,10 @@ class post extends exporter {
             ],
             'attachments' => (!$isdeleted && !empty($attachments)) ? $this->get_attachments($attachments, $post, $output, $canexport) : [],
             'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
-            'html' => [
+            'html' => $includehtml ? [
                 'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
                 'taglist' => (!$isdeleted && $hastags) ? $output->tag_list($tags) : null,
-            ]
+            ] : null
         ];
     }
 
@@ -346,12 +347,14 @@ class post extends exporter {
             'urlmanager' => 'mod_forum\local\managers\url',
             'forum' => 'mod_forum\local\entities\forum',
             'discussion' => 'mod_forum\local\entities\discussion',
+            'author' => 'mod_forum\local\entities\author',
             'user' => 'stdClass',
             'context' => 'context',
             'authorgroups' => 'stdClass[]',
             'attachments' => '\stored_file[]?',
             'tags' => '\core_tag_tag[]?',
-            'rating' => 'rating?'
+            'rating' => 'rating?',
+            'includehtml' => 'bool'
         ];
     }
 
@@ -369,7 +372,7 @@ class post extends exporter {
         if (!empty($CFG->enableplagiarism)) {
             require_once($CFG->libdir . '/plagiarismlib.php');
             $message .= plagiarism_get_links([
-                'userid' => $post->get_author()->get_id(),
+                'userid' => $post->get_author_id(),
                 'content' => $message,
                 'cmid' => $forum->get_course_module_record()->id,
                 'course' => $forum->get_course_id(),
@@ -432,7 +435,7 @@ class post extends exporter {
 
             if ($enableplagiarism) {
                 $plagiarismhtml = plagiarism_get_links([
-                    'userid' => $post->get_author()->get_id(),
+                    'userid' => $post->get_author_id(),
                     'file' => $attachment,
                     'cmid' => $forum->get_course_module_record()->id,
                     'course' => $forum->get_course_id(),

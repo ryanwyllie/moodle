@@ -206,13 +206,15 @@ class exporter {
         forum_entity $forum,
         discussion_entity $discussion,
         array $posts,
+        array $authorsbyid = [],
         array $attachmentsbypostid = [],
         array $groupsbyauthorid = [],
         post_read_receipt_collection_entity $readreceiptcollection = null,
         array $tagsbypostid = [],
-        array $ratingbypostid = []
+        array $ratingbypostid = [],
+        bool $includehtml = false
     ) : posts_exporter {
-        return new posts_exporter($posts, $attachmentsbypostid, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, [
+        return new posts_exporter($posts, $authorsbyid, $attachmentsbypostid, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
             'urlmanager' => $this->managerfactory->get_url_manager($forum),
@@ -221,6 +223,7 @@ class exporter {
             'user' => $user,
             'context' => $forum->get_context(),
             'readreceiptcollection' => $readreceiptcollection,
+            'includehtml' => $includehtml
         ]);
     }
 

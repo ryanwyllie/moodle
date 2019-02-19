@@ -179,6 +179,7 @@ class discussion {
         $posts = array_merge([$firstpost], array_values($replies));
         $forum = $this->forum;
         $discussion = $this->discussion;
+        $authorsbyid = $this->get_authors_for_posts($posts);
         $attachmentsbypostid = $this->get_attachments_for_posts($posts);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
@@ -187,11 +188,13 @@ class discussion {
             $forum,
             $discussion,
             $posts,
+            $authorsbyid,
             $attachmentsbypostid,
             $groupsbyauthorid,
             $readreceiptcollection,
             $tagsbypostid,
-            $ratingbypostid
+            $ratingbypostid,
+            true
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
         $seenfirstunread = false;
@@ -230,6 +233,11 @@ class discussion {
         }
     }
 
+    private function get_authors_for_posts(array $posts) : array {
+        $authorvault = $this->vaultfactory->get_author_vault();
+        return $authorvault->get_authors_for_posts($posts);
+    }
+
     private function get_attachments_for_posts(array $posts) : array {
         $forum = $this->forum;
         $postattachmentvault = $this->vaultfactory->get_post_attachment_vault();
@@ -240,7 +248,7 @@ class discussion {
         $course = $this->forum->get_course_record();
         $coursemodule = $this->forum->get_course_module_record();
         $authorids = array_reduce($posts, function($carry, $post) {
-            $carry[$post->get_author()->get_id()] = [];
+            $carry[$post->get_author_id()] = [];
             return $carry;
         }, []);
         $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');

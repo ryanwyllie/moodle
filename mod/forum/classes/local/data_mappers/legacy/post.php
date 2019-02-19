@@ -39,7 +39,7 @@ class post {
                 'id' => $post->get_id(),
                 'discussion' => $post->get_discussion_id(),
                 'parent' => $post->get_parent_id(),
-                'userid' => $post->get_author()->get_id(),
+                'userid' => $post->get_author_id(),
                 'created' => $post->get_time_created(),
                 'modified' => $post->get_time_modified(),
                 'mailed' => $post->has_been_mailed(),

@@ -49,9 +49,8 @@ class post extends db_table_vault {
     protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $table = self::TABLE;
         $alias = $this->get_table_alias();
-        $fields = $alias . '.*, ' . user_picture::fields('u', null, self::USER_ID_ALIAS, self::USER_ALIAS);
+        $fields = $alias . '.*';
         $tables = "{{$table}} {$alias}";
-        $tables .= " JOIN {user} u ON u.id = {$alias}.userid";
 
         $selectsql = "SELECT {$fields} FROM {$tables}";
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
@@ -60,26 +59,12 @@ class post extends db_table_vault {
         return $selectsql;
     }
 
-    public function get_preprocessors() : array {
-        return array_merge(
-            parent::get_preprocessors(),
-            [
-                'user' => new extract_user_preprocessor(self::USER_ID_ALIAS, self::USER_ALIAS)
-            ]
-        );
-    }
-
     protected function from_db_records(array $results) {
         $entityfactory = $this->get_entity_factory();
 
         return array_map(function(array $result) use ($entityfactory) {
-            [
-                'record' => $record,
-                'user' => $authorrecord
-            ] = $result;
-            $author = $entityfactory->get_author_from_stdClass($authorrecord);
-
-            return $entityfactory->get_post_from_stdClass($record, $author);
+            ['record' => $record] = $result;
+            return $entityfactory->get_post_from_stdClass($record);
         }, $results);
     }
 

@@ -37,6 +37,7 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class posts extends exporter {
     private $posts;
+    private $authorsbyid;
     private $attachmentsbypostid;
     private $groupsbyauthorid;
     private $tagsbypostid;
@@ -44,6 +45,7 @@ class posts extends exporter {
 
     public function __construct(
         array $posts,
+        array $authorsbyid = [],
         array $attachmentsbypostid = [],
         array $groupsbyauthorid = [],
         array $tagsbypostid = [],
@@ -51,6 +53,7 @@ class posts extends exporter {
         $related = []
     ) {
         $this->posts = $posts;
+        $this->authorsbyid = $authorsbyid;
         $this->attachmentsbypostid = $attachmentsbypostid;
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->tagsbypostid = $tagsbypostid;
@@ -80,19 +83,22 @@ class posts extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
         $related = $this->related;
+        $authorsbyid = $this->authorsbyid;
         $attachmentsbypostid = $this->attachmentsbypostid;
         $groupsbyauthorid = $this->groupsbyauthorid;
         $tagsbypostid = $this->tagsbypostid;
         $ratingbypostid = $this->ratingbypostid;
         $exportedposts = array_map(
-            function($post) use ($related, $attachmentsbypostid, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, $output) {
-                $authorid = $post->get_author()->get_id();
+            function($post) use ($related, $authorsbyid, $attachmentsbypostid, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, $output) {
+                $authorid = $post->get_author_id();
                 $postid = $post->get_id();
+                $author = isset($authorsbyid[$authorid]) ? $authorsbyid[$authorid] : [];
                 $attachments = isset($attachmentsbypostid[$postid]) ? $attachmentsbypostid[$postid] : [];
                 $authorgroups = isset($groupsbyauthorid[$authorid]) ? $groupsbyauthorid[$authorid] : [];
                 $tags = isset($tagsbypostid[$postid]) ? $tagsbypostid[$postid] : [];
                 $rating = isset($ratingbypostid[$postid]) ? $ratingbypostid[$postid] : null;
                 $exporter = new post_exporter($post, array_merge($related, [
+                    'author' => $author,
                     'attachments' => $attachments,
                     'authorgroups' => $authorgroups,
                     'tags' => $tags,
@@ -122,7 +128,8 @@ class posts extends exporter {
             'discussion' => 'mod_forum\local\entities\discussion',
             'readreceiptcollection' => 'mod_forum\local\entities\post_read_receipt_collection?',
             'user' => 'stdClass',
-            'context' => 'context'
+            'context' => 'context',
+            'includehtml' => 'bool'
         ];
     }
 }

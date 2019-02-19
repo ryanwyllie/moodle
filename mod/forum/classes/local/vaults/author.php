@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  * Vault class.
  */
 class author extends db_table_vault {
-    private const TABLE = 'forum_posts';
+    private const TABLE = 'user';
 
     protected function get_table_alias() : string {
         return 'a';
@@ -53,5 +53,14 @@ class author extends db_table_vault {
             ] = $result;
             return $entityfactory->get_author_from_stdClass($record);
         }, $results);
+    }
+
+    public function get_authors_for_posts(array $posts) : array {
+        $authorids = array_reduce($posts, function($carry, $post) {
+            $carry[$post->get_author_id()] = true;
+            return $carry;
+        }, []);
+        $authorids = array_keys($authorids);
+        return $this->get_from_ids($authorids);
     }
 }
