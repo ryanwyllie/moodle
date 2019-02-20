@@ -35,6 +35,7 @@ use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
+use mod_forum\local\renderers\posts as posts_renderer;
 use context;
 use moodle_page;
 use moodle_url;
@@ -96,6 +97,7 @@ class renderer {
             $discussion,
             $forum,
             $rendererbase,
+            $this->get_posts_renderer($forum, $discussion),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
@@ -105,6 +107,22 @@ class renderer {
             $this->entityfactory->get_exported_posts_sorter(),
             $baseurl,
             $notifications
+        );
+    }
+
+    public function get_posts_renderer(
+        forum_entity $forum,
+        discussion_entity $discussion
+    ) : posts_renderer {
+        return new posts_renderer(
+            $discussion,
+            $forum,
+            $this->rendererbase,
+            $this->legacydatamapperfactory,
+            $this->exporterfactory,
+            $this->vaultfactory,
+            $this->managerfactory->get_rating_manager(),
+            $this->entityfactory->get_exported_posts_sorter()
         );
     }
 

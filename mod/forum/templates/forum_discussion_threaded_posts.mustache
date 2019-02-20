@@ -30,22 +30,14 @@
     }
 }}
 
-{{#html}}
-    {{{subscribe}}}
-    {{{neighbourlinks}}}
-
-    <div class="d-flex flex-wrap m-b-1">
-        <div>{{{exportdiscussion}}}</div>
-        <div class="{{#exportdiscussion}}ml-2{{/exportdiscussion}}">{{{modeselectorform}}}</div>
-        <div class="ml-2">{{{movediscussion}}}</div>
-        <div class="ml-2">{{{pindiscussion}}}</div>
-    </div>
-{{/html}}
-
-{{#notifications}}
-    {{> core/notification}}
-{{/notifications}}
-
-{{{html.posts}}}
-
-{{#html.neighbourlinks}}{{{.}}}{{/html.neighbourlinks}}
+{{#posts}}
+    {{< mod_forum/forum_discussion_post }}
+        {{$replies}}
+            <div class="indent pt-2">
+                {{#replies}}
+                    {{> mod_forum/forum_discussion_threaded_post }}
+                {{/replies}}
+            </div>
+        {{/replies}}
+    {{/ mod_forum/forum_discussion_post }}
+{{#posts}}

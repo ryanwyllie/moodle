@@ -29,17 +29,6 @@
     {
     }
 }}
-
-{{< mod_forum/forum_discussion }}
-    {{$post}}
-        {{< mod_forum/forum_discussion_post }}
-            {{$replies}}
-                <div class="indent pt-2">
-                    {{#replies}}
-                        {{> mod_forum/forum_discussion_threaded_post }}
-                    {{/replies}}
-                </div>
-            {{/replies}}
-        {{/ mod_forum/forum_discussion_post }}
-    {{/post}}
-{{/ mod_forum/forum_discussion }}
+{{#posts}}
+    {{> mod_forum/forum_discussion_nested_post }}
+{{/posts}}
