@@ -119,6 +119,7 @@ class posts {
         } else if ($displaymode === FORUM_MODE_FLATNEWEST || $displaymode === FORUM_MODE_FLATOLDEST) {
             $exportedfirstpost = array_shift($exportedposts);
             $exportedfirstpost->replies = $exportedposts;
+            $exportedfirstpost->hasreplies = true;
             $exportedposts = [$exportedfirstpost];
         }
 

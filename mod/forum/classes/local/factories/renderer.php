@@ -78,8 +78,9 @@ class renderer {
 
         $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
         $ratingmanager = $this->managerfactory->get_rating_manager();
+        $urlmanager = $this->managerfactory->get_url_manager($forum);
         $rendererbase = $this->rendererbase;
-        $baseurl = new moodle_url("/mod/forum/discuss2.php", ['d' => $discussion->get_id()]);
+        $baseurl = $urlmanager->get_discussion_view_url_from_discussion($discussion);
         $notifications = [];
 
         switch ($forum->get_type()) {
