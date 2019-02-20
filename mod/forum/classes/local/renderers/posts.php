@@ -92,7 +92,7 @@ class posts {
         $attachmentsbypostid = $this->get_attachments_for_posts($posts);
         $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
-        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : null;
+        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : [];
         $postsexporter = $this->exporterfactory->get_posts_exporter(
             $user,
             $forum,
