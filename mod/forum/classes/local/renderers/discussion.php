@@ -132,7 +132,7 @@ class discussion {
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'html' => [
-                'posts' => $this->postsrenderer->render($user, $displaymode, $firstpost, $replies, $readreceiptcollection),
+                'posts' => $this->postsrenderer->render($user, $posts, $readreceiptcollection, $displaymode),
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'subscribe' => null,
                 'movediscussion' => null,

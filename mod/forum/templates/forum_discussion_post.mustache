@@ -29,10 +29,10 @@
     {
     }
 }}
-<article id="p{{id}}" class="relativelink" data-post-id="{{id}}">
-    {{#isfirstunread}}<a id="unread"></a>{{/isfirstunread}}
+<article id="p{{id}}" class="relativelink" tabindex="-1" data-post-id="{{id}}">
 
     <div class="d-flex border p-2">
+        {{#isfirstunread}}<a id="unread"></a>{{/isfirstunread}}
         <div style="width: 45px;">
             {{^isdeleted}}
                 {{#author}}
@@ -161,15 +161,21 @@
                         {{/export}}
                     {{/capabilities}}
                 </div>
+
+                {{#html.footer}}
+                    <div>{{{.}}}</div>
+                {{/html.footer}}
             {{/isdeleted}}
         </div>
     </div>
 
     {{$replies}}
-        <div class="pt-2">
-            {{#replies}}
-                {{> mod_forum/forum_discussion_post }}
-            {{/replies}}
-        </div>
+        {{#hasreplies}}
+            <div class="pt-2">
+                {{#replies}}
+                    {{> mod_forum/forum_discussion_post }}
+                {{/replies}}
+            </div>
+        {{/hasreplies}}
     {{/replies}}
 </article>

@@ -37,18 +37,10 @@ use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
 use core\output\notification;
 use context;
-use context_module;
 use core_tag_tag;
-use html_writer;
-use moodle_exception;
-use moodle_page;
-use moodle_url;
 use rating_manager;
 use renderer_base;
-use single_button;
-use single_select;
 use stdClass;
-use url_select;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -87,12 +79,13 @@ class posts {
 
     public function render(
         stdClass $user,
-        int $displaymode,
-        post_entity $firstpost,
-        array $replies,
-        ?read_receipt_collection_entity $readreceiptcollection
+        array $posts,
+        read_receipt_collection_entity $readreceiptcollection = null,
+        int $displaymode = null,
+        bool $removereplylink = false,
+        array $highlightwords = [],
+        string $footer = null
     ) : string {
-        $posts = array_merge([$firstpost], array_values($replies));
         $forum = $this->forum;
         $discussion = $this->discussion;
         $authorsbyid = $this->get_authors_for_posts($posts);
@@ -114,36 +107,16 @@ class posts {
             true
         );
         ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
-        $seenfirstunread = false;
-        $exportedposts = array_map(function($exportedpost) use ($forum, $seenfirstunread) {
-            if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
-                // Remove the author from any posts that don't have a parent.
-                unset($exportedpost->author);
-            }
-
-            $exportedpost->replies = [];
-
-            $exportedpost->isfirstunread = false;
-            if (!$seenfirstunread && $exportedpost->unread) {
-                $exportedpost->isfirstunread = true;
-                $seenfirstunread = true;
-            }
-
-            return $exportedpost;
-        }, $exportedposts);
+        $exportedposts = $this->post_process_for_template(
+            $exportedposts,
+            $removereplylink,
+            $highlightwords,
+            $footer
+        );
 
         if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
-            $sortedposts = $this->exportedpostsorter->sort_into_children($exportedposts);
-            $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
-                return array_map(function($postdata) use (&$sortintoreplies) {
-                    [$post, $replies] = $postdata;
-                    $post->replies = $sortintoreplies($replies);
-                    return $post;
-                }, $nestedposts);
-            };
-
-            $exportedposts = $sortintoreplies($sortedposts);
-        } else {
+            $exportedposts = $this->sort_posts_into_replies($exportedposts);
+        } else if ($displaymode === FORUM_MODE_FLATNEWEST || $displaymode === FORUM_MODE_FLATOLDEST) {
             $exportedfirstpost = array_shift($exportedposts);
             $exportedfirstpost->replies = $exportedposts;
             $exportedposts = [$exportedfirstpost];
@@ -233,5 +206,72 @@ class posts {
             $carry[$item->id] = empty($item->rating) ? null : $item->rating;
             return $carry;
         }, []);
+    }
+
+    private function post_process_for_template(
+        array $exportedposts,
+        bool $removereplylink,
+        array $highlightwords,
+        ?string $footer
+    ) {
+        $forum = $this->forum;
+        $seenfirstunread = false;
+        return array_map(
+            function($exportedpost) use (
+                $forum,
+                $seenfirstunread,
+                $removereplylink,
+                $highlightwords,
+                $footer
+            ) {
+                if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
+                    // Remove the author from any posts that don't have a parent.
+                    unset($exportedpost->author);
+                }
+
+                $exportedpost->hasreplies = false;
+                $exportedpost->replies = [];
+
+                $exportedpost->isfirstunread = false;
+                if (!$seenfirstunread && $exportedpost->unread) {
+                    $exportedpost->isfirstunread = true;
+                    $seenfirstunread = true;
+                }
+
+                if ($removereplylink) {
+                    $exportedpost->capabilities['reply'] = false;
+                    $exportedpost->urls['reply'] = null;
+                }
+
+                if (!empty($highlightwords)) {
+                    $exportedpost->message = highlight(implode(' ', $highlightwords), $exportedpost->message);
+                }
+
+                if (!empty($footer)) {
+                    if (empty($exportedpost->html)) {
+                        $exportedpost->html = [];
+                    }
+
+                    $exportedpost->html['footer'] = $footer;
+                }
+
+                return $exportedpost;
+            },
+            $exportedposts
+        );
+    }
+
+    private function sort_posts_into_replies(array $exportedposts) {
+        $sortedposts = $this->exportedpostsorter->sort_into_children($exportedposts);
+        $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
+            return array_map(function($postdata) use (&$sortintoreplies) {
+                [$post, $replies] = $postdata;
+                $post->replies = $sortintoreplies($replies);
+                $post->hasreplies = !empty($post->replies);
+                return $post;
+            }, $nestedposts);
+        };
+
+        return $sortintoreplies($sortedposts);
     }
 }
