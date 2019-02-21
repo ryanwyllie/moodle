@@ -29,13 +29,13 @@
     {
     }
 }}
-<div data-post-id="{{id}}">
+<div class="mb-2" data-post-id="{{id}}">
     <a href="">{{subject}}</a>
     <address class="d-inline-block mb-0">
         by {{author.fullname}} - <time>{{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>
     </address>
 
-    <div class="indent pt-2">
+    <div class="indent">
         {{#replies}}
             {{> mod_forum/forum_discussion_threaded_post }}
         {{/replies}}

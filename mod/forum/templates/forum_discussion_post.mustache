@@ -29,9 +29,9 @@
     {
     }
 }}
-<article id="p{{id}}" class="relativelink" tabindex="-1" data-post-id="{{id}}">
+<article id="p{{id}}" class="relativelink mb-2" tabindex="-1" data-post-id="{{id}}">
 
-    <div class="d-flex border p-2">
+    <div class="d-flex border p-2 mb-2">
         {{#isfirstunread}}<a id="unread"></a>{{/isfirstunread}}
         <div style="width: 45px;">
             {{^isdeleted}}
@@ -171,7 +171,7 @@
 
     {{$replies}}
         {{#hasreplies}}
-            <div class="pt-2">
+            <div>
                 {{#replies}}
                     {{> mod_forum/forum_discussion_post }}
                 {{/replies}}

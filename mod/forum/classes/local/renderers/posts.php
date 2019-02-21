@@ -126,7 +126,7 @@ class posts {
         return $this->renderer->render_from_template($this->get_template($displaymode), ['posts' => $exportedposts]);
     }
 
-    private function get_template(int $displaymode) : string {
+    private function get_template(int $displaymode = null) : string {
         switch ($displaymode) {
             case FORUM_MODE_THREADED:
                 return 'mod_forum/forum_discussion_threaded_posts';

@@ -130,9 +130,9 @@ class post extends db_table_vault {
         };
         $replypostids = $getreplypostids($replies);
 
-        return array_filter($posts, function($post) use ($replypostids) {
+        return array_values(array_filter($posts, function($post) use ($replypostids) {
             return in_array($post->get_id(), $replypostids);
-        });
+        }));
     }
 
     /**

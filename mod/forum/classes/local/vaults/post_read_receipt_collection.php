@@ -26,6 +26,8 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
+use stdClass;
+
 /**
  * Vault class.
  */
@@ -64,5 +66,12 @@ class post_read_receipt_collection extends db_table_vault {
         $records = $this->get_db()->get_records_sql($sql, $params);
 
         return $this->transform_db_records_to_entities($records);
+    }
+
+    public function get_from_user_and_posts(stdClass $user, array $posts) {
+        $postids = array_map(function($post) {
+            return $post->get_id();
+        }, $posts);
+        return $this->get_from_user_id_and_post_ids($user->id, $postids);
     }
 }
