@@ -308,25 +308,9 @@ $postids = array_map(function($post) {
     return $post->get_id();
 }, array_merge([$post], array_values($replies)));
 
-if ($istracked) {
-    $readreceiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
-    $readreceiptcollection = $readreceiptvault->get_from_user_id_and_post_ids($USER->id, $postids);
-} else {
-    $readreceiptcollection = null;
-}
-
-echo $discussionrenderer->render($USER, $displaymode, $post, $replies, $readreceiptcollection);
+echo $discussionrenderer->render($USER, $displaymode, $post, $replies);
 echo $OUTPUT->footer();
 
 if ($istracked && !$CFG->forum_usermarksread) {
-    $unreadpostids = array_reduce($posts, function($carry, $post) use ($USER, $readreceiptcollection) {
-        if ($readreceiptcollection->has_user_read_post($USER, $post)) {
-            $carry[] = $post->get_id();
-        }
-        return $carry;
-    }, []);
-
-    if (!empty($unreadpostids)) {
-        forum_tp_mark_posts_read($user, $unreadpostids);
-    }
+    forum_tp_mark_posts_read($USER, $postids);
 }

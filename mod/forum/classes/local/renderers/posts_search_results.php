@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\builders\exported_posts as exported_posts_builder;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
 use mod_forum\local\factories\manager as manager_factory;
 use renderer_base;
 use stdClass;
@@ -58,15 +57,13 @@ class posts_search_results {
         array $forumsbyid,
         array $discussionsbyid,
         array $posts,
-        array $searchterms,
-        array $readreceiptcollectionbyforumid = []
+        array $searchterms
     ) : string {
         $exportedposts = $this->exportedpostsbuilder->build(
             $user,
             $forumsbyid,
             $discussionsbyid,
-            $posts,
-            $readreceiptcollectionbyforumid
+            $posts
         );
 
         $highlightwords = implode(' ', $searchterms);
@@ -85,7 +82,7 @@ class posts_search_results {
                 $exportedpost->urls['viewdiscussion'] = $urlmananger->get_discussion_view_url_from_discussion($discussion);
                 $exportedpost->subject = highlight($highlightwords, $exportedpost->subject);
                 $exportedpost->forumname = format_string($forum->get_name(), true);
-                $exportedpost->discussionname = format_string(highlight($highlightwords, $discussion->get_name()), true);
+                $exportedpost->discussionname = highlight($highlightwords, format_string($discussion->get_name(), true));
                 $exportedpost->showdiscussionname = $forum->get_type() != 'single';
 
                 // Identify search terms only found in HTML markup, and add a warning about them to

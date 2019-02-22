@@ -265,14 +265,6 @@ $forumsbyid = array_reduce($forums, function($carry, $forum) {
 $postids = array_map(function($post) {
     return $post->id;
 }, $posts);
-$collectionvault = $vaultfactory->get_post_read_receipt_collection_vault();
-$readreceiptcollection = $collectionvault->get_from_user_id_and_post_ids($USER->id, $postids);
-
-$readreceiptcollectionbyforumid = array_reduce($forums, function($carry, $forum) use ($USER, $forumdatamapper, $readreceiptcollection) {
-    $forumrecord = $forumdatamapper->to_legacy_object($forum);
-    $carry[$forum->get_id()] = forum_tp_is_tracked($forumrecord, $USER) ? $readreceiptcollection : null;
-    return $carry;
-}, []);
 
 $poststorender = [];
 
@@ -312,8 +304,7 @@ echo $renderer->render(
     $forumsbyid,
     $discussionsbyid,
     $poststorender,
-    $searchterms,
-    $readreceiptcollectionbyforumid
+    $searchterms
 );
 
 echo $OUTPUT->paging_bar($totalcount, $page, $perpage, $url);

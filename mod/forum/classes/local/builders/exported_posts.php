@@ -70,8 +70,7 @@ class exported_posts {
         stdClass $user,
         array $forums,
         array $discussions,
-        array $posts,
-        array $readreceiptcollectionbyforumid = []
+        array $posts
     ) {
         $forums = array_reduce($forums, function($carry, $forum) {
             $carry[$forum->get_id()] = $forum;
@@ -88,6 +87,7 @@ class exported_posts {
         $groupsbyforumandauthorid = $this->get_author_groups_from_posts($groupedposts);
         $tagsbypostid = $this->get_tags_from_posts($posts);
         $ratingbypostid = $this->get_ratings_from_posts($user, $groupedposts);
+        $readreceiptcollectionbyforumid = $this->get_read_receipts_from_posts($user, $groupedposts);
         $exportedposts = [];
 
         foreach ($groupedposts as $grouping) {
@@ -269,6 +269,44 @@ class exported_posts {
         }
 
         return $ratingsbypostid;
+    }
+
+    private function get_read_receipts_from_posts(stdClass $user, array $groupedposts) {
+        $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
+        $trackedforums = [];
+        $trackedpostids = [];
+
+        foreach ($groupedposts as $group) {
+            ['forum' => $forum, 'posts' => $posts] = $group;
+            $forumid = $forum->get_id();
+
+            if (!isset($trackedforums[$forumid])) {
+                $forumrecord = $forumdatamapper->to_legacy_object($forum);
+                $trackedforums[$forumid] = forum_tp_is_tracked($forumrecord, $user);
+            }
+
+            if ($trackedforums[$forumid]) {
+                foreach ($posts as $post) {
+                    $trackedpostids[] = $post->get_id();
+                }
+            }
+        }
+
+        if (empty($trackedpostids)) {
+            return [];
+        }
+
+        $receiptvault = $this->vaultfactory->get_post_read_receipt_collection_vault();
+        $readreceiptcollection = $receiptvault->get_from_user_id_and_post_ids($user->id, $trackedpostids);
+        $receiptsbyforumid = [];
+
+        foreach ($trackedforums as $forumid => $tracked) {
+            if ($tracked) {
+                $receiptsbyforumid[$forumid] = $readreceiptcollection;
+            }
+        }
+
+        return $receiptsbyforumid;
     }
 
     private function sort_exported_posts(array $posts, array $exportedposts) {

@@ -313,7 +313,7 @@ class discussion_list {
         $course = $this->forum->get_course_record();
         $coursemodule = $this->forum->get_course_module_record();
         $authorids = array_reduce($posts, function($carry, $post) {
-            $carry[$post->get_author()->get_id()] = true;
+            $carry[$post->get_author_id()] = true;
             return $carry;
         }, []);
         $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');

@@ -408,23 +408,16 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
                 $CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.'#p'.$post->id);
 
             $postentities = [$postentity];
-            $readreceiptcollection = null;
 
             if (empty($post->edit)) {
-                $forumtracked = forum_tp_is_tracked($forum);
                 $postvault = $vaultfactory->get_post_vault();
                 $replies = $postvault->get_replies_to_post($postentity, 'created ASC');
                 $postentities = array_merge($postentities, $replies);
-
-                if ($forumtracked) {
-                    $receiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
-                    $readreceiptcollection = $receiptvault->get_from_user_and_posts($USER, $postentities);
-                }
             }
 
             $rendererfactory = mod_forum\local\container::get_renderer_factory();
-            $postsrenderer = $rendererfactory->get_posts_renderer($forumentity, $discussionentity);
-            echo $postsrenderer->render($USER, $postentities, $readreceiptcollection, FORUM_MODE_NESTED, true);
+            $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
+            echo $postsrenderer->render($USER, $postentities, FORUM_MODE_NESTED);
         } else {
             echo $OUTPUT->header();
             echo $OUTPUT->heading(format_string($forum->name), 2);
@@ -433,8 +426,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
                 $CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.'#p'.$post->id);
 
             $rendererfactory = mod_forum\local\container::get_renderer_factory();
-            $postsrenderer = $rendererfactory->get_posts_renderer($forumentity, $discussionentity);
-            echo $postsrenderer->render($USER, [$postentity], null, null, true);
+            $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
+            echo $postsrenderer->render($USER, [$postentity], null);
         }
 
     }
@@ -563,8 +556,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
         $discussionentity = $entityfactory->get_discussion_from_stdClass($discussion);
         $forumentity = $entityfactory->get_forum_from_stdClass($forum, $modcontext, $cm, $course);
         $rendererfactory = mod_forum\local\container::get_renderer_factory();
-        $postsrenderer = $rendererfactory->get_posts_renderer($forumentity, $discussionentity);
-        echo $postsrenderer->render($USER, [$postentity], null, null, true);
+        $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
+        echo $postsrenderer->render($USER, [$postentity], null);
     }
 
     echo $OUTPUT->footer();
@@ -1077,25 +1070,18 @@ if (!empty($parent)) {
     $discussionentity = $entityfactory->get_discussion_from_stdClass($discussion);
     $forumentity = $entityfactory->get_forum_from_stdClass($forum, $modcontext, $cm, $course);
     $postentities = [$postentity];
-    $readreceiptcollection = null;
 
     if (empty($post->edit)) {
         if ($forum->type != 'qanda' || forum_user_can_see_discussion($forum, $discussion, $modcontext)) {
-            $forumtracked = forum_tp_is_tracked($forum);
             $postvault = $vaultfactory->get_post_vault();
             $replies = $postvault->get_replies_to_post($postentity, 'created ASC');
             $postentities = array_merge($postentities, $replies);
-
-            if ($forumtracked) {
-                $receiptvault = $vaultfactory->get_post_read_receipt_collection_vault();
-                $readreceiptcollection = $receiptvault->get_from_user_and_posts($USER, $postentities);
-            }
         }
     }
 
     $rendererfactory = mod_forum\local\container::get_renderer_factory();
-    $postsrenderer = $rendererfactory->get_posts_renderer($forumentity, $discussionentity);
-    echo $postsrenderer->render($USER, $postentities, $readreceiptcollection, FORUM_MODE_THREADED, true);
+    $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
+    echo $postsrenderer->render($USER, $postentities, FORUM_MODE_THREADED);
 } else {
     if (!empty($forum->intro)) {
         echo $OUTPUT->box(format_module_intro('forum', $forum, $cm->id), 'generalbox', 'intro');

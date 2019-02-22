@@ -30,7 +30,6 @@ use mod_forum\local\builders\exported_posts as exported_posts_builder;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
 use mod_forum\local\entities\sorter as sorter_entity;
 use renderer_base;
 use stdClass;
@@ -67,17 +66,13 @@ class posts {
     public function render(
         stdClass $user,
         array $posts,
-        read_receipt_collection_entity $readreceiptcollection = null,
         int $displaymode = null
     ) : string {
-        $receiptsbyforumid = [];
-        $receiptsbyforumid[$this->forum->get_id()] = $readreceiptcollection;
         $exportedposts = $this->exportedpostsbuilder->build(
             $user,
             [$this->forum],
             [$this->discussion],
-            $posts,
-            $receiptsbyforumid
+            $posts
         );
         $exportedposts = $this->post_process_for_template($exportedposts);
 

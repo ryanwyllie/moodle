@@ -50,8 +50,6 @@ class capability {
     private $forum;
     private $forumrecord;
     private $context;
-    // TODO: Swap for MUC cache.
-    private $cache = [];
 
     public function __construct(
         forum_entity $forum,
@@ -155,14 +153,8 @@ class capability {
 
     public function can_manually_control_post_read_status(stdClass $user) : bool {
         global $CFG;
-        $key = $this->get_cache_key(['can_manually_control_post_read_status', $user->id]);
 
-        if (!$this->in_cache($key)) {
-            $value = $CFG->forum_usermarksread && isloggedin() && forum_tp_is_tracked($this->get_forum_record(), $user);
-            $this->set_in_cache($key, $value);
-        }
-
-        return $this->get_from_cache($key);
+        return $CFG->forum_usermarksread && isloggedin() && forum_tp_is_tracked($this->get_forum_record(), $user);
     }
 
     public function must_post_before_viewing_discussion(stdClass $user, discussion_entity $discussion) : bool {
@@ -300,21 +292,5 @@ class capability {
 
     public function can_manage_tags(stdClass $user) : bool {
         return has_capability('moodle/tag:manage', context_system::instance(), $user);
-    }
-
-    private function get_cache_key(array $values) : string {
-        return implode($values);
-    }
-
-    private function in_cache(string $key) : bool {
-        return isset($this->cache[$key]);
-    }
-
-    private function set_in_cache(string $key, $value) {
-        $this->cache[$key] = $value;
-    }
-
-    private function get_from_cache(string $key) {
-        return $this->cache[$key];
     }
 }

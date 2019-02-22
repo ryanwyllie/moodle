@@ -113,8 +113,7 @@ class discussion {
         stdClass $user,
         int $displaymode,
         post_entity $firstpost,
-        array $replies,
-        ?read_receipt_collection_entity $readreceiptcollection
+        array $replies
     ) : string {
         global $CFG;
 
@@ -132,7 +131,7 @@ class discussion {
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'html' => [
-                'posts' => $this->postsrenderer->render($user, $posts, $readreceiptcollection, $displaymode),
+                'posts' => $this->postsrenderer->render($user, $posts, $displaymode),
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'subscribe' => null,
                 'movediscussion' => null,
