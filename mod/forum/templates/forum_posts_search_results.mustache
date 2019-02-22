@@ -29,8 +29,20 @@
     {
     }
 }}
-{{< mod_forum/forum_discussion_post }}
-    {{$subject}}{{/subject}}
-    {{$replies}}{{/replies}}
-    {{$footer}}{{/footer}}
-{{/ mod_forum/forum_discussion_post }}
+{{#posts}}
+    {{< mod_forum/forum_discussion_post }}
+        {{$subject}}
+            <a href="{{{urls.viewforum}}}"">{{{forumname}}}</a>
+            {{#showdiscussionname}}
+                -> <a href="{{{urls.viewdiscussion}}}">{{{discussionname}}}</a>
+                {{#hasparent}}
+                    -> <a href="{{{urls.viewparent}}}">{{{subject}}}</a>
+                {{/hasparent}}
+            {{/showdiscussionname}}
+        {{/subject}}
+        {{$replies}}{{/replies}}
+        {{$footer}}
+            <div><a href="{{{urls.view}}}">{{#str}} postincontext, mod_forum {{/str}}</a></div>
+        {{/footer}}
+    {{/ mod_forum/forum_discussion_post }}
+{{/posts}}

@@ -55,10 +55,11 @@ class post extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
-            'subject' => ['type' => PARAM_RAW],
+            'subject' => ['type' => PARAM_TEXT],
             'message' => ['type' => PARAM_RAW],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],
+            'discussionid' => ['type' => PARAM_INT],
             'hasparent' => ['type' => PARAM_BOOL],
             'parentid' => [
                 'type' => PARAM_INT,
@@ -298,6 +299,7 @@ class post extends exporter {
             'message' => $message,
             'messageformat' => $post->get_message_format(),
             'author' => $exportedauthor,
+            'discussionid' => $post->get_discussion_id(),
             'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,

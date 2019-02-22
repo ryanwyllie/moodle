@@ -71,7 +71,7 @@ class exported_posts {
         array $forums,
         array $discussions,
         array $posts,
-        read_receipt_collection_entity $readreceiptcollection = null
+        array $readreceiptcollectionbyforumid = []
     ) {
         $forums = array_reduce($forums, function($carry, $forum) {
             $carry[$forum->get_id()] = $forum;
@@ -97,6 +97,7 @@ class exported_posts {
                 'posts' => $groupedposts
             ] = $grouping;
 
+            $forumid = $forum->get_id();
             $postsexporter = $this->exporterfactory->get_posts_exporter(
                 $user,
                 $forum,
@@ -104,8 +105,8 @@ class exported_posts {
                 $groupedposts,
                 $authorsbyid,
                 $attachmentsbypostid,
-                $groupsbyforumandauthorid[$forum->get_id()],
-                $readreceiptcollection,
+                $groupsbyforumandauthorid[$forumid],
+                $readreceiptcollectionbyforumid[$forumid] ?? null,
                 $tagsbypostid,
                 $ratingbypostid,
                 true

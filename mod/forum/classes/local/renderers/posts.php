@@ -70,12 +70,14 @@ class posts {
         read_receipt_collection_entity $readreceiptcollection = null,
         int $displaymode = null
     ) : string {
+        $receiptsbyforumid = [];
+        $receiptsbyforumid[$this->forum->get_id()] = $readreceiptcollection;
         $exportedposts = $this->exportedpostsbuilder->build(
             $user,
             [$this->forum],
             [$this->discussion],
             $posts,
-            $readreceiptcollection
+            $receiptsbyforumid
         );
         $exportedposts = $this->post_process_for_template($exportedposts);
 

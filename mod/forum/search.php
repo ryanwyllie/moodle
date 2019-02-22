@@ -268,11 +268,13 @@ $postids = array_map(function($post) {
 $collectionvault = $vaultfactory->get_post_read_receipt_collection_vault();
 $readreceiptcollection = $collectionvault->get_from_user_id_and_post_ids($USER->id, $postids);
 
-$forumtrackedbyid = array_reduce($forums, function($carry, $forum) use ($USER, $forumdatamapper) {
+$readreceiptcollectionbyforumid = array_reduce($forums, function($carry, $forum) use ($USER, $forumdatamapper, $readreceiptcollection) {
     $forumrecord = $forumdatamapper->to_legacy_object($forum);
-    $carry[$forum->get_id()] = forum_tp_is_tracked($forumrecord, $USER);
+    $carry[$forum->get_id()] = forum_tp_is_tracked($forumrecord, $USER) ? $readreceiptcollection : null;
     return $carry;
 }, []);
+
+$poststorender = [];
 
 foreach ($posts as $post) {
 
@@ -301,62 +303,18 @@ foreach ($posts as $post) {
         continue;
     }
 
-    $post->subject = highlight($strippedsearch, $post->subject);
-    $discussionname = highlight($strippedsearch, $discussion->get_name());
-
-    $fullsubject = "<a href=\"view.php?f=" . $forum->get_id() . "\">" . format_string($forum->get_name(), true) . "</a>";
-    if ($forum->get_type() != 'single') {
-        $fullsubject .= " -> <a href=\"discuss.php?d=". $discussion->get_id() . "\">" . format_string($discussionname, true) . "</a>";
-        if ($post->parent != 0) {
-            $fullsubject .= " -> <a href=\"discuss.php?d=$post->discussion&amp;parent=$post->id\">".format_string($post->subject,true)."</a>";
-        }
-    }
-
-    $post->subject = $fullsubject;
-    $post->subjectnoformat = true;
-
-    // Identify search terms only found in HTML markup, and add a warning about them to
-    // the start of the message text.
-    $missing_terms = "";
-
-    $options = new stdClass();
-    $options->trusted = $post->messagetrust;
-    $post->message = highlight($strippedsearch,
-                    format_text($post->message, $post->messageformat, $options, $course->id),
-                    0, '<fgw9sdpq4>', '</fgw9sdpq4>');
-
-    foreach ($searchterms as $searchterm) {
-        if (preg_match("/$searchterm/i",$post->message) && !preg_match('/<fgw9sdpq4>'.$searchterm.'<\/fgw9sdpq4>/i',$post->message)) {
-            $missing_terms .= " $searchterm";
-        }
-    }
-
-    $post->message = str_replace('<fgw9sdpq4>', '<span class="highlight">', $post->message);
-    $post->message = str_replace('</fgw9sdpq4>', '</span>', $post->message);
-
-    if ($missing_terms) {
-        $strmissingsearchterms = get_string('missingsearchterms','forum');
-        $post->message = '<p class="highlight2">'.$strmissingsearchterms.' '.$missing_terms.'</p>'.$post->message;
-    }
-
-    // Prepare a link to the post in context, to be displayed after the forum post.
-    $fulllink = "<a href=\"discuss.php?d=$post->discussion#p$post->id\">".get_string("postincontext", "forum")."</a>";
-
-    // Message is now html format.
-    if ($post->messageformat != FORMAT_HTML) {
-        $post->messageformat = FORMAT_HTML;
-    }
-
-    $postsrenderer = $rendererfactory->get_posts_renderer($forum, $discussion);
-    echo $postsrenderer->render(
-        $USER,
-        [$entityfactory->get_post_from_stdClass($post)],
-        !empty($forumtrackedbyid[$forum->get_id()]) ? $readreceiptcollection : null,
-        null,
-        true,
-        $fulllink
-    );
+    $poststorender[] = $postentity;
 }
+
+$renderer = $rendererfactory->get_posts_search_results_renderer();
+echo $renderer->render(
+    $USER,
+    $forumsbyid,
+    $discussionsbyid,
+    $poststorender,
+    $searchterms,
+    $readreceiptcollectionbyforumid
+);
 
 echo $OUTPUT->paging_bar($totalcount, $page, $perpage, $url);
 

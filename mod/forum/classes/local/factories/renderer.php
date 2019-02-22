@@ -37,6 +37,7 @@ use mod_forum\local\factories\builder as builder_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use mod_forum\local\renderers\posts as posts_renderer;
+use mod_forum\local\renderers\posts_search_results as posts_search_results_renderer;
 use context;
 use moodle_page;
 use moodle_url;
@@ -158,6 +159,14 @@ class renderer {
                         return 'mod_forum/forum_discussion_posts_read_only';
                 }
             }
+        );
+    }
+
+    public function get_posts_search_results_renderer() : posts_search_results_renderer {
+        return new posts_search_results_renderer(
+            $this->rendererbase,
+            $this->builderfactory->get_exported_posts_builder(),
+            $this->managerfactory
         );
     }
 
