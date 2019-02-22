@@ -26,19 +26,12 @@ namespace mod_forum\local\renderers;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\builders\exported_posts as exported_posts_builder;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
 use mod_forum\local\entities\sorter as sorter_entity;
-use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
-use mod_forum\local\factories\exporter as exporter_factory;
-use mod_forum\local\factories\vault as vault_factory;
-use mod_forum\local\managers\capability as capability_manager;
-use core\output\notification;
-use context;
-use core_tag_tag;
-use rating_manager;
 use renderer_base;
 use stdClass;
 
@@ -51,68 +44,40 @@ class posts {
     private $discussion;
     private $forum;
     private $renderer;
-    private $legacydatamapperfactory;
-    private $exporterfactory;
-    private $vaultfactory;
-    private $ratingmanager;
+    private $exportedpostsbuilder;
     private $exportedpostsorter;
+    private $gettemplate;
 
     public function __construct(
         discussion_entity $discussion,
         forum_entity $forum,
         renderer_base $renderer,
-        legacy_data_mapper_factory $legacydatamapperfactory,
-        exporter_factory $exporterfactory,
-        vault_factory $vaultfactory,
-        rating_manager $ratingmanager,
-        sorter_entity $exportedpostsorter
+        exported_posts_builder $exportedpostsbuilder,
+        sorter_entity $exportedpostsorter,
+        callable $gettemplate
     ) {
         $this->discussion = $discussion;
         $this->forum = $forum;
         $this->renderer = $renderer;
-        $this->legacydatamapperfactory = $legacydatamapperfactory;
-        $this->exporterfactory = $exporterfactory;
-        $this->vaultfactory = $vaultfactory;
-        $this->ratingmanager = $ratingmanager;
+        $this->exportedpostsbuilder = $exportedpostsbuilder;
         $this->exportedpostsorter = $exportedpostsorter;
+        $this->gettemplate = $gettemplate;
     }
 
     public function render(
         stdClass $user,
         array $posts,
         read_receipt_collection_entity $readreceiptcollection = null,
-        int $displaymode = null,
-        bool $removereplylink = false,
-        array $highlightwords = [],
-        string $footer = null
+        int $displaymode = null
     ) : string {
-        $forum = $this->forum;
-        $discussion = $this->discussion;
-        $authorsbyid = $this->get_authors_for_posts($posts);
-        $attachmentsbypostid = $this->get_attachments_for_posts($posts);
-        $groupsbyauthorid = $this->get_author_groups_from_posts($posts);
-        $tagsbypostid = $this->get_tags_from_posts($posts);
-        $ratingbypostid = $forum->has_rating_aggregate() ? $this->get_ratings_from_posts($user, $posts) : [];
-        $postsexporter = $this->exporterfactory->get_posts_exporter(
+        $exportedposts = $this->exportedpostsbuilder->build(
             $user,
-            $forum,
-            $discussion,
+            [$this->forum],
+            [$this->discussion],
             $posts,
-            $authorsbyid,
-            $attachmentsbypostid,
-            $groupsbyauthorid,
-            $readreceiptcollection,
-            $tagsbypostid,
-            $ratingbypostid,
-            true
+            $readreceiptcollection
         );
-        ['posts' => $exportedposts] = (array) $postsexporter->export($this->renderer);
-        $exportedposts = $this->post_process_for_template(
-            $exportedposts,
-            $removereplylink,
-            $highlightwords,
-            $footer
-        );
+        $exportedposts = $this->post_process_for_template($exportedposts);
 
         if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
             $exportedposts = $this->sort_posts_into_replies($exportedposts);
@@ -123,108 +88,17 @@ class posts {
             $exportedposts = [$exportedfirstpost];
         }
 
-        return $this->renderer->render_from_template($this->get_template($displaymode), ['posts' => $exportedposts]);
+        return $this->renderer->render_from_template(
+            ($this->gettemplate)($displaymode),
+            ['posts' => $exportedposts]
+        );
     }
 
-    private function get_template(int $displaymode = null) : string {
-        switch ($displaymode) {
-            case FORUM_MODE_THREADED:
-                return 'mod_forum/forum_discussion_threaded_posts';
-            case FORUM_MODE_NESTED:
-                return 'mod_forum/forum_discussion_nested_posts';
-            default;
-                return 'mod_forum/forum_discussion_posts';
-        }
-    }
-
-    private function get_authors_for_posts(array $posts) : array {
-        $authorvault = $this->vaultfactory->get_author_vault();
-        return $authorvault->get_authors_for_posts($posts);
-    }
-
-    private function get_attachments_for_posts(array $posts) : array {
-        $forum = $this->forum;
-        $postattachmentvault = $this->vaultfactory->get_post_attachment_vault();
-        return $postattachmentvault->get_attachments_for_posts($forum->get_context(), $posts);
-    }
-
-    private function get_author_groups_from_posts(array $posts) : array {
-        $course = $this->forum->get_course_record();
-        $coursemodule = $this->forum->get_course_module_record();
-        $authorids = array_reduce($posts, function($carry, $post) {
-            $carry[$post->get_author_id()] = [];
-            return $carry;
-        }, []);
-        $authorgroups = groups_get_all_groups($course->id, array_keys($authorids), $coursemodule->groupingid, 'g.*, gm.id, gm.groupid, gm.userid');
-
-        return array_reduce($authorgroups, function($carry, $group) {
-            // Clean up data returned from groups_get_all_groups.
-            $userid = $group->userid;
-            $groupid = $group->groupid;
-
-            unset($group->userid);
-            unset($group->groupid);
-            $group->id = $groupid;
-
-            if (!isset($carry[$userid])) {
-                $carry[$userid] = [$group];
-            } else {
-                $carry[$userid][] = $group;
-            }
-
-            return $carry;
-        }, $authorids);
-    }
-
-    private function get_tags_from_posts(array $posts) : array {
-        $postids = array_map(function($post) {
-            return $post->get_id();
-        }, $posts);
-        return core_tag_tag::get_items_tags('mod_forum', 'forum_posts', $postids);
-    }
-
-    private function get_ratings_from_posts(stdClass $user, array $posts) {
-        $forum = $this->forum;
-        $postsdatamapper = $this->legacydatamapperfactory->get_post_data_mapper();
-
-        $items = $postsdatamapper->to_legacy_objects($posts);
-        $ratingoptions = (object) [
-            'context' => $forum->get_context(),
-            'component' => 'mod_forum',
-            'ratingarea' => 'post',
-            'items' => $items,
-            'aggregate' => $forum->get_rating_aggregate(),
-            'scaleid' => $forum->get_scale(),
-            'userid' => $user->id,
-            'assesstimestart' => $forum->get_assess_time_start(),
-            'assesstimefinish' => $forum->get_assess_time_finish()
-        ];
-
-        $rm = $this->ratingmanager;
-        $items = $rm->get_ratings($ratingoptions);
-
-        return array_reduce($items, function($carry, $item) {
-            $carry[$item->id] = empty($item->rating) ? null : $item->rating;
-            return $carry;
-        }, []);
-    }
-
-    private function post_process_for_template(
-        array $exportedposts,
-        bool $removereplylink,
-        array $highlightwords,
-        ?string $footer
-    ) {
+    private function post_process_for_template(array $exportedposts) {
         $forum = $this->forum;
         $seenfirstunread = false;
         return array_map(
-            function($exportedpost) use (
-                $forum,
-                $seenfirstunread,
-                $removereplylink,
-                $highlightwords,
-                $footer
-            ) {
+            function($exportedpost) use ($forum, $seenfirstunread) {
                 if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
                     // Remove the author from any posts that don't have a parent.
                     unset($exportedpost->author);
@@ -237,23 +111,6 @@ class posts {
                 if (!$seenfirstunread && $exportedpost->unread) {
                     $exportedpost->isfirstunread = true;
                     $seenfirstunread = true;
-                }
-
-                if ($removereplylink) {
-                    $exportedpost->capabilities['reply'] = false;
-                    $exportedpost->urls['reply'] = null;
-                }
-
-                if (!empty($highlightwords)) {
-                    $exportedpost->message = highlight(implode(' ', $highlightwords), $exportedpost->message);
-                }
-
-                if (!empty($footer)) {
-                    if (empty($exportedpost->html)) {
-                        $exportedpost->html = [];
-                    }
-
-                    $exportedpost->html['footer'] = $footer;
                 }
 
                 return $exportedpost;

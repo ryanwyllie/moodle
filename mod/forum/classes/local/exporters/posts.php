@@ -50,7 +50,7 @@ class posts extends exporter {
         array $groupsbyauthorid = [],
         array $tagsbypostid = [],
         array $ratingbypostid = [],
-        $related = []
+        array $related = []
     ) {
         $this->posts = $posts;
         $this->authorsbyid = $authorsbyid;

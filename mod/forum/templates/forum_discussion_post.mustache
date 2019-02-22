@@ -48,7 +48,7 @@
 
         <div class="d-flex flex-column ml-2 w-100">
             <header class="mb-2 {{#unread}}bg-info{{/unread}}">
-                <h3 class="h6 font-weight-bold mb-0">{{subject}}</h3>
+                <h3 class="h6 font-weight-bold mb-0">{{$subject}}{{{subject}}}{{/subject}}</h3>
                 {{^isdeleted}}
                     <address>
                         {{#author}}
@@ -110,61 +110,61 @@
                     <div class="mt-2">{{{.}}}</div>
                 {{/html.rating}}
 
-                <div class="d-flex justify-content-end">
-                    {{#capabilities}}
-                        {{#view}}
-                            <a href="{{{urls.view}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} permalink, mod_forum {{/str}}
-                            </a>
-                        {{/view}}
-                        {{#controlreadstatus}}
-                            {{#unread}}
-                                <a href="{{{urls.markasread}}}" class="btn btn-link btn-icon icon-size-3">
-                                    {{#str}} markread, mod_forum {{/str}}
+                {{$actions}}
+                    <div class="d-flex justify-content-end">
+                        {{#capabilities}}
+                            {{#view}}
+                                <a href="{{{urls.view}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} permalink, mod_forum {{/str}}
                                 </a>
-                            {{/unread}}
-                            {{^unread}}
-                                <a href="{{{urls.markasunread}}}" class="btn btn-link btn-icon icon-size-3">
-                                    {{#str}} markunread, mod_forum {{/str}}
+                            {{/view}}
+                            {{#controlreadstatus}}
+                                {{#unread}}
+                                    <a href="{{{urls.markasread}}}" class="btn btn-link btn-icon icon-size-3">
+                                        {{#str}} markread, mod_forum {{/str}}
+                                    </a>
+                                {{/unread}}
+                                {{^unread}}
+                                    <a href="{{{urls.markasunread}}}" class="btn btn-link btn-icon icon-size-3">
+                                        {{#str}} markunread, mod_forum {{/str}}
+                                    </a>
+                                {{/unread}}
+                            {{/controlreadstatus}}
+                            {{#urls.viewparent}}
+                                <a href="{{{.}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} parent, mod_forum {{/str}}
                                 </a>
-                            {{/unread}}
-                        {{/controlreadstatus}}
-                        {{#urls.viewparent}}
-                            <a href="{{{.}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} parent, mod_forum {{/str}}
-                            </a>
-                        {{/urls.viewparent}}
-                        {{#edit}}
-                            <a href="{{{urls.edit}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} edit, mod_forum {{/str}}
-                            </a>
-                        {{/edit}}
-                        {{#split}}
-                            <a href="{{{urls.split}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} prune, mod_forum {{/str}}
-                            </a>
-                        {{/split}}
-                        {{#delete}}
-                            <a href="{{{urls.delete}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} delete, mod_forum {{/str}}
-                            </a>
-                        {{/delete}}
-                        {{#reply}}
-                            <a href="{{{urls.reply}}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} reply, mod_forum {{/str}}
-                            </a>
-                        {{/reply}}
-                        {{#export}}
-                            <a href="{{{urls.export}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}" class="btn btn-link btn-icon icon-size-3">
-                                {{#str}} addtoportfolio, core_portfolio {{/str}}
-                            </a>
-                        {{/export}}
-                    {{/capabilities}}
-                </div>
+                            {{/urls.viewparent}}
+                            {{#edit}}
+                                <a href="{{{urls.edit}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} edit, mod_forum {{/str}}
+                                </a>
+                            {{/edit}}
+                            {{#split}}
+                                <a href="{{{urls.split}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} prune, mod_forum {{/str}}
+                                </a>
+                            {{/split}}
+                            {{#delete}}
+                                <a href="{{{urls.delete}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} delete, mod_forum {{/str}}
+                                </a>
+                            {{/delete}}
+                            {{#reply}}
+                                <a href="{{{urls.reply}}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} reply, mod_forum {{/str}}
+                                </a>
+                            {{/reply}}
+                            {{#export}}
+                                <a href="{{{urls.export}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}" class="btn btn-link btn-icon icon-size-3">
+                                    {{#str}} addtoportfolio, core_portfolio {{/str}}
+                                </a>
+                            {{/export}}
+                        {{/capabilities}}
+                    </div>
+                {{/actions}}
 
-                {{#html.footer}}
-                    <div>{{{.}}}</div>
-                {{/html.footer}}
+                {{$footer}}{{/footer}}
             {{/isdeleted}}
         </div>
     </div>

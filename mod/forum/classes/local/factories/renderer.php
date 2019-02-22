@@ -33,6 +33,7 @@ use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
+use mod_forum\local\factories\builder as builder_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use mod_forum\local\renderers\posts as posts_renderer;
@@ -51,6 +52,7 @@ class renderer {
     private $vaultfactory;
     private $managerfactory;
     private $entityfactory;
+    private $builderfactory;
     private $rendererbase;
     private $page;
 
@@ -60,6 +62,7 @@ class renderer {
         vault_factory $vaultfactory,
         manager_factory $managerfactory,
         entity_factory $entityfactory,
+        builder_factory $builderfactory,
         moodle_page $page
     ) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
@@ -67,6 +70,7 @@ class renderer {
         $this->vaultfactory = $vaultfactory;
         $this->managerfactory = $managerfactory;
         $this->entityfactory = $entityfactory;
+        $this->builderfactory = $builderfactory;
         $this->page = $page;
         $this->rendererbase = $page->get_renderer('mod_forum');
     }
@@ -119,11 +123,41 @@ class renderer {
             $discussion,
             $forum,
             $this->rendererbase,
-            $this->legacydatamapperfactory,
-            $this->exporterfactory,
-            $this->vaultfactory,
-            $this->managerfactory->get_rating_manager(),
-            $this->entityfactory->get_exported_posts_sorter()
+            $this->builderfactory->get_exported_posts_builder(),
+            $this->entityfactory->get_exported_posts_sorter(),
+            function(int $displaymode = null) {
+                switch ($displaymode) {
+                    case FORUM_MODE_THREADED:
+                        return 'mod_forum/forum_discussion_threaded_posts';
+                    case FORUM_MODE_NESTED:
+                        return 'mod_forum/forum_discussion_nested_posts';
+                    default;
+                        return 'mod_forum/forum_discussion_posts';
+                }
+            }
+        );
+    }
+
+    public function get_posts_read_only_renderer(
+        forum_entity $forum,
+        discussion_entity $discussion
+    ) : posts_renderer {
+        return new posts_renderer(
+            $discussion,
+            $forum,
+            $this->rendererbase,
+            $this->builderfactory->get_exported_posts_builder(),
+            $this->entityfactory->get_exported_posts_sorter(),
+            function(int $displaymode = null) {
+                switch ($displaymode) {
+                    case FORUM_MODE_THREADED:
+                        return 'mod_forum/forum_discussion_threaded_posts_read_only';
+                    case FORUM_MODE_NESTED:
+                        return 'mod_forum/forum_discussion_nested_posts_read_only';
+                    default;
+                        return 'mod_forum/forum_discussion_posts_read_only';
+                }
+            }
         );
     }
 

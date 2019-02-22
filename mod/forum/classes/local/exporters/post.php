@@ -42,7 +42,7 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 class post extends exporter {
     private $post;
 
-    public function __construct(post_entity $post, $related = []) {
+    public function __construct(post_entity $post, array $related = []) {
         $this->post = $post;
         return parent::__construct([], $related);
     }
@@ -55,7 +55,7 @@ class post extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
-            'subject' => ['type' => PARAM_TEXT],
+            'subject' => ['type' => PARAM_RAW],
             'message' => ['type' => PARAM_RAW],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],

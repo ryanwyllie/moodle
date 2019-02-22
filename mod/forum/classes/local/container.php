@@ -32,6 +32,7 @@ use mod_forum\local\factories\entity as entity_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\manager as manager_factory;
 use mod_forum\local\factories\vault as vault_factory;
+use mod_forum\local\factories\builder as builder_factory;
 
 /**
  * Vault class.
@@ -46,6 +47,7 @@ class container {
             self::get_vault_factory(),
             self::get_manager_factory(),
             self::get_entity_factory(),
+            self::get_builder_factory(),
             $PAGE
         );
     }
@@ -79,5 +81,17 @@ class container {
 
     public static function get_entity_factory() : entity_factory {
         return new entity_factory();
+    }
+
+    public static function get_builder_factory() : builder_factory {
+        global $PAGE;
+
+        return new builder_factory(
+            self::get_legacy_data_mapper_factory(),
+            self::get_exporter_factory(),
+            self::get_vault_factory(),
+            self::get_manager_factory(),
+            $PAGE->get_renderer('mod_forum')
+        );
     }
 }
