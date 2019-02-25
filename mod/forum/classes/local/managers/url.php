@@ -124,6 +124,16 @@ class url {
         return $this->get_view_post_url_from_post_id($post->get_discussion_id(), $post->get_id());
     }
 
+    public function get_view_isolated_post_url_from_post_id(int $discussionid, int $postid) : moodle_url {
+        $url = $this->get_discussion_view_url_from_discussion_id($discussionid);
+        $url->params(['parent' => $postid]);
+        return $url;
+    }
+
+    public function get_view_isolated_post_url_from_post(post_entity $post) : moodle_url {
+        return $this->get_view_isolated_post_url_from_post_id($post->get_discussion_id(), $post->get_id());
+    }
+
     public function get_edit_post_url_from_post(post_entity $post) : moodle_url {
         if ($this->forum->get_type() == 'single') {
             return new moodle_url('/course/modedit.php', [

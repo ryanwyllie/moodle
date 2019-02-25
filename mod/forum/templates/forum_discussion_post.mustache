@@ -31,7 +31,7 @@
 }}
 <article id="p{{id}}" class="relativelink mb-2" tabindex="-1" data-post-id="{{id}}">
 
-    <div class="d-flex border p-2 mb-2">
+    <div class="d-flex border p-2 mb-2 forumpost {{#unread}}unread{{/unread}}">
         {{#isfirstunread}}<a id="unread"></a>{{/isfirstunread}}
         <div style="width: 45px;">
             {{^isdeleted}}
@@ -47,19 +47,11 @@
         </div>
 
         <div class="d-flex flex-column ml-2 w-100">
-            <header class="mb-2 {{#unread}}bg-info{{/unread}}">
+            <header class="mb-2 header row">
                 <h3 class="h6 font-weight-bold mb-0">{{$subject}}{{{subject}}}{{/subject}}</h3>
                 {{^isdeleted}}
                     <address>
-                        {{#author}}
-                            {{#urls.profile}}
-                            by <a href="{{{.}}}">{{fullname}}</a>
-                            {{/urls.profile}}
-                            {{^urls.profile}}
-                                {{fullname}}
-                            {{/urls.profile}}
-                            {{#timecreated}} - <time>{{#userdate}} {{.}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}</time>{{/timecreated}}
-                        {{/author}}
+                        {{{html.authorsubheading}}}
                     </address>
                 {{/isdeleted}}
             </header>

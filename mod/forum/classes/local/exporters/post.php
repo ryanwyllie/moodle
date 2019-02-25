@@ -33,6 +33,7 @@ use core\external\exporter;
 use context;
 use core_tag_tag;
 use renderer_base;
+use stdClass;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -99,6 +100,12 @@ class post extends exporter {
                 'null' => NULL_ALLOWED,
                 'type' => [
                     'view' => [
+                        'type' => PARAM_URL,
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED
+                    ],
+                    'viewisolated' => [
                         'type' => PARAM_URL,
                         'optional' => true,
                         'default' => null,
@@ -222,7 +229,13 @@ class post extends exporter {
                         'default' => null,
                         'null' => NULL_ALLOWED,
                         'type' => PARAM_RAW
-                    ]
+                    ],
+                    'authorsubheading' => [
+                        'optional' => true,
+                        'default' => null,
+                        'null' => NULL_ALLOWED,
+                        'type' => PARAM_RAW
+                    ],
                 ]
             ]
         ];
@@ -267,6 +280,7 @@ class post extends exporter {
 
         $urlmanager = $this->related['urlmanager'];
         $viewurl = $canview ? $urlmanager->get_view_post_url_from_post($post) : null;
+        $viewisolatedurl = $canview ? $urlmanager->get_view_isolated_post_url_from_post($post) : null;
         $viewparenturl = $post->has_parent() ? $urlmanager->get_view_post_url_from_post_id($post->get_discussion_id(), $post->get_parent_id()) : null;
         $editurl = $canedit ? $urlmanager->get_edit_post_url_from_post($post) : null;
         $deleteurl = $candelete ? $urlmanager->get_delete_post_url_from_post($post) : null;
@@ -318,6 +332,7 @@ class post extends exporter {
             ],
             'urls' => [
                 'view' => $viewurl ? $viewurl->out(false) : null,
+                'viewisolated' => $viewisolatedurl ? $viewisolatedurl->out(false) : null,
                 'viewparent' => $viewparenturl ? $viewparenturl->out(false) : null,
                 'edit' => $editurl ? $editurl->out(false) : null,
                 'delete' => $deleteurl ? $deleteurl->out(false) : null,
@@ -332,6 +347,7 @@ class post extends exporter {
             'html' => $includehtml ? [
                 'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
                 'taglist' => (!$isdeleted && $hastags) ? $output->tag_list($tags) : null,
+                'authorsubheading' => $this->get_author_subheading_html($exportedauthor, $timecreated)
             ] : null
         ];
     }
@@ -486,6 +502,19 @@ class post extends exporter {
                 ]
             ];
         }, $tags));
+    }
+
+    private function get_author_subheading_html(stdClass $exportedauthor, ?int $timecreated) : string {
+        if ($timecreated === null) {
+            return $exportedauthor->fullname;
+        } else {
+            $fullname = $exportedauthor->fullname;
+            $profileurl = $exportedauthor->urls['profile'] ?? null;
+            $formatteddate = userdate($timecreated, get_string('strftimedaydatetime', 'core_langconfig'));
+            $name = $profileurl ? "<a href=\"{$profileurl}\">{$fullname}</a>" : $fullname;
+            $date = "<time>{$formatteddate}</time>";
+            return get_string('bynameondate', 'mod_forum', ['name' => $name, 'date' => $date]);
+        }
     }
 
     private function get_forum_record() {
