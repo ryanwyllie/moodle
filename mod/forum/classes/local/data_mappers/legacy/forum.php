@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Forum data mapper.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,9 +30,15 @@ use mod_forum\local\entities\forum as forum_entity;
 use stdClass;
 
 /**
- * Forum class.
+ * Convert a forum entity into an stdClass.
  */
 class forum {
+    /**
+     * Convert a list of forum entities into stdClasses.
+     *
+     * @param forum_entity[] $forums The forums to convert.
+     * @return stdClass[]
+     */
     public function to_legacy_objects(array $forums) : array {
         return array_map(function(forum_entity $forum) {
             return (object) [
@@ -65,6 +71,12 @@ class forum {
         }, $forums);
     }
 
+    /**
+     * Convert a forum entity into an stdClass.
+     *
+     * @param forum_entity $forum The forum to convert.
+     * @return stdClass
+     */
     public function to_legacy_object(forum_entity $forum) : stdClass {
         return $this->to_legacy_objects([$forum])[0];
     }

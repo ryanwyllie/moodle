@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Discussion data mapper.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,9 +30,15 @@ use mod_forum\local\entities\discussion as discussion_entity;
 use stdClass;
 
 /**
- * Forum class.
+ * Convert a discussion entity into an stdClass.
  */
 class discussion {
+    /**
+     * Convert a list of discussion entities into stdClasses.
+     *
+     * @param discussion_entity[] $authors The authors to convert.
+     * @return stdClass[]
+     */
     public function to_legacy_objects(array $discussions) : array {
         return array_map(function(discussion_entity $discussion) {
             return (object) [
@@ -53,6 +59,12 @@ class discussion {
         }, $discussions);
     }
 
+    /**
+     * Convert a discussion entity into an stdClass.
+     *
+     * @param discussion_entity $discussion The discussion to convert.
+     * @return stdClass
+     */
     public function to_legacy_object(discussion_entity $discussion) : stdClass {
         return $this->to_legacy_objects([$discussion])[0];
     }

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Discussion class.
+ * Discussion summary class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,14 +31,26 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\entities\author as author_entity;
 
 /**
- * Discussion class.
+ * Discussion summary class.
  */
 class discussion_summary {
+    /** @var discussion_entity $discussion The discussion being summarised */
     private $discussion;
+    /** @var author_entity $firstpostauthor Author of the first post in the discussion */
     private $firstpostauthor;
+    /** @var post_entity $firstpost First post in the discussion */
     private $firstpost;
+    /** @var author_entity $latestpostauthor Author of the last post in the discussion */
     private $latestpostauthor;
 
+    /**
+     * Constructor.
+     *
+     * @param discussion_entity $discussion The discussion being summarised
+     * @param post_entity $firstpost First post in the discussion
+     * @param author_entity $firstpostauthor Author of the first post in the discussion
+     * @param author_entity $latestpostauthor Author of the last post in the discussion
+     */
     public function __construct(
         discussion_entity $discussion,
         post_entity $firstpost,
@@ -51,18 +63,38 @@ class discussion_summary {
         $this->latestpostauthor = $latestpostauthor;
     }
 
+    /**
+     * Get the discussion entity.
+     *
+     * @return discussion_entity
+     */
     public function get_discussion() : discussion_entity {
         return $this->discussion;
     }
 
+    /**
+     * Get the author entity for the first post.
+     *
+     * @return author_entity
+     */
     public function get_first_post_author() : author_entity {
         return $this->firstpostauthor;
     }
 
+    /**
+     * Get the author entity for the last post.
+     *
+     * @return author_entity
+     */
     public function get_latest_post_author() : author_entity {
         return $this->latestpostauthor;
     }
 
+    /**
+     * Get the post entity for the first post.
+     *
+     * @return post_entity
+     */
     public function get_first_post() : post_entity {
         return $this->firstpost;
     }

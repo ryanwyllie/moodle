@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Author data mapper.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,9 +30,15 @@ use mod_forum\local\entities\author as author_entity;
 use stdClass;
 
 /**
- * Forum class.
+ * Convert an author entity into an stdClass.
  */
 class author {
+    /**
+     * Convert a list of author entities into stdClasses.
+     *
+     * @param author_entity[] $authors The authors to convert.
+     * @return stdClass[]
+     */
     public function to_legacy_objects(array $authors) : array {
         return array_map(function(author_entity $author) {
             return (object) [
@@ -51,6 +57,12 @@ class author {
         }, $authors);
     }
 
+    /**
+     * Convert an author entity into an stdClass.
+     *
+     * @param author_entity $author The author to convert.
+     * @return stdClass
+     */
     public function to_legacy_object(author_entity $author) : stdClass {
         return $this->to_legacy_objects([$author])[0];
     }

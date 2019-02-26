@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Post data mapper.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,9 +30,15 @@ use mod_forum\local\entities\post as post_entity;
 use stdClass;
 
 /**
- * Forum class.
+ * Convert a post entity into an stdClass.
  */
 class post {
+    /**
+     * Convert a list of post entities into stdClasses.
+     *
+     * @param post_entity[] $posts The posts to convert.
+     * @return stdClass[]
+     */
     public function to_legacy_objects(array $posts) : array {
         return array_map(function(post_entity $post) {
             return (object) [
@@ -55,6 +61,12 @@ class post {
         }, $posts);
     }
 
+    /**
+     * Convert a post entity into an stdClass.
+     *
+     * @param post_entity $post The post to convert.
+     * @return stdClass
+     */
     public function to_legacy_object(post_entity $post) : stdClass {
         return $this->to_legacy_objects([$post])[0];
     }
