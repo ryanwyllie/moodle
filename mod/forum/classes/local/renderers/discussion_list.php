@@ -363,12 +363,17 @@ class discussion_list {
             ))->set_show_closebutton();
         }
 
-        if (!$capabilitymanager->can_post_to_group($user, $groupid)) {
-            // Cannot post to the current group.
-            $notifications[] = (new notification(
-                get_string('cannotadddiscussion', 'mod_forum'),
-                \core\output\notification::NOTIFY_WARNING
-            ))->set_show_closebutton();
+        if ($forum->is_in_group_mode()) {
+            if (
+                ($groupid === null && !$capabilitymanager->can_access_all_groups($user)) ||
+                !$capabilitymanager->can_access_group($user, $groupid)
+            ) {
+                // Cannot post to the current group.
+                $notifications[] = (new notification(
+                    get_string('cannotadddiscussion', 'mod_forum'),
+                    \core\output\notification::NOTIFY_WARNING
+                ))->set_show_closebutton();
+            }
         }
 
         if ('qanda' === $forum->get_type() && !$capabilitymanager->can_manage_forum($user)) {

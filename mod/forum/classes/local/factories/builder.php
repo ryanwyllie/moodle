@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault factory.
+ * Builder factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,15 +34,32 @@ use mod_forum\local\factories\manager as manager_factory;
 use renderer_base;
 
 /**
- * Vault factory.
+ * Builder factory to construct any builders for forum.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class builder {
+    /** @var legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
+    /** @var exporter_factory $exporterfactory Exporter factory */
     private $exporterfactory;
+    /** @var vault_factory $vaultfactory Vault factory */
     private $vaultfactory;
+    /** @var manager_factory $managerfactory Manager factory */
     private $managerfactory;
+    /** @var renderer_base $rendererbase Renderer base */
     private $rendererbase;
 
+    /**
+     * Constructor.
+     *
+     * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
+     * @param exporter_factory $exporterfactory Exporter factory
+     * @param vault_factory $vaultfactory Vault factory
+     * @param manager_factory $managerfactory Manager factory
+     * @param renderer_base $rendererbase Renderer base
+     */
     public function __construct(
         legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
@@ -58,6 +75,11 @@ class builder {
     }
 
 
+    /**
+     * Get an instance of the exported posts builder.
+     *
+     * @return exported_posts_builder
+     */
     public function get_exported_posts_builder() : exported_posts_builder {
         return new exported_posts_builder(
             $this->rendererbase,

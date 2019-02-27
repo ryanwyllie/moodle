@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Post exporter class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
@@ -38,9 +38,10 @@ use stdClass;
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Forum class.
+ * Post exporter class.
  */
 class post extends exporter {
+    /** @var post_entity $post The post to export */
     private $post;
 
     public function __construct(post_entity $post, array $related = []) {
@@ -342,8 +343,8 @@ class post extends exporter {
                 'markasread' => $markasreadurl ? $markasreadurl->out(false) : null,
                 'markasunread' => $markasunreadurl ? $markasunreadurl->out(false) : null,
             ],
-            'attachments' => (!$isdeleted && !empty($attachments)) ? $this->get_attachments($attachments, $post, $output, $canexport) : [],
-            'tags' => (!$isdeleted && $hastags) ? $this->get_tags($tags) : [],
+            'attachments' => (!$isdeleted && !empty($attachments)) ? $this->export_attachments($attachments, $post, $output, $canexport) : [],
+            'tags' => (!$isdeleted && $hastags) ? $this->export_tags($tags) : [],
             'html' => $includehtml ? [
                 'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
                 'taglist' => (!$isdeleted && $hastags) ? $output->tag_list($tags) : null,
@@ -376,7 +377,13 @@ class post extends exporter {
         ];
     }
 
-    private function get_message(post_entity $post) {
+    /**
+     * Get the message text from a post.
+     *
+     * @param post_entity $post The post
+     * @return string
+     */
+    private function get_message(post_entity $post) : string {
         $context = $this->related['context'];
         $message = file_rewrite_pluginfile_urls(
             $post->get_message(),
@@ -411,7 +418,16 @@ class post extends exporter {
         return $message;
     }
 
-    private function get_attachments(array $attachments, post_entity $post, renderer_base $output, bool $canexport) {
+    /**
+     * Get the exported attachments for a post.
+     *
+     * @param stored_file[] $attachments The list of attachments for the post
+     * @param post_entity $post The post being exported
+     * @param renderer_base $output Renderer base
+     * @param bool $canexport If the user can export the post (relates to portfolios not exporters like this class)
+     * @return array
+     */
+    private function export_attachments(array $attachments, post_entity $post, renderer_base $output, bool $canexport) : array {
         global $CFG;
 
         $urlmanager = $this->related['urlmanager'];
@@ -483,7 +499,13 @@ class post extends exporter {
         }, $attachments);
     }
 
-    private function get_tags(array $tags) {
+    /**
+     * Export the list of tags.
+     *
+     * @param core_tag_tag[] $tags List of tags to export
+     * @return array
+     */
+    private function export_tags(array $tags) : array {
         $user = $this->related['user'];
         $context = $this->related['context'];
         $capabilitymanager = $this->related['capabilitymanager'];
@@ -504,6 +526,12 @@ class post extends exporter {
         }, $tags));
     }
 
+    /**
+     * Get the HTML to display as a subheading in a post.
+     *
+     * @param stdClass $exportedauthor The exported author object
+     * @param int|null $timecreated The post time created timestamp if it's to be displayed
+     */
     private function get_author_subheading_html(stdClass $exportedauthor, ?int $timecreated) : string {
         if ($timecreated === null) {
             return $exportedauthor->fullname;
@@ -517,17 +545,32 @@ class post extends exporter {
         }
     }
 
-    private function get_forum_record() {
+    /**
+     * Get the legacy forum record.
+     *
+     * @return stdClass
+     */
+    private function get_forum_record() : stdClass {
         $forumdbdatamapper = $this->related['legacydatamapperfactory']->get_forum_data_mapper();
         return $forumdbdatamapper->to_legacy_object($this->related['forum']);
     }
 
-    private function get_discussion_record() {
+    /**
+     * Get the legacy discussion record.
+     *
+     * @return stdClass
+     */
+    private function get_discussion_record() : stdClass {
         $discussiondbdatamapper = $this->related['legacydatamapperfactory']->get_discussion_data_mapper();
         return $discussiondbdatamapper->to_legacy_object($this->related['discussion']);
     }
 
-    private function get_post_record() {
+    /**
+     * Get the legacy post record.
+     *
+     * @return stdClass
+     */
+    private function get_post_record() : stdClass {
         $postdbdatamapper = $this->related['legacydatamapperfactory']->get_post_data_mapper();
         return $postdbdatamapper->to_legacy_object($this->post);
     }

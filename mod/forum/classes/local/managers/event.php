@@ -37,12 +37,23 @@ use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class event {
+    /** @var legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
 
+    /**
+     * Constructor.
+     *
+     * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
+     */
     public function __construct(legacy_data_mapper_factory $legacydatamapperfactory) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
     }
 
+    /**
+     * Set the forum as viewed in the completion info and trigger the module viewed event.
+     *
+     * @param forum_entity $forumentity The forum being viewed
+     */
     public function mark_forum_as_viewed(forum_entity $forumentity): void {
         $forummapper = $this->legacydatamapperfactory->get_forum_data_mapper();
 
@@ -65,6 +76,12 @@ class event {
         $event->trigger();
     }
 
+    /**
+     * Trigger a discussion viewed event.
+     *
+     * @param forum_entity $forumentity The forum the discussion belongs to
+     * @param discussion_entity $discussionentity The discussion being viewed
+     */
     public function mark_discussion_as_viewed(forum_entity $forumentity, discussion_entity $discussionentity): void {
         $mapperfactory = $this->legacydatamapperfactory;
         $forummapper = $mapperfactory->get_forum_data_mapper();

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum Discussion List Exporter.
+ * Discussion summaries exporter.
  *
  * @package     mod_forum
  * @copyright   2019 Andrew Nicols <andrew@nicols.co.uk>
@@ -32,18 +32,38 @@ use core\external\exporter;
 use renderer_base;
 
 /**
- * Forum class.
+ * Discussion summaries exporter.
  */
 class discussion_summaries extends exporter {
+    /** @var discussion_summary_entity[] The list of discussion summaries to export */
     private $discussions;
+
+    /** @var stdClass[] The group information for each author */
     private $groupsbyid;
+
+    /** @var stdClass[] The group information for each author */
     private $groupsbyauthorid;
+
+    /** @var int[] Discussion reply counts indexed by dicussion id */
     private $discussionreplycount;
+
+    /** @var int[] Discussion unread counts indexed by dicussion id */
     private $discussionunreadcount;
 
     /** @var array The latest post in each discussion */
     private $latestpostids;
 
+    /**
+     * Constructor.
+     *
+     * @param discussion_summary_entity[] $discussion The list of discussion summaries to export
+     * @param stdClass[] $groupsbyid The group information for each author
+     * @param stdClass[] $groupsbyauthorid The group information for each author
+     * @param int[] $discussionreplycount Discussion reply counts indexed by dicussion id
+     * @param int[] $discussionunreadcount Discussion unread counts indexed by dicussion id
+     * @param int[] $latestpostids List of latest post ids indexed by discussion id
+     * @param array $related The related
+     */
     public function __construct(
         array $discussions,
         array $groupsbyid,

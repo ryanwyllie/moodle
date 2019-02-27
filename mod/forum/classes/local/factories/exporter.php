@@ -26,16 +26,12 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
-use core_rating\external\rating_exporter;
-use core_rating\external\rating_settings_exporter;
-use mod_forum\local\entities\author as author_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\entities\post_read_receipt_collection as post_read_receipt_collection_entity;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\manager as manager_factory;
-use mod_forum\local\exporters\author as author_exporter;
 use mod_forum\local\exporters\forum as forum_exporter;
 use mod_forum\local\exporters\discussion as discussion_exporter;
 use mod_forum\local\exporters\discussion_summaries as discussion_summaries_exporter;
@@ -48,8 +44,8 @@ use stdClass;
 /**
  * The exporter factory class used to fetch an instance of the different exporter types.
  *
- * @package    mod_forum
- * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class exporter {
     /** @var legacy_data_mapper_factory The factory to fetch a legacy data mapper */
@@ -59,10 +55,10 @@ class exporter {
     private $managerfactory;
 
     /**
-     * Constructor for the expoter factory.
+     * Constructor for the exporter factory.
      *
-     * @param   legacy_data_mapper_factory $legacydatamapperfactory The factory to fetch a legacy data mapper instance
-     * @param   manager_factory $managerfactory The factory fo fetch a manager instance
+     * @param legacy_data_mapper_factory $legacydatamapperfactory The factory to fetch a legacy data mapper instance
+     * @param manager_factory $managerfactory The factory fo fetch a manager instance
      */
     public function __construct(
         legacy_data_mapper_factory $legacydatamapperfactory,
@@ -77,7 +73,7 @@ class exporter {
      *
      * @param   stdClass        $user The user viewing the forum
      * @param   forum_entity    $forum The forum being viewed
-     * @param   int             $groupid The group currently being viewed
+     * @param   int             $currentgroup The group currently being viewed
      * @return  forum_exporter
      */
     public function get_forum_exporter(
@@ -106,18 +102,17 @@ class exporter {
     /**
      * Construct a new discussion exporter for the specified user and forum discussion.
      *
-     * @param   stdClass        $user The user viewing the forum
-     * @param   forum_entity    $forum The forum being viewed
+     * @param   stdClass          $user The user viewing the forum
+     * @param   forum_entity      $forum The forum being viewed
      * @param   discussion_entity $discussion The discussion being viewed
-     * @param   stdClass[]      $groupsbyid The list of groups in the forum
+     * @param   stdClass[]        $groupsbyid The list of groups in the forum
      * @return  discussion_exporter
      */
     public function get_discussion_exporter(
         stdClass $user,
         forum_entity $forum,
         discussion_entity $discussion,
-        array $groupsbyid = [],
-        rating $rating = null
+        array $groupsbyid = []
     ) : discussion_exporter {
         return new discussion_exporter($discussion, [
             'context' => $forum->get_context(),
@@ -197,8 +192,12 @@ class exporter {
      * @param   forum_entity    $forum The forum being viewed
      * @param   discussion_entity $discussion The discussion that the post is in
      * @param   post_entity[]   $posts The set of posts to be exported
-     * @param   stdClass[]      $groupsbyauthorid The group information indexes by author
-     * @param   post_read_receipt_collection_entity $readreceiptcollection Details of read receipts for each post
+     * @param   author_entity[] $authorsbyid List of authors indexed by author id
+     * @param   array           $attachmentsbypostid List of attachments for each post indexed by post id
+     * @param   post_read_receipt_collection_entity|null $readreceiptcollection Details of read receipts for each post
+     * @param   array           $attachmentsbypostid List of tags for each post indexed by post id
+     * @param   rating[]        $ratingbypostid List of ratings for each post indexed by post id
+     * @param   bool            $includehtml Include some pre-constructed HTML in the export
      * @return  post_exporter
      */
     public function get_posts_exporter(

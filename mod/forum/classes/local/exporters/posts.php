@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Posts exporter class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,16 +33,33 @@ use renderer_base;
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Forum class.
+ * Posts exporter class.
  */
 class posts extends exporter {
+    /** @var post_entity[] $posts List of posts to export */
     private $posts;
+    /** @var author_entity[] $authorsbyid List of authors for the posts indexed by author id */
     private $authorsbyid;
+    /** @var array $attachmentsbypostid List of attachments indexed by post id */
     private $attachmentsbypostid;
+    /** @var array $groupsbyauthorid List of author's groups indexed by author id */
     private $groupsbyauthorid;
+    /** @var array $tagsbypostid List of tags indexed by post id */
     private $tagsbypostid;
+    /** @var array $ratingbypostid List of ratings indexed by post id */
     private $ratingbypostid;
 
+    /**
+     * Constructor.
+     *
+     * @param post_entity[] $posts List of posts to export
+     * @param author_entity[] $authorsbyid List of authors for the posts indexed by author id
+     * @param array $attachmentsbypostid List of attachments indexed by post id
+     * @param array $groupsbyauthorid List of author's groups indexed by author id
+     * @param array $tagsbypostid List of tags indexed by post id
+     * @param array $ratingbypostid List of ratings indexed by post id
+     * @param array $related The related objects for exporting
+     */
     public function __construct(
         array $posts,
         array $authorsbyid = [],

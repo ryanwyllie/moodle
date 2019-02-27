@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to sort posts.
+ * Class to sort items.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,23 +27,73 @@ namespace mod_forum\local\entities;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Post class.
+ * Class to sort lists of items.
  */
 class sorter {
+    /** @var callable $getid Function used to get the id from an item */
     private $getid;
+    /** @var callable $getparentid Function used to get the parent id from an item */
     private $getparentid;
 
+    /**
+     * Constructor.
+     *
+     * Allows the calling code to provide 2 functions to get the id and parent id from
+     * the list of items it is intended to process.
+     *
+     * This allows this class to be composed in numerous different ways to support various
+     * types of items while keeping the underlying sorting algorithm consistent.
+     *
+     * @param callable $getid Function used to get the id from an item
+     * @param callable $getparentid Function used to get the parent id from an item
+     */
     public function __construct(callable $getid, callable $getparentid) {
         $this->getid = $getid;
         $this->getparentid = $getparentid;
     }
 
-    public function sort_into_children(array $items, array $seenitems = []) : array {
+    /**
+     * Sort a list of items into a parent/child data structure. The resulting data structure
+     * is a recursive array of arrays where the first element is the parent and the second is
+     * an array of it's children.
+     *
+     * For example
+     * If we have an array of items A, B, C, and D where D is a child of C, B and C are children
+     * of A.
+     *
+     * This function would sort them into the following:
+     * [
+     *      [
+     *          A,
+     *          [
+     *              [
+     *                  B,
+     *                  []
+     *              ],
+     *              [
+     *                  C,
+     *                  [
+     *                      [
+     *                          D,
+     *                          []
+     *                      ]
+     *                  ]
+     *              ]
+     *          ]
+     *      ]
+     * ]
+     *
+     * @param array $items The list of items to sort.
+     * @return array
+     */
+    public function sort_into_children(array $items) : array {
         $ids = array_reduce($items, function($carry, $item) {
             $carry[($this->getid)($item)] = true;
             return $carry;
         }, []);
 
+        // Split out the items into "parents" and "replies" (children). These are unsorted
+        // at this point.
         [$parents, $replies] = array_reduce($items, function($carry, $item) use ($ids) {
             $parentid = ($this->getparentid)($item);
 
@@ -64,8 +114,10 @@ class sorter {
             }, $parents);
         }
 
+        // Recurse to sort the replies into the correct nesting.
         $sortedreplies = $this->sort_into_children($replies);
 
+        // Sort the parents and sorted replies into their matching pairs.
         return array_map(function($parent) use ($sortedreplies) {
             $parentid = ($this->getid)($parent);
             return [
@@ -77,6 +129,13 @@ class sorter {
         }, $parents);
     }
 
+    /**
+     * Take the data structure returned from "sort_into_children" and flatten it back
+     * into an array. It does a depth first flatten which maintains the reply ordering.
+     *
+     * @param array items Items in the data structure returned by "sort_into_children"
+     * @return array A flat array.
+     */
     public function flatten_children(array $items) : array {
             $result = [];
 

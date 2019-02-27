@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault factory.
+ * Renderer factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,25 +38,44 @@ use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use mod_forum\local\renderers\posts as posts_renderer;
 use mod_forum\local\renderers\posts_search_results as posts_search_results_renderer;
-use context;
 use moodle_page;
 use moodle_url;
-use renderer_base;
-use stdClass;
 
 /**
- * Vault factory.
+ * Renderer factory.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class renderer {
+    /** @var legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
+    /** @var exporter_factory $exporterfactory Exporter factory */
     private $exporterfactory;
+    /** @var vault_factory $vaultfactory Vault factory */
     private $vaultfactory;
+    /** @var manager_factory $managerfactory Manager factory */
     private $managerfactory;
+    /** @var entity_factory $entityfactory Entity factory */
     private $entityfactory;
+    /** @var builder_factory $builderfactory Builder factory */
     private $builderfactory;
+    /** @var renderer_base $rendererbase Renderer base */
     private $rendererbase;
+    /** @var moodle_page $page Moodle page */
     private $page;
 
+    /**
+     * Constructor.
+     *
+     * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
+     * @param exporter_factory $exporterfactory Exporter factory
+     * @param vault_factory $vaultfactory Vault factory
+     * @param manager_factory $managerfactory Manager factory
+     * @param entity_factory $entityfactory Entity factory
+     * @param builder_factory $builderfactory Builder factory
+     * @param moodle_page $page Moodle page
+     */
     public function __construct(
         legacy_data_mapper_factory $legacydatamapperfactory,
         exporter_factory $exporterfactory,
@@ -76,6 +95,13 @@ class renderer {
         $this->rendererbase = $page->get_renderer('mod_forum');
     }
 
+    /**
+     * Create a discussion renderer for the given forum and discussion.
+     *
+     * @param forum_entity $forum Forum the discussion belongs to
+     * @param discussion_entity $discussion Discussion to render
+     * @return discussion_renderer
+     */
     public function get_discussion_renderer(
         forum_entity $forum,
         discussion_entity $discussion
@@ -116,6 +142,13 @@ class renderer {
         );
     }
 
+    /**
+     * Create a posts renderer to render a list of posts.
+     *
+     * @param forum_entity $forum Forum the posts belong to
+     * @param discussion_entity $discussion Discussion the posts belong to
+     * @return posts_renderer
+     */
     public function get_posts_renderer(
         forum_entity $forum,
         discussion_entity $discussion
@@ -126,6 +159,8 @@ class renderer {
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
             $this->entityfactory->get_exported_posts_sorter(),
+            // Function to determine which template should be used for the given
+            // display mode.
             function(int $displaymode = null) {
                 switch ($displaymode) {
                     case FORUM_MODE_THREADED:
@@ -139,6 +174,14 @@ class renderer {
         );
     }
 
+    /**
+     * Create a posts renderer that renders posts in a read only format, i.e.
+     * no links to reply, edit, delete, etc.
+     *
+     * @param forum_entity $forum Forum the posts belong to
+     * @param discussion_entity $discussion Discussion the posts belong to
+     * @return posts_renderer
+     */
     public function get_posts_read_only_renderer(
         forum_entity $forum,
         discussion_entity $discussion
@@ -149,6 +192,8 @@ class renderer {
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
             $this->entityfactory->get_exported_posts_sorter(),
+            // Function to determine which template should be used for the given
+            // display mode.
             function(int $displaymode = null) {
                 switch ($displaymode) {
                     case FORUM_MODE_THREADED:
@@ -162,6 +207,11 @@ class renderer {
         );
     }
 
+    /**
+     * Create a posts renderer to render posts in the forum search results.
+     *
+     * @return posts_search_results_renderer
+     */
     public function get_posts_search_results_renderer() : posts_search_results_renderer {
         return new posts_search_results_renderer(
             $this->rendererbase,
@@ -170,6 +220,12 @@ class renderer {
         );
     }
 
+    /**
+     * Create a discussion list renderer.
+     *
+     * @param forum_entity $forum The forum that the discussions belong to
+     * @return discussion_list_renderer
+     */
     public function get_discussion_list_renderer(
         forum_entity $forum
     ) : discussion_list_renderer {

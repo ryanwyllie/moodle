@@ -18,7 +18,7 @@
  * Managers factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,14 +34,29 @@ use rating_manager;
 
 /**
  * Managers factory.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class manager {
+    /** @var legacy_data_mapper $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
 
+    /**
+     * Constructor.
+     *
+     * @param legacy_data_mapper $legacydatamapperfactory Legacy data mapper factory
+     */
     public function __construct(legacy_data_mapper $legacydatamapperfactory) {
         $this->legacydatamapperfactory = $legacydatamapperfactory;
     }
 
+    /**
+     * Create a capability manager for the given forum.
+     *
+     * @param forum_entity $forum The forum to manage capabilities for
+     * @return capability_manager
+     */
     public function get_capability_manager(forum_entity $forum) {
         return new capability_manager(
             $forum,
@@ -51,14 +66,30 @@ class manager {
         );
     }
 
+    /**
+     * Create a URL manager for the given forum.
+     *
+     * @param forum_entity $forum The forum to manage capabilities for
+     * @return url_manager
+     */
     public function get_url_manager(forum_entity $forum) : url_manager {
         return new url_manager($forum, $this->legacydatamapperfactory);
     }
 
+    /**
+     * Create an event manager.
+     *
+     * @return event_manager
+     */
     public function get_event_manager() : event_manager {
         return new event_manager($this->legacydatamapperfactory);
     }
 
+    /**
+     * Create a rating manager.
+     *
+     * @return rating_manager
+     */
     public function get_rating_manager() : rating_manager {
         return new rating_manager();
     }

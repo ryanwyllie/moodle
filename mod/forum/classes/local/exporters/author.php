@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Author exporter.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,14 +33,25 @@ use renderer_base;
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Forum class.
+ * Author exporter.
  */
 class author extends exporter {
+    /** @var author_entity $author Author entity */
     private $author;
+    /** @var array $authorgroups List of groups that the author belongs to */
     private $authorgroups;
+    /** @var bool $canview Should the author be anonymised? */
     private $canview;
 
-    public function __construct(author_entity $author, array $authorgroups = [], $canview = true, $related = []) {
+    /**
+     * Constructor.
+     *
+     * @param author_entity $author The author entity to export
+     * @param stdClass[] $authorgroups The list of groups that the author belongs to
+     * @param bool $canview Can the requesting user view this author or should it be anonymised?
+     * @param array $related The related data for the export.
+     */
+    public function __construct(author_entity $author, array $authorgroups = [], bool $canview = true, array $related = []) {
         $this->author = $author;
         $this->authorgroups = $authorgroups;
         $this->canview = $canview;
@@ -118,7 +129,7 @@ class author extends exporter {
                 return [
                     'id' => $group->id,
                     'urls' => [
-                        'image' => $imageurl ? $imageurl->out() : null
+                        'image' => $imageurl ? $imageurl->out(false) : null
                     ]
                 ];
             }, $this->authorgroups);
@@ -128,11 +139,12 @@ class author extends exporter {
                 'fullname' => $author->get_full_name(),
                 'groups' => $groups,
                 'urls' => [
-                    'profile' => ($urlmanager->get_author_profile_url($author))->out(),
-                    'profileimage' => ($urlmanager->get_author_profile_image_url($author))->out()
+                    'profile' => ($urlmanager->get_author_profile_url($author))->out(false),
+                    'profileimage' => ($urlmanager->get_author_profile_image_url($author))->out(false)
                 ]
             ];
         } else {
+            // The author should be anonymised.
             return [
                 'id' => null,
                 'fullname' => get_string('forumauthorhidden', 'mod_forum'),

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault factory.
+ * Legacy data mapper factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,20 +33,43 @@ use mod_forum\local\data_mappers\legacy\post as post_data_mapper;
 
 /**
  * Legacy data mapper factory.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class legacy_data_mapper {
+    /**
+     * Create a legacy forum data mapper.
+     *
+     * @return forum_data_mapper
+     */
     public function get_forum_data_mapper() : forum_data_mapper {
         return new forum_data_mapper();
     }
 
+    /**
+     * Create a legacy discussion data mapper.
+     *
+     * @return discussion_data_mapper
+     */
     public function get_discussion_data_mapper() : discussion_data_mapper {
         return new discussion_data_mapper();
     }
 
+    /**
+     * Create a legacy post data mapper.
+     *
+     * @return post_data_mapper
+     */
     public function get_post_data_mapper() : post_data_mapper {
         return new post_data_mapper();
     }
 
+    /**
+     * Create a legacy author data mapper.
+     *
+     * @return author_data_mapper
+     */
     public function get_author_data_mapper() : author_data_mapper {
         return new author_data_mapper();
     }

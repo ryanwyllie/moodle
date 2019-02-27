@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum class.
+ * Discussion summary exporter class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +31,7 @@ use core\external\exporter;
 use renderer_base;
 
 /**
- * Forum class.
+ * Discussion summary exporter class.
  */
 class discussion_summary extends exporter {
     /** @var discussion_summary_entity The discussion summary information */

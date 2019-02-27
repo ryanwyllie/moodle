@@ -18,7 +18,7 @@
  * Vault factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -39,18 +39,36 @@ use moodle_database;
 
 /**
  * Vault factory.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class vault {
+    /** @var entity_factory $entityfactory Entity factory */
     private $entityfactory;
+    /** @var moodle_database $db A moodle database */
     private $db;
+    /** @var file_storage $filestorage A file storage instance */
     private $filestorage;
 
+    /**
+     * Constructor.
+     *
+     * @param moodle_database $db A moodle database
+     * @param entity_factory $entityfactory Entity factory
+     * @param file_storage $filestorage A file storage instance
+     */
     public function __construct(moodle_database $db, entity_factory $entityfactory, file_storage $filestorage) {
         $this->db = $db;
         $this->entityfactory = $entityfactory;
         $this->filestorage = $filestorage;
     }
 
+    /**
+     * Create a forum vault.
+     *
+     * @return forum_vault
+     */
     public function get_forum_vault() : forum_vault {
         return new forum_vault(
             $this->db,
@@ -58,6 +76,11 @@ class vault {
         );
     }
 
+    /**
+     * Create a discussion vault.
+     *
+     * @return discussion_vault
+     */
     public function get_discussion_vault() : discussion_vault {
         return new discussion_vault(
             $this->db,
@@ -65,6 +88,11 @@ class vault {
         );
     }
 
+    /**
+     * Create a discussion list vault.
+     *
+     * @return discussion_list_vault
+     */
     public function get_discussions_in_forum_vault() : discussion_list_vault {
         return new discussion_list_vault(
             $this->db,
@@ -72,6 +100,11 @@ class vault {
         );
     }
 
+    /**
+     * Create a post vault.
+     *
+     * @return post_vault
+     */
     public function get_post_vault() : post_vault {
         return new post_vault(
             $this->db,
@@ -79,6 +112,11 @@ class vault {
         );
     }
 
+    /**
+     * Create an author vault.
+     *
+     * @return author_vault
+     */
     public function get_author_vault() : author_vault {
         return new author_vault(
             $this->db,
@@ -86,6 +124,11 @@ class vault {
         );
     }
 
+    /**
+     * Create a post read receipt collection vault.
+     *
+     * @return post_read_receipt_collection_vault
+     */
     public function get_post_read_receipt_collection_vault() : post_read_receipt_collection_vault {
         return new post_read_receipt_collection_vault(
             $this->db,
@@ -93,6 +136,11 @@ class vault {
         );
     }
 
+    /**
+     * Create a post attachment vault.
+     *
+     * @return post_attachment_vault
+     */
     public function get_post_attachment_vault() : post_attachment_vault {
         return new post_attachment_vault(
             $this->filestorage

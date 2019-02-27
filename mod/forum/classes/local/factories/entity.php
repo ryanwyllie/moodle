@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault factory.
+ * Entity factory.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -40,18 +40,38 @@ use user_picture;
 use moodle_url;
 
 /**
- * Vault factory.
+ * Entity factory to create the forum entities.
+ *
+ * See:
+ * https://designpatternsphp.readthedocs.io/en/latest/Creational/SimpleFactory/README.html
  */
 class entity {
-    public function get_forum_from_stdClass(stdClass $record, context $context, \stdClass $coursemodule, \stdClass $course) : forum_entity {
-        // Note: cm_info::create loads a cm_info in the context of the current user.
-        // Only use properties which relate to all users rather than a specific user.
+    /**
+     * Create a forum entity from a stdClass (legacy forum object).
+     *
+     * @param stdClass $record The forum record
+     * @param context $context The forum module context
+     * @param stdClass $coursemodule Course module record for the forum
+     * @param stdClass $course Course the forum belongs to
+     * @return forum_entity
+     */
+    public function get_forum_from_stdClass(
+        stdClass $record,
+        context $context,
+        stdClass $coursemodule,
+        stdClass $course
+    ) : forum_entity {
+        // Note: cm_info::create loads a cm_info in the context of the current user which
+        // creates hidden dependency on the logged in user (very bad) however it's the best
+        // option to load some data we need which doesn't require the logged in user.
+        // Only use properties which do not require the logged in user.
         $cm = \cm_info::create($coursemodule);
 
         return new forum_entity(
             $context,
             $coursemodule,
             $course,
+            // This property is a general module property that isn't affected by the logged in user.
             $cm->effectivegroupmode,
             $record->id,
             $record->course,
@@ -81,6 +101,12 @@ class entity {
         );
     }
 
+    /**
+     * Create a discussion entity from an stdClass (legacy dicussion object).
+     *
+     * @param stdClass $record Discussion record
+     * @return discussion_entity
+     */
     public function get_discussion_from_stdClass(stdClass $record) : discussion_entity {
         return new discussion_entity(
             $record->id,
@@ -99,9 +125,12 @@ class entity {
         );
     }
 
-    public function get_post_from_stdClass(
-        stdClass $record
-    ) : post_entity {
+    /**
+     * Create a post entity from an stdClass (legacy post object).
+     *
+     * @return post_entity
+     */
+    public function get_post_from_stdClass(stdClass $record) : post_entity {
         return new post_entity(
             $record->id,
             $record->discussion,
@@ -121,6 +150,11 @@ class entity {
         );
     }
 
+    /**
+     * Create an author entity from a user record.
+     *
+     * @return author_entity
+     */
     public function get_author_from_stdClass(stdClass $record) : author_entity {
         return new author_entity(
             $record->id,
@@ -137,6 +171,15 @@ class entity {
         );
     }
 
+    /**
+     * Create a discussion summary enttiy from stdClasses.
+     *
+     * @param stdClass $discussion The discussion record
+     * @param stdClass $firstpost A post record for the first post in the discussion
+     * @param stdClass $firstpostauthor A user record for the author of the first post
+     * @param stdClass $latestpostauthor A user record for the author of the latest post in the discussion
+     * @return discussion_summary_entity
+     */
     public function get_discussion_summary_from_stdClass(
         stdClass $discussion,
         stdClass $firstpost,
@@ -153,26 +196,46 @@ class entity {
         );
     }
 
+    /**
+     * Create a post read receipt collection entity from a list of read receipt records.
+     *
+     * @param array $records A list of read receipt records.
+     * @return post_read_receipt_collection_entity
+     */
     public function get_post_read_receipt_collection_from_stdClasses(array $records) : post_read_receipt_collection_entity {
         return new post_read_receipt_collection_entity($records);
     }
 
+    /**
+     * Create a sorter entity to sort post entities.
+     *
+     * @return sorter_entity
+     */
     public function get_posts_sorter() : sorter_entity {
         return new sorter_entity(
+            // Get id function for a post_entity.
             function(post_entity $post) {
                 return $post->get_id();
             },
+            // Get parent id function for a post_entity.
             function(post_entity $post) {
                 return $post->get_parent_id();
             }
         );
     }
 
+    /**
+     * Create a sorter entity to sort exported posts.
+     *
+     * @return sorter_entity
+     */
     public function get_exported_posts_sorter() : sorter_entity {
         return new sorter_entity(
+            // Get id function for an exported post.
             function(stdClass $post) {
                 return $post->id;
             },
+            // Get parent id function for an exported post.
             function(stdClass $post) {
                 return $post->parentid;
             }
