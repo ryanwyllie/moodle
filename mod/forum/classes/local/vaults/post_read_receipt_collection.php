@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Post read receipt collection class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
@@ -29,15 +29,27 @@ defined('MOODLE_INTERNAL') || die();
 use stdClass;
 
 /**
- * Vault class.
+ * Post read receipt collection class.
  */
 class post_read_receipt_collection extends db_table_vault {
     private const TABLE = 'forum_read';
 
+    /**
+     * Get the table alias.
+     *
+     * @return string
+     */
     protected function get_table_alias() : string {
         return 'fr';
     }
 
+    /**
+     * Build the SQL to be used in get_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @param string|null $sortsql Order by conditions for the SQL
+     * @return string
+     */
     protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $selectsql = 'SELECT * FROM {' . self::TABLE . '} ' . $this->get_table_alias();
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
@@ -46,6 +58,12 @@ class post_read_receipt_collection extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Convert the DB records into post_read_receipt_collection entities.
+     *
+     * @param array $results The DB records
+     * @return post_read_receipt_collection
+     */
     protected function from_db_records(array $results) {
         $entityfactory = $this->get_entity_factory();
         $records = array_map(function($result) {
@@ -55,6 +73,14 @@ class post_read_receipt_collection extends db_table_vault {
         return $entityfactory->get_post_read_receipt_collection_from_stdClasses($records);
     }
 
+    /**
+     * Load the post_read_receipt_collection for the given user and set
+     * of posts.
+     *
+     * @param int $userid Id of the user to load receipts for
+     * @param int[] $postids List of post ids to load receipts for
+     * @return post_read_receipt_collection
+     */
     public function get_from_user_id_and_post_ids(int $userid, array $postids) {
         $alias = $this->get_table_alias();
         [$postidinsql, $params] = $this->get_db()->get_in_or_equal($postids);
@@ -68,6 +94,14 @@ class post_read_receipt_collection extends db_table_vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Load the post_read_receipt_collection for the given user and set
+     * of posts.
+     *
+     * @param stdClass $user The user to load receipts for
+     * @param post_entity[] $posts List of posts to load receipts for
+     * @return post_read_receipt_collection
+     */
     public function get_from_user_and_posts(stdClass $user, array $posts) {
         $postids = array_map(function($post) {
             return $post->get_id();

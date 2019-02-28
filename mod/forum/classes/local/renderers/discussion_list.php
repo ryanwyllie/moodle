@@ -55,11 +55,22 @@ class discussion_list {
     /** @var renderer_base The renderer used to render the view */
     private $renderer;
 
+    /** @var legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
+
+    /** @var exporter_factory $exporterfactory Exporter factory */
     private $exporterfactory;
+
+    /** @var vault_factory $vaultfactory Vault factory */
     private $vaultfactory;
+
+    /** @var capability_manager $capabilitymanager Capability manager */
     private $capabilitymanager;
+
+    /** @var url_manager $urlmanager URL manager */
     private $urlmanager;
+
+    /** @var array $notifications List of notification HTML */
     private $notifications;
 
     /**
@@ -307,7 +318,10 @@ class discussion_list {
     }
 
     /**
-     * TODO - this duplicates an identical function in the discussion renderer.
+     * Get the author's groups for a list of posts.
+     *
+     * @param post_entity[] $posts The list of posts
+     * @return array Author groups indexed by author id
      */
     private function get_author_groups_from_posts(array $posts) : array {
         $course = $this->forum->get_course_record();
@@ -346,6 +360,8 @@ class discussion_list {
     /**
      * Get the list of notification for display.
      *
+     * @param stdClass $user The viewing user
+     * @param int|null $groupid The forum's group id
      * @return      array
      */
     private function get_notifications(stdClass $user, ?int $groupid) : array {

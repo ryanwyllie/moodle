@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Nested discussion renderer.
+ * Discussion renderer.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\entities\post_read_receipt_collection as read_receipt_collection_entity;
 use mod_forum\local\entities\sorter as sorter_entity;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
@@ -39,7 +38,6 @@ use mod_forum\local\renderers\posts as posts_renderer;
 use core\output\notification;
 use context;
 use context_module;
-use core_tag_tag;
 use html_writer;
 use moodle_exception;
 use moodle_page;
@@ -54,25 +52,56 @@ use url_select;
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Nested discussion renderer class.
+ * Discussion renderer class.
  */
 class discussion {
+    /** @var discussion_entity $discussion The discussion to render */
     private $discussion;
+    /** @var stdClass $discussionrecord Legacy discussion record */
     private $discussionrecord;
+    /** @var forum_entity $forum The forum that the discussion belongs to */
     private $forum;
+    /** @var stdClass $forumrecord Legacy forum record */
     private $forumrecord;
+    /** @var renderer_base $renderer Renderer base */
     private $renderer;
+    /** @var posts_renderer $postsrenderer A posts renderer */
     private $postsrenderer;
+    /** @var moodle_page $page The page this discussion is being rendered for */
     private $page;
+    /** @var legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory */
     private $legacydatamapperfactory;
+    /** @var exporter_factory $exporterfactory Exporter factory */
     private $exporterfactory;
+    /** @var vault_factory $vaultfactory Vault factory */
     private $vaultfactory;
+    /** @var capability_manager $capabilitymanager Capability manager */
     private $capabilitymanager;
+    /** @var rating_manager $ratingmanager Rating manager */
     private $ratingmanager;
+    /** @var moodle_url $baseurl The base URL for the discussion */
     private $baseurl;
+    /** @var array $notifications List of HTML notifications to display */
     private $notifications;
+    /** @var sorter_entity $exportedpostsorter Sorter for the exported posts */
     private $exportedpostsorter;
 
+    /**
+     * Constructor.
+     *
+     * @param discussion_entity $discussion The discussion to render
+     * @param forum_entity $forum The forum that the discussion belongs to
+     * @param renderer_base $renderer Renderer base
+     * @param moodle_page $page The page this discussion is being rendered for
+     * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
+     * @param exporter_factory $exporterfactory Exporter factory
+     * @param vault_factory $vaultfactory Vault factory
+     * @param capability_manager $capabilitymanager Capability manager
+     * @param rating_manager $ratingmanager Rating manager
+     * @param sorter_entity $exportedpostsorter Sorter for the exported posts
+     * @param moodle_url $baseurl The base URL for the discussion
+     * @param array $notifications List of HTML notifications to display
+     */
     public function __construct(
         discussion_entity $discussion,
         forum_entity $forum,
@@ -109,6 +138,15 @@ class discussion {
         $this->discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
     }
 
+    /**
+     * Render the discussion for the given user in the specified display mode.
+     *
+     * @param stdClass $user The user viewing the discussion
+     * @param int $displaymode The display mode to render the discussion in
+     * @param post_entity $firstpost The first post in the discussion
+     * @param array $replies List of replies to the first post
+     * @return string HTML for the discussion
+     */
     public function render(
         stdClass $user,
         int $displaymode,
@@ -162,7 +200,6 @@ class discussion {
      * Get the groups details for all groups available to the forum.
      *
      * @return  stdClass[]
-     * TODO REmove duplication with discussion_list
      */
     private function get_groups_available_in_forum() : array {
         $course = $this->forum->get_course_record();
@@ -171,6 +208,12 @@ class discussion {
         return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
     }
 
+    /**
+     * Get the exported discussion.
+     *
+     * @param stdClass $user The user viewing the discussion
+     * @return array
+     */
     private function get_exported_discussion(stdClass $user) : array {
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
             $user,
@@ -182,6 +225,12 @@ class discussion {
         return (array) $discussionexporter->export($this->renderer);
     }
 
+    /**
+     * Get the HTML for the display mode selector.
+     *
+     * @param int $displaymode The current display mode
+     * @return string
+     */
     private function get_display_mode_selector_html(int $displaymode) : string {
         $baseurl = $this->baseurl;
         $select = new single_select(
@@ -197,6 +246,11 @@ class discussion {
         return $this->renderer->render($select);
     }
 
+    /**
+     * Get the HTML to render the subscription button.
+     *
+     * @return string
+     */
     private function get_subscription_button_html() : string {
         global $PAGE;
 
@@ -212,6 +266,11 @@ class discussion {
         return $html;
     }
 
+    /**
+     * Get the HTML to render the move discussion selector and button.
+     *
+     * @return string
+     */
     private function get_move_discussion_html() : string {
         global $DB;
 
@@ -258,6 +317,11 @@ class discussion {
         return null;
     }
 
+    /**
+     * Get the HTML to render the pin discussion button.
+     *
+     * @return string
+     */
     private function get_pin_discussion_html() : string {
         $discussion = $this->discussion;
 
@@ -273,7 +337,12 @@ class discussion {
         return $this->renderer->render($button);
     }
 
-    private function get_export_discussion_html() {
+    /**
+     * Get the HTML to render the export discussion button.
+     *
+     * @return string|null
+     */
+    private function get_export_discussion_html() : ?string {
         global $CFG;
 
         require_once($CFG->libdir . '/portfoliolib.php');
@@ -284,7 +353,12 @@ class discussion {
         return $button ?: null;
     }
 
-    private function get_notifications() {
+    /**
+     * Get a list of notification HTML to render in the page.
+     *
+     * @return string[]
+     */
+    private function get_notifications() : array {
         $notifications = $this->notifications;
         $discussion = $this->discussion;
         $forum = $this->forum;
@@ -313,7 +387,12 @@ class discussion {
         }, $notifications);
     }
 
-    private function get_neighbour_links_html() {
+    /**
+     * Get HTML to display the neighbour links.
+     *
+     * @return string
+     */
+    private function get_neighbour_links_html() : string {
         $forum = $this->forum;
         $coursemodule = $forum->get_course_module_record();
         $neighbours = forum_get_discussion_neighbours($coursemodule, $this->discussionrecord, $this->forumrecord);

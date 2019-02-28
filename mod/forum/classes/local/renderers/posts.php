@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Nested discussion renderer.
+ * Posts renderer.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -40,13 +40,29 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  * Posts renderer class.
  */
 class posts {
+    /** @var discussion_entity $discussion The discussion that the posts belong to */
     private $discussion;
+    /** @var forum_entity $forum The forum that the posts belong to */
     private $forum;
+    /** @var renderer_base $renderer Renderer base */
     private $renderer;
+    /** @var exported_posts_builder $exportedpostsbuilder Builder for building exported posts */
     private $exportedpostsbuilder;
+    /** @var sorter_entity $exportedpostsorter Sorter to sort the exported posts */
     private $exportedpostsorter;
+    /** @var callable $gettemplate Function to get the template to use for a display mode */
     private $gettemplate;
 
+    /**
+     * Constructor.
+     *
+     * @param discussion_entity $discussion The discussion that the posts belong to
+     * @param forum_entity $forum The forum that the posts belong to
+     * @param renderer_base $renderer Renderer base
+     * @param exported_posts_builder $exportedpostsbuilder Builder for building exported posts
+     * @param sorter_entity $exportedpostsorter Sorter to sort the exported posts
+     * @param callable $gettemplate Function to get the template to use for a display mode
+     */
     public function __construct(
         discussion_entity $discussion,
         forum_entity $forum,
@@ -63,6 +79,14 @@ class posts {
         $this->gettemplate = $gettemplate;
     }
 
+    /**
+     * Render the given posts for the forum.
+     *
+     * @param stdClass $user The user viewing the posts
+     * @param post_entity[] $posts The posts to render
+     * @param int $displaymode How should the posts be formatted?
+     * @return string
+     */
     public function render(
         stdClass $user,
         array $posts,
@@ -91,7 +115,14 @@ class posts {
         );
     }
 
-    private function post_process_for_template(array $exportedposts) {
+    /**
+     * Add additional values to the exported posts that are required in order
+     * to render the posts templates.
+     *
+     * @param stdClass[] $exportedposts List of posts to process
+     * @return stdClass[]
+     */
+    private function post_process_for_template(array $exportedposts) : array {
         $forum = $this->forum;
         $seenfirstunread = false;
         return array_map(
@@ -116,7 +147,16 @@ class posts {
         );
     }
 
-    private function sort_posts_into_replies(array $exportedposts) {
+    /**
+     * Sort the list of posts into parents and replies. Each post is given
+     * the "replies" property which contains an array of replies to that post.
+     * It will also receive a "hasreplies" property which gets set to true if
+     * the post has replies, false otherwise.
+     *
+     * @param stdClass[] $exportedposts List of posts to process
+     * @return array
+     */
+    private function sort_posts_into_replies(array $exportedposts) : array {
         $sortedposts = $this->exportedpostsorter->sort_into_children($exportedposts);
         $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
             return array_map(function($postdata) use (&$sortintoreplies) {

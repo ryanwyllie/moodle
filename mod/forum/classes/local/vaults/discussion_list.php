@@ -50,10 +50,22 @@ class discussion_list extends db_table_vault {
     public const SORTORDER_NEWEST_FIRST = 1;
     public const SORTORDER_OLDEST_FIRST = 2;
 
+    /**
+     * Get the table alias.
+     *
+     * @return string
+     */
     protected function get_table_alias() : string {
         return 'd';
     }
 
+    /**
+     * Build the SQL to be used in get_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @param string|null $sortsql Order by conditions for the SQL
+     * @return string
+     */
     protected function generate_get_records_sql(string $wheresql = null, ?string $sortsql = null) : string {
         $alias = $this->get_table_alias();
         $db = $this->get_db();
@@ -88,6 +100,12 @@ class discussion_list extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Build the SQL to be used in count_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @return string
+     */
     protected function generate_count_records_sql(string $wheresql = null) : string {
         $alias = $this->get_table_alias();
         $db = $this->get_db();
@@ -98,6 +116,12 @@ class discussion_list extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Get a list of preprocessors to execute on the DB results before being converted
+     * into entities.
+     *
+     * @return array
+     */
     protected function get_preprocessors() : array {
         return array_merge(
             parent::get_preprocessors(),
@@ -110,6 +134,12 @@ class discussion_list extends db_table_vault {
         );
     }
 
+    /**
+     * Convert the DB records into discussion list entities.
+     *
+     * @param array $results The DB records
+     * @return discussion_list[]
+     */
     protected function from_db_records(array $results) {
         $entityfactory = $this->get_entity_factory();
 
@@ -129,6 +159,11 @@ class discussion_list extends db_table_vault {
         }, $results);
     }
 
+    /**
+     * Get the sort order SQL for a sort method.
+     *
+     * @param int|null $sortmethod
+     */
     public function get_sort_order(?int $sortmethod) : string {
         global $CFG;
 
@@ -252,6 +287,14 @@ class discussion_list extends db_table_vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Count the number of discussions in the forum.
+     *
+     * @param int $forumid Id of the forum to count discussions in
+     * @param bool $includehiddendiscussions Include hidden dicussions in the count?
+     * @param bool $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
+     * @return int
+     */
     public function get_total_discussion_count_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser) {
         $alias = $this->get_table_alias();
 
@@ -270,6 +313,15 @@ class discussion_list extends db_table_vault {
         return $this->get_db()->count_records_sql($this->generate_count_records_sql($wheresql), $params);
     }
 
+    /**
+     * Count the number of discussions in all groups and the list of groups provided.
+     *
+     * @param int $forumid Id of the forum to count discussions in
+     * @param int[] $groupids List of group ids to include in the count (discussions in all groups will always be counted)
+     * @param bool $includehiddendiscussions Include hidden dicussions in the count?
+     * @param bool $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
+     * @return int
+     */
     public function get_total_discussion_count_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser) {
         $alias = $this->get_table_alias();
 

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Build step.
+ * Extract context vault preprocessor.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,9 +30,15 @@ use context;
 use context_helper;
 
 /**
- * Build step.
+ * Extract context vault preprocessor.
  */
 class extract_context {
+    /**
+     * Extract the contexts from a list of records.
+     *
+     * @param stdClass[] $records The list of records which have context properties
+     * @return context[] List of contexts matching the records.
+     */
     public function execute(array $records) : array {
         return array_map(function($record) {
             $contextid = $record->ctxid;

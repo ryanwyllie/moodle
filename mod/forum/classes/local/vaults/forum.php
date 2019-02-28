@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Forum vault class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,20 +26,33 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\vaults\preprocessors\extract_context as extract_context_preprocessor;
 use mod_forum\local\vaults\preprocessors\extract_record as extract_record_preprocessor;
 use context_helper;
 
 /**
- * Vault class.
+ * Forum vault class.
  */
 class forum extends db_table_vault {
     private const TABLE = 'forum';
 
+    /**
+     * Get the table alias.
+     *
+     * @return string
+     */
     protected function get_table_alias() : string {
         return 'f';
     }
 
+    /**
+     * Build the SQL to be used in get_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @param string|null $sortsql Order by conditions for the SQL
+     * @return string
+     */
     protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $db = $this->get_db();
         $alias = $this->get_table_alias();
@@ -67,6 +80,12 @@ class forum extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Get a list of preprocessors to execute on the DB results before being converted
+     * into entities.
+     *
+     * @return array
+     */
     protected function get_preprocessors() : array {
         return array_merge(
             parent::get_preprocessors(),
@@ -79,6 +98,12 @@ class forum extends db_table_vault {
         );
     }
 
+    /**
+     * Convert the DB records into forum entities.
+     *
+     * @param array $results The DB records
+     * @return forum_entity[]
+     */
     protected function from_db_records(array $results) : array {
         $entityfactory = $this->get_entity_factory();
 
@@ -93,11 +118,23 @@ class forum extends db_table_vault {
         }, $results);
     }
 
-    public function get_from_course_module_id(int $id) {
+    /**
+     * Get the forum for the given course module id.
+     *
+     * @param int $id The course module id
+     * @return forum_entity|null
+     */
+    public function get_from_course_module_id(int $id) : ?forum_entity {
         $records = $this->get_from_course_module_ids([$id]);
         return count($records) ? array_shift($records) : null;
     }
 
+    /**
+     * Get the forums for the given course module ids
+     *
+     * @param int[] $ids The course module ids
+     * @return forum_entity[]
+     */
     public function get_from_course_module_ids(array $ids) : array {
         $alias = $this->get_table_alias();
         list($insql, $params) = $this->get_db()->get_in_or_equal($ids);

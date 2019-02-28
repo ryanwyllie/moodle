@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Post vault class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,24 +28,32 @@ defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
-use mod_forum\local\vaults\preprocessors\extract_user as extract_user_preprocessor;
-use mod_forum\local\vaults\preprocessors\post_read_user_list as post_read_user_list_preprocessor;
-use user_picture;
-use moodle_database;
 use stdClass;
 
 /**
- * Vault class.
+ * Post vault class.
  */
 class post extends db_table_vault {
     private const TABLE = 'forum_posts';
     private const USER_ID_ALIAS = 'userpictureid';
     private const USER_ALIAS = 'userrecord';
 
+    /**
+     * Get the table alias.
+     *
+     * @return string
+     */
     protected function get_table_alias() : string {
         return 'p';
     }
 
+    /**
+     * Build the SQL to be used in get_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @param string|null $sortsql Order by conditions for the SQL
+     * @return string
+     */
     protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $table = self::TABLE;
         $alias = $this->get_table_alias();
@@ -59,6 +67,12 @@ class post extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Convert the DB records into post entities.
+     *
+     * @param array $results The DB records
+     * @return post_entity[]
+     */
     protected function from_db_records(array $results) {
         $entityfactory = $this->get_entity_factory();
 
@@ -68,6 +82,13 @@ class post extends db_table_vault {
         }, $results);
     }
 
+    /**
+     * Get the post ids for the given discussion.
+     *
+     * @param int $discussionid The discussion to load posts for
+     * @param string $orderby Order the results
+     * @return post_entity[]
+     */
     public function get_from_discussion_id(int $discussionid, string $orderby = 'created ASC') : array {
         $alias = $this->get_table_alias();
         $wheresql = $alias . '.discussion = ?';
@@ -78,6 +99,12 @@ class post extends db_table_vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Get the list of posts for the given discussions.
+     *
+     * @param int[] $discussionids The list of discussion ids to load posts for
+     * @return post_entity[]
+     */
     public function get_from_discussion_ids(array $discussionids) : array {
         if (empty($discussionids)) {
             return [];
@@ -95,18 +122,34 @@ class post extends db_table_vault {
         return $this->transform_db_records_to_entities($records);
     }
 
+    /**
+     * Load a list of replies to the given post. This will load all descendants of the post.
+     * That is, all direct replies and replies to those replies etc.
+     *
+     * The return value will be a flat array of posts in the requested order.
+     *
+     * @param post_entity $post The post to load replies for
+     * @param string $orderby How to order the replies
+     * @return post_entity[]
+     */
     public function get_replies_to_post(post_entity $post, string $orderby = 'created ASC') : array {
         $alias = $this->get_table_alias();
         $params = [$post->get_discussion_id(), $post->get_time_created()];
+        // Unfortunately the best we can do to filter down the query is ignore all posts
+        // that were created before the given post (since they can't be replies).
         $wheresql = "{$alias}.discussion = ? and {$alias}.created > ?";
         $orderbysql = $alias . '.' . $orderby;
         $sql = $this->generate_get_records_sql($wheresql, $orderbysql);
         $records = $this->get_db()->get_records_sql($sql, $params);
         $posts = $this->transform_db_records_to_entities($records);
         $sorter = $this->get_entity_factory()->get_posts_sorter();
+        // We need to sort all of the values into the replies tree in order to capture
+        // the full list of descendants.
         $sortedposts = $sorter->sort_into_children($posts);
         $replies = [];
 
+        // From the sorted list we can grab the first elements and check if they are replies
+        // to the post we care about. If so we keep them.
         foreach ($sortedposts as $candidate) {
             [$candidatepost, $candidatereplies] = $candidate;
             if ($candidatepost->has_parent() && $candidatepost->get_parent_id() == $post->get_id()) {
@@ -128,8 +171,12 @@ class post extends db_table_vault {
 
             return $ids;
         };
+        // Recursively build a list of the ids of all posts in the full reply tree.
         $replypostids = $getreplypostids($replies);
 
+        // Now go back and filter the original result set down to just the posts that
+        // we've flagged as in the reply tree. We need to filter the original set of values
+        // so that we can maintain the requested sort order.
         return array_values(array_filter($posts, function($post) use ($replypostids) {
             return in_array($post->get_id(), $replypostids);
         }));

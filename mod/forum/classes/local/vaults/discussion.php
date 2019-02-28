@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Discussion vault class.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,15 +30,27 @@ use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\discussion as discussion_entity;
 
 /**
- * Vault class.
+ * Discussion vault class.
  */
 class discussion extends db_table_vault {
     private const TABLE = 'forum_discussions';
 
+    /**
+     * Get the table alias.
+     *
+     * @return string
+     */
     protected function get_table_alias() : string {
         return 'd';
     }
 
+    /**
+     * Build the SQL to be used in get_records_sql.
+     *
+     * @param string|null $wheresql Where conditions for the SQL
+     * @param string|null $sortsql Order by conditions for the SQL
+     * @return string
+     */
     protected function generate_get_records_sql(string $wheresql = null, string $sortsql = null) : string {
         $selectsql = 'SELECT * FROM {' . self::TABLE . '} ' . $this->get_table_alias();
         $selectsql .= $wheresql ? ' WHERE ' . $wheresql : '';
@@ -47,6 +59,12 @@ class discussion extends db_table_vault {
         return $selectsql;
     }
 
+    /**
+     * Convert the DB records into discussion entities.
+     *
+     * @param array $results The DB records
+     * @return discussion_entity[]
+     */
     protected function from_db_records(array $results) {
         $entityfactory = $this->get_entity_factory();
 
@@ -62,7 +80,7 @@ class discussion extends db_table_vault {
      * Get the first discussion in the specified forum.
      *
      * @param   forum_entity $forum
-     * @return  discussion_entity
+     * @return  discussion_entity|null
      */
     public function get_first_discussion_in_forum(forum_entity $forum) : ?discussion_entity {
         $records = $this->get_db()->get_records(self::TABLE, [

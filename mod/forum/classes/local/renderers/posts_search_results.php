@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Nested discussion renderer.
+ * Posts search results renderer.
  *
  * @package    mod_forum
- * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,6 @@ namespace mod_forum\local\renderers;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\builders\exported_posts as exported_posts_builder;
-use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\manager as manager_factory;
 use renderer_base;
 use stdClass;
@@ -35,13 +34,25 @@ use stdClass;
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
- * Posts renderer class.
+ * Posts search results renderer class. This class is designed to render a
+ * list of posts from various different discussions and forums which occurs
+ * when rendering the search results.
  */
 class posts_search_results {
+    /** @var renderer_base $renderer Renderer base */
     private $renderer;
+    /** @var exported_posts_builder $exportedpostsbuilder Exported posts builder */
     private $exportedpostsbuilder;
+    /** @var manager_factory $managerfactory Manager factory */
     private $managerfactory;
 
+    /**
+     * Constructor.
+     *
+     * @param renderer_base $renderer Renderer base
+     * @param exported_posts_builder $exportedpostsbuilder Exported posts builder
+     * @param manager_factory $managerfactory Manager factory
+     */
     public function __construct(
         renderer_base $renderer,
         exported_posts_builder $exportedpostsbuilder,
@@ -52,6 +63,17 @@ class posts_search_results {
         $this->managerfactory = $managerfactory;
     }
 
+    /**
+     * Render the posts for the given user from one or more forums and
+     * discussions.
+     *
+     * @param stdClass $user The user viewing the posts
+     * @param forum_entity[] $forumsbyid A list of all forums for these posts, indexed by forum id
+     * @param discussion_entity[] $discussionsbyid A list of all discussions for these posts, indexed by discussion id
+     * @param post_entities[] $posts A list of posts to render
+     * @param string[] $searchterms The search terms to be highlighted in the posts
+     * @return string
+     */
     public function render(
         stdClass $user,
         array $forumsbyid,
@@ -86,7 +108,8 @@ class posts_search_results {
                 $exportedpost->showdiscussionname = $forum->get_type() != 'single';
 
                 // Identify search terms only found in HTML markup, and add a warning about them to
-                // the start of the message text.
+                // the start of the message text. This logic was copied exactly as is from the previous
+                // implementation.
                 $missingterms = '';
                 $exportedpost->message = highlight($highlightwords, $exportedpost->message, 0, '<fgw9sdpq4>', '</fgw9sdpq4>');
 

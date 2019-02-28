@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Post attachment vault class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
@@ -31,19 +31,33 @@ use context;
 use file_storage;
 
 /**
- * Vault class.
+ * Post attachment vault class.
  */
 class post_attachment {
     private const COMPONENT = 'mod_forum';
     private const FILE_AREA = 'attachment';
     private const SORT = 'filename';
     private const INCLUDE_DIRECTORIES = false;
+    /** @var file_storage $filestorage File storage */
     private $filestorage;
 
+    /**
+     * Construct.
+     *
+     * @param file_storage $filestorage File storage
+     */
     public function __construct(file_storage $filestorage) {
         $this->filestorage = $filestorage;
     }
 
+    /**
+     * Get the attachments for the given posts. The results are indexed by
+     * post id.
+     *
+     * @param context $context The (forum) context that the posts are in
+     * @param post_entity[] $posts The list of posts to load attachments for
+     * @return array Post attachments indexed by post id
+     */
     public function get_attachments_for_posts(context $context, array $posts) {
         $itemids = array_map(function($post) {
             return $post->get_id();

@@ -182,7 +182,7 @@ class discussion extends exporter {
         ];
 
         if (!empty($this->related['latestpostid'])) {
-            $data['urls']['viewlatest'] = $urlmanager->get_discussion_view_latest_post_url_from_discussion_and_discussion(
+            $data['urls']['viewlatest'] = $urlmanager->get_discussion_view_latest_post_url_from_discussion(
                     $discussion,
                     $this->related['latestpostid']
                 )->out(false);

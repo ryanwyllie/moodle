@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Vault class.
+ * Container class.
  *
  * @package    mod_forum
  * @copyright  2018 Ryan Wyllie <ryan@moodle.com>
@@ -35,9 +35,15 @@ use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\builder as builder_factory;
 
 /**
- * Vault class.
+ * This class provides helper methods with static configurations to get any
+ * of the factories from the "local" namespace.
  */
 class container {
+    /**
+     * Create the renderer factory.
+     *
+     * @return renderer_factory
+     */
     public static function get_renderer_factory() : renderer_factory {
         global $PAGE;
 
@@ -52,10 +58,20 @@ class container {
         );
     }
 
+    /**
+     * Create the legacy data mapper factory.
+     *
+     * @return legacy_data_mapper_factory
+     */
     public static function get_legacy_data_mapper_factory() : legacy_data_mapper_factory {
         return new legacy_data_mapper_factory();
     }
 
+    /**
+     * Create the exporter factory.
+     *
+     * @return exporter_factory
+     */
     public static function get_exporter_factory() : exporter_factory {
         return new exporter_factory(
             self::get_legacy_data_mapper_factory(),
@@ -63,6 +79,11 @@ class container {
         );
     }
 
+    /**
+     * Create the vault factory.
+     *
+     * @return vault_factory
+     */
     public static function get_vault_factory() : vault_factory {
         global $DB;
 
@@ -73,16 +94,31 @@ class container {
         );
     }
 
+    /**
+     * Create the manager factory.
+     *
+     * @return manager_factory
+     */
     public static function get_manager_factory() : manager_factory {
         return new manager_factory(
             self::get_legacy_data_mapper_factory()
         );
     }
 
+    /**
+     * Create the entity factory.
+     *
+     * @return entity_factory
+     */
     public static function get_entity_factory() : entity_factory {
         return new entity_factory();
     }
 
+    /**
+     * Create the builder factory.
+     *
+     * @return builder_factory
+     */
     public static function get_builder_factory() : builder_factory {
         global $PAGE;
 
