@@ -416,6 +416,8 @@ class mod_forum_external_testcase extends externallib_advanced_testcase {
                 $this->assertEquals(0, $f['unreadpostscount']);
             }
         }
+
+        $this->assertDebuggingCalledCount(2);
     }
 
     /**

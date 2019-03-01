@@ -271,6 +271,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
 
         $this->resetAfterTest();
 
+        $cache = cache::make('mod_forum', 'forum_is_tracked');
         $useron = $this->getDataGenerator()->create_user(array('trackforums' => 1));
         $useroff = $this->getDataGenerator()->create_user(array('trackforums' => 0));
         $course = $this->getDataGenerator()->create_course();
@@ -310,6 +311,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
         $result = forum_tp_is_tracked($forumoptional, $useroff);
         $this->assertEquals(false, $result);
 
+        $cache->purge();
         // Don't allow force.
         $CFG->forum_allowforcedreadtracking = 0;
 
@@ -343,6 +345,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
         forum_tp_stop_tracking($forumforce->id, $useroff->id);
         forum_tp_stop_tracking($forumoptional->id, $useroff->id);
 
+        $cache->purge();
         // Allow force.
         $CFG->forum_allowforcedreadtracking = 1;
 
@@ -362,6 +365,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
         $result = forum_tp_is_tracked($forumoptional, $useroff);
         $this->assertEquals(false, $result);
 
+        $cache->purge();
         // Don't allow force.
         $CFG->forum_allowforcedreadtracking = 0;
 
@@ -1752,7 +1756,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
         $completion = new completion_info($course);
         $completiondata = $completion->get_data($cm);
         $this->assertEquals(1, $completiondata->completionstate);
-
+        $this->assertDebuggingCalled();
     }
 
     /**
@@ -1790,7 +1794,7 @@ class mod_forum_lib_testcase extends advanced_testcase {
         $this->assertEventContextNotUsed($event);
 
         $this->assertNotEmpty($event->get_name());
-
+        $this->assertDebuggingCalled();
     }
 
     /**
