@@ -298,13 +298,12 @@ foreach ($posts as $post) {
     $poststorender[] = $postentity;
 }
 
-$renderer = $rendererfactory->get_posts_search_results_renderer();
+$renderer = $rendererfactory->get_posts_search_results_renderer($searchterms);
 echo $renderer->render(
     $USER,
     $forumsbyid,
     $discussionsbyid,
-    $poststorender,
-    $searchterms
+    $poststorender
 );
 
 echo $OUTPUT->paging_bar($totalcount, $page, $perpage, $url);

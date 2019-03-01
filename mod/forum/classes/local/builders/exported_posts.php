@@ -484,7 +484,7 @@ class exported_posts {
         $sortedexportedposts = [];
 
         foreach ($exportedposts as $exportedpost) {
-            $index = $postindexes[$exportedpost->get_id()];
+            $index = $postindexes[$exportedpost->id];
             $sortedexportedposts[$index] = $exportedpost;
         }
 

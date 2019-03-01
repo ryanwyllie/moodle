@@ -27,146 +27,82 @@ namespace mod_forum\local\renderers;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\builders\exported_posts as exported_posts_builder;
-use mod_forum\local\entities\discussion as discussion_entity;
-use mod_forum\local\entities\forum as forum_entity;
-use mod_forum\local\entities\post as post_entity;
-use mod_forum\local\entities\sorter as sorter_entity;
 use renderer_base;
 use stdClass;
-
-require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 /**
  * Posts renderer class.
  */
 class posts {
-    /** @var discussion_entity $discussion The discussion that the posts belong to */
-    private $discussion;
-    /** @var forum_entity $forum The forum that the posts belong to */
-    private $forum;
     /** @var renderer_base $renderer Renderer base */
     private $renderer;
     /** @var exported_posts_builder $exportedpostsbuilder Builder for building exported posts */
     private $exportedpostsbuilder;
-    /** @var sorter_entity $exportedpostsorter Sorter to sort the exported posts */
-    private $exportedpostsorter;
-    /** @var callable $gettemplate Function to get the template to use for a display mode */
-    private $gettemplate;
+    /** @var string $template The template to render */
+    private $template;
+    /** @var callable $postprocessfortemplate Function to process exported posts before template rendering */
+    private $postprocessfortemplate;
 
     /**
      * Constructor.
      *
-     * @param discussion_entity $discussion The discussion that the posts belong to
-     * @param forum_entity $forum The forum that the posts belong to
      * @param renderer_base $renderer Renderer base
      * @param exported_posts_builder $exportedpostsbuilder Builder for building exported posts
-     * @param sorter_entity $exportedpostsorter Sorter to sort the exported posts
-     * @param callable $gettemplate Function to get the template to use for a display mode
+     * @param string $template The template to render
+     * @param callable $postprocessfortemplate Function to process exported posts before template rendering
      */
     public function __construct(
-        discussion_entity $discussion,
-        forum_entity $forum,
         renderer_base $renderer,
         exported_posts_builder $exportedpostsbuilder,
-        sorter_entity $exportedpostsorter,
-        callable $gettemplate
+        string $template,
+        callable $postprocessfortemplate = null
     ) {
-        $this->discussion = $discussion;
-        $this->forum = $forum;
         $this->renderer = $renderer;
         $this->exportedpostsbuilder = $exportedpostsbuilder;
-        $this->exportedpostsorter = $exportedpostsorter;
-        $this->gettemplate = $gettemplate;
+        $this->template = $template;
+        $this->postprocessfortemplate = $postprocessfortemplate;
     }
 
     /**
-     * Render the given posts for the forum.
+     * Render the given posts for the forums and discussions.
      *
      * @param stdClass $user The user viewing the posts
+     * @param forum_entity[] $forums A list of all forums for these posts
+     * @param discussion_entity[] $discussions A list of all discussions for these posts
      * @param post_entity[] $posts The posts to render
-     * @param int $displaymode How should the posts be formatted?
      * @return string
      */
     public function render(
         stdClass $user,
-        array $posts,
-        int $displaymode = null
+        array $forums,
+        array $discussions,
+        array $posts
     ) : string {
+        // Format the forums and discussion to make them more easily accessed later.
+        $forums = array_reduce($forums, function($carry, $forum) {
+            $carry[$forum->get_id()] = $forum;
+            return $carry;
+        }, []);
+        $discussions = array_reduce($discussions, function($carry, $discussion) {
+            $carry[$discussion->get_id()] = $discussion;
+            return $carry;
+        }, []);
+
         $exportedposts = $this->exportedpostsbuilder->build(
             $user,
-            [$this->forum],
-            [$this->discussion],
+            $forums,
+            $discussions,
             $posts
         );
-        $exportedposts = $this->post_process_for_template($exportedposts);
 
-        if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
-            $exportedposts = $this->sort_posts_into_replies($exportedposts);
-        } else if ($displaymode === FORUM_MODE_FLATNEWEST || $displaymode === FORUM_MODE_FLATOLDEST) {
-            $exportedfirstpost = array_shift($exportedposts);
-            $exportedfirstpost->replies = $exportedposts;
-            $exportedfirstpost->hasreplies = true;
-            $exportedposts = [$exportedfirstpost];
+        if ($this->postprocessfortemplate !== null) {
+            // We've got some post processing to do!
+            $exportedposts = ($this->postprocessfortemplate)($exportedposts, $forums, $discussions, $user);
         }
 
         return $this->renderer->render_from_template(
-            ($this->gettemplate)($displaymode),
+            $this->template,
             ['posts' => $exportedposts]
         );
-    }
-
-    /**
-     * Add additional values to the exported posts that are required in order
-     * to render the posts templates.
-     *
-     * @param stdClass[] $exportedposts List of posts to process
-     * @return stdClass[]
-     */
-    private function post_process_for_template(array $exportedposts) : array {
-        $forum = $this->forum;
-        $seenfirstunread = false;
-        return array_map(
-            function($exportedpost) use ($forum, $seenfirstunread) {
-                if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
-                    // Remove the author from any posts that don't have a parent.
-                    unset($exportedpost->author);
-                }
-
-                $exportedpost->hasreplies = false;
-                $exportedpost->replies = [];
-
-                $exportedpost->isfirstunread = false;
-                if (!$seenfirstunread && $exportedpost->unread) {
-                    $exportedpost->isfirstunread = true;
-                    $seenfirstunread = true;
-                }
-
-                return $exportedpost;
-            },
-            $exportedposts
-        );
-    }
-
-    /**
-     * Sort the list of posts into parents and replies. Each post is given
-     * the "replies" property which contains an array of replies to that post.
-     * It will also receive a "hasreplies" property which gets set to true if
-     * the post has replies, false otherwise.
-     *
-     * @param stdClass[] $exportedposts List of posts to process
-     * @return array
-     */
-    private function sort_posts_into_replies(array $exportedposts) : array {
-        $sortedposts = $this->exportedpostsorter->sort_into_children($exportedposts);
-        $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
-            return array_map(function($postdata) use (&$sortintoreplies) {
-                [$post, $replies] = $postdata;
-                $post->replies = $sortintoreplies($replies);
-                $post->hasreplies = !empty($post->replies);
-                return $post;
-            }, $nestedposts);
-        };
-
-        return $sortintoreplies($sortedposts);
     }
 }

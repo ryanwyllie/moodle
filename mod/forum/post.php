@@ -416,8 +416,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
             }
 
             $rendererfactory = mod_forum\local\container::get_renderer_factory();
-            $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
-            echo $postsrenderer->render($USER, $postentities, FORUM_MODE_NESTED);
+            $postsrenderer = $rendererfactory->get_single_discussion_posts_renderer(FORUM_MODE_NESTED, true);
+            echo $postsrenderer->render($USER, [$forumentity], [$discussionentity], [$postentity]);
         } else {
             echo $OUTPUT->header();
             echo $OUTPUT->heading(format_string($forum->name), 2);
@@ -426,8 +426,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
                 $CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.'#p'.$post->id);
 
             $rendererfactory = mod_forum\local\container::get_renderer_factory();
-            $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
-            echo $postsrenderer->render($USER, [$postentity], null);
+            $postsrenderer = $rendererfactory->get_single_discussion_posts_renderer(null, true);
+            echo $postsrenderer->render($USER, [$forumentity], [$discussionentity], [$postentity]);
         }
 
     }
@@ -556,8 +556,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum.
         $discussionentity = $entityfactory->get_discussion_from_stdClass($discussion);
         $forumentity = $entityfactory->get_forum_from_stdClass($forum, $modcontext, $cm, $course);
         $rendererfactory = mod_forum\local\container::get_renderer_factory();
-        $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
-        echo $postsrenderer->render($USER, [$postentity], null);
+        $postsrenderer = $rendererfactory->get_single_discussion_posts_renderer(null, true);
+        echo $postsrenderer->render($USER, [$forumentity], [$discussionentity], [$postentity]);
     }
 
     echo $OUTPUT->footer();
@@ -1080,8 +1080,8 @@ if (!empty($parent)) {
     }
 
     $rendererfactory = mod_forum\local\container::get_renderer_factory();
-    $postsrenderer = $rendererfactory->get_posts_read_only_renderer($forumentity, $discussionentity);
-    echo $postsrenderer->render($USER, $postentities, FORUM_MODE_THREADED);
+    $postsrenderer = $rendererfactory->get_single_discussion_posts_renderer(FORUM_MODE_THREADED, true);
+    echo $postsrenderer->render($USER, [$forumentity], [$discussionentity], [$postentity]);
 } else {
     if (!empty($forum->intro)) {
         echo $OUTPUT->box(format_module_intro('forum', $forum, $cm->id), 'generalbox', 'intro');

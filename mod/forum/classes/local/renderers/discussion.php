@@ -63,6 +63,8 @@ class discussion {
     private $forum;
     /** @var stdClass $forumrecord Legacy forum record */
     private $forumrecord;
+    /** @var int $displaymode The display mode to render the discussion in */
+    private $displaymode;
     /** @var renderer_base $renderer Renderer base */
     private $renderer;
     /** @var posts_renderer $postsrenderer A posts renderer */
@@ -91,6 +93,7 @@ class discussion {
      *
      * @param discussion_entity $discussion The discussion to render
      * @param forum_entity $forum The forum that the discussion belongs to
+     * @param int $displaymode The display mode to render the discussion in
      * @param renderer_base $renderer Renderer base
      * @param moodle_page $page The page this discussion is being rendered for
      * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
@@ -105,6 +108,7 @@ class discussion {
     public function __construct(
         discussion_entity $discussion,
         forum_entity $forum,
+        int $displaymode,
         renderer_base $renderer,
         posts_renderer $postsrenderer,
         moodle_page $page,
@@ -119,6 +123,7 @@ class discussion {
     ) {
         $this->discussion = $discussion;
         $this->forum = $forum;
+        $this->displaymode = $displaymode;
         $this->renderer = $renderer;
         $this->postsrenderer = $postsrenderer;
         $this->page = $page;
@@ -142,19 +147,18 @@ class discussion {
      * Render the discussion for the given user in the specified display mode.
      *
      * @param stdClass $user The user viewing the discussion
-     * @param int $displaymode The display mode to render the discussion in
      * @param post_entity $firstpost The first post in the discussion
      * @param array $replies List of replies to the first post
      * @return string HTML for the discussion
      */
     public function render(
         stdClass $user,
-        int $displaymode,
         post_entity $firstpost,
         array $replies
     ) : string {
         global $CFG;
 
+        $displaymode = $this->displaymode;
         $capabilitymanager = $this->capabilitymanager;
         $forum = $this->forum;
 
@@ -169,7 +173,7 @@ class discussion {
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications(),
             'html' => [
-                'posts' => $this->postsrenderer->render($user, $posts, $displaymode),
+                'posts' => $this->postsrenderer->render($user, [$this->forum], [$this->discussion], $posts),
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'subscribe' => null,
                 'movediscussion' => null,

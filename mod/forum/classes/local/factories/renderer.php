@@ -37,7 +37,6 @@ use mod_forum\local\factories\builder as builder_factory;
 use mod_forum\local\renderers\discussion as discussion_renderer;
 use mod_forum\local\renderers\discussion_list as discussion_list_renderer;
 use mod_forum\local\renderers\posts as posts_renderer;
-use mod_forum\local\renderers\posts_search_results as posts_search_results_renderer;
 use moodle_page;
 use moodle_url;
 
@@ -100,11 +99,13 @@ class renderer {
      *
      * @param forum_entity $forum Forum the discussion belongs to
      * @param discussion_entity $discussion Discussion to render
+     * @param int $displaymode How should the posts be formatted?
      * @return discussion_renderer
      */
     public function get_discussion_renderer(
         forum_entity $forum,
-        discussion_entity $discussion
+        discussion_entity $discussion,
+        int $displaymode
     ) : discussion_renderer {
 
         $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
@@ -128,8 +129,9 @@ class renderer {
         return new discussion_renderer(
             $discussion,
             $forum,
+            $displaymode,
             $rendererbase,
-            $this->get_posts_renderer($forum, $discussion),
+            $this->get_single_discussion_posts_renderer($displaymode, false),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
@@ -143,66 +145,92 @@ class renderer {
     }
 
     /**
-     * Create a posts renderer to render a list of posts.
+     * Create a posts renderer to render posts without defined parent/reply relationships.
      *
-     * @param forum_entity $forum Forum the posts belong to
-     * @param discussion_entity $discussion Discussion the posts belong to
      * @return posts_renderer
      */
-    public function get_posts_renderer(
-        forum_entity $forum,
-        discussion_entity $discussion
-    ) : posts_renderer {
+    public function get_posts_renderer() : posts_renderer {
         return new posts_renderer(
-            $discussion,
-            $forum,
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
-            $this->entityfactory->get_exported_posts_sorter(),
-            // Function to determine which template should be used for the given
-            // display mode.
-            function(int $displaymode = null) {
-                switch ($displaymode) {
-                    case FORUM_MODE_THREADED:
-                        return 'mod_forum/forum_discussion_threaded_posts';
-                    case FORUM_MODE_NESTED:
-                        return 'mod_forum/forum_discussion_nested_posts';
-                    default;
-                        return 'mod_forum/forum_discussion_posts';
-                }
-            }
+            'mod_forum/forum_discussion_posts'
         );
     }
 
     /**
-     * Create a posts renderer that renders posts in a read only format, i.e.
-     * no links to reply, edit, delete, etc.
+     * Create a posts renderer to render a list of posts in a single discussion.
      *
-     * @param forum_entity $forum Forum the posts belong to
-     * @param discussion_entity $discussion Discussion the posts belong to
+     * @param int|null $displaymode How should the posts be formatted?
+     * @param bool $readonly Should the posts include the actions to reply, delete, etc?
      * @return posts_renderer
      */
-    public function get_posts_read_only_renderer(
-        forum_entity $forum,
-        discussion_entity $discussion
-    ) : posts_renderer {
+    public function get_single_discussion_posts_renderer(int $displaymode = null, bool $readonly = false) : posts_renderer {
+        $exportedpostssorter = $this->entityfactory->get_exported_posts_sorter();
+
+        switch ($displaymode) {
+            case FORUM_MODE_THREADED:
+                $template = 'mod_forum/forum_discussion_threaded_posts';
+                break;
+            case FORUM_MODE_NESTED:
+                $template = 'mod_forum/forum_discussion_nested_posts';
+                break;
+            default;
+                $template = 'mod_forum/forum_discussion_posts';
+                break;
+        }
+
         return new posts_renderer(
-            $discussion,
-            $forum,
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
-            $this->entityfactory->get_exported_posts_sorter(),
-            // Function to determine which template should be used for the given
-            // display mode.
-            function(int $displaymode = null) {
-                switch ($displaymode) {
-                    case FORUM_MODE_THREADED:
-                        return 'mod_forum/forum_discussion_threaded_posts_read_only';
-                    case FORUM_MODE_NESTED:
-                        return 'mod_forum/forum_discussion_nested_posts_read_only';
-                    default;
-                        return 'mod_forum/forum_discussion_posts_read_only';
+            $template,
+            // Post process the exported posts for our template. This function will add the "replies"
+            // and "hasreplies" properties to the exported posts. It will also sort them into the
+            // reply tree structure if the display mode requires it.
+            function($exportedposts, $forums) use ($displaymode, $readonly, $exportedpostssorter) {
+                $forum = array_shift($forums);
+                $seenfirstunread = false;
+                $exportedposts = array_map(
+                    function($exportedpost) use ($forum, $readonly, $seenfirstunread) {
+                        if ($forum->get_type() == 'single' && !$exportedpost->hasparent) {
+                            // Remove the author from any posts that don't have a parent.
+                            unset($exportedpost->author);
+                        }
+
+                        $exportedpost->readonly = $readonly;
+                        $exportedpost->hasreplies = false;
+                        $exportedpost->replies = [];
+
+                        $exportedpost->isfirstunread = false;
+                        if (!$seenfirstunread && $exportedpost->unread) {
+                            $exportedpost->isfirstunread = true;
+                            $seenfirstunread = true;
+                        }
+
+                        return $exportedpost;
+                    },
+                    $exportedposts
+                );
+
+                if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
+                    $sortedposts = $exportedpostssorter->sort_into_children($exportedposts);
+                    $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
+                        return array_map(function($postdata) use (&$sortintoreplies) {
+                            [$post, $replies] = $postdata;
+                            $post->replies = $sortintoreplies($replies);
+                            $post->hasreplies = !empty($post->replies);
+                            return $post;
+                        }, $nestedposts);
+                    };
+                    // Set the "replies" property on the exported posts.
+                    $exportedposts = $sortintoreplies($sortedposts);
+                } else if ($displaymode === FORUM_MODE_FLATNEWEST || $displaymode === FORUM_MODE_FLATOLDEST) {
+                    $exportedfirstpost = array_shift($exportedposts);
+                    $exportedfirstpost->replies = $exportedposts;
+                    $exportedfirstpost->hasreplies = true;
+                    $exportedposts = [$exportedfirstpost];
                 }
+
+                return $exportedposts;
             }
         );
     }
@@ -210,13 +238,106 @@ class renderer {
     /**
      * Create a posts renderer to render posts in the forum search results.
      *
-     * @return posts_search_results_renderer
+     * @param string[] $searchterms The search terms to be highlighted in the posts
+     * @return posts_renderer
      */
-    public function get_posts_search_results_renderer() : posts_search_results_renderer {
-        return new posts_search_results_renderer(
+    public function get_posts_search_results_renderer(array $searchterms) : posts_renderer {
+        $managerfactory = $this->managerfactory;
+
+        return new posts_renderer(
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
-            $this->managerfactory
+            'mod_forum/forum_posts_with_context_links',
+            // Post process the exported posts to add the highlighting of the search terms to the post
+            // and also the additional context links in the subject.
+            function($exportedposts, $forumsbyid, $discussionsbyid) use ($searchterms, $managerfactory) {
+                $highlightwords = implode(' ', $searchterms);
+
+                return array_map(
+                    function($exportedpost) use (
+                        $forumsbyid,
+                        $discussionsbyid,
+                        $searchterms,
+                        $highlightwords
+                    ) {
+                        $discussion = $discussionsbyid[$exportedpost->discussionid];
+                        $forum = $forumsbyid[$discussion->get_forum_id()];
+                        $urlmananger = $this->managerfactory->get_url_manager($forum);
+
+                        $exportedpost->urls['viewforum'] = $urlmananger->get_forum_view_url_from_forum($forum)->out(false);
+                        $exportedpost->urls['viewdiscussion'] = $urlmananger->get_discussion_view_url_from_discussion($discussion)->out(false);
+                        $exportedpost->subject = highlight($highlightwords, $exportedpost->subject);
+                        $exportedpost->forumname = format_string($forum->get_name(), true);
+                        $exportedpost->discussionname = highlight($highlightwords, format_string($discussion->get_name(), true));
+                        $exportedpost->showdiscussionname = $forum->get_type() != 'single';
+
+                        // Identify search terms only found in HTML markup, and add a warning about them to
+                        // the start of the message text. This logic was copied exactly as is from the previous
+                        // implementation.
+                        $missingterms = '';
+                        $exportedpost->message = highlight($highlightwords, $exportedpost->message, 0, '<fgw9sdpq4>', '</fgw9sdpq4>');
+
+                        foreach ($searchterms as $searchterm) {
+                            if (
+                                preg_match("/$searchterm/i", $exportedpost->message) &&
+                                !preg_match('/<fgw9sdpq4>' . $searchterm . '<\/fgw9sdpq4>/i', $exportedpost->message)
+                            ) {
+                                $missingterms .= " $searchterm";
+                            }
+                        }
+
+                        $exportedpost->message = str_replace('<fgw9sdpq4>', '<span class="highlight">', $exportedpost->message);
+                        $exportedpost->message = str_replace('</fgw9sdpq4>', '</span>', $exportedpost->message);
+
+                        if ($missingterms) {
+                            $strmissingsearchterms = get_string('missingsearchterms', 'forum');
+                            $exportedpost->message = '<p class="highlight2">' . $strmissingsearchterms . ' '
+                                . $missing_terms . '</p>' . $exportedpost->message;
+                        }
+
+                        return $exportedpost;
+                    },
+                    $exportedposts
+                );
+            }
+        );
+    }
+
+    /**
+     * Create a posts renderer to render posts in mod/forum/user.php.
+     *
+     * @param bool $addlinkstocontext Should links to the course, forum, and discussion be included?
+     * @return posts_renderer
+     */
+    public function get_user_forum_posts_report_renderer(bool $addlinkstocontext) : posts_renderer {
+        $managerfactory = $this->managerfactory;
+
+        return new posts_renderer(
+            $this->rendererbase,
+            $this->builderfactory->get_exported_posts_builder(),
+            'mod_forum/forum_posts_with_context_links',
+            function($exportedposts, $forumsbyid, $discussionsbyid) use ($managerfactory, $addlinkstocontext) {
+
+                return array_map(function($exportedpost) use ($forumsbyid, $discussionsbyid, $addlinkstocontext) {
+                    $discussion = $discussionsbyid[$exportedpost->discussionid];
+                    $forum = $forumsbyid[$discussion->get_forum_id()];
+                    $courserecord = $forum->get_course_record();
+                    $urlmananger = $this->managerfactory->get_url_manager($forum);
+
+                    if ($addlinkstocontext) {
+                        $exportedpost->urls['viewforum'] = $urlmananger->get_forum_view_url_from_forum($forum)->out(false);
+                        $exportedpost->urls['viewdiscussion'] = $urlmananger->get_discussion_view_url_from_discussion($discussion)->out(false);
+                        $exportedpost->urls['viewcourse'] = $urlmananger->get_course_url_from_forum($forum)->out(false);
+                    }
+
+                    $exportedpost->forumname = format_string($forum->get_name(), true);
+                    $exportedpost->discussionname = format_string($discussion->get_name(), true);
+                    $exportedpost->coursename = format_string($courserecord->shortname, true);
+                    $exportedpost->showdiscussionname = $forum->get_type() != 'single';
+
+                    return $exportedpost;
+                }, $exportedposts);
+            }
         );
     }
 
