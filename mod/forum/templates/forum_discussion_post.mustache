@@ -67,7 +67,7 @@
                 {{#attachments}}
                     {{#isimage}}
                         <div>
-                            <img src="{{{urls.file}}}" alt="{{filename}}" style="max-width: 100%">
+                            <img src="{{{url}}}" alt="{{filename}}" style="max-width: 100%">
                             {{#urls.export}}
                                 <a href="{{{.}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}">
                                     {{#pix}} t/portfolioadd, core {{/pix}}
@@ -85,7 +85,7 @@
                 {{#attachments}}
                     {{^isimage}}
                         <div>
-                            <a href="{{{urls.file}}}">{{{html.icon}}} {{filename}}</a>
+                            <a href="{{{url}}}">{{#pix}} {{icon}}, core {{/pix}} {{filename}}</a>
                             {{#urls.export}}
                                 <a href="{{{.}}}" title="{{#str}} addtoportfolio, core_portfolio {{/str}}">
                                     {{#pix}} t/portfolioadd, core {{/pix}}

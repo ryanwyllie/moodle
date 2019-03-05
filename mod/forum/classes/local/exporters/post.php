@@ -30,6 +30,7 @@ use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\exporters\author as author_exporter;
 use mod_forum\local\factories\exporter as exporter_factory;
 use core\external\exporter;
+use core_files\external\stored_file_exporter;
 use context;
 use core_tag_tag;
 use renderer_base;
@@ -55,6 +56,28 @@ class post extends exporter {
      * @return array
      */
     protected static function define_other_properties() {
+        $attachmentdefinition = stored_file_exporter::read_properties_definition();
+        $attachmentdefinition['urls'] = [
+            'type' => [
+                'export' => [
+                    'type' => PARAM_URL,
+                    'optional' => true,
+                    'default' => null,
+                    'null' => NULL_ALLOWED
+                ]
+            ]
+        ];
+        $attachmentdefinition['html'] = [
+            'type' => [
+                'plagiarism' => [
+                    'type' => PARAM_RAW,
+                    'optional' => true,
+                    'default' => null,
+                    'null' => NULL_ALLOWED
+                ],
+            ]
+        ];
+
         return [
             'id' => ['type' => PARAM_INT],
             'subject' => ['type' => PARAM_TEXT],
@@ -164,37 +187,7 @@ class post extends exporter {
             ],
             'attachments' => [
                 'multiple' => true,
-                'type' => [
-                    'filename' => ['type' => PARAM_FILE],
-                    'mimetype' => ['type' => PARAM_TEXT],
-                    'contextid' => ['type' => PARAM_INT],
-                    'component' => ['type' => PARAM_TEXT],
-                    'filearea' => ['type' => PARAM_TEXT],
-                    'itemid' => ['type' => PARAM_INT],
-                    'isimage' => ['type' => PARAM_BOOL],
-                    'urls' => [
-                        'type' => [
-                            'file' => ['type' => PARAM_URL],
-                            'export' => [
-                                'type' => PARAM_URL,
-                                'optional' => true,
-                                'default' => null,
-                                'null' => NULL_ALLOWED
-                            ]
-                        ]
-                    ],
-                    'html' => [
-                        'type' => [
-                            'icon' => ['type' => PARAM_RAW],
-                            'plagiarism' => [
-                                'type' => PARAM_RAW,
-                                'optional' => true,
-                                'default' => null,
-                                'null' => NULL_ALLOWED
-                            ],
-                        ]
-                    ]
-                ]
+                'type' => $attachmentdefinition
             ],
             'tags' => [
                 'optional' => true,
@@ -432,8 +425,8 @@ class post extends exporter {
 
         $urlmanager = $this->related['urlmanager'];
         $enableplagiarism = $CFG->enableplagiarism;
-        $wwwroot = $CFG->wwwroot;
         $forum = $this->related['forum'];
+        $context = $this->related['context'];
 
         if ($enableplagiarism) {
             require_once($CFG->libdir . '/plagiarismlib.php' );
@@ -441,31 +434,17 @@ class post extends exporter {
 
         return array_map(function($attachment) use (
             $output,
-            $wwwroot,
             $enableplagiarism,
             $canexport,
+            $context,
             $forum,
             $post,
             $urlmanager
         ) {
-            $filename = $attachment->get_filename();
-            $mimetype = $attachment->get_mimetype();
             $contextid = $attachment->get_contextid();
-            $component = $attachment->get_component();
-            $filearea = $attachment->get_filearea();
-            $itemid = $attachment->get_itemid();
-            $iconhtml = $output->pix_icon(
-                file_file_icon($attachment),
-                get_mimetype_description($attachment),
-                'moodle',
-                ['class' => 'icon']
-            );
-            $fileurl = file_encode_url(
-                $wwwroot . '/pluginfile.php',
-                '/' . implode('/', [$contextid, $component, $filearea, $itemid, $filename])
-            );
+            $exporter = new stored_file_exporter($attachment, ['context' => $context]);
+            $exportedattachment = $exporter->export($output);
             $exporturl = $canexport ? $urlmanager->get_export_attachment_url_from_post_and_attachment($post, $attachment) : null;
-            $isimage = in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png']);
 
             if ($enableplagiarism) {
                 $plagiarismhtml = plagiarism_get_links([
@@ -479,23 +458,14 @@ class post extends exporter {
                 $plagiarismhtml = null;
             }
 
-            return [
-                'filename' => $filename,
-                'mimetype' => $mimetype,
-                'contextid' => $contextid,
-                'component' => $component,
-                'filearea' => $filearea,
-                'itemid' => $itemid,
-                'isimage' => $isimage,
-                'urls' => [
-                    'file' => $fileurl,
-                    'export' => $exporturl ? $exporturl->out(false) : null
-                ],
-                'html' => [
-                    'icon' => $iconhtml,
-                    'plagiarism' => $plagiarismhtml
-                ]
+            $exportedattachment->urls = [
+                'export' => $exporturl ? $exporturl->out(false) : null
             ];
+            $exportedattachment->html = [
+                'plagiarism' => $plagiarismhtml
+            ];
+
+            return $exportedattachment;
         }, $attachments);
     }
 
