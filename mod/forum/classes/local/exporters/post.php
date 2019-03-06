@@ -286,8 +286,10 @@ class post extends exporter {
 
         $authorexporter = new author_exporter($author, $authorgroups, ($canview && !$isdeleted), $this->related);
         $exportedauthor = $authorexporter->export($output);
+        // Only bother loading the content if the user can see it.
+        $loadcontent = $canview && !$isdeleted;
 
-        if ($canview && !$isdeleted) {
+        if ($loadcontent) {
             $subject = $post->get_subject();
             $timecreated = $post->get_time_created();
             $message = $this->get_message($post);
@@ -311,7 +313,7 @@ class post extends exporter {
             'hasparent' => $post->has_parent(),
             'parentid' => $post->has_parent() ? $post->get_parent_id() : null,
             'timecreated' => $timecreated,
-            'unread' => $readreceiptcollection ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
+            'unread' => ($loadcontent && $readreceiptcollection) ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
             'isdeleted' => $isdeleted,
             'haswordcount' => $forum->should_display_word_count(),
             'wordcount' => $forum->should_display_word_count() ? count_words($message) : null,
@@ -336,12 +338,12 @@ class post extends exporter {
                 'markasread' => $markasreadurl ? $markasreadurl->out(false) : null,
                 'markasunread' => $markasunreadurl ? $markasunreadurl->out(false) : null,
             ],
-            'attachments' => (!$isdeleted && !empty($attachments)) ? $this->export_attachments($attachments, $post, $output, $canexport) : [],
-            'tags' => (!$isdeleted && $hastags) ? $this->export_tags($tags) : [],
+            'attachments' => ($loadcontent && !empty($attachments)) ? $this->export_attachments($attachments, $post, $output, $canexport) : [],
+            'tags' => ($loadcontent && $hastags) ? $this->export_tags($tags) : [],
             'html' => $includehtml ? [
-                'rating' => (!$isdeleted && $hasrating) ? $output->render($rating) : null,
-                'taglist' => (!$isdeleted && $hastags) ? $output->tag_list($tags) : null,
-                'authorsubheading' => $this->get_author_subheading_html($exportedauthor, $timecreated)
+                'rating' => ($loadcontent && $hasrating) ? $output->render($rating) : null,
+                'taglist' => ($loadcontent && $hastags) ? $output->tag_list($tags) : null,
+                'authorsubheading' => ($loadcontent) ? $this->get_author_subheading_html($exportedauthor, $timecreated) : null
             ] : null
         ];
     }
@@ -500,19 +502,15 @@ class post extends exporter {
      * Get the HTML to display as a subheading in a post.
      *
      * @param stdClass $exportedauthor The exported author object
-     * @param int|null $timecreated The post time created timestamp if it's to be displayed
+     * @param int $timecreated The post time created timestamp if it's to be displayed
      */
-    private function get_author_subheading_html(stdClass $exportedauthor, ?int $timecreated) : string {
-        if ($timecreated === null) {
-            return $exportedauthor->fullname;
-        } else {
-            $fullname = $exportedauthor->fullname;
-            $profileurl = $exportedauthor->urls['profile'] ?? null;
-            $formatteddate = userdate($timecreated, get_string('strftimedaydatetime', 'core_langconfig'));
-            $name = $profileurl ? "<a href=\"{$profileurl}\">{$fullname}</a>" : $fullname;
-            $date = "<time>{$formatteddate}</time>";
-            return get_string('bynameondate', 'mod_forum', ['name' => $name, 'date' => $date]);
-        }
+    private function get_author_subheading_html(stdClass $exportedauthor, int $timecreated) : string {
+        $fullname = $exportedauthor->fullname;
+        $profileurl = $exportedauthor->urls['profile'] ?? null;
+        $formatteddate = userdate($timecreated, get_string('strftimedaydatetime', 'core_langconfig'));
+        $name = $profileurl ? "<a href=\"{$profileurl}\">{$fullname}</a>" : $fullname;
+        $date = "<time>{$formatteddate}</time>";
+        return get_string('bynameondate', 'mod_forum', ['name' => $name, 'date' => $date]);
     }
 
     /**

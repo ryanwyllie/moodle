@@ -26,7 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once(__DIR__ . '/generator_trait.php');
-require_once($CFG->dirroot . '/rating/lib.php');
 
 class builders_exported_posts_testcase extends advanced_testcase {
     // Make use of the test generator trait.
