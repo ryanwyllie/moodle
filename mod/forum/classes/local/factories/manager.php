@@ -26,6 +26,9 @@ namespace mod_forum\local\factories;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->dirroot . '/rating/lib.php');
+
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\managers\url as url_manager;

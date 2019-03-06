@@ -68,7 +68,6 @@ class forum extends exporter {
                     'tracked' => ['type' => PARAM_INT],
                 ],
             ],
-            // TODO name, description.
             'capabilities' => [
                 'type' => [
                     'viewdiscussions' => ['type' => PARAM_BOOL],
@@ -112,7 +111,6 @@ class forum extends exporter {
             ],
             'urls' => [
                 'create' => $urlmanager->get_discussion_create_url($this->forum)->out(false),
-                // TODO Get page no.
                 'markasread' => $urlmanager->get_mark_all_discussions_as_read_url()->out(false),
             ],
         ];

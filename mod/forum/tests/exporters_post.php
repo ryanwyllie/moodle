@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The exported_posts builder tests.
+ * The post exporter tests.
  *
  * @package    mod_forum
  * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
