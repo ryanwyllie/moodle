@@ -26,6 +26,9 @@ namespace mod_forum\local\entities;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->dirroot . '/rating/lib.php');
+
 use mod_forum\local\entities\discussion as discussion_entity;
 use context;
 use stdClass;
