@@ -218,13 +218,13 @@ class discussion_list extends db_table_vault {
      *
      * @param   int         $forumid The forum to fetch the discussion set for
      * @param   bool        $includehiddendiscussions Whether to include hidden discussions or not
-     * @param   int         $includepostsforuser Which user to include posts for, if any
+     * @param   int|null    $includepostsforuser Which user to include posts for, if any
      * @param   int         $sortorder The sort order to use
      * @param   int         $limit The number of discussions to fetch
      * @param   int         $offset The record offset
      * @return  array       The set of data fetched
      */
-    public function get_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
+    public function get_from_forum_id(int $forumid, bool $includehiddendiscussions, ?int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
         $wheresql = "{$alias}.forum = :forumid";
         [
@@ -250,13 +250,13 @@ class discussion_list extends db_table_vault {
      * @param   int         $forumid The forum to fetch the discussion set for
      * @param   int[]       $groupids The list of real groups to filter on
      * @param   bool        $includehiddendiscussions Whether to include hidden discussions or not
-     * @param   int         $includepostsforuser Which user to include posts for, if any
+     * @param   int|null    $includepostsforuser Which user to include posts for, if any
      * @param   int         $sortorder The sort order to use
      * @param   int         $limit The number of discussions to fetch
      * @param   int         $offset The record offset
      * @return  array       The set of data fetched
      */
-    public function get_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
+    public function get_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, ?int $includepostsforuser, ?int $sortorder, int $limit, int $offset) {
         $alias = $this->get_table_alias();
 
         $wheresql = "{$alias}.forum = :forumid AND ";
@@ -280,9 +280,7 @@ class discussion_list extends db_table_vault {
         ]);
 
         $sql = $this->generate_get_records_sql($wheresql, $this->get_sort_order($sortorder));
-        $this->get_db()->set_debug(true);
         $records = $this->get_db()->get_records_sql($sql, $params, $offset, $limit);
-        $this->get_db()->set_debug(false);
 
         return $this->transform_db_records_to_entities($records);
     }
@@ -292,10 +290,10 @@ class discussion_list extends db_table_vault {
      *
      * @param int $forumid Id of the forum to count discussions in
      * @param bool $includehiddendiscussions Include hidden dicussions in the count?
-     * @param bool $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
+     * @param int|null $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
      * @return int
      */
-    public function get_total_discussion_count_from_forum_id(int $forumid, bool $includehiddendiscussions, int $includepostsforuser) {
+    public function get_total_discussion_count_from_forum_id(int $forumid, bool $includehiddendiscussions, ?int $includepostsforuser) {
         $alias = $this->get_table_alias();
 
         $wheresql = "{$alias}.forum = :forumid";
@@ -319,10 +317,10 @@ class discussion_list extends db_table_vault {
      * @param int $forumid Id of the forum to count discussions in
      * @param int[] $groupids List of group ids to include in the count (discussions in all groups will always be counted)
      * @param bool $includehiddendiscussions Include hidden dicussions in the count?
-     * @param bool $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
+     * @param int|null $includepostsforuser Include discussions created by this user in the count (only works if not including hidden discussions).
      * @return int
      */
-    public function get_total_discussion_count_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, int $includepostsforuser) {
+    public function get_total_discussion_count_from_forum_id_and_group_id(int $forumid, array $groupids, bool $includehiddendiscussions, ?int $includepostsforuser) {
         $alias = $this->get_table_alias();
 
         $wheresql = "{$alias}.forum = :forumid AND ";

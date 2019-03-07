@@ -87,7 +87,7 @@ class managers_capability_testcase extends advanced_testcase {
         $this->forumrecord = $datagenerator->create_module('forum', ['course' => $this->course->id]);
         $this->coursemodule = get_coursemodule_from_instance('forum', $this->forumrecord->id);
         $this->context = context_module::instance($this->coursemodule->id);
-        $this->roleid = $DB->get_field('role', 'id', array('shortname' => 'teacher'), MUST_EXIST);
+        $this->roleid = $DB->get_field('role', 'id', ['shortname' => 'teacher'], MUST_EXIST);
 
         $datagenerator->enrol_user($this->user->id, $this->course->id, 'teacher');
         [$discussion, $post] = $this->helper_post_to_forum($this->forumrecord, $this->user, ['timemodified' => time() - 100]);
@@ -935,5 +935,59 @@ class managers_capability_testcase extends advanced_testcase {
 
         // This user has posted.
         $this->assertTrue($capabilitymanager->can_view_participants($user, $discussion));
+    }
+
+    /**
+     * Test can_view_hidden_posts.
+     */
+    public function test_can_view_hidden_posts() {
+        $this->resetAfterTest();
+
+        $forum = $this->create_forum();
+        $user = $this->user;
+        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+
+        $this->prevent_capability('mod/forum:viewhiddentimedposts');
+        $this->assertFalse($capabilitymanager->can_view_hidden_posts($user));
+
+        $this->give_capability('mod/forum:viewhiddentimedposts');
+        $this->assertTrue($capabilitymanager->can_view_hidden_posts($user));
+    }
+
+    /**
+     * Test can_manage_forum.
+     */
+    public function test_can_manage_forum() {
+        $this->resetAfterTest();
+
+        $forum = $this->create_forum();
+        $user = $this->user;
+        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+
+        $this->prevent_capability('moodle/course:manageactivities');
+        $this->assertFalse($capabilitymanager->can_manage_forum($user));
+
+        $this->give_capability('moodle/course:manageactivities');
+        $this->assertTrue($capabilitymanager->can_manage_forum($user));
+    }
+
+    /**
+     * Test can_manage_tags.
+     */
+    public function test_can_manage_tags() {
+        global $DB;
+        $this->resetAfterTest();
+
+        $forum = $this->create_forum();
+        $user = $this->user;
+        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
+        $context = context_system::instance();
+        $roleid = $DB->get_field('role', 'id', ['shortname' => 'user'], MUST_EXIST);
+
+        assign_capability('moodle/tag:manage', CAP_PREVENT, $roleid, $context->id, true);
+        $this->assertFalse($capabilitymanager->can_manage_tags($user));
+
+        assign_capability('moodle/tag:manage', CAP_ALLOW, $roleid, $context->id, true);
+        $this->assertTrue($capabilitymanager->can_manage_tags($user));
     }
 }

@@ -24,7 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
 require_once(__DIR__ . '/generator_trait.php');
 
 class builders_exported_posts_testcase extends advanced_testcase {
@@ -34,6 +33,9 @@ class builders_exported_posts_testcase extends advanced_testcase {
     /** @var \mod_forum\local\builders\exported_posts */
     private $builder;
 
+    /**
+     * Set up function for tests.
+     */
     public function setUp() {
         // We must clear the subscription caches. This has to be done both before each test, and after in case of other
         // tests using these functions.
@@ -43,6 +45,9 @@ class builders_exported_posts_testcase extends advanced_testcase {
         $this->builder = $builderfactory->get_exported_posts_builder();
     }
 
+    /**
+     * Tear down function for tests.
+     */
     public function tearDown() {
         // We must clear the subscription caches. This has to be done both before each test, and after in case of other
         // tests using these functions.
