@@ -35,7 +35,7 @@ class entities_discussion_testcase extends advanced_testcase {
         $this->resetAfterTest();
 
         // In the past to ensure the time started is true.
-        $time = time() - 10;
+        $time = time() + 10;
         $discussion = new discussion_entity(
             1,
             2,

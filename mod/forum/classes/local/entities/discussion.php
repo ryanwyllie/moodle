@@ -241,7 +241,7 @@ class discussion {
      */
     public function has_started() : bool {
         $startime = $this->get_time_start();
-        return empty($startime) || $startime > time();
+        return empty($startime) || $startime < time();
     }
 
     /**

@@ -98,7 +98,7 @@ class capability {
      * @param int|null $groupid The current activity group id
      * @return bool
      */
-    public function can_create_discussions(stdClass $user, ?int $groupid) : bool {
+    public function can_create_discussions(stdClass $user, int $groupid = null) : bool {
         if (isguestuser($user) or !isloggedin()) {
             return false;
         }
@@ -118,7 +118,7 @@ class capability {
             return false;
         }
 
-        if ($forum->is_in_group_mode()) {
+        if ($this->forum->is_in_group_mode()) {
             return $groupid ? $this->can_access_group($user, $groupid) : $this->can_access_all_groups($user);
         } else {
             return true;
@@ -231,8 +231,8 @@ class capability {
         if ($forum->get_type() === 'qanda') {
             // If it's a Q and A forum then the user must either have the capability to view without
             // posting or the user must have posted before they can view the discussion.
-            return has_capability('mod/forum:viewqandawithoutposting', $this->get_context(), $user) ||
-                forum_user_has_posted($forum->get_id(), $discussion->get_id(), $user->id);
+            return !has_capability('mod/forum:viewqandawithoutposting', $this->get_context(), $user) &&
+                !forum_user_has_posted($forum->get_id(), $discussion->get_id(), $user->id);
         } else {
             // No other forum types require posting before viewing.
             return false;

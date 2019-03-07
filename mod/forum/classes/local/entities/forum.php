@@ -219,21 +219,12 @@ class forum {
     }
 
     /**
-     * Check if effective group mode is set.
-     *
-     * @return bool
-     */
-    public function has_effective_group_mode() : bool {
-        return empty($this->get_effective_group_mode());
-    }
-
-    /**
      * Check if the forum is set to group mode.
      *
      * @return bool
      */
     public function is_in_group_mode() : bool {
-        return $this->has_effective_group_mode() && $this->get_effective_group_mode() !== NOGROUPS;
+        return $this->get_effective_group_mode() !== NOGROUPS;
     }
 
     /**

@@ -122,7 +122,6 @@ class entities_forum_testcase extends advanced_testcase {
         $this->assertEquals($coursemodule, $forum->get_course_module_record());
         $this->assertEquals($coursemodule, $forum->get_course_module_record());
         $this->assertEquals($effectivegroupmode, $forum->get_effective_group_mode());
-        $this->assertEquals(true, $forum->has_effective_group_mode());
         $this->assertEquals(false, $forum->is_in_group_mode());
         $this->assertEquals($course, $forum->get_course_record());
         $this->assertEquals($id, $forum->get_id());
