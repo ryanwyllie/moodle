@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The author vault tests.
+ * The post vault tests.
  *
  * @package    mod_forum
  * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
@@ -26,67 +26,278 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/generator_trait.php');
 
-class vaults_author_testcase extends advanced_testcase {
+class vaults_post_testcase extends advanced_testcase {
     // Make use of the test generator trait.
     use mod_forum_tests_generator_trait;
 
+    /** @var \mod_forum\local\vaults\post */
+    private $vault;
+
     /**
-     * Test get_from_user_id_and_post_ids.
+     * Set up function for tests.
      */
-    public function test_get_from_user_id_and_post_ids() {
-        global $DB;
+    public function setUp() {
+        $vaultfactory = \mod_forum\local\container::get_vault_factory();
+        $this->vault = $vaultfactory->get_post_vault();
+    }
+
+    /**
+     * Test get_from_id.
+     */
+    public function test_get_from_id() {
         $this->resetAfterTest();
 
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion, $post] = $this->helper_post_to_forum($forum, $user);
+
+        $postentity = $this->vault->get_from_id($post->id);
+
+        $this->assertEquals($post->id, $postentity->get_id());
+    }
+
+    /**
+     * Test get_from_discussion_id.
+     */
+    public function test_get_from_discussion_id() {
+        $this->resetAfterTest();
+
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        [$discussion2, $post4] = $this->helper_post_to_forum($forum, $user);
+
+        $entities = array_values($this->vault->get_from_discussion_id($discussion1->id));
+
+        $this->assertCount(3, $entities);
+        $this->assertEquals($post1->id, $entities[0]->get_id());
+        $this->assertEquals($post2->id, $entities[1]->get_id());
+        $this->assertEquals($post3->id, $entities[2]->get_id());
+
+        $entities = array_values($this->vault->get_from_discussion_id($discussion1->id + 1000));
+        $this->assertCount(0, $entities);
+    }
+
+    /**
+     * Test get_from_discussion_ids.
+     */
+    public function test_get_from_discussion_ids() {
+        $this->resetAfterTest();
+
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        [$discussion2, $post4] = $this->helper_post_to_forum($forum, $user);
+
+        $entities = array_values($this->vault->get_from_discussion_ids([$discussion1->id]));
+        usort($entities, function($a, $b) {
+            return $a <=> $b;
+        });
+        $this->assertCount(3, $entities);
+        $this->assertEquals($post1->id, $entities[0]->get_id());
+        $this->assertEquals($post2->id, $entities[1]->get_id());
+        $this->assertEquals($post3->id, $entities[2]->get_id());
+
+        $entities = array_values($this->vault->get_from_discussion_ids([$discussion1->id, $discussion2->id]));
+        usort($entities, function($a, $b) {
+            return $a <=> $b;
+        });
+        $this->assertCount(4, $entities);
+        $this->assertEquals($post1->id, $entities[0]->get_id());
+        $this->assertEquals($post2->id, $entities[1]->get_id());
+        $this->assertEquals($post3->id, $entities[2]->get_id());
+        $this->assertEquals($post4->id, $entities[3]->get_id());
+    }
+
+    /**
+     * Test get_replies_to_post.
+     */
+    public function test_get_replies_to_post() {
+        $this->resetAfterTest();
+
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        $post4 = $this->helper_reply_to_post($post2, $user);
+        [$discussion2, $post5] = $this->helper_post_to_forum($forum, $user);
+
         $entityfactory = \mod_forum\local\container::get_entity_factory();
-        $vaultfactory = \mod_forum\local\container::get_vault_factory();
-        $vault = $vaultfactory->get_post_read_receipt_collection_vault();
+        $post1 = $entityfactory->get_post_from_stdClass($post1);
+        $post2 = $entityfactory->get_post_from_stdClass($post2);
+        $post3 = $entityfactory->get_post_from_stdClass($post3);
+        $post4 = $entityfactory->get_post_from_stdClass($post4);
+
+        $entities = $this->vault->get_replies_to_post($post1);
+        $this->assertCount(3, $entities);
+        $this->assertEquals($post2->get_id(), $entities[0]->get_id());
+        $this->assertEquals($post3->get_id(), $entities[1]->get_id());
+        $this->assertEquals($post4->get_id(), $entities[2]->get_id());
+
+        $entities = $this->vault->get_replies_to_post($post2);
+        $this->assertCount(1, $entities);
+        $this->assertEquals($post4->get_id(), $entities[0]->get_id());
+
+        $entities = $this->vault->get_replies_to_post($post3);
+        $this->assertCount(0, $entities);
+    }
+
+    /**
+     * Test get_reply_count_for_discussion_ids.
+     */
+    public function test_get_reply_count_for_discussion_ids() {
+        $this->resetAfterTest();
+
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        $post4 = $this->helper_reply_to_post($post2, $user);
+        [$discussion2, $post5] = $this->helper_post_to_forum($forum, $user);
+        $post6 = $this->helper_reply_to_post($post5, $user);
+        [$discussion3, $post7] = $this->helper_post_to_forum($forum, $user);
+
+        $counts = $this->vault->get_reply_count_for_discussion_ids([$discussion1->id]);
+        $this->assertCount(1, $counts);
+        $this->assertEquals(3, $counts[$discussion1->id]);
+
+        $counts = $this->vault->get_reply_count_for_discussion_ids([$discussion1->id, $discussion2->id]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(3, $counts[$discussion1->id]);
+        $this->assertEquals(1, $counts[$discussion2->id]);
+
+        $counts = $this->vault->get_reply_count_for_discussion_ids([$discussion1->id, $discussion2->id, $discussion3->id]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(3, $counts[$discussion1->id]);
+        $this->assertEquals(1, $counts[$discussion2->id]);
+
+        $counts = $this->vault->get_reply_count_for_discussion_ids([
+            $discussion1->id,
+            $discussion2->id,
+            $discussion3->id,
+            $discussion3->id + 1000
+        ]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(3, $counts[$discussion1->id]);
+        $this->assertEquals(1, $counts[$discussion2->id]);
+    }
+
+    /**
+     * Test get_unread_count_for_discussion_ids.
+     */
+    public function test_get_unread_count_for_discussion_ids() {
+        global $CFG;
+        $this->resetAfterTest();
+
         $datagenerator = $this->getDataGenerator();
         $user = $datagenerator->create_user();
         $otheruser = $datagenerator->create_user();
         $course = $datagenerator->create_course();
         $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
         [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
-        [$discussion2, $post2] = $this->helper_post_to_forum($forum, $user);
-        $post3 = $this->helper_reply_to_post($post2, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        $post4 = $this->helper_reply_to_post($post2, $user);
+        [$discussion2, $post5] = $this->helper_post_to_forum($forum, $user);
+        $post6 = $this->helper_reply_to_post($post5, $user);
 
-        $DB->insert_record('forum_read', [
+        $modgenerator = $this->getDataGenerator()->get_plugin_generator('mod_forum');
+        $post7 = $modgenerator->create_post((object) [
+            'discussion' => $post5->discussion,
+            'parent' => $post5->id,
             'userid' => $user->id,
-            'forumid' => $forum->id,
-            'discussionid' => $discussion1->id,
-            'postid' => $post1->id,
-            'firstread' => time(),
-            'lastread' => time()
-        ]);
-        // Receipt for other user.
-        $DB->insert_record('forum_read', [
-            'userid' => $otheruser->id,
-            'forumid' => $forum->id,
-            'discussionid' => $discussion1->id,
-            'postid' => $post1->id,
-            'firstread' => time(),
-            'lastread' => time()
-        ]);
-        $DB->insert_record('forum_read', [
-            'userid' => $user->id,
-            'forumid' => $forum->id,
-            'discussionid' => $discussion2->id,
-            'postid' => $post3->id,
-            'firstread' => time(),
-            'lastread' => time()
+            'mailnow' => 1,
+            'subject' => 'old post',
+            // Two days ago which makes it an "old post".
+            'modified' => time() - 172800
         ]);
 
-        $post1 = $entityfactory->get_post_from_stdClass($post1);
-        $post2 = $entityfactory->get_post_from_stdClass($post2);
-        $post3 = $entityfactory->get_post_from_stdClass($post3);
-        $collection = $vault->get_from_user_id_and_post_ids($user->id, [$post1->get_id(), $post2->get_id()]);
+        forum_tp_add_read_record($user->id, $post1->id);
+        forum_tp_add_read_record($user->id, $post4->id);
+        $CFG->forum_oldpostdays = 1;
 
-        // True because there is a read receipt for this user.
-        $this->assertTrue($collection->has_user_read_post($user, $post1));
-        // False because other user wasn't included in the fetch.
-        $this->assertFalse($collection->has_user_read_post($otheruser, $post1));
-        // No read receipt.
-        $this->assertFalse($collection->has_user_read_post($user, $post2));
-        // Wasn't included in fetch.
-        $this->assertFalse($collection->has_user_read_post($user, $post3));
+        $counts = $this->vault->get_unread_count_for_discussion_ids($user, [$discussion1->id]);
+        $this->assertCount(1, $counts);
+        $this->assertEquals(2, $counts[$discussion1->id]);
+
+        $counts = $this->vault->get_unread_count_for_discussion_ids($user, [$discussion1->id, $discussion2->id]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(2, $counts[$discussion1->id]);
+        $this->assertEquals(2, $counts[$discussion2->id]);
+
+        $counts = $this->vault->get_unread_count_for_discussion_ids($user, [
+            $discussion1->id,
+            $discussion2->id,
+            $discussion2->id + 1000
+        ]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(2, $counts[$discussion1->id]);
+        $this->assertEquals(2, $counts[$discussion2->id]);
+
+        $counts = $this->vault->get_unread_count_for_discussion_ids($otheruser, [$discussion1->id, $discussion2->id]);
+        $this->assertCount(2, $counts);
+        $this->assertEquals(4, $counts[$discussion1->id]);
+        $this->assertEquals(2, $counts[$discussion2->id]);
+    }
+
+    /**
+     * Test get_latest_post_id_for_discussion_ids.
+     */
+    public function test_get_latest_post_id_for_discussion_ids() {
+        $this->resetAfterTest();
+
+        $datagenerator = $this->getDataGenerator();
+        $user = $datagenerator->create_user();
+        $course = $datagenerator->create_course();
+        $forum = $datagenerator->create_module('forum', ['course' => $course->id]);
+        [$discussion1, $post1] = $this->helper_post_to_forum($forum, $user);
+        $post2 = $this->helper_reply_to_post($post1, $user);
+        $post3 = $this->helper_reply_to_post($post1, $user);
+        $post4 = $this->helper_reply_to_post($post2, $user);
+        [$discussion2, $post5] = $this->helper_post_to_forum($forum, $user);
+        $post6 = $this->helper_reply_to_post($post5, $user);
+        [$discussion3, $post7] = $this->helper_post_to_forum($forum, $user);
+
+        $ids = $this->vault->get_latest_post_id_for_discussion_ids([$discussion1->id]);
+        $this->assertCount(1, $ids);
+        $this->assertEquals($post4->id, $ids[$discussion1->id]);
+
+        $ids = $this->vault->get_latest_post_id_for_discussion_ids([$discussion1->id, $discussion2->id]);
+        $this->assertCount(2, $ids);
+        $this->assertEquals($post4->id, $ids[$discussion1->id]);
+        $this->assertEquals($post6->id, $ids[$discussion2->id]);
+
+        $ids = $this->vault->get_latest_post_id_for_discussion_ids([$discussion1->id, $discussion2->id, $discussion3->id]);
+        $this->assertCount(3, $ids);
+        $this->assertEquals($post4->id, $ids[$discussion1->id]);
+        $this->assertEquals($post6->id, $ids[$discussion2->id]);
+        $this->assertEquals($post7->id, $ids[$discussion3->id]);
+
+        $ids = $this->vault->get_latest_post_id_for_discussion_ids([
+            $discussion1->id,
+            $discussion2->id,
+            $discussion3->id,
+            $discussion3->id + 1000
+        ]);
+        $this->assertCount(3, $ids);
+        $this->assertEquals($post4->id, $ids[$discussion1->id]);
+        $this->assertEquals($post6->id, $ids[$discussion2->id]);
+        $this->assertEquals($post7->id, $ids[$discussion3->id]);
     }
 }

@@ -233,7 +233,7 @@ class post extends db_table_vault {
      * @param   int[]       $discussionids The list of discussions to fetch counts for
      * @return  int[]       The post id of the most recent post for each discussions returned in an associative array
      */
-    public function get_latest_post_for_discussion_ids(array $discussionids) : array {
+    public function get_latest_post_id_for_discussion_ids(array $discussionids) : array {
         global $CFG;
 
         if (empty($discussionids)) {
