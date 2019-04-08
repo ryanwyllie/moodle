@@ -122,6 +122,8 @@ define(['jquery'], function($) {
             imageUrl: null,
             isFavourite: null,
             isMuted: null,
+            canDeleteAll: false,
+            deleteAll: false,
             members: {},
             messages: [],
             hasTriedToLoadMessages: false,
@@ -658,6 +660,32 @@ define(['jquery'], function($) {
         return newState;
     };
 
+    /**
+     * Set wheter the message of the conversation can delete for all.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Bool} canDeleteAll If it can delete for all.
+     * @return {Object} New state.
+     */
+    var setCanDeleteAll = function(state, canDeleteAll) {
+        var newState = cloneState(state);
+        newState.canDeleteAll = canDeleteAll;
+        return newState;
+    };
+
+    /**
+     * Set wheter the messages of the conversation delete for all.
+     *
+     * @param  {Object} state Current state.
+     * @param  {Bool} deleteAll Delete messages for all.
+     * @return {Object} New state.
+     */
+    var setDeleteAll = function(state, deleteAll) {
+        var newState = cloneState(state);
+        newState.deleteAll = deleteAll;
+        return newState;
+    };
+
     return {
         buildInitialState: buildInitialState,
         addMessages: addMessages,
@@ -674,6 +702,8 @@ define(['jquery'], function($) {
         setType: setType,
         setIsFavourite: setIsFavourite,
         setIsMuted: setIsMuted,
+        setCanDeleteAll: setCanDeleteAll,
+        setDeleteAll: setDeleteAll,
         setTotalMemberCount: setTotalMemberCount,
         setImageUrl: setImageUrl,
         setLoadingConfirmAction: setLoadingConfirmAction,

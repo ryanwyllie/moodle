@@ -535,9 +535,14 @@ function(
      */
     var buildConfirmDeleteSelectedMessages = function(state, newState) {
         if (newState.pendingDeleteMessageIds.length) {
-            return true;
+            return {
+                    show: true,
+                    canDeleteAll: newState.canDeleteAll
+                };
         } else if (state.pendingDeleteMessageIds.length) {
-            return false;
+            return {
+                    show: false
+                };
         }
 
         return null;

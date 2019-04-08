@@ -28,6 +28,7 @@ define([], function() {
         ACTION_CANCEL_EDIT_MODE: '[data-action="cancel-edit-mode"]',
         ACTION_CONFIRM_ADD_CONTACT: '[data-action="confirm-add-contact"]',
         ACTION_CONFIRM_BLOCK: '[data-action="confirm-block"]',
+        ACTION_CONFIRM_DELETE_ALL_SELECTED_MESSAGES: '[data-action="confirm-delete-all-selected-messages"]',
         ACTION_CONFIRM_DELETE_SELECTED_MESSAGES: '[data-action="confirm-delete-selected-messages"]',
         ACTION_CONFIRM_DELETE_CONVERSATION: '[data-action="confirm-delete-conversation"]',
         ACTION_CONFIRM_FAVOURITE: '[data-action="confirm-favourite"]',

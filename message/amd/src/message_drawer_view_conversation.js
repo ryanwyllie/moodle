@@ -331,6 +331,7 @@ function(
         newState = StateManager.setIsFavourite(newState, conversation.isfavourite);
         newState = StateManager.setIsMuted(newState, conversation.ismuted);
         newState = StateManager.addMessages(newState, conversation.messages);
+        newState = StateManager.setCanDeleteAll(newState, conversation.candeleteall);
         return newState;
     };
 
@@ -867,13 +868,14 @@ function(
         var newState = StateManager.setLoadingConfirmAction(viewState, true);
         return render(newState)
             .then(function() {
-                return Repository.deleteMessages(viewState.loggedInUserId, messageIds);
+                return Repository.deleteMessages(viewState.loggedInUserId, messageIds, newState.deleteAll);
             })
             .then(function() {
                 var newState = StateManager.removeMessagesById(viewState, messageIds);
                 newState = StateManager.removePendingDeleteMessagesById(newState, messageIds);
                 newState = StateManager.removeSelectedMessagesById(newState, messageIds);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
+                newState = StateManager.setDeleteAll(newState, false);
 
                 var prevLastMessage = viewState.messages[viewState.messages.length - 1];
                 var newLastMessage = newState.messages.length ? newState.messages[newState.messages.length - 1] : null;
@@ -1017,6 +1019,7 @@ function(
         isSendingMessage = true;
         var newState = StateManager.setSendingMessage(viewState, true);
         var newConversationId = null;
+        var newCanDeleteAll = false;
         return render(newState)
             .then(function() {
                 if (!conversationId && viewState.type == CONVERSATION_TYPES.PRIVATE) {
@@ -1026,6 +1029,7 @@ function(
                     return Repository.sendMessageToUser(otherUserId, text)
                         .then(function(message) {
                             newConversationId = parseInt(message.conversationid, 10);
+                            newCanDeleteAll = message.candeleteall;
                             return message;
                         });
                 } else {
@@ -1044,6 +1048,8 @@ function(
                     conversation.id = newConversationId;
                     resetMessagePollTimer(newConversationId);
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_CREATED, conversation);
+                    // Set canDeleteAll.
+                    newState = StateManager.setCanDeleteAll(newState, newCanDeleteAll);
                 }
 
                 return render(newState)
@@ -1404,6 +1410,12 @@ function(
             var selector = handler[0];
             var handlerFunction = handler[1];
             footer.on(CustomEvents.events.activate, selector, handlerFunction);
+        });
+
+        body.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_DELETE_ALL_SELECTED_MESSAGES, function(e) {
+           var newValue = $(e.target).prop('checked');
+           var newState = StateManager.setDeleteAll(viewState, newValue);
+           render(newState);
         });
 
         footer.on(CustomEvents.events.enter, SELECTORS.MESSAGE_TEXT_AREA, function(e, data) {

@@ -6537,6 +6537,53 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Tests the user can delete message for all.
+     */
+    public function test_can_delete_message_for_all() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        // Create some users and course.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($user3->id, $course->id, 'student');
+        $group1 = $this->getDataGenerator()->create_group(array('courseid' => $course->id));
+        groups_add_member($group1->id, $user1->id);
+        groups_add_member($group1->id, $user2->id);
+        groups_add_member($group1->id, $user3->id);
+        // Create a group conversation linked with the course.
+        $conversation = \core_message\api::create_conversation(
+            \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
+            [$user1->id, $user2->id, $user3->id],
+            'Group test delete for everyone', \core_message\api::MESSAGE_CONVERSATION_ENABLED,
+            'core_group',
+            'groups',
+            $group1->id,
+            context_course::instance($course->id)->id
+        );
+        // Allow Teacher can delete messages for all.
+        $editingteacher = $DB->get_record('role', ['shortname' => 'editingteacher']);
+        assign_capability('moodle/site:deleteanymessage', CAP_ALLOW, $editingteacher->id, context_system::instance());
+
+        // Set as the first user.
+        $this->setUser($user1);
+        // Send a private message.
+        $mid1 = message_post_message($user1, $user2, 'Test individual message text.', FORMAT_MOODLE);
+        // User1 cannot delete message for everyone in a private conversation.
+        $this->assertFalse(\core_message\api::can_delete_message_for_all($user1, $mid1));
+        // User1 as a teacher can delete message for everyone in a group conversation.
+        $mgid1 = \core_message\tests\helper::send_fake_message_to_conversation($user1, $conversation->id);
+        $this->assertTrue(\core_message\api::can_delete_message_for_all($user1, $mgid1));
+        // User2 and user3 as students cannot delete message for everyone.
+        $this->assertFalse(\core_message\api::can_delete_message_for_all($user2, $mgid1));
+        $this->assertFalse(\core_message\api::can_delete_message_for_all($user3, $mgid1));
+    }
+
+    /**
      * Comparison function for sorting contacts.
      *
      * @param stdClass $a

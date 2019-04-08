@@ -158,6 +158,9 @@ class core_message_external extends external_api {
         self::validate_context($context);
         require_capability('moodle/site:sendmessage', $context);
 
+        // Ensure the current user is allowed to delete message for everyone.
+        $candeleteall = has_capability('moodle/site:deleteanymessage', $context);
+
         $params = self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages));
 
         //retrieve all tousers of the messages
@@ -208,6 +211,7 @@ class core_message_external extends external_api {
                     'fullmessageformat' => external_validate_format($message['textformat'])
                 ]);
                 $resultmsg['timecreated'] = time();
+                $resultmsg['candeleteall'] = $candeleteall;
                 $messageids[] = $success;
             } else {
                 // WARNINGS: for backward compatibility we return this errormessage.
@@ -250,6 +254,8 @@ class core_message_external extends external_api {
                     'timecreated' => new external_value(PARAM_INT, 'The timecreated timestamp for the message', VALUE_OPTIONAL),
                     'conversationid' => new external_value(PARAM_INT, 'The conversation id for this message', VALUE_OPTIONAL),
                     'useridfrom' => new external_value(PARAM_INT, 'The user id who sent the message', VALUE_OPTIONAL),
+                    'candeleteall' => new external_value(PARAM_BOOL,
+                        'If the user can remove messages in the conversation for all users', VALUE_DEFAULT, false),
                 )
             )
         );
@@ -1253,6 +1259,8 @@ class core_message_external extends external_api {
                 'messages' => new external_multiple_structure(
                     self::get_conversation_message_structure()
                 ),
+                'candeleteall' => new external_value(PARAM_BOOL,
+                    'If the user can remove messages in the conversation for all users', VALUE_DEFAULT, false),
             )
         );
     }
@@ -3890,7 +3898,8 @@ class core_message_external extends external_api {
             array(
                 'messageid' => new external_value(PARAM_INT, 'The message id'),
                 'userid' => new external_value(PARAM_INT, 'The user id of who we want to delete the message for'),
-                'read' => new external_value(PARAM_BOOL, 'If is a message read', VALUE_DEFAULT, true)
+                'read' => new external_value(PARAM_BOOL, 'If is a message read', VALUE_DEFAULT, true),
+                'all' => new external_value(PARAM_BOOL, 'Delete the message for all members', VALUE_DEFAULT, false)
             )
         );
     }
@@ -3901,12 +3910,13 @@ class core_message_external extends external_api {
      * @param  int $messageid the message id
      * @param  int $userid the user id of who we want to delete the message for
      * @param  bool $read if is a message read (default to true)
+     * @param  bool $all delete the message for all members (default to false)
      * @return external_description
      * @throws moodle_exception
      * @since 3.1
      */
-    public static function delete_message($messageid, $userid, $read = true) {
-        global $CFG;
+    public static function delete_message($messageid, $userid, $read = true, $all = false) {
+        global $DB, $CFG;
 
         // Check if private messaging between users is allowed.
         if (empty($CFG->messaging)) {
@@ -3931,8 +3941,15 @@ class core_message_external extends external_api {
         $user = core_user::get_user($params['userid'], '*', MUST_EXIST);
         core_user::require_active_user($user);
 
+        // Checks if a user can delete a message for all.
+        if ($all) {
+            if (!\core_message\api::can_delete_message_for_all($user->id, $params['messageid'])) {
+                throw new moodle_exception('You do not have permission to delete this message for everyone.');
+            }
+        }
+
         if (\core_message\api::can_delete_message($user->id, $params['messageid'])) {
-            $status = \core_message\api::delete_message($user->id, $params['messageid']);
+            $status = \core_message\api::delete_message($user->id, $params['messageid'], $all);
         } else {
             throw new moodle_exception('You do not have permission to delete this message');
         }

@@ -786,8 +786,10 @@ class api {
             // If not set, the context is always context_user.
             if (is_null($conversation->contextid)) {
                 $convcontext = \context_user::instance($userid);
+                $candeleteallcontext = \context_system::instance();
             } else {
                 $convcontext = \context::instance_by_id($conversation->contextid);
+                $candeleteallcontext = $convcontext;
             }
             $conv->name = format_string($conversation->conversationname, true, ['context' => $convcontext]);
 
@@ -812,6 +814,7 @@ class api {
                 $conv->messages[] = $msg;
             }
 
+            $conv->candeleteall = has_capability('moodle/site:deleteanymessage',  $candeleteallcontext);
             $arrconversations[] = $conv;
         }
         return $arrconversations;
@@ -965,6 +968,9 @@ class api {
             $ismuted = true;
         }
 
+        // Get the context of the conversation. This will be used to check if the user can delete all messages in the conversation.
+        $deleteallcontext = empty($conversation->contextid) ? $systemcontext : \context::instance_by_id($conversation->contextid);
+
         return (object) [
             'id' => $conversation->id,
             'name' => $conversation->name,
@@ -977,7 +983,8 @@ class api {
             'unreadcount' => $unreadcount,
             'ismuted' => $ismuted,
             'members' => $members,
-            'messages' => $messages['messages']
+            'messages' => $messages['messages'],
+            'candeleteall' => has_capability('moodle/site:deleteanymessage', $deleteallcontext),
         ];
     }
 
@@ -2276,30 +2283,65 @@ class api {
      * @param int $userid the user id of who we want to delete the message for (this may be done by the admin
      *  but will still seem as if it was by the user)
      * @param int $messageid The message id
+     * @param  bool $all delete the message for all members (default to false)
      * @return bool
      */
-    public static function delete_message($userid, $messageid) {
+    public static function delete_message($userid, $messageid, $all = false) {
         global $DB, $USER;
 
         if (!$DB->record_exists('messages', ['id' => $messageid])) {
             return false;
         }
 
-        // Check if the user has already deleted this message.
-        if (!$DB->record_exists('message_user_actions', ['userid' => $userid,
-                'messageid' => $messageid, 'action' => self::MESSAGE_ACTION_DELETED])) {
-            $mua = new \stdClass();
-            $mua->userid = $userid;
-            $mua->messageid = $messageid;
-            $mua->action = self::MESSAGE_ACTION_DELETED;
-            $mua->timecreated = time();
-            $mua->id = $DB->insert_record('message_user_actions', $mua);
+        if ($all) {
+            $membersql = "SELECT mcm.*, muaread.action
+                            FROM {message_conversation_members} mcm
+                      INNER JOIN {messages} m
+                              ON mcm.conversationid = m.conversationid
+                       LEFT JOIN {message_user_actions} muaread
+                              ON (muaread.messageid = m.id
+                             AND muaread.userid = mcm.userid
+                             AND muaread.action = :action)
+                           WHERE m.id = :messageid
+                             AND muaread.action is NULL";
+            $params = [
+                'messageid' => $messageid,
+                'action' => self::MESSAGE_ACTION_DELETED
+            ];
+            $members = $DB->get_records_sql($membersql, $params);
+            if ($members) {
+                foreach ($members as $member) {
+                    $mua = new \stdClass();
+                    $mua->userid = $member->userid;
+                    $mua->messageid = $messageid;
+                    $mua->action = self::MESSAGE_ACTION_DELETED;
+                    $mua->timecreated = time();
+                    $mua->id = $DB->insert_record('message_user_actions', $mua);
 
-            // Trigger event for deleting a message.
-            \core\event\message_deleted::create_from_ids($userid, $USER->id,
-                $messageid, $mua->id)->trigger();
+                    // Trigger event for deleting a message.
+                    \core\event\message_deleted::create_from_ids($member->userid, $USER->id,
+                        $messageid, $mua->id)->trigger();
+                }
 
-            return true;
+                return true;
+            }
+        } else {
+            // Check if the user has already deleted this message.
+            if (!$DB->record_exists('message_user_actions', ['userid' => $userid,
+                    'messageid' => $messageid, 'action' => self::MESSAGE_ACTION_DELETED])) {
+                $mua = new \stdClass();
+                $mua->userid = $userid;
+                $mua->messageid = $messageid;
+                $mua->action = self::MESSAGE_ACTION_DELETED;
+                $mua->timecreated = time();
+                $mua->id = $DB->insert_record('message_user_actions', $mua);
+
+                // Trigger event for deleting a message.
+                \core\event\message_deleted::create_from_ids($userid, $USER->id,
+                    $messageid, $mua->id)->trigger();
+
+                return true;
+            }
         }
 
         return false;
@@ -3227,5 +3269,32 @@ class api {
             // Delete the messages now.
             $DB->delete_records('messages', ['conversationid' => $conversationid]);
         }
+    }
+
+    /**
+     * Checks if a user can delete a message for all.
+     *
+     * @param int $userid the user id of who we want to delete the message for all
+     * @param int $messageid The message id
+     * @return bool Returns true if a user can delete the message for all, false otherwise.
+     */
+    public static function can_delete_message_for_all($userid, $messageid) {
+        global $DB;
+
+        $sql = "SELECT mc.id, mc.contextid
+                  FROM {message_conversations} mc
+            INNER JOIN {messages} m
+                    ON mc.id = m.conversationid
+                 WHERE m.id = :messageid";
+        $conversation = $DB->get_record_sql($sql, ['messageid' => $messageid]);
+
+        if (!empty($conversation->contextid)) {
+            return(has_capability('moodle/site:deleteanymessage',
+                \context::instance_by_id($conversation->contextid), $userid));
+        } else {
+            return(has_capability('moodle/site:deleteanymessage', \context_system::instance(), $userid));
+        }
+
+        return false;
     }
 }

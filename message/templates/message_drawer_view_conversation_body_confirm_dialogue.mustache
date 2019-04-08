@@ -38,6 +38,12 @@
 <div class="p-3 bg-white" data-region="confirm-dialogue" role="alert">
     <h3 class="h6 hidden" data-region="dialogue-header"></h3>
     <p class="text-muted" data-region="dialogue-text"></p>
+    <div class="mb-2 hidden" data-preference="del" data-region="dialogue-confirm-delete-all-selected-messages">
+        <input type="checkbox" id="confirm-delete-all-selected-messages" value="1" data-action="confirm-delete-all-selected-messages">
+        <label for="confirm-delete-all-selected-messages" class="custom-control-label ml-2 text-muted">
+            {{#str}} deleteforeveryone, core_message {{/str}}
+        </label>
+    </div>
     <button type="button" class="btn btn-primary btn-block hidden" data-action="confirm-block">
         <span data-region="dialogue-button-text">{{#str}} blockuserconfirmbutton, core_message {{/str}}</span>
         <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>

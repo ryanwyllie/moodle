@@ -2023,7 +2023,6 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertCount(0, $result['warnings']);
         $this->assertTrue($DB->record_exists('message_user_actions', array('messageid' => $m3to4, 'userid' => $user4->id,
             'action' => \core_message\api::MESSAGE_ACTION_DELETED)));
-
     }
 
     public function test_mark_all_notifications_as_read_invalid_user_exception() {
@@ -7017,5 +7016,108 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL]);
         $this->assertEquals($expectedunreadcounts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP],
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP]);
+    }
+
+    /**
+     * Test delete_message for everyone.
+     */
+    public function test_delete_message_for_everyone() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        // Create some users and a course test.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($user3->id, $course->id, 'student');
+        $group1 = $this->getDataGenerator()->create_group(array('courseid' => $course->id));
+        groups_add_member($group1->id, $user1->id);
+        groups_add_member($group1->id, $user2->id);
+        groups_add_member($group1->id, $user3->id);
+        // Create a group conversation linked with the course.
+        $conversation1 = \core_message\api::create_conversation(
+            \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
+            [$user1->id, $user2->id, $user3->id],
+            'Group test delete for everyone', \core_message\api::MESSAGE_CONVERSATION_ENABLED,
+            'core_group',
+            'groups',
+            $group1->id,
+            context_course::instance($course->id)->id
+        );
+        // Send message as user1 to group conversation.
+        $this->setUser($user1);
+        $messages = [
+            [
+                'text' => 'a message from user 1 to group conv',
+                'textformat' => FORMAT_MOODLE
+            ],
+        ];
+        $writtenmessages = core_message_external::send_messages_to_conversation($conversation1->id, $messages);
+        external_api::clean_returnvalue(core_message_external::send_messages_to_conversation_returns(), $writtenmessages);
+        $this->assertCount(1, $writtenmessages);
+        $mgid1 = $writtenmessages[0]->id;
+
+        // Send message as user2 to group conversation.
+        $this->setUser($user2);
+        $messages = [
+            [
+                'text' => 'a message from user 2 to group conv',
+                'textformat' => FORMAT_MOODLE
+            ],
+        ];
+        $writtenmessages = core_message_external::send_messages_to_conversation($conversation1->id, $messages);
+        external_api::clean_returnvalue(core_message_external::send_messages_to_conversation_returns(), $writtenmessages);
+        $this->assertCount(1, $writtenmessages);
+        $mgid2 = $writtenmessages[0]->id;
+
+        // Try as user1 to delete the first message for all members of group conversation.
+        $this->setUser($user1);
+        // Allow Teacher can delete messages for all.
+        $editingteacher = $DB->get_record('role', ['shortname' => 'editingteacher']);
+        assign_capability('moodle/site:deleteanymessage', CAP_ALLOW, $editingteacher->id, context_system::instance());
+        // Delete message for all.
+        $result = core_message_external::delete_message($mgid1, $user1->id, false, true);
+        $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
+        $this->assertTrue($result['status']);
+        $this->assertCount(0, $result['warnings']);
+        // Check we have 3 records on message_user_actions with the mark MESSAGE_ACTION_DELETED.
+        $mua = $DB->get_record('message_user_actions', array('messageid' => $mgid1, 'userid' => $user1->id));
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua->action);
+        $mua = $DB->get_record('message_user_actions', array('messageid' => $mgid1, 'userid' => $user2->id));
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua->action);
+        $mua = $DB->get_record('message_user_actions', array('messageid' => $mgid1, 'userid' => $user3->id));
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua->action);
+
+        // Try as user2 to delete the second message for all members of group conversation.
+        $this->setUser($user2);
+        try {
+            $result = core_message_external::delete_message($mgid2, $user2->id, false, true);
+            $this->fail('Exception expected due invalid to delete the message for everyone.');
+        } catch (moodle_exception $e) {
+            $this->assertEquals('You do not have permission to delete this message for everyone.', $e->errorcode);
+        }
+
+        // Try as user1 to delete a private message for all members of individual conversation.
+        $this->setUser($user1);
+        $mid1 = message_post_message($user1, $user2, 'Test individual message text.', FORMAT_MOODLE);
+        try {
+            $result = core_message_external::delete_message($mid1, $user1->id, false, true);
+            $this->fail('Exception expected due invalid to delete the message for everyone.');
+        } catch (moodle_exception $e) {
+            $this->assertEquals('You do not have permission to delete this message for everyone.', $e->errorcode);
+        }
+        core_message_external::delete_message($mid1, $user1->id, false, false);
+        $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
+        $this->assertTrue($result['status']);
+        $this->assertCount(0, $result['warnings']);
+        $mua = $DB->get_record('message_user_actions', array('messageid' => $mid1, 'userid' => $user1->id));
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua->action);
+        // The user1 not allow to delete a private message for all. Only 1 record on message_user_actions.
+        $mua = $DB->get_records('message_user_actions', array('messageid' => $mid1));
+        $this->assertCount(1, $mua);
     }
 }

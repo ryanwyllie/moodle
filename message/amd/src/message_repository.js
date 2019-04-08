@@ -424,7 +424,8 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
                         text: result.text,
                         timecreated: result.timecreated,
                         useridfrom: result.useridfrom,
-                        conversationid: result.conversationid
+                        conversationid: result.conversationid,
+                        candeleteall: result.candeleteall
                     };
                 });
             });
@@ -521,15 +522,17 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
      *
      * @param {int} userId The user to delete messages for
      * @param {int[]} messageIds List of message ids to delete
+     * @param {bool} all If true then delete the message for all the members
      * @return {object} jQuery promise
      */
-    var deleteMessages = function(userId, messageIds) {
+    var deleteMessages = function(userId, messageIds, all) {
         return $.when.apply(null, Ajax.call(messageIds.map(function(messageId) {
             return {
                 methodname: 'core_message_delete_message',
                 args: {
                     messageid: messageId,
-                    userid: userId
+                    userid: userId,
+                    all: all
                 }
             };
         })));
