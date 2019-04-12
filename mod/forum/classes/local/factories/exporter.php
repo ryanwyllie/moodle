@@ -203,6 +203,7 @@ class exporter {
      * @param   discussion_entity $discussion The discussion that the post is in
      * @param   post_entity[]   $posts The set of posts to be exported
      * @param   author_entity[] $authorsbyid List of authors indexed by author id
+     * @param   int[]           $authorcontextids List of authors context ids indexed by author id
      * @param   array           $attachmentsbypostid List of attachments for each post indexed by post id
      * @param   array           $groupsbyauthorid List of groups for the post authors indexed by author id
      * @param   post_read_receipt_collection_entity|null $readreceiptcollection Details of read receipts for each post
@@ -217,6 +218,7 @@ class exporter {
         discussion_entity $discussion,
         array $posts,
         array $authorsbyid = [],
+        array $authorcontextids = [],
         array $attachmentsbypostid = [],
         array $groupsbyauthorid = [],
         post_read_receipt_collection_entity $readreceiptcollection = null,
@@ -224,16 +226,25 @@ class exporter {
         array $ratingbypostid = [],
         bool $includehtml = false
     ) : posts_exporter {
-        return new posts_exporter($posts, $authorsbyid, $attachmentsbypostid, $groupsbyauthorid, $tagsbypostid, $ratingbypostid, [
-            'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
-            'urlfactory' => $this->urlfactory,
-            'forum' => $forum,
-            'discussion' => $discussion,
-            'user' => $user,
-            'context' => $forum->get_context(),
-            'readreceiptcollection' => $readreceiptcollection,
-            'includehtml' => $includehtml
-        ]);
+        return new posts_exporter(
+            $posts,
+            $authorsbyid,
+            $authorcontextids,
+            $attachmentsbypostid,
+            $groupsbyauthorid,
+            $tagsbypostid,
+            $ratingbypostid,
+            [
+                'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
+                'urlfactory' => $this->urlfactory,
+                'forum' => $forum,
+                'discussion' => $discussion,
+                'user' => $user,
+                'context' => $forum->get_context(),
+                'readreceiptcollection' => $readreceiptcollection,
+                'includehtml' => $includehtml
+            ]
+        );
     }
 
     /**

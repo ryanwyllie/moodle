@@ -131,6 +131,7 @@ class discussion_summary extends exporter {
 
         $firstpostauthor = new author(
             $this->summary->get_first_post_author(),
+            null,
             $this->groupsbyauthorid[$this->summary->get_first_post_author()->get_id()],
             $capabilitymanager->can_view_post(
                 $user,
@@ -142,6 +143,7 @@ class discussion_summary extends exporter {
 
         $latestpostauthor = new author(
             $this->summary->get_latest_post_author(),
+            null,
             [],
             $capabilitymanager->can_view_post(
                 $user,
