@@ -43,7 +43,7 @@ define ('RATING_DEFAULT_SCALE', 5);
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since     Moodle 2.0
  */
-class rating implements renderable {
+class rating implements renderable, templatable {
 
     /**
      * @var stdClass The context in which this rating exists
@@ -358,6 +358,80 @@ class rating implements renderable {
         }
         $url = new moodle_url('/rating/rate.php', $args);
         return $url;
+    }
+
+    /**
+     * Function to export the renderer data in a format that is suitable for the rating
+     * mustache template.
+     *
+     * @param renderer_base $output Renderer.
+     * @return array
+     */
+    public function export_for_template(\renderer_base $output) {
+        global $PAGE;
+
+        $settings = $this->settings;
+        $ratingmanager = new rating_manager();
+        $scaleitems = [
+            [
+                'name' => get_string('rate', 'rating') . '...',
+                'value' => RATING_UNSET_RATING
+            ]
+        ];
+        $helpiconscalehtml = null;
+
+        if (!$settings->scale->isnumeric) {
+            // If a global scale, try to find current course ID from the context
+            if (empty($settings->scale->courseid) and $coursecontext = $this->context->get_course_context(false)) {
+                $courseid = $coursecontext->instanceid;
+            } else {
+                $courseid = $settings->scale->courseid;
+            }
+            $helpiconscalehtml = $output->help_icon_scale($courseid, $settings->scale);
+        }
+
+        // This is the big time killer.
+        foreach ($settings->scale->scaleitems as $value => $name) {
+            $scaleitem = [
+                'name' => $name,
+                'value' => $value
+            ];
+
+            if ($this->rating == $value) {
+                $scaleitem['selected'] = true;
+            }
+
+            $scaleitems[] = $scaleitem;
+        }
+
+        return [
+            'contextid' => $this->context->id,
+            'component' => $this->component,
+            'ratingarea' => $this->ratingarea,
+            'itemid' => $this->itemid,
+            'scaleid' => $settings->scale->id,
+            'rateduserid' => $this->itemuserid,
+            'aggregation' => $settings->aggregationmethod,
+            'count' => $this->count,
+            'scaleitems' => $scaleitems,
+            'rating' => $this->rating,
+            'capabilities' => [
+                'rate' => $this->user_can_rate(),
+                'viewaggregate' => $this->user_can_view_aggregate(),
+                'viewall' => $settings->permissions->viewall && $settings->pluginpermissions->viewall
+            ],
+            'urls' => [
+                'rate' => (new moodle_url('/rating/rate.php'))->out(false),
+                'return' => !empty($settings->returnurl) ? $settings->returnurl : $PAGE->url
+            ],
+            'strings' => [
+                'aggregatelabel' => $ratingmanager->get_aggregate_label($settings->aggregationmethod),
+                'aggregate' => $this->get_aggregate_string()
+            ],
+            'html' => [
+                'helpiconscale' => $helpiconscalehtml
+            ]
+        ];
     }
 
 } // End rating class definition.

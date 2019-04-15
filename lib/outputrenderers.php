@@ -111,7 +111,7 @@ class renderer_base {
             // We only expose the variables that are exposed to JS templates.
             $safeconfig = $this->page->requires->get_config_for_javascript($this->page, $this);
 
-            $helpers = array('config' => $safeconfig,
+            $helpers = array('globals' => ['config' => $safeconfig],
                              'str' => array($stringhelper, 'str'),
                              'quote' => array($quotehelper, 'quote'),
                              'js' => array($jshelper, 'help'),
@@ -2196,6 +2196,8 @@ class core_renderer extends renderer_base {
         $ratingmanager = new rating_manager();
         // Initialise the JavaScript so ratings can be done by AJAX.
         $ratingmanager->initialise_rating_javascript($this->page);
+
+        //return $this->render_from_template('core_rating/rating', $rating->export_for_template($this));
 
         $strrate = get_string("rate", "rating");
         $ratinghtml = ''; //the string we'll return

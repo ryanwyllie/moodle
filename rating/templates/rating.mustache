@@ -1,0 +1,103 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core_rating/rating
+
+    Action link template.
+
+    Context variables required for this template:
+    *
+
+    Example context (json):
+    {}
+}}
+
+{{#capabilities.rate}}
+    <form id="postrating{{itemid}}" class="postratingform" method="post" action="{{{urls.rate}}}">
+        <div class="ratingform">
+            <input type="hidden" class="ratinginput" name="contextid" value="{{contextid}}">
+            <input type="hidden" class="ratinginput" name="component" value="{{component}}">
+            <input type="hidden" class="ratinginput" name="ratingarea" value="{{ratingarea}}">
+            <input type="hidden" class="ratinginput" name="itemid" value="{{itemid}}">
+            <input type="hidden" class="ratinginput" name="scaleid" value="{{scaleid}}">
+            <input type="hidden" class="ratinginput" name="returnurl" value="{{urls.return}}">
+            <input type="hidden" class="ratinginput" name="rateduserid" value="{{rateduserid}}">
+            <input type="hidden" class="ratinginput" name="aggregation" value="{{aggregationmethod}}">
+            <input type="hidden" class="ratinginput" name="sesskey" value="{{globals.config.sesskey}}">
+
+            {{#capabilities.viewaggregate}}
+                <span class="rating-aggregate-label">{{strings.aggregatelabel}}</span>
+                {{#capabilities.viewall}}
+                    <a href="#">
+                        <span id="ratingaggregate{{itemid}}" class="ratingaggregate">{{strings.aggregate}}</span>
+                        <span id="ratingcount{{itemid}}" class="ratingcount">
+                            {{#count}}({{.}}){{/count}}
+                            {{^count}}-{{/count}}
+                        </span>
+                    </a>
+                {{/capabilities.viewall}}
+                {{^capabilities.viewall}}
+                    <span id="ratingaggregate{{itemid}}" class="ratingaggregate">{{strings.aggregate}}</span>
+                    <span id="ratingcount{{itemid}}" class="ratingcount">
+                        {{#count}}({{.}}){{/count}}
+                        {{^count}}-{{/count}}
+                    </span>
+                {{/capabilities.viewall}}
+            {{/capabilities.viewaggregate}}
+            {{^capabilities.viewaggregate}}
+                {{#str}} rate, core_rating {{/str}}:
+            {{/capabilities.viewaggregate}}
+
+            <label class="sr-only" for="menurating{{itemid}}">{{rating}}</label>
+            <select id="menurating{{itemid}}" class="postratingmenu ratinginput" name="rating">
+                {{#scaleitems}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                {{/scaleitems}}
+            </select>
+
+            <span class="ratingsubmit">
+                <input
+                    id="postratingsubmit{{itemid}}"
+                    type="submit"
+                    class="postratingmenusubmit"
+                    value="{{#str}} rate, core_rating {{/str}}"
+                >
+            </span>
+
+            {{#html.helpiconscale}}{{{.}}}{{/html.helpiconscale}}
+        </div>
+    </form>
+{{/capabilities.rate}}
+{{^capabilities.rate}}
+    <span class="rating-aggregate-label">{{strings.aggregatelabel}}</span>
+    {{#capabilities.viewall}}
+        <a href="#">
+            <span id="ratingaggregate{{itemid}}" class="ratingaggregate">{{strings.aggregate}}</span>
+            <span id="ratingcount{{itemid}}" class="ratingcount">
+                {{#count}}({{.}}){{/count}}
+                {{^count}}-{{/count}}
+            </span>
+        </a>
+    {{/capabilities.viewall}}
+    {{^capabilities.viewall}}
+        <span id="ratingaggregate{{itemid}}" class="ratingaggregate">{{strings.aggregate}}</span>
+        <span id="ratingcount{{itemid}}" class="ratingcount">
+            {{#count}}({{.}}){{/count}}
+            {{^count}}-{{/count}}
+        </span>
+    {{/capabilities.viewall}}
+{{/capabilities.rate}}
