@@ -534,15 +534,18 @@ function(
      * @return {Bool|Null}
      */
     var buildConfirmDeleteSelectedMessages = function(state, newState) {
-        if (newState.pendingDeleteMessageIds.length) {
+        var oldPendingCount = state.pendingDeleteMessageIds.length;
+        var newPendingCount = newState.pendingDeleteMessageIds.length;
+
+        if (newPendingCount && !oldPendingCount) {
             return {
-                    show: true,
-                    canDeleteAll: newState.canDeleteAll
-                };
-        } else if (state.pendingDeleteMessageIds.length) {
+                show: true,
+                canDeleteMessagesForAllUsers: newState.canDeleteMessagesForAllUsers
+            };
+        } else if (oldPendingCount && !newPendingCount) {
             return {
-                    show: false
-                };
+                show: false
+            };
         }
 
         return null;

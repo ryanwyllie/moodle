@@ -1129,7 +1129,7 @@ function(
         // Show checkbox to delete message for all members.
         var stringwarning = 'deleteselectedmessagesconfirmwarning';
 
-        if (data.canDeleteAll) {
+        if (data.canDeleteMessagesForAllUsers) {
             showCheckDeleteDialogue(body);
             stringwarning = 'deleteselectedmessagesconfirm';
         }
@@ -1212,7 +1212,7 @@ function(
      */
     var showCheckDeleteDialogue = function(body) {
         var dialogue = getConfirmDialogueContainer(body);
-        var checkboxRegion = dialogue.find('[data-region="dialogue-confirm-delete-all-selected-messages"]');
+        var checkboxRegion = dialogue.find(SELECTORS.DELETE_MESSAGES_FOR_ALL_USERS_TOGGLE_CONTAINER);
         checkboxRegion.removeClass('hidden');
     };
 
@@ -1223,8 +1223,8 @@ function(
      */
     var hideCheckDeleteDialogue = function(body) {
         var dialogue = getConfirmDialogueContainer(body);
-        var checkboxRegion = dialogue.find('[data-region="dialogue-deleteall-selected-messages"]');
-        var checkbox = dialogue.find(SELECTORS.ACTION_CONFIRM_DELETE_ALL_SELECTED_MESSAGES);
+        var checkboxRegion = dialogue.find(SELECTORS.DELETE_MESSAGES_FOR_ALL_USERS_TOGGLE_CONTAINER);
+        var checkbox = dialogue.find(SELECTORS.DELETE_MESSAGES_FOR_ALL_USERS_TOGGLE);
         checkbox.prop('checked', false);
         checkboxRegion.addClass('hidden');
     };

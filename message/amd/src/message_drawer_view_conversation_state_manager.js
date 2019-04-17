@@ -40,18 +40,11 @@ define(['jquery'], function($) {
      * @return {Object} newstate A copy of the state to clone.
      */
     var cloneState = function(state) {
-        var newState = $.extend({}, state);
-        newState.messages = state.messages.map(function(message) {
-            return $.extend({}, message);
-        });
-        newState.members = Object.keys(state.members).reduce(function(carry, id) {
-            carry[id] = $.extend({}, state.members[id]);
-            carry[id].contactrequests = state.members[id].contactrequests.map(function(request) {
-                return $.extend({}, request);
-            });
-            return carry;
-        }, {});
-        return newState;
+        // Do a deep extend to make sure we recursively copy objects and
+        // arrays so that the new state doesn't contain any references to
+        // the old state, e.g. adding a value to an array in the new state
+        // shouldn't also add it to the old state.
+        return $.extend(true, {}, state);
     };
 
     /**
@@ -122,8 +115,8 @@ define(['jquery'], function($) {
             imageUrl: null,
             isFavourite: null,
             isMuted: null,
-            canDeleteAll: false,
-            deleteAll: false,
+            canDeleteMessagesForAllUsers: false,
+            deleteMessagesForAllUsers: false,
             members: {},
             messages: [],
             hasTriedToLoadMessages: false,
@@ -664,12 +657,12 @@ define(['jquery'], function($) {
      * Set wheter the message of the conversation can delete for all.
      *
      * @param  {Object} state Current state.
-     * @param  {Bool} canDeleteAll If it can delete for all.
+     * @param  {Bool} value If it can delete for all.
      * @return {Object} New state.
      */
-    var setCanDeleteAll = function(state, canDeleteAll) {
+    var setCanDeleteMessagesForAllUsers = function(state, value) {
         var newState = cloneState(state);
-        newState.canDeleteAll = canDeleteAll;
+        newState.canDeleteMessagesForAllUsers = value;
         return newState;
     };
 
@@ -677,12 +670,12 @@ define(['jquery'], function($) {
      * Set wheter the messages of the conversation delete for all.
      *
      * @param  {Object} state Current state.
-     * @param  {Bool} deleteAll Delete messages for all.
+     * @param  {Bool} value Delete messages for all.
      * @return {Object} New state.
      */
-    var setDeleteAll = function(state, deleteAll) {
+    var setDeleteMessagesForAllUsers = function(state, value) {
         var newState = cloneState(state);
-        newState.deleteAll = deleteAll;
+        newState.deleteMessagesForAllUsers = value;
         return newState;
     };
 
@@ -702,8 +695,8 @@ define(['jquery'], function($) {
         setType: setType,
         setIsFavourite: setIsFavourite,
         setIsMuted: setIsMuted,
-        setCanDeleteAll: setCanDeleteAll,
-        setDeleteAll: setDeleteAll,
+        setCanDeleteMessagesForAllUsers: setCanDeleteMessagesForAllUsers,
+        setDeleteMessagesForAllUsers: setDeleteMessagesForAllUsers,
         setTotalMemberCount: setTotalMemberCount,
         setImageUrl: setImageUrl,
         setLoadingConfirmAction: setLoadingConfirmAction,

@@ -331,7 +331,7 @@ function(
         newState = StateManager.setIsFavourite(newState, conversation.isfavourite);
         newState = StateManager.setIsMuted(newState, conversation.ismuted);
         newState = StateManager.addMessages(newState, conversation.messages);
-        newState = StateManager.setCanDeleteAll(newState, conversation.candeleteall);
+        newState = StateManager.setCanDeleteMessagesForAllUsers(newState, conversation.candeleteall);
         return newState;
     };
 
@@ -875,7 +875,7 @@ function(
                 newState = StateManager.removePendingDeleteMessagesById(newState, messageIds);
                 newState = StateManager.removeSelectedMessagesById(newState, messageIds);
                 newState = StateManager.setLoadingConfirmAction(newState, false);
-                newState = StateManager.setDeleteAll(newState, false);
+                newState = StateManager.setDeleteMessagesForAllUsers(newState, false);
 
                 var prevLastMessage = viewState.messages[viewState.messages.length - 1];
                 var newLastMessage = newState.messages.length ? newState.messages[newState.messages.length - 1] : null;
@@ -941,6 +941,7 @@ function(
         newState = StateManager.removePendingBlockUsersById(newState, [userId]);
         newState = StateManager.removePendingDeleteMessagesById(newState, pendingDeleteMessageIds);
         newState = StateManager.setPendingDeleteConversation(newState, false);
+        newState = StateManager.setDeleteMessagesForAllUsers(newState, false);
         return render(newState);
     };
 
@@ -1049,7 +1050,7 @@ function(
                     resetMessagePollTimer(newConversationId);
                     PubSub.publish(MessageDrawerEvents.CONVERSATION_CREATED, conversation);
                     // Set canDeleteAll.
-                    newState = StateManager.setCanDeleteAll(newState, newCanDeleteAll);
+                    newState = StateManager.setCanDeleteMessagesForAllUsers(newState, newCanDeleteAll);
                 }
 
                 return render(newState)
@@ -1285,6 +1286,19 @@ function(
     };
 
     /**
+     * Handle clicking on the checkbox that toggles deleting messages for
+     * all users.
+     *
+     * @param {Object} e Element this event handler is called on.
+     * @param {Object} data Data for this event.
+     */
+    var handleDeleteMessagesForAllUsersToggle = function(e) {
+        var newValue = $(e.target).prop('checked');
+        var newState = StateManager.setDeleteMessagesForAllUsers(viewState, newValue);
+        render(newState);
+    };
+
+    /**
      * Show the view contact page.
      *
      * @param {String} namespace Unique identifier for the Routes
@@ -1344,7 +1358,8 @@ function(
             [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
             [SELECTORS.ACTION_ACCEPT_CONTACT_REQUEST, generateConfirmActionHandler(acceptContactRequest)],
             [SELECTORS.ACTION_DECLINE_CONTACT_REQUEST, generateConfirmActionHandler(declineContactRequest)],
-            [SELECTORS.MESSAGE, handleSelectMessage]
+            [SELECTORS.MESSAGE, handleSelectMessage],
+            [SELECTORS.DELETE_MESSAGES_FOR_ALL_USERS_TOGGLE, handleDeleteMessagesForAllUsersToggle]
         ];
         var footerActivateHandlers = [
             [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
@@ -1410,12 +1425,6 @@ function(
             var selector = handler[0];
             var handlerFunction = handler[1];
             footer.on(CustomEvents.events.activate, selector, handlerFunction);
-        });
-
-        body.on(CustomEvents.events.activate, SELECTORS.ACTION_CONFIRM_DELETE_ALL_SELECTED_MESSAGES, function(e) {
-           var newValue = $(e.target).prop('checked');
-           var newState = StateManager.setDeleteAll(viewState, newValue);
-           render(newState);
         });
 
         footer.on(CustomEvents.events.enter, SELECTORS.MESSAGE_TEXT_AREA, function(e, data) {
