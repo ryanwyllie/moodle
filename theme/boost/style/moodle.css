@@ -12,7 +12,7 @@
  */
 .fa, .block_settings .block_tree [aria-expanded="true"]:before,
 .block_navigation .block_tree [aria-expanded="true"]:before, .block_settings .block_tree [aria-expanded="false"]:before,
-.block_navigation .block_tree [aria-expanded="false"]:before {
+.block_navigation .block_tree [aria-expanded="false"]:before, .btn.btn-async.loading::before, #page-grade-grading-manage .actions .btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.loading::before, #rubric-rubric.gradingform_rubric .btn-async.loading.addcriterion::before {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
   font-size: inherit;
@@ -71,12 +71,12 @@
 
 .fa.fa-pull-left, .block_settings .block_tree .fa-pull-left[aria-expanded="true"]:before,
 .block_navigation .block_tree .fa-pull-left[aria-expanded="true"]:before, .block_settings .block_tree .fa-pull-left[aria-expanded="false"]:before,
-.block_navigation .block_tree .fa-pull-left[aria-expanded="false"]:before {
+.block_navigation .block_tree .fa-pull-left[aria-expanded="false"]:before, .fa-pull-left.btn.btn-async.loading::before, #page-grade-grading-manage .actions .fa-pull-left.btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.fa-pull-left.btn-async.loading::before, #rubric-rubric.gradingform_rubric .fa-pull-left.btn-async.loading.addcriterion::before {
   margin-right: .3em; }
 
 .fa.fa-pull-right, .block_settings .block_tree .fa-pull-right[aria-expanded="true"]:before,
 .block_navigation .block_tree .fa-pull-right[aria-expanded="true"]:before, .block_settings .block_tree .fa-pull-right[aria-expanded="false"]:before,
-.block_navigation .block_tree .fa-pull-right[aria-expanded="false"]:before {
+.block_navigation .block_tree .fa-pull-right[aria-expanded="false"]:before, .fa-pull-right.btn.btn-async.loading::before, #page-grade-grading-manage .actions .fa-pull-right.btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.fa-pull-right.btn-async.loading::before, #rubric-rubric.gradingform_rubric .fa-pull-right.btn-async.loading.addcriterion::before {
   margin-left: .3em; }
 
 /* Deprecated as of 4.4.0 */
@@ -88,15 +88,15 @@
 
 .fa.pull-left, .block_settings .block_tree .pull-left[aria-expanded="true"]:before,
 .block_navigation .block_tree .pull-left[aria-expanded="true"]:before, .block_settings .block_tree .pull-left[aria-expanded="false"]:before,
-.block_navigation .block_tree .pull-left[aria-expanded="false"]:before {
+.block_navigation .block_tree .pull-left[aria-expanded="false"]:before, .pull-left.btn.btn-async.loading::before, #page-grade-grading-manage .actions .pull-left.btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.pull-left.btn-async.loading::before, #rubric-rubric.gradingform_rubric .pull-left.btn-async.loading.addcriterion::before {
   margin-right: .3em; }
 
 .fa.pull-right, .block_settings .block_tree .pull-right[aria-expanded="true"]:before,
 .block_navigation .block_tree .pull-right[aria-expanded="true"]:before, .block_settings .block_tree .pull-right[aria-expanded="false"]:before,
-.block_navigation .block_tree .pull-right[aria-expanded="false"]:before {
+.block_navigation .block_tree .pull-right[aria-expanded="false"]:before, .pull-right.btn.btn-async.loading::before, #page-grade-grading-manage .actions .pull-right.btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.pull-right.btn-async.loading::before, #rubric-rubric.gradingform_rubric .pull-right.btn-async.loading.addcriterion::before {
   margin-left: .3em; }
 
-.fa-spin {
+.fa-spin, .btn.btn-async.loading::before, #page-grade-grading-manage .actions .btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.loading::before, #rubric-rubric.gradingform_rubric .btn-async.loading.addcriterion::before {
   -webkit-animation: fa-spin 2s infinite linear;
   animation: fa-spin 2s infinite linear; }
 
@@ -15740,6 +15740,69 @@ p.arrow_button {
 
 .btn-lineup {
   margin: 0 0 10px 5px; }
+
+.btn.btn-async.loading, #page-grade-grading-manage .actions .btn-async.loading.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.loading, #rubric-rubric.gradingform_rubric .btn-async.loading.addcriterion {
+  position: relative;
+  color: transparent;
+  transition: color 0s; }
+  .btn.btn-async.loading::before, #page-grade-grading-manage .actions .btn-async.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.loading::before, #rubric-rubric.gradingform_rubric .btn-async.loading.addcriterion::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -0.46875rem;
+    margin-top: -0.46875rem; }
+
+.btn.btn-async.btn-primary.loading::before, #page-grade-grading-manage .actions .btn-async.btn-primary.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-primary.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-primary.loading.addcriterion::before {
+  color: #fff; }
+
+.btn.btn-async.btn-outline-primary.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-primary.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-primary.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-primary.loading.addcriterion::before {
+  color: #1177d1; }
+
+.btn.btn-async.btn-secondary.loading::before, #page-grade-grading-manage .actions .btn-async.btn-secondary.loading.action::before, #page-grade-grading-manage .actions .btn-async.loading.action.btn-default::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-secondary.loading::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.loading.btn-default::before, #rubric-rubric.gradingform_rubric .btn-async.btn-secondary.loading.addcriterion::before, #rubric-rubric.gradingform_rubric .btn-async.loading.addcriterion.btn-default::before, .btn.btn-async.loading.btn-default::before {
+  color: #212529; }
+
+.btn.btn-async.btn-outline-secondary.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-secondary.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-secondary.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-secondary.loading.addcriterion::before {
+  color: #ced4da; }
+
+.btn.btn-async.btn-success.loading::before, #page-grade-grading-manage .actions .btn-async.btn-success.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-success.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-success.loading.addcriterion::before {
+  color: #fff; }
+
+.btn.btn-async.btn-outline-success.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-success.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-success.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-success.loading.addcriterion::before {
+  color: #5cb85c; }
+
+.btn.btn-async.btn-info.loading::before, #page-grade-grading-manage .actions .btn-async.btn-info.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-info.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-info.loading.addcriterion::before {
+  color: #212529; }
+
+.btn.btn-async.btn-outline-info.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-info.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-info.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-info.loading.addcriterion::before {
+  color: #5bc0de; }
+
+.btn.btn-async.btn-warning.loading::before, #page-grade-grading-manage .actions .btn-async.btn-warning.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-warning.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-warning.loading.addcriterion::before {
+  color: #212529; }
+
+.btn.btn-async.btn-outline-warning.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-warning.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-warning.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-warning.loading.addcriterion::before {
+  color: #f0ad4e; }
+
+.btn.btn-async.btn-danger.loading::before, #page-grade-grading-manage .actions .btn-async.btn-danger.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-danger.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-danger.loading.addcriterion::before {
+  color: #fff; }
+
+.btn.btn-async.btn-outline-danger.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-danger.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-danger.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-danger.loading.addcriterion::before {
+  color: #d9534f; }
+
+.btn.btn-async.btn-light.loading::before, #page-grade-grading-manage .actions .btn-async.btn-light.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-light.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-light.loading.addcriterion::before {
+  color: #212529; }
+
+.btn.btn-async.btn-outline-light.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-light.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-light.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-light.loading.addcriterion::before {
+  color: #f8f9fa; }
+
+.btn.btn-async.btn-dark.loading::before, #page-grade-grading-manage .actions .btn-async.btn-dark.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-dark.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-dark.loading.addcriterion::before {
+  color: #fff; }
+
+.btn.btn-async.btn-outline-dark.loading::before, #page-grade-grading-manage .actions .btn-async.btn-outline-dark.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-outline-dark.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-outline-dark.loading.addcriterion::before {
+  color: #373a3c; }
+
+.btn.btn-async.btn-link.loading::before, #page-grade-grading-manage .actions .btn-async.btn-link.loading.action::before, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-async.btn-link.loading::before, #rubric-rubric.gradingform_rubric .btn-async.btn-link.loading.addcriterion::before {
+  color: #1177d1; }
 
 .gradetreebox h4 {
   font-size: 0.9375rem; }
