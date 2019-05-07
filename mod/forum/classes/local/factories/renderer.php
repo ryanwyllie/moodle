@@ -141,7 +141,7 @@ class renderer {
             $notifications,
             function($discussion, $user, $forum) {
                 $exportbuilder = $this->builderfactory->get_exported_discussion_builder();
-                return $exportedposts = $exportbuilder->build(
+                return $exportbuilder->build(
                     $user,
                     $forum,
                     $discussion

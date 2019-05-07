@@ -169,6 +169,7 @@ class discussion {
 
         $displaymode = $this->displaymode;
         $capabilitymanager = $this->capabilitymanager;
+        $discussion = $this->discussion;
 
         // Make sure we can render.
         if (!$capabilitymanager->can_view_discussions($user)) {
@@ -178,12 +179,16 @@ class discussion {
         $posts = array_merge([$firstpost], array_values($replies));
 
         if ($this->postprocessfortemplate !== null) {
-            $exporteddiscussion = ($this->postprocessfortemplate) ($this->discussion, $user, $this->forum);
+            $exporteddiscussion = ($this->postprocessfortemplate) ($discussion, $user, $this->forum);
         } else {
             $exporteddiscussion = $this->get_exported_discussion($user);
         }
 
         $exporteddiscussion = array_merge($exporteddiscussion, [
+            // If the user is required to post before they can view the rest of the discussion
+            // then we should reload the page after they've posted so that the discussion can
+            // be properly rendered.
+            'reloadafterpost' => $capabilitymanager->must_post_before_viewing_discussion($user, $discussion),
             'notifications' => $this->get_notifications($user),
             'html' => [
                 'posts' => $this->postsrenderer->render($user, [$this->forum], [$this->discussion], $posts),

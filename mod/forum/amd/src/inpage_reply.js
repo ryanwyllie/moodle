@@ -55,6 +55,9 @@ define([
             var subject = form.elements.subject.value;
             var currentRoot = $(e.currentTarget).parents(Selectors.post.forumContent);
             var mode = parseInt(root.find(Selectors.post.modeSelect).get(0).value);
+            // Value comes through as either "0" or "1" so loosely compare it to get the
+            // boolean value.
+            var reloadAfterPost = root.attr('data-reload-after-post') == '1';
             var newid;
 
             if (message.length) {
@@ -109,6 +112,9 @@ define([
                     })
                     .then(function() {
                         location.href = "#p" + newid;
+                        if (reloadAfterPost) {
+                            location.reload(true);
+                        }
                         return;
                     })
                     .fail(Notification.exception);
