@@ -127,7 +127,7 @@
                     {{#summaries}}
                         <!-- The discussion class is only required for behat tests to identify the row -->
                         <tr class="discussion {{#discussion.timed}}{{#istimed}}{{^visible}}dimmed_text{{/visible}}{{/istimed}}{{/discussion.timed}}">
-                            <td scope="col" class="pinned p-0 text-center align-middle">
+                            <td class="pinned p-0 text-center align-middle">
                                 {{#discussion.pinned}}
                                     {{#pix}}i/pinned, mod_forum, {{#str}}discussionpinned, mod_forum{{/str}}{{/pix}}
                                 {{/discussion.pinned}}
@@ -137,31 +137,29 @@
                                     {{/discussion}}
                                 {{/discussion.pinned}}
                             </td>
-                            <td scope="col" class="topic p-0 align-middle">
+                            <td scope="row" class="topic p-0 align-middle">
                                 <a class="p-3 p-l-0 w-100 h-100 d-block" href="{{discussion.urls.view}}">{{{discussion.name}}}</a>
                             </td>
-                            <td scope="col" class="author align-middle">
+                            <td class="author align-middle">
                                 {{#firstpostauthor}}
-                                    <a href="{{urls.profile}}">
-                                        <div class="d-flex flex-row">
-                                            <div class="align-middle p-0">
-                                                <a href="{{urls.profile}}">
-                                                    <img {{!
-                                                        }} class="h-auto rounded-circle userpicture" {{!
-                                                        }} src="{{urls.profileimage}}" {{!
-                                                        }} alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" {{!
-                                                        }}>
-                                                </a>
-                                            </div>
-                                            <div class="align-middle p-2">
-                                                <a href="{{urls.profile}}">{{fullname}}</a>
-                                            </div>
+                                    <div class="d-flex flex-row">
+                                        <div class="align-middle p-0">
+                                            <a href="{{urls.profile}}" aria-hidden="true">
+                                                <img
+                                                    class="h-auto rounded-circle userpicture"
+                                                    src="{{urls.profileimage}}"
+                                                    alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
+                                                >
+                                            </a>
                                         </div>
-                                    </a>
+                                        <div class="align-middle p-2">
+                                            <a href="{{urls.profile}}">{{fullname}}</a>
+                                        </div>
+                                    </div>
                                 {{/firstpostauthor}}
                             </td>
                             {{#forum.state.groupmode}}
-                                <td scope="col" class="group">
+                                <td class="group">
                                     {{#discussion.group}}
                                         {{#urls.picture}}
                                             {{#urls.userlist}}
@@ -185,13 +183,13 @@
                                 </td>
                             {{/forum.state.groupmode}}
                             {{#forum.capabilities.viewdiscussions}}
-                                <td scope="col" class="p-0 text-center align-middle">
+                                <td class="p-0 text-center align-middle">
                                     <a href="{{discussion.urls.view}}" class="p-3 w-100 h-100 d-block">
                                         {{replies}}
                                     </a>
                                 </td>
                                 {{#forum.userstate.tracked}}
-                                    <td scope="col" class="p-0 text-center align-middle">
+                                    <td class="p-0 text-center align-middle">
                                         {{#unread}}
                                             {{! TODO Rewrite as AJAX}}
                                             <div class="p-3 w-100 h-100 d-block">
@@ -207,17 +205,17 @@
                                     </td>
                                 {{/forum.userstate.tracked}}
                             {{/forum.capabilities.viewdiscussions}}
-                            <td scope="col" class="text-left">
+                            <td class="text-left">
                                 {{! TODO Check q&a, eachuser }}
                                 {{#latestpostid}}
                                     <div class="d-flex flex-row">
                                         <div class="align-middle p-0">
-                                            <a href="{{latestpostauthor.urls.profile}}">
-                                                <img {{!
-                                                    }} class="h-auto rounded-circle userpicture" {{!
-                                                    }} src="{{latestpostauthor.urls.profileimage}}" {{!
-                                                    }} alt="{{#str}}pictureof, moodle, {{latestpostauthor.fullname}}{{/str}}" {{!
-                                                    }}>
+                                            <a href="{{latestpostauthor.urls.profile}}" aria-hidden="true" tabindex="-1">
+                                                <img
+                                                    class="h-auto rounded-circle userpicture"
+                                                    src="{{latestpostauthor.urls.profileimage}}"
+                                                    alt="{{#str}}pictureof, moodle, {{latestpostauthor.fullname}}{{/str}}"
+                                                >
                                             </a>
                                         </div>
                                         <div class="p-2 p-t-0 p-b-0 d-inline-flex flex-column">
@@ -233,31 +231,33 @@
                                     </div>
                                 {{/latestpostid}}
                             </td>
-                            <td scope="col" class="text-left align-middle">
+                            <td class="text-left align-middle">
                                 {{#userdate}}{{discussion.times.created}}, {{#str}}strftimerecentfull{{/str}}{{/userdate}}
                             </td>
-                            <td scope="col" class="timed p-0 text-center align-middle">
+                            <td class="timed p-0 text-center align-middle">
                                 {{#discussion.timed.istimed}}
                                 <div class="timedpost">
+                                    {{! Please don't change the whitespace formatting of the pix tag below
+                                        because it affects the title attribute in the browser }}
                                     {{#pix}}
-                                    i/calendar, moodle,
-                                    {{#discussion.times.start}}
-                                    {{!                                           }}{{#str}} displaystart, mod_forum {{/str}}: {{#userdate}}{{.}}, {{#str}}strftimerecentfull {{/str}}{{/userdate}}
-                                    {{/discussion.times.start}}
-                                    {{#discussion.times.end}}
-                                    {{!                                           }}{{#str}} displayend, mod_forum {{/str}}: {{#userdate}}{{.}}, {{#str}} strftimerecentfull {{/str}}{{/userdate}}
-                                    {{/discussion.times.end}}
-                                    {{#discussion.timed.visible}}
-                                    {{!                                           }}{{#str}} timedvisible, mod_forum {{/str}}
-                                    {{/discussion.timed.visible}}
-                                    {{^discussion.timed.visible}}
-                                    {{!                                           }}{{#str}} timedhidden, mod_forum {{/str}}
-                                    {{/discussion.timed.visible}}
+                                        i/calendar, moodle,
+                                        {{#discussion.times.start}}
+{{!                                           }}{{#str}} displaystart, mod_forum {{/str}}: {{#userdate}}{{.}}, {{#str}}strftimerecentfull {{/str}}{{/userdate}}
+                                        {{/discussion.times.start}}
+                                        {{#discussion.times.end}}
+{{!                                           }}{{#str}} displayend, mod_forum {{/str}}: {{#userdate}}{{.}}, {{#str}} strftimerecentfull {{/str}}{{/userdate}}
+                                        {{/discussion.times.end}}
+                                        {{#discussion.timed.visible}}
+{{!                                           }}{{#str}} timedvisible, mod_forum {{/str}}
+                                        {{/discussion.timed.visible}}
+                                        {{^discussion.timed.visible}}
+{{!                                           }}{{#str}} timedhidden, mod_forum {{/str}}
+                                        {{/discussion.timed.visible}}
                                     {{/pix}}
                                 </div>
                                 {{/discussion.timed.istimed}}
                             </td>
-                            <td scope="col" class="p-0 align-middle">
+                            <td class="p-0 align-middle">
                                 {{#discussion}}
                                     <div class="d-flex flex-wrap">
                                         <div class="p1-1">
