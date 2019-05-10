@@ -112,6 +112,7 @@ class post extends exporter {
             ],
             'isdeleted' => ['type' => PARAM_BOOL],
             'isprivatereply' => ['type' => PARAM_BOOL],
+            'isthrottleblocked' => ['type' => PARAM_BOOL],
             'haswordcount' => ['type' => PARAM_BOOL],
             'wordcount' => [
                 'type' => PARAM_INT,
@@ -345,8 +346,10 @@ class post extends exporter {
         $tags = $this->related['tags'];
         $attachments = $this->related['attachments'];
         $includehtml = $this->related['includehtml'];
+        $postcountinblockperiod = $this->related['postcountinblockperiod'];
         $isdeleted = $post->is_deleted();
         $isprivatereply = $post->is_private_reply();
+        $isthrottleblocked = $forum->is_user_throttle_blocked($postcountinblockperiod);
         $hasrating = $rating != null;
         $hastags = !empty($tags);
         $discussionid = $post->get_discussion_id();
@@ -357,7 +360,7 @@ class post extends exporter {
         $canedit = $capabilitymanager->can_edit_post($user, $discussion, $post);
         $candelete = $capabilitymanager->can_delete_post($user, $discussion, $post);
         $cansplit = $capabilitymanager->can_split_post($user, $discussion, $post);
-        $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
+        $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post, $postcountinblockperiod);
         $canexport = $capabilitymanager->can_export_post($user, $post);
         $cancontrolreadstatus = $capabilitymanager->can_manually_control_post_read_status($user);
         $canreplyprivately = $capabilitymanager->can_reply_privately_to_post($user, $post);
@@ -369,7 +372,7 @@ class post extends exporter {
         $editurl = $canedit ? $urlfactory->get_edit_post_url_from_post($forum, $post) : null;
         $deleteurl = $candelete ? $urlfactory->get_delete_post_url_from_post($post) : null;
         $spliturl = $cansplit ? $urlfactory->get_split_discussion_at_post_url_from_post($post) : null;
-        $replyurl = $canreply ? $urlfactory->get_reply_to_post_url_from_post($post) : null;
+        $replyurl = $canreply || $isthrottleblocked ? $urlfactory->get_reply_to_post_url_from_post($post) : null;
         $exporturl = $canexport ? $urlfactory->get_export_post_url_from_post($post) : null;
         $markasreadurl = $cancontrolreadstatus ? $urlfactory->get_mark_post_as_read_url_from_post($post) : null;
         $markasunreadurl = $cancontrolreadstatus ? $urlfactory->get_mark_post_as_unread_url_from_post($post) : null;
@@ -414,6 +417,7 @@ class post extends exporter {
             'unread' => ($loadcontent && $readreceiptcollection) ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
             'isdeleted' => $isdeleted,
             'isprivatereply' => $isprivatereply,
+            'isthrottleblocked' => $isthrottleblocked,
             'haswordcount' => $forum->should_display_word_count(),
             'wordcount' => $forum->should_display_word_count() ? count_words($message) : null,
             'capabilities' => [
@@ -469,6 +473,7 @@ class post extends exporter {
             'attachments' => '\stored_file[]?',
             'tags' => '\core_tag_tag[]?',
             'rating' => 'rating?',
+            'postcountinblockperiod' => 'int?',
             'includehtml' => 'bool'
         ];
     }

@@ -55,6 +55,8 @@ class posts extends exporter {
     private $tagsbypostid;
     /** @var array $ratingbypostid List of ratings indexed by post id */
     private $ratingbypostid;
+    /** @var array $postcountinblockperiod Number of posts made by user during forum block period */
+    private $postcountinblockperiod;
 
     /**
      * Constructor.
@@ -66,6 +68,8 @@ class posts extends exporter {
      * @param array $groupsbyauthorid List of author's groups indexed by author id
      * @param array $tagsbypostid List of tags indexed by post id
      * @param array $ratingbypostid List of ratings indexed by post id
+     * @param int $postcountinblockperiod Number of posts made by user during forum block period
+     *                                    (null if blocking disabled)
      * @param array $related The related objects for exporting
      */
     public function __construct(
@@ -76,6 +80,7 @@ class posts extends exporter {
         array $groupsbyauthorid = [],
         array $tagsbypostid = [],
         array $ratingbypostid = [],
+        int $postcountinblockperiod = null,
         array $related = []
     ) {
         $this->posts = $posts;
@@ -85,6 +90,7 @@ class posts extends exporter {
         $this->groupsbyauthorid = $groupsbyauthorid;
         $this->tagsbypostid = $tagsbypostid;
         $this->ratingbypostid = $ratingbypostid;
+        $this->postcountinblockperiod = $postcountinblockperiod;
         return parent::__construct([], $related);
     }
 
@@ -116,6 +122,7 @@ class posts extends exporter {
         $groupsbyauthorid = $this->groupsbyauthorid;
         $tagsbypostid = $this->tagsbypostid;
         $ratingbypostid = $this->ratingbypostid;
+        $postcountinblockperiod = $this->postcountinblockperiod;
         $exportedposts = array_map(
             function($post) use (
                 $related,
@@ -125,6 +132,7 @@ class posts extends exporter {
                 $groupsbyauthorid,
                 $tagsbypostid,
                 $ratingbypostid,
+                $postcountinblockperiod,
                 $output
             ) {
                 $authorid = $post->get_author_id();
@@ -141,7 +149,8 @@ class posts extends exporter {
                     'attachments' => $attachments,
                     'authorgroups' => $authorgroups,
                     'tags' => $tags,
-                    'rating' => $rating
+                    'rating' => $rating,
+                    'postcountinblockperiod' => $postcountinblockperiod
                 ]));
                 return $exporter->export($output);
             },

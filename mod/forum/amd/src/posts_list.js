@@ -29,17 +29,23 @@ define([
         'jquery',
         'core/templates',
         'core/notification',
+        'core/modal_factory',
+        'core/str',
         'mod_forum/selectors',
         'mod_forum/inpage_reply',
     ], function(
         $,
         Templates,
         Notification,
+        ModalFactory,
+        Str,
         Selectors,
         InPageReply
     ) {
 
     var registerEventListeners = function(root) {
+        var throttledModalPromise = null;
+
         root.on('click', Selectors.post.inpageReplyLink, function(e) {
             e.preventDefault();
             // After adding a reply a url hash is being generated that scrolls (points) to the newly added reply.
@@ -79,6 +85,31 @@ define([
                     form.find('textarea').focus();
                 }
             }
+        });
+
+        var showingThrottleModal = false;
+        root.on('click', Selectors.post.throttleBlocked, function(e) {
+            e.preventDefault();
+
+            if (showingThrottleModal) {
+                return;
+            }
+
+            showingThrottleModal = true;
+
+            if (!throttledModalPromise) {
+                // Get the number of days the block lasts for.
+                var blockDays = Math.floor(root.attr('data-block-period') / 86400);
+                throttledModalPromise = ModalFactory.create({
+                    title: Str.get_string('postthresholdexceeded', 'mod_forum'),
+                    body: Str.get_string('postthresholdexceededlong', 'mod_forum', blockDays)
+                });
+            }
+
+            throttledModalPromise.then(function(modal) {
+                modal.show();
+                showingThrottleModal = false;
+            });
         });
     };
 

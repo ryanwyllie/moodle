@@ -86,13 +86,16 @@ class exporter {
      *
      * @param   stdClass        $user The user viewing the forum
      * @param   forum_entity    $forum The forum being viewed
-     * @param   int             $currentgroup The group currently being viewed
+     * @param   int|null        $currentgroup The group currently being viewed
+     * @param   int|null        $postcountinblockperiod Number of posts made by user during forum block period
+     *                          (null if blocking not enabled)
      * @return  forum_exporter
      */
     public function get_forum_exporter(
         stdClass $user,
         forum_entity $forum,
-        ?int $currentgroup
+        ?int $currentgroup,
+        int $postcountinblockperiod = null
     ) : forum_exporter {
         return new forum_exporter($forum, [
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
@@ -101,6 +104,7 @@ class exporter {
             'user' => $user,
             'currentgroup' => $currentgroup,
             'vaultfactory' => $this->vaultfactory,
+            'postcountinblockperiod' => $postcountinblockperiod
         ]);
     }
 
@@ -120,6 +124,9 @@ class exporter {
      * @param   forum_entity      $forum The forum being viewed
      * @param   discussion_entity $discussion The discussion being viewed
      * @param   stdClass[]        $groupsbyid The list of groups in the forum
+     * @param   int[]             $favouriteids The list of discussion ids that have been favourited by this user
+     * @param   int|null          $postcountinblockperiod Number of posts made by user during forum block period
+     *                            (null if blocking not enabled)
      * @return  discussion_exporter
      */
     public function get_discussion_exporter(
@@ -127,7 +134,8 @@ class exporter {
         forum_entity $forum,
         discussion_entity $discussion,
         array $groupsbyid = [],
-        array $favouriteids = []
+        array $favouriteids = [],
+        int $postcountinblockperiod = null
     ) : discussion_exporter {
         return new discussion_exporter($discussion, [
             'context' => $forum->get_context(),
@@ -138,7 +146,8 @@ class exporter {
             'legacydatamapperfactory' => $this->legacydatamapperfactory,
             'latestpostid' => null,
             'groupsbyid' => $groupsbyid,
-            'favouriteids' => $favouriteids
+            'favouriteids' => $favouriteids,
+            'postcountinblockperiod' => $postcountinblockperiod
         ]);
     }
 
@@ -221,6 +230,8 @@ class exporter {
      * @param   post_read_receipt_collection_entity|null $readreceiptcollection Details of read receipts for each post
      * @param   array           $tagsbypostid List of tags for each post indexed by post id
      * @param   rating[]        $ratingbypostid List of ratings for each post indexed by post id
+     * @param   int|null        $postcountinblockperiod Number of posts made by user during forum block period
+     *                          (null if blocking not enabled)
      * @param   bool            $includehtml Include some pre-constructed HTML in the export
      * @return  post_exporter
      */
@@ -236,6 +247,7 @@ class exporter {
         post_read_receipt_collection_entity $readreceiptcollection = null,
         array $tagsbypostid = [],
         array $ratingbypostid = [],
+        int $postcountinblockperiod = null,
         bool $includehtml = false
     ) : posts_exporter {
         return new posts_exporter(
@@ -246,6 +258,7 @@ class exporter {
             $groupsbyauthorid,
             $tagsbypostid,
             $ratingbypostid,
+            $postcountinblockperiod,
             [
                 'capabilitymanager' => $this->managerfactory->get_capability_manager($forum),
                 'urlfactory' => $this->urlfactory,

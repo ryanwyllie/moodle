@@ -449,7 +449,8 @@ class forum {
     }
 
     /**
-     * Get warn after.
+     * Get the number of posts that each user can post in the block period before
+     * they should be warned. This value should be lower than the block after value.
      *
      * @return int
      */
@@ -458,7 +459,7 @@ class forum {
     }
 
     /**
-     * Get block after.
+     * Get the number of posts that each user is limited to during the block period.
      *
      * @return int
      */
@@ -467,7 +468,9 @@ class forum {
     }
 
     /**
-     * Get the block period.
+     * Get the period of time (in seconds) that the user post throttling will be applied.
+     * This value determines the window for which the warning and blocking calculations
+     * will be done.
      *
      * @return int
      */
@@ -482,6 +485,55 @@ class forum {
      */
     public function has_blocking_enabled() : bool {
         return !empty($this->get_block_after()) && !empty($this->get_block_period());
+    }
+
+    /**
+     * Get the unix timestamp after which any posts created are included
+     * in the block period.
+     *
+     * If blocking is not enabled then null will be returned.
+     *
+     * @return int|null
+     */
+    public function get_block_from_time() : ?int {
+        if (!$this->has_blocking_enabled()) {
+            return null;
+        }
+
+        return time() - $this->get_block_period();
+    }
+
+    /**
+     * Check if the user should be warned about exceeding the the number of allowed posts
+     * in this forum.
+     *
+     * See count_posts_in_block_period() in the posts vault.
+     *
+     * @param int $countpostsinblockperiod Total number of posts in this forum in the blocking period.
+     */
+    public function is_user_throttle_warned(int $countpostsinblockperiod) : bool {
+        if (!$this->has_blocking_enabled()) {
+            return false;
+        }
+
+        return $countpostsinblockperiod >= $this->get_warn_after()
+            && !$this->is_user_throttle_blocked($countpostsinblockperiod);
+    }
+
+    /**
+     * Check if the user should be blocked for exceeding the the number of allowed posts
+     * in this forum.
+     *
+     * See count_posts_in_block_period() in the posts vault.
+     *
+     * @param int $countpostsinblockperiod Total number of posts in this forum in the blocking period.
+     */
+    public function is_user_throttle_blocked(int $countpostsinblockperiod) : bool {
+        if (!$this->has_blocking_enabled()) {
+            return false;
+        }
+
+        return $countpostsinblockperiod >= $this->get_block_after();
     }
 
     /**

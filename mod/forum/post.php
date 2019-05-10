@@ -132,7 +132,9 @@ if (!empty($forum)) {
         $groupid = groups_get_activity_group($cm);
     }
 
-    if (!$capabilitymanager->can_create_discussions($USER, $groupid)) {
+    $postcountinblockperiod = $postvault->count_posts_in_block_period($USER->id, $forumentity);
+
+    if (!$capabilitymanager->can_create_discussions($USER, $groupid, $postcountinblockperiod)) {
         if (!isguestuser()) {
             if (!is_enrolled($coursecontext)) {
                 if (enrol_selfenrol_available($course->id)) {
@@ -207,8 +209,9 @@ if (!empty($forum)) {
 
     // Ensure lang, theme, etc. is set up properly. MDL-6926.
     $PAGE->set_cm($cm, $course, $forum);
+    $postcountinblockperiod = $postvault->count_posts_in_block_period($USER->id, $forumentity);
 
-    if (!$capabilitymanager->can_reply_to_post($USER, $discussionentity, $parententity)) {
+    if (!$capabilitymanager->can_reply_to_post($USER, $discussionentity, $parententity, $postcountinblockperiod)) {
         if (!isguestuser()) {
             if (!is_enrolled($coursecontext)) {  // User is a guest here!
                 $SESSION->wantsurl = qualified_me();
@@ -223,6 +226,10 @@ if (!empty($forum)) {
                 redirect(new moodle_url('/mod/forum/discuss.php', array('d' => $discussion->id)));
             }
         }
+
+        $thresholdwarning = forum_check_throttling($forum, $cm);
+        forum_check_blocking_threshold($thresholdwarning);
+
         print_error('nopostforum', 'forum');
     }
 
@@ -727,6 +734,7 @@ $editoropts = mod_forum_post_form::editor_options($modcontext, $postid);
 $currenttext = file_prepare_draft_area($draftideditor, $modcontext->id, 'mod_forum', 'post', $postid, $editoropts, $post->message);
 $discussionid = isset($discussion) ? $discussion->id : null;
 $discussionsubscribe = \mod_forum\subscriptions::get_user_default_subscription($forum, $coursecontext, $cm, $discussionid);
+$postcountinblockperiod = $postvault->count_posts_in_block_period($USER->id, $forumentity);
 
 $mformpost->set_data(
     array(
@@ -806,7 +814,7 @@ if ($mformpost->is_cancelled()) {
                 $fromform->groupinfo = -1;
             }
 
-            if (!$capabilitymanager->can_create_discussions($USER, $fromform->groupinfo)) {
+            if (!$capabilitymanager->can_create_discussions($USER, $fromform->groupinfo, $postcountinblockperiod)) {
                 redirect(
                         $urlfactory->get_view_post_url_from_post($postentity),
                         get_string('cannotupdatepost', 'forum'),
@@ -980,7 +988,7 @@ if ($mformpost->is_cancelled()) {
             // Note: all groups are returned when in visible groups mode so we must manually filter.
             $allowedgroups = groups_get_activity_allowed_groups($cm);
             foreach ($allowedgroups as $groupid => $group) {
-                if ($capabilitymanager->can_create_discussions($USER, $groupid)) {
+                if ($capabilitymanager->can_create_discussions($USER, $groupid, $postcountinblockperiod)) {
                     $groupstopostto[] = $groupid;
                 }
             }
@@ -1001,7 +1009,7 @@ if ($mformpost->is_cancelled()) {
         forum_check_blocking_threshold($thresholdwarning);
 
         foreach ($groupstopostto as $group) {
-            if (!$capabilitymanager->can_create_discussions($USER, $groupid)) {
+            if (!$capabilitymanager->can_create_discussions($USER, $groupid, $postcountinblockperiod)) {
                 print_error('cannotcreatediscussion', 'forum');
             }
 
@@ -1109,7 +1117,7 @@ if (!empty($parententity) && !$capabilitymanager->can_view_post($USER, $discussi
     print_error('cannotreply', 'forum');
 }
 
-if (empty($parententity) && empty($edit) && !$capabilitymanager->can_create_discussions($USER, $groupid)) {
+if (empty($parententity) && empty($edit) && !$capabilitymanager->can_create_discussions($USER, $groupid, $postcountinblockperiod)) {
     print_error('cannotcreatediscussion', 'forum');
 }
 

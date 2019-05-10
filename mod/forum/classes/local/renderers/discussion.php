@@ -26,6 +26,7 @@ namespace mod_forum\local\renderers;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\builders\exported_discussion as exported_discussion_builder;
 use mod_forum\local\entities\discussion as discussion_entity;
 use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
@@ -70,6 +71,8 @@ class discussion {
     private $displaymode;
     /** @var renderer_base $renderer Renderer base */
     private $renderer;
+    /** @var exported_discussion_builder $exporteddiscussionbuilder Exported discussion builder */
+    private $exporteddiscussionbuilder;
     /** @var posts_renderer $postsrenderer A posts renderer */
     private $postsrenderer;
     /** @var moodle_page $page The page this discussion is being rendered for */
@@ -90,8 +93,6 @@ class discussion {
     private $notifications;
     /** @var sorter_entity $exportedpostsorter Sorter for the exported posts */
     private $exportedpostsorter;
-    /** @var callable $postprocessfortemplate Function to process exported posts before template rendering */
-    private $postprocessfortemplate;
 
     /**
      * Constructor.
@@ -100,6 +101,7 @@ class discussion {
      * @param discussion_entity $discussion The discussion entity
      * @param int $displaymode The display mode to render the discussion in
      * @param renderer_base $renderer Renderer base
+     * @param exported_discussion_builder $exporteddiscussionbuilder Exported discussion builder
      * @param posts_renderer $postsrenderer A posts renderer
      * @param moodle_page $page The page this discussion is being rendered for
      * @param legacy_data_mapper_factory $legacydatamapperfactory Legacy data mapper factory
@@ -116,6 +118,7 @@ class discussion {
         discussion_entity $discussion,
         int $displaymode,
         renderer_base $renderer,
+        exported_discussion_builder $exporteddiscussionbuilder,
         posts_renderer $postsrenderer,
         moodle_page $page,
         legacy_data_mapper_factory $legacydatamapperfactory,
@@ -125,13 +128,13 @@ class discussion {
         rating_manager $ratingmanager,
         sorter_entity $exportedpostsorter,
         moodle_url $baseurl,
-        array $notifications = [],
-        callable $postprocessfortemplate = null
+        array $notifications = []
     ) {
         $this->forum = $forum;
         $this->discussion = $discussion;
         $this->displaymode = $displaymode;
         $this->renderer = $renderer;
+        $this->exporteddiscussionbuilder = $exporteddiscussionbuilder;
         $this->postsrenderer = $postsrenderer;
         $this->page = $page;
         $this->baseurl = $baseurl;
@@ -143,7 +146,6 @@ class discussion {
         $this->notifications = $notifications;
 
         $this->exportedpostsorter = $exportedpostsorter;
-        $this->postprocessfortemplate = $postprocessfortemplate;
 
         $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
         $this->forumrecord = $forumdatamapper->to_legacy_object($forum);
@@ -176,14 +178,10 @@ class discussion {
         }
 
         $posts = array_merge([$firstpost], array_values($replies));
-
-        if ($this->postprocessfortemplate !== null) {
-            $exporteddiscussion = ($this->postprocessfortemplate) ($this->discussion, $user, $this->forum);
-        } else {
-            $exporteddiscussion = $this->get_exported_discussion($user);
-        }
+        $exporteddiscussion = $this->exporteddiscussionbuilder->build($user, $this->forum, $this->discussion);
 
         $exporteddiscussion = array_merge($exporteddiscussion, [
+            'blockperiod' => $this->forum->get_block_period(),
             'notifications' => $this->get_notifications($user),
             'html' => [
                 'posts' => $this->postsrenderer->render($user, [$this->forum], [$this->discussion], $posts),
@@ -207,35 +205,6 @@ class discussion {
         }
 
         return $this->renderer->render_from_template('mod_forum/forum_discussion', $exporteddiscussion);
-    }
-
-    /**
-     * Get the groups details for all groups available to the forum.
-     *
-     * @return  stdClass[]
-     */
-    private function get_groups_available_in_forum() : array {
-        $course = $this->forum->get_course_record();
-        $coursemodule = $this->forum->get_course_module_record();
-
-        return groups_get_all_groups($course->id, 0, $coursemodule->groupingid);
-    }
-
-    /**
-     * Get the exported discussion.
-     *
-     * @param stdClass $user The user viewing the discussion
-     * @return array
-     */
-    private function get_exported_discussion(stdClass $user) : array {
-        $discussionexporter = $this->exporterfactory->get_discussion_exporter(
-            $user,
-            $this->forum,
-            $this->discussion,
-            $this->get_groups_available_in_forum()
-        );
-
-        return (array) $discussionexporter->export($this->renderer);
     }
 
     /**

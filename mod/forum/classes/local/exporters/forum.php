@@ -61,6 +61,14 @@ class forum extends exporter {
     protected static function define_other_properties() {
         return [
             'id' => ['type' => PARAM_INT],
+            'blockingenabled' => ['type' => PARAM_BOOL],
+            'blockperiod' => ['type' => PARAM_INT],
+            'blockfrom' => [
+                'type' => PARAM_INT,
+                'null' => NULL_ALLOWED
+            ],
+            'throttlewarnafter' => ['type' => PARAM_INT],
+            'throttleblockafter' => ['type' => PARAM_INT],
             'state' => [
                 'type' => [
                     'groupmode' => ['type' => PARAM_INT],
@@ -69,6 +77,8 @@ class forum extends exporter {
             'userstate' => [
                 'type' => [
                     'tracked' => ['type' => PARAM_INT],
+                    'throttlewarned' => ['type' => PARAM_BOOL],
+                    'throttleblocked' => ['type' => PARAM_BOOL]
                 ],
             ],
             'capabilities' => [
@@ -106,19 +116,27 @@ class forum extends exporter {
         $user = $this->related['user'];
         $currentgroup = $this->related['currentgroup'];
         $vaultfactory = $this->related['vaultfactory'];
+        $postcountinblockperiod = $this->related['postcountinblockperiod'];
         $discussionvault = $vaultfactory->get_discussions_in_forum_vault();
 
         return [
             'id' => $this->forum->get_id(),
+            'blockingenabled' => $this->forum->has_blocking_enabled(),
+            'blockperiod' => $this->forum->get_block_period(),
+            'blockfrom' => $this->forum->get_block_from_time(),
+            'throttlewarnafter' => $this->forum->get_warn_after(),
+            'throttleblockafter' => $this->forum->get_block_after(),
             'state' => [
                 'groupmode' => $this->forum->get_effective_group_mode(),
             ],
             'userstate' => [
                 'tracked' => forum_tp_is_tracked($this->get_forum_record(), $this->related['user']),
+                'throttlewarned' => $this->forum->is_user_throttle_warned($postcountinblockperiod),
+                'throttleblocked' => $this->forum->is_user_throttle_blocked($postcountinblockperiod),
             ],
             'capabilities' => [
                 'viewdiscussions' => $capabilitymanager->can_view_discussions($user),
-                'create' => $capabilitymanager->can_create_discussions($user, $currentgroup),
+                'create' => $capabilitymanager->can_create_discussions($user, $currentgroup, $postcountinblockperiod),
                 'subscribe' => $capabilitymanager->can_subscribe_to_forum($user),
             ],
             'urls' => [
@@ -153,6 +171,7 @@ class forum extends exporter {
             'urlfactory' => 'mod_forum\local\factories\url',
             'user' => 'stdClass',
             'currentgroup' => 'int?',
+            'postcountinblockperiod' => 'int?',
             'vaultfactory' => 'mod_forum\local\factories\vault'
         ];
     }

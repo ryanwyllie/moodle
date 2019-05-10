@@ -164,6 +164,7 @@ class discussion extends exporter {
         $forumrecord = $this->get_forum_record();
         $user = $this->related['user'];
         $discussion = $this->discussion;
+        $postcountinblockperiod = $this->related['postcountinblockperiod'];
 
         $groupdata = null;
         if ($discussion->has_group() && $group = $this->related['groupsbyid'][$discussion->get_group_id()]) {
@@ -211,7 +212,7 @@ class discussion extends exporter {
                 'subscribe' => $capabilitymanager->can_subscribe_to_discussion($user, $discussion),
                 'move' => $capabilitymanager->can_move_discussion($user, $discussion),
                 'pin' => $capabilitymanager->can_pin_discussion($user, $discussion),
-                'post' => $capabilitymanager->can_post_in_discussion($user, $discussion),
+                'post' => $capabilitymanager->can_post_in_discussion($user, $discussion, $postcountinblockperiod),
                 'manage' => $capabilitymanager->can_manage_forum($user),
                 'favourite' => $capabilitymanager->can_favourite_discussion($user) // Defaulting to true until we get capabilities sorted
             ],
@@ -271,7 +272,8 @@ class discussion extends exporter {
             'user' => 'stdClass',
             'groupsbyid' => 'stdClass[]',
             'latestpostid' => 'int?',
-            'favouriteids' => 'int[]?'
+            'favouriteids' => 'int[]?',
+            'postcountinblockperiod' => 'int?'
         ];
     }
 }

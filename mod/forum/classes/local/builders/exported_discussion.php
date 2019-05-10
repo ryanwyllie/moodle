@@ -113,8 +113,10 @@ class exported_discussion {
         }
 
         $groupsbyid = $this->get_groups_available_in_forum($forum);
+        $postvault = $this->vaultfactory->get_post_vault();
+        $postcountinblockperiod = $postvault->count_posts_in_block_period($user->id, $forum);
         $discussionexporter = $this->exporterfactory->get_discussion_exporter(
-            $user, $forum, $discussion, $groupsbyid, $favouriteids
+            $user, $forum, $discussion, $groupsbyid, $favouriteids, $postcountinblockperiod
         );
 
         return (array) $discussionexporter->export($this->renderer);

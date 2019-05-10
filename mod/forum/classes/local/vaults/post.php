@@ -26,6 +26,7 @@ namespace mod_forum\local\vaults;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_forum\local\entities\forum as forum_entity;
 use mod_forum\local\entities\post as post_entity;
 use mod_forum\local\factories\entity as entity_factory;
 use stdClass;
@@ -440,5 +441,50 @@ class post extends db_table_vault {
               ) lp ON lp.discussion = p.discussion AND lp.created = p.created";
 
         return $this->get_db()->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Count the number of posts that a user has made in a forum during that forum's
+     * blocking period.
+     *
+     * If the forum doens't have blocking enabled then null will be returned.
+     *
+     * @param int $userid The id of the user to count posts for
+     * @param forum_entity $forum The forum to count posts in
+     * @return int|null
+     */
+    public function count_posts_in_block_period(int $userid, forum_entity $forum) : ?int {
+        if (!$forum->has_blocking_enabled()) {
+            return null;
+        }
+
+        $sql = 'SELECT COUNT(p.id) FROM {' . self::TABLE . '} p
+                JOIN {forum_discussions} d
+                ON p.discussion = d.id WHERE d.forum = ?
+                AND p.userid = ? AND p.created > ?';
+
+        return $this->get_db()->count_records_sql($sql, [$forum->get_id(), $userid, $forum->get_block_from_time()]);
+    }
+
+    /**
+     * Count the number of posts that a user has made in a forum during that forum's
+     * blocking period.
+     *
+     * If the forum doens't have blocking enabled then null will be returned.
+     *
+     * @param int $userid The id of the user to count posts for
+     * @param forum_entity $forum The forum to count posts in
+     * @return array
+     */
+    public function count_posts_in_block_period_for_forums(int $userid, array $forums) : array {
+        return array_reduce($forums, function($carry, $forum) use ($userid) {
+            if ($forum->has_blocking_enabled()) {
+                $carry[$forum->get_id()] = $this->count_posts_in_block_period($userid, $forum);
+            } else {
+                $carry[$forum->get_id()] = null;
+            }
+
+            return $carry;
+        }, []);
     }
 }

@@ -99,19 +99,56 @@ class capability {
     }
 
     /**
+     * Can the user post to this forum?
+     *
+     * See also count_posts_in_block_period() in posts vault.
+     *
+     * @param stdClass $user The user to check
+     * @param int|null $postcountinblockperiod The number of posts this use has made during the block period
+     *                                         for the forum or null if the forum doesn't have blocking enabled.
+     */
+    public function can_post_to_forum(stdClass $user, int $postcountinblockperiod = null) : bool {
+        if (!$this->forum->has_blocking_enabled()) {
+            return true;
+        }
+
+        if (is_null($postcountinblockperiod)) {
+            // Forum has blocking enabled but we don't know how many posts this user has made so far
+            // so let's assume everything is ok and allow the post.
+            return true;
+        }
+
+        if ($this->forum->is_user_throttle_blocked($postcountinblockperiod)) {
+            return has_capability('mod/forum:postwithoutthrottling', $this->get_context(), $user);
+        }
+
+        return true;
+    }
+
+    /**
      * Can the user create discussions in this forum?
      *
      * @param stdClass $user The user to check
      * @param int|null $groupid The current activity group id
+     * @param int|null $postcountinblockperiod The number of posts this use has made during the block period
+     *                                         for the forum or null if the forum doesn't have blocking enabled.
      * @return bool
      */
-    public function can_create_discussions(stdClass $user, int $groupid = null) : bool {
+    public function can_create_discussions(
+        stdClass $user,
+        int $groupid = null,
+        int $postcountinblockperiod = null
+    ) : bool {
+        if (!$this->can_post_to_forum($user, $postcountinblockperiod)) {
+            return false;
+        }
+
         if (isguestuser($user) or !isloggedin()) {
             return false;
         }
 
         if ($this->forum->is_cutoff_date_reached()) {
-            if (!has_capability('mod/forum:canoverridecutoff', $this->get_context())) {
+            if (!has_capability('mod/forum:canoverridecutoff', $this->get_context(), $user)) {
                 return false;
             }
         }
@@ -308,9 +345,19 @@ class capability {
      *
      * @param stdClass $user The user to check
      * @param discussion_entity $discussion The discussion to check
+     * @param int|null $postcountinblockperiod The number of posts this use has made during the block period
+     *                                         for the forum or null if the forum doesn't have blocking enabled.
      * @return bool
      */
-    public function can_post_in_discussion(stdClass $user, discussion_entity $discussion) : bool {
+    public function can_post_in_discussion(
+        stdClass $user,
+        discussion_entity $discussion,
+        int $postcountinblockperiod = null
+    ) : bool {
+        if (!$this->can_post_to_forum($user, $postcountinblockperiod)) {
+            return false;
+        }
+
         $forum = $this->get_forum();
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record($discussion);
@@ -475,15 +522,22 @@ class capability {
      * @param stdClass $user The user to check
      * @param discussion_entity $discussion The discussion to check
      * @param post_entity $post The post the user wants to reply to
+     * @param int|null $postcountinblockperiod The number of posts this use has made during the block period
+     *                                         for the forum or null if the forum doesn't have blocking enabled.
      * @return bool
      */
-    public function can_reply_to_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
+    public function can_reply_to_post(
+        stdClass $user,
+        discussion_entity $discussion,
+        post_entity $post,
+        int $postcountinblockperiod = null
+    ) : bool {
         if ($post->is_private_reply()) {
             // It is not possible to reply to a private reply.
             return false;
         }
 
-        return $this->can_post_in_discussion($user, $discussion);
+        return $this->can_post_in_discussion($user, $discussion, $postcountinblockperiod);
     }
 
     /**

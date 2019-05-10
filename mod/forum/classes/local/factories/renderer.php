@@ -116,37 +116,22 @@ class renderer {
         discussion_entity $discussion,
         int $displaymode
     ) : discussion_renderer {
-
-        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
-        $ratingmanager = $this->managerfactory->get_rating_manager();
-        $rendererbase = $this->rendererbase;
-
-        $baseurl = $this->urlfactory->get_discussion_view_url_from_discussion($discussion);
-        $notifications = [];
-
         return new discussion_renderer(
             $forum,
             $discussion,
             $displaymode,
-            $rendererbase,
+            $this->rendererbase,
+            $this->builderfactory->get_exported_discussion_builder(),
             $this->get_single_discussion_posts_renderer($displaymode, false),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
-            $capabilitymanager,
-            $ratingmanager,
+            $this->managerfactory->get_capability_manager($forum),
+            $this->managerfactory->get_rating_manager(),
             $this->entityfactory->get_exported_posts_sorter(),
-            $baseurl,
-            $notifications,
-            function($discussion, $user, $forum) {
-                $exportbuilder = $this->builderfactory->get_exported_discussion_builder();
-                return $exportedposts = $exportbuilder->build(
-                    $user,
-                    $forum,
-                    $discussion
-                );
-            }
+            $this->urlfactory->get_discussion_view_url_from_discussion($discussion),
+            []
         );
     }
 
@@ -547,13 +532,8 @@ class renderer {
         int $displaymode
     ) : discussion_renderer {
 
-        $capabilitymanager = $this->managerfactory->get_capability_manager($forum);
-        $ratingmanager = $this->managerfactory->get_rating_manager();
-        $rendererbase = $this->rendererbase;
-
         $cmid = $forum->get_course_module_record()->id;
-        $baseurl = $this->urlfactory->get_forum_view_url_from_course_module_id($cmid);
-        $notifications = array();
+        $notifications = [];
 
         if ($hasmultiplediscussions) {
             $notifications[] = (new notification(get_string('warnformorepost', 'forum')))
@@ -564,16 +544,17 @@ class renderer {
             $forum,
             $discussion,
             $displaymode,
-            $rendererbase,
+            $this->rendererbase,
+            $this->builderfactory->get_exported_discussion_builder(),
             $this->get_single_discussion_posts_renderer($displaymode, false),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
-            $capabilitymanager,
-            $ratingmanager,
+            $this->managerfactory->get_capability_manager($forum),
+            $this->managerfactory->get_rating_manager(),
             $this->entityfactory->get_exported_posts_sorter(),
-            $baseurl,
+            $this->urlfactory->get_forum_view_url_from_course_module_id($cmid),
             $notifications
         );
     }

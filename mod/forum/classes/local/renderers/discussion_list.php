@@ -145,10 +145,12 @@ class discussion_list {
 
         $forum = $this->forum;
 
+        $postvault = $this->vaultfactory->get_post_vault();
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
             $this->forum,
-            $groupid
+            $groupid,
+            $postvault->count_posts_in_block_period($user->id, $forum)
         );
 
         $pagesize = $this->get_page_size($pagesize);

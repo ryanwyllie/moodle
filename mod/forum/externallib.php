@@ -862,6 +862,7 @@ class mod_forum_external extends external_api {
             $replies = $postvault->get_reply_count_for_discussion_ids($USER, $discussionids, $canseeanyprivatereply);
             // Return the first post for each discussion in a given forum.
             $firstposts = $postvault->get_first_post_for_discussion_ids($discussionids);
+            $postcountinblockperiod = $postvault->count_posts_in_block_period($USER->id, $forum);
 
             // Get the unreads array, this takes a forum id and returns data for all discussions.
             $unreads = array();
@@ -938,7 +939,7 @@ class mod_forum_external extends external_api {
                 $discussionobject->canlock = $canlock;
                 $discussionobject->starred = !empty($ufservice) ? $ufservice->favourite_exists('mod_forum', 'discussions',
                     $discussion->get_id(), $modcontext) : false;
-                $discussionobject->canreply = $capabilitymanager->can_post_in_discussion($USER, $discussion);
+                $discussionobject->canreply = $capabilitymanager->can_post_in_discussion($USER, $discussion, $postcountinblockperiod);
                 $discussionobject->canfavourite = $canfavourite;
 
                 if (forum_is_author_hidden($discussionobject, $forumrecord)) {
@@ -1214,6 +1215,7 @@ class mod_forum_external extends external_api {
         $managerfactory = mod_forum\local\container::get_manager_factory();
         $discussionvault = $vaultfactory->get_discussion_vault();
         $forumvault = $vaultfactory->get_forum_vault();
+        $postvault = $vaultfactory->get_post_vault();
         $discussiondatamapper = $datamapperfactory->get_discussion_data_mapper();
         $forumdatamapper = $datamapperfactory->get_forum_data_mapper();
 
@@ -1279,12 +1281,13 @@ class mod_forum_external extends external_api {
             $options[$name] = $value;
         }
 
-        if (!$capabilitymanager->can_post_in_discussion($USER, $discussion)) {
+        $postcountinblockperiod = $postvault->count_posts_in_block_period($USER->id, $forum);
+        if (!$capabilitymanager->can_post_in_discussion($USER, $discussion, $postcountinblockperiod)) {
+            $thresholdwarning = forum_check_throttling($forumrecord, $cm);
+            forum_check_blocking_threshold($thresholdwarning);
+
             throw new moodle_exception('nopostforum', 'forum');
         }
-
-        $thresholdwarning = forum_check_throttling($forumrecord, $cm);
-        forum_check_blocking_threshold($thresholdwarning);
 
         // Create the post.
         $post = new stdClass();
@@ -1389,7 +1392,7 @@ class mod_forum_external extends external_api {
      * @return array The exported discussion
      */
     public static function toggle_favourite_state($discussionid, $targetstate) {
-        global $DB, $PAGE, $USER;
+        global $USER;
 
         $params = self::validate_parameters(self::toggle_favourite_state_parameters(), [
             'discussionid' => $discussionid,
@@ -1422,11 +1425,8 @@ class mod_forum_external extends external_api {
             $ufservice->{$favouritefunction}('mod_forum', 'discussions', $discussion->get_id(), $forumcontext);
         }
 
-        $exporterfactory = mod_forum\local\container::get_exporter_factory();
         $builder = mod_forum\local\container::get_builder_factory()->get_exported_discussion_builder();
-        $favourited = ($builder->is_favourited($discussion, $forumcontext, $USER) ? [$discussion->get_id()] : []);
-        $exporter = $exporterfactory->get_discussion_exporter($USER, $forum, $discussion, [], $favourited);
-        return $exporter->export($PAGE->get_renderer('mod_forum'));
+        return $builder->build($USER, $forum, $discussion);
     }
 
     /**
@@ -1843,9 +1843,8 @@ class mod_forum_external extends external_api {
             }
         }
 
-        $exporterfactory = mod_forum\local\container::get_exporter_factory();
-        $exporter = $exporterfactory->get_discussion_exporter($USER, $forum, $discussion);
-        return $exporter->export($PAGE->get_renderer('mod_forum'));
+        $builder = mod_forum\local\container::get_builder_factory()->get_exported_discussion_builder();
+        return $builder->build($USER, $forum, $discussion);
     }
 
     /**
@@ -1881,7 +1880,7 @@ class mod_forum_external extends external_api {
      * @return  \stdClass
      */
     public static function set_lock_state($forumid, $discussionid, $targetstate) {
-        global $DB, $PAGE, $USER;
+        global $USER;
 
         $params = self::validate_parameters(self::set_lock_state_parameters(), [
             'forumid' => $forumid,
@@ -1911,9 +1910,8 @@ class mod_forum_external extends external_api {
         $discussion->toggle_locked_state($lockedvalue);
         $response = $discussionvault->update_discussion($discussion);
         $discussion = !$response ? $response : $discussion;
-        $exporterfactory = mod_forum\local\container::get_exporter_factory();
-        $exporter = $exporterfactory->get_discussion_exporter($USER, $forum, $discussion);
-        return $exporter->export($PAGE->get_renderer('mod_forum'));
+        $builder = mod_forum\local\container::get_builder_factory()->get_exported_discussion_builder();
+        return $builder->build($USER, $forum, $discussion);
     }
 
     /**
@@ -1954,7 +1952,7 @@ class mod_forum_external extends external_api {
      * @return  \stdClass
      */
     public static function set_pin_state($discussionid, $targetstate) {
-        global $PAGE, $USER;
+        global $USER;
         $params = self::validate_parameters(self::set_pin_state_parameters(), [
             'discussionid' => $discussionid,
             'targetstate' => $targetstate,
@@ -1969,7 +1967,6 @@ class mod_forum_external extends external_api {
 
         self::validate_context($forum->get_context());
 
-        $legacydatamapperfactory = mod_forum\local\container::get_legacy_data_mapper_factory();
         if (!$capabilitymanager->can_pin_discussions($USER)) {
             // Nothing to do. We won't actually output any content here though.
             throw new \moodle_exception('cannotpindiscussions', 'mod_forum');
@@ -1978,9 +1975,8 @@ class mod_forum_external extends external_api {
         $discussion->set_pinned($targetstate);
         $discussionvault->update_discussion($discussion);
 
-        $exporterfactory = mod_forum\local\container::get_exporter_factory();
-        $exporter = $exporterfactory->get_discussion_exporter($USER, $forum, $discussion);
-        return $exporter->export($PAGE->get_renderer('mod_forum'));
+        $builder = mod_forum\local\container::get_builder_factory()->get_exported_discussion_builder();
+        return $builder->build($USER, $forum, $discussion);
     }
 
     /**

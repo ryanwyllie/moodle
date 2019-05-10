@@ -107,9 +107,6 @@ class exported_posts {
      * to load the additional resources as efficiently as possible but there is no way around some of
      * the additional overhead.
      *
-     * Note: Some posts will be removed as part of the build process according to capabilities.
-     * A one-to-one mapping should not be expected.
-     *
      * @param stdClass $user The user to export the posts for.
      * @param forum_entity[] $forums A list of all forums that each of the $discussions belong to
      * @param discussion_entity[] $discussions A list of all discussions that each of the $posts belong to
@@ -143,6 +140,7 @@ class exported_posts {
         $tagsbypostid = $this->get_tags_from_posts($posts);
         $ratingbypostid = $this->get_ratings_from_posts($user, $groupedposts);
         $readreceiptcollectionbyforumid = $this->get_read_receipts_from_posts($user, $groupedposts);
+        $postcountsinblockperiodbyforumid = $this->get_post_counts_in_block_period($user, $forums);
         $exportedposts = [];
 
         // Export each set of posts per discussion because it's the largest chunks we can
@@ -168,6 +166,7 @@ class exported_posts {
                 $readreceiptcollectionbyforumid[$forumid] ?? null,
                 $tagsbypostid,
                 $ratingbypostid,
+                $postcountsinblockperiodbyforumid[$forumid] ?? null,
                 true
             );
             ['posts' => $exportedgroupedposts] = (array) $postsexporter->export($this->renderer);
@@ -492,7 +491,7 @@ class exported_posts {
     }
 
     /**
-     * Sort the list of exported posts back into the same order as the given posts.
+     * Sort the list of exported posts back into he same order as the given posts.
      * The ordering of the exported posts can often deviate from the given posts due
      * to the process of exporting them so we need to sort them back into the order
      * that the calling code expected.
@@ -515,5 +514,20 @@ class exported_posts {
         }
 
         return $sortedexportedposts;
+    }
+
+    /**
+     * Get the post counts for the given user in each of the forums that have blocking
+     * enabled.
+     *
+     * If blocking is not enabled then the value will be null.
+     *
+     * @param stdClass $user The user to check
+     * @param forum_entity[] $forums The forums to check
+     * @return array
+     */
+    private function get_post_counts_in_block_period(stdClass $user, array $forums) {
+        $postvault = $this->vaultfactory->get_post_vault();
+        return $postvault->count_posts_in_block_period_for_forums($user->id, $forums);
     }
 }
