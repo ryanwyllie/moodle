@@ -119,6 +119,7 @@ module.exports = function(grunt) {
         babel: {
             options: {
                 sourceMaps: true,
+                comments: false,
                 plugins: [
                     'transform-es2015-modules-amd-lazy',
                     // This plugin modifies the Babel transpiling for "export default"
@@ -137,7 +138,8 @@ module.exports = function(grunt) {
                     ['minify', {
                         // This minification plugin needs to be disabled because it breaks the
                         // source map generation and causes invalid source maps to be output.
-                        simplify: false
+                        simplify: false,
+                        builtIns: false
                     }],
                     ['@babel/preset-env', {
                         targets: {
