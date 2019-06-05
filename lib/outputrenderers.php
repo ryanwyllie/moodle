@@ -107,6 +107,7 @@ class renderer_base {
             $pixhelper = new \core\output\mustache_pix_helper($this);
             $shortentexthelper = new \core\output\mustache_shorten_text_helper();
             $userdatehelper = new \core\output\mustache_user_date_helper();
+            $componenthelper = new \core\output\mustache_component_helper();
 
             // We only expose the variables that are exposed to JS templates.
             $safeconfig = $this->page->requires->get_config_for_javascript($this->page, $this);
@@ -118,6 +119,7 @@ class renderer_base {
                              'pix' => array($pixhelper, 'pix'),
                              'shortentext' => array($shortentexthelper, 'shorten'),
                              'userdate' => array($userdatehelper, 'transform'),
+                             'component' => array($componenthelper, 'component'),
                          );
 
             $this->mustache = new Mustache_Engine(array(
@@ -177,6 +179,13 @@ class renderer_base {
         // e.g. aria attributes that only work with id attributes and must be
         // unique in a page.
         $mustache->addHelper('uniqid', new \core\output\mustache_uniqid_helper());
+        $mustache->addHelper('viewstore', [(new \core\output\mustache_view_store_helper(
+            "{$mustache->getHelper('uniqid')}",
+            $templatename,
+            (object) $context,
+            $this->page
+        )), 'viewstore']);
+
         if (isset($templatecache[$templatename])) {
             $template = $templatecache[$templatename];
         } else {

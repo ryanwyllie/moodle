@@ -1,0 +1,13 @@
+{{#viewstore}}
+	<input
+		type="text"
+		value="{{title}}"
+		onChange="(function(e) {this.props.context.title = e.target.value}.bind(this))"
+	/>
+	<h2>{{title}}</h2>
+	<ul>
+		{{#items}}
+			<li>{{.}}</li>
+		{{/items}}
+	</ul>
+{{/viewstore}}
