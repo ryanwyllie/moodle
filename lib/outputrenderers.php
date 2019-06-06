@@ -183,7 +183,8 @@ class renderer_base {
             "{$mustache->getHelper('uniqid')}",
             $templatename,
             (object) $context,
-            $this->page
+            $this->page,
+            $mustache
         )), 'viewstore']);
 
         if (isset($templatecache[$templatename])) {

@@ -1,8 +1,7 @@
 {{#viewstore}}
 	<input
 		type="text"
-		value="{{title}}"
-		onChange="(function(e) {this.props.context.title = e.target.value}.bind(this))"
+		defaultValue="{{title}}"
 	/>
 	<h2>{{title}}</h2>
 	<ul>
@@ -10,4 +9,10 @@
 			<li>{{.}}</li>
 		{{/items}}
 	</ul>
+
+	{{#js}}
+		require(['jquery', 'core/test'], function($, Test) {
+			Test.init($(getRootElement()), getViewState());
+		});
+	{{/js}}
 {{/viewstore}}

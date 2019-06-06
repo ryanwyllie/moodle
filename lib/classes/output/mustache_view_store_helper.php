@@ -21,8 +21,8 @@
 
 namespace core\output;
 
+use Mustache_Engine;
 use Mustache_LambdaHelper;
-use stdClass;
 use moodle_page;
 
 /**
@@ -36,12 +36,14 @@ class mustache_view_store_helper {
     private $templatename = null;
     private $context = null;
     private $page = null;
+    private $mustache = null;
 
-    public function __construct($id, $templatename, $context, moodle_page $page) {
+    public function __construct($id, $templatename, $context, moodle_page $page, Mustache_Engine $mustache) {
         $this->id = $id;
         $this->templatename = $templatename;
         $this->context = $context;
         $this->page = $page;
+        $this->mustache = $mustache;
     }
 
     /**
@@ -51,17 +53,70 @@ class mustache_view_store_helper {
      * @return string
      */
     public function viewstore($text, Mustache_LambdaHelper $helper) {
+        $mustache = $this->mustache;
         $templatename = $this->templatename;
         $id = "{$this->id}-{$templatename}";
         $jsoncontext = json_encode($this->context);
+        // We're going to save all of the child javascript from templates so that we can
+        // wrap it. This means we need to override the original JS helper so let's save a copy
+        // of it to restore after we're finished with our custom JS helper.
+        $originaljshelper = $mustache->getHelper('uniqid');
+        $childjavascript = '';
+
+        // Add a custom JS helper which just saves all of the javascript into an array for us
+        // so that we can wrap it for the store.
+        $mustache->addHelper('js', function($javascript, $lambdahelper) use (&$childjavascript) {
+            $childjavascript .= $lambdahelper->render($javascript);
+        });
+
+        $html = "<div data-component-id=\"{$id}\" data-template-name=\"{$templatename}\">{$helper->render($text)}</div>";
+
+        // Restore the original JS helper so that any other template rendering occurs as normal.
+        $mustache->addHelper('js', $originaljshelper);
 
         $this->page->requires->js_amd_inline("
-            require(['core/template_view_store'], function(ViewStore) {
-                ViewStore.set(\"{$id}\", {$jsoncontext});
+            require(
+            [
+                'core/mobx',
+                'core/react',
+                'core/react-dom',
+                'core/mustache_component',
+                'core/templates'
+            ],
+            function(
+                MobX,
+                React,
+                ReactDOM,
+                MustacheComponent,
+                Templates
+            ) {
+                var viewState = MobX.observable({$jsoncontext});
+                var element = document.querySelector('[data-component-id=\"{$id}\"]');
+                var templateName = element.getAttribute('data-template-name');
+                viewState = Templates.addHelpers(viewState);
+
+                Templates.getTemplateSource(templateName).then(function(templateSource) {
+                    ReactDOM.render(
+                        React.createElement(MustacheComponent, {template: templateSource, context: viewState}, null),
+                        element
+                    );
+                });
+
+                (function() {
+                    function getViewState() {
+                        return viewState;
+                    };
+
+                    function getRootElement() {
+                        return element;
+                    };
+
+                    {$childjavascript}
+                })();
             });
         ");
 
-        return "<div data-view-store-id=\"{$id}\" data-template-name=\"{$templatename}\">{$helper->render($text)}</div>";
+        return $html;
     }
 }
 
