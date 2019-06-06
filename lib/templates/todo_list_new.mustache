@@ -1,0 +1,62 @@
+{{#viewstore}}
+	<h2>Todo list</h2>
+	<button data-action="refresh" type="button" class="btn btn-secondary {{#isrefreshing}}disabled{{/isrefreshing}}">
+		{{#isrefreshing}}{{> core/loading }}{{/isrefreshing}}
+		{{^isrefreshing}}Refresh{{/isrefreshing}}
+	</button>
+	{{#sortdesc}}
+		<button data-action="sort-asc" type="button" class="btn btn-secondary">
+			Sort ascending
+		</button>
+	{{/sortdesc}}
+	{{#sortasc}}
+		<button data-action="sort-desc" type="button" class="btn btn-secondary">
+			Sort descending
+		</button>
+	{{/sortasc}}
+
+	<ul>
+		{{#items}}
+			<li>
+				<input class="d-inline-block" type="checkbox" {{#done}}defaultChecked{{/done}}>
+				- {{task}} - {{author}} - {{time}}
+			</li>
+		{{/items}}
+	</ul>
+	<form>
+		<div class="form-group">
+			<label>
+				Task
+				<input type="text" class="form-control" name="task">
+			</label>
+		</div>
+		<div class="form-group">
+			<label>
+				Author
+				<input type="text" class="form-control" name="author">
+			</label>
+		</div>
+		<div class="form-group">
+			<label>
+				Time
+				<input type="text" class="form-control" name="time">
+			</label>
+		</div>
+		<div class="form-check">
+			<label class="form-check-label" for="exampleCheck1">
+				<input type="checkbox" class="form-check-input" name="done">
+				Done
+			</label>
+		</div>
+		<button type="submit" class="btn btn-primary mt-3">
+			{{#isadding}}{{> core/loading }}{{/isadding}}
+			{{^isadding}}Create{{/isadding}}
+		</button>
+	</form>
+
+	{{#js}}
+		require(['jquery', 'core/todo_list_new'], function($, Test) {
+			Test.init($(getRootElement()), getViewState());
+		});
+	{{/js}}
+{{/viewstore}}
