@@ -400,4 +400,12 @@ $definitions = array(
         'simplekeys' => true,
         'staticacceleration' => true
     ],
+
+    // Stores the state of the javascript source maps when running
+    // in dev mode. This is to prevent us from having the build the
+    // source maps each time.
+    'javascript_source_map' => array(
+        'mode' => cache_store::MODE_APPLICATION,
+        'simpledata' => true
+    ),
 );

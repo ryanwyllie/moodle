@@ -188,8 +188,10 @@ foreach ($jsfiles as $modulename => $jsfile) {
     $result[] = $js;
 }
 
-$mapdataurl = '//# sourceMappingURL=' . (new \moodle_url('/lib/jssourcemap.php/' . $slashargument))->out();
-$result[] = $mapdataurl;
 $content = implode("\n", $result);
+$hash = md5($content);
+$sourcemapurl = new \moodle_url("/lib/jssourcemap.php/{$hash}/{$slashargument}");
+$mapdataurl = '//# sourceMappingURL=' . $sourcemapurl->out();
+$content .= "\n{$mapdataurl}";
 
 js_send_uncached($content, 'requirejs.php');

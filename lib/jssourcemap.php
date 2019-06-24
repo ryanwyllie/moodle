@@ -26,9 +26,8 @@
 // comment out when debugging or better look into error log!
 define('NO_DEBUG_DISPLAY', true);
 
-// We need just the values from config.php and minlib.php.
-define('ABORT_AFTER_CONFIG', true);
-require('../config.php'); // This stops immediately at the beginning of lib/setup.php.
+require('../config.php');
+require_once("$CFG->dirroot/lib/configonlylib.php");
 require_once("$CFG->dirroot/lib/jslib.php");
 require_once("$CFG->dirroot/lib/classes/requirejs.php");
 
@@ -44,17 +43,33 @@ if (substr_count($slashargument, '/') < 1) {
     die('Slash argument must contain both a revision and a file path');
 }
 // Split into revision and module name.
-list($rev, $file) = explode('/', $slashargument, 2);
+[$hash, $rev, $file] = explode('/', $slashargument, 3);
 $rev  = min_clean_param($rev, 'INT');
 $file = '/' . min_clean_param($file, 'SAFEPATH');
 
 // Only load js files from the js modules folder from the components.
 $jsfiles = array();
-list($unused, $component, $module) = explode('/', $file, 3);
+[$unused, $component, $module] = explode('/', $file, 3);
 
 // No subdirs allowed - only flat module structure please.
 if (strpos('/', $module) !== false) {
     die('Invalid module');
+}
+
+$cache = \cache::make('core', 'javascript_source_map');
+$md5file = md5($file);
+$hashcachekey = "hash_{$md5file}";
+$sourcemapcachekey = "source_map_{$md5file}";
+$lasthash = $cache->get($hashcachekey);
+
+if ($lasthash !== false && $lasthash === $hash) {
+    // The JS content hasn't changed (same hash that we last saw) so let's see
+    // if we've already got a source map for that file.
+    $existingsourcemap = $cache->get($sourcemapcachekey);
+    if ($existingsourcemap !== false) {
+        // We've got an existing source map so let's use that.
+        js_send_uncached($existingsourcemap, 'jssourcemap.php');
+    }
 }
 
 // Some (huge) modules are better loaded lazily (when they are used). If we are requesting
@@ -83,13 +98,13 @@ foreach ($jsfiles as $modulename => $jsfile) {
     $shortfilename = str_replace($CFG->dirroot, '', $jsfile);
     $srcfilename = str_replace('/amd/build/', '/amd/src/', $shortfilename);
     $srcfilename = str_replace('.min.js', '.js', $srcfilename);
-
+    $fullsrcfilename = $CFG->wwwroot . $srcfilename;
     $mapfile = $jsfile . '.map';
+
     if (file_exists($mapfile)) {
         $mapdata = file_get_contents($mapfile);
         $mapdata = json_decode($mapdata, true);
-        unset($mapdata['sourcesContent']);
-        $mapdata['sources'][0] = $CFG->wwwroot . $srcfilename;
+        $mapdata['sources'][0] = $fullsrcfilename;
 
         $map['sections'][] = [
             'offset' => [
@@ -102,32 +117,47 @@ foreach ($jsfiles as $modulename => $jsfile) {
         $js = file_get_contents($jsfile);
         // Remove source map link.
         $js = preg_replace('~//# sourceMappingURL.*$~s', '', $js);
+        $js = rtrim($js);
     } else {
-        // No sourcemap for this section which means we will have returned the original
-        // source file to the browser. We have to provide an empty source map to
-        // ensure that this section is not treated as part of the previous map.
+        // No sourcemap for this section which means we will have to generate a
+        // source map for it on the fly. The source map will simply be a one-to-one
+        // mapping of the original source to the map file since there is no
+        // minification.
+        $js = file_get_contents($CFG->dirroot . $srcfilename);
+        $js = rtrim($js);
+        $newmap = new axy\sourcemap\SourceMap();
+        $newmap->file = $shortfilename;
+
+        foreach (explode("\n", $js) as $index => $srcline) {
+            $newmap->addPosition([
+                'generated' => [
+                    'line' => $index,
+                    'column' => 0
+                ],
+                'source' => [
+                    'fileName' => $fullsrcfilename,
+                    'line' => $index,
+                    'column' => 0
+                ]
+            ]);
+        }
+
+        $newmap->sources->setContent($fullsrcfilename, $js);
+
         $map['sections'][] = [
             'offset' => [
                 'line' => $line,
-                'column' => 0,
+                'column' => 0
             ],
-            'map' => [
-                'version' => 3,
-                'file' => $shortfilename,
-                'sources' => [$CFG->wwwroot . $srcfilename],
-                'sourcesContent' => [null],
-                'names' => [],
-                'mappings' => ''
-            ]
+            'map' => $newmap->getData()
         ];
-        // Load the original source file to calculate the number of lines we'll need to
-        // skip forward for the next source map section.
-        $js = file_get_contents($CFG->dirroot . $srcfilename);
     }
-
-    $js = rtrim($js);
 
     $line += substr_count($js, "\n") + 1;
 }
 
-js_send_uncached(json_encode($map), 'jssourcemap.php');
+$sourcemap = json_encode($map);
+// Remember to update the cache with our newly generated source map.
+$cache->set($hashcachekey, $hash);
+$cache->set($sourcemapcachekey, $sourcemap);
+js_send_uncached($sourcemap, 'jssourcemap.php');
