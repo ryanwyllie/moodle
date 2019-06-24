@@ -315,4 +315,28 @@
     <license>MIT</license>
     <version>6.26.0</version>
   </library>
+  <library>
+    <location>axy/sourcemap</location>
+    <name>Axy SourceMap</name>
+    <license>MIT</license>
+    <version>0.1.4</version>
+  </library>
+  <library>
+    <location>axy/backtrace</location>
+    <name>Axy Backtrace</name>
+    <license>MIT</license>
+    <version>2.0.0</version>
+  </library>
+  <library>
+    <location>axy/codecs/base64vlq</location>
+    <name>Axy Codecs Base64 VLQ</name>
+    <license>MIT</license>
+    <version>1.0.1</version>
+  </library>
+  <library>
+    <location>axy/errors</location>
+    <name>Axy Errors</name>
+    <license>MIT</license>
+    <version>2.0.0</version>
+  </library>
 </libraries>
