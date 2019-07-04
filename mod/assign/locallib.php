@@ -102,7 +102,10 @@ use \mod_assign\output\grading_app;
 class assign {
 
     /** @var stdClass the assignment record that contains the global settings for this assign instance */
-    private $instance;
+    private $record = null;
+
+    /** @var stdClass[] the per user assignment records that contains calculated properties for the assign instance */
+    private $instances = [];
 
     /** @var grade_item the grade_item record for this assign instance's primary grade item. */
     private $gradeitem;
@@ -906,7 +909,7 @@ class assign {
         $keys = array('duedate', 'cutoffdate', 'allowsubmissionsfromdate');
         foreach ($keys as $key) {
             if (isset($override->{$key})) {
-                $this->get_instance()->{$key} = $override->{$key};
+                $this->get_instance($userid)->{$key} = $override->{$key};
             }
         }
 
@@ -1640,22 +1643,40 @@ class assign {
     /**
      * Get the settings for the current instance of this assignment
      *
+     * @param int|null $userid The id of the user to load the instance for
      * @return stdClass The settings
      */
-    public function get_instance() {
-        global $DB;
-        if ($this->instance) {
-            return $this->instance;
+    public function get_instance(int $userid = null) {
+        global $DB, $USER;
+        $userid = $userid ?? $USER->id;
+
+        if (!$this->record) {
+            $params = ['id' => $this->get_course_module()->instance];
+            $this->record = $DB->get_record('assign', $params, '*', MUST_EXIST);
         }
+
+        if (isset($this->instances[$userid])) {
+            return $this->instances[$userid];
+        }
+
         if ($this->get_course_module()) {
-            $params = array('id' => $this->get_course_module()->instance);
-            $this->instance = $DB->get_record('assign', $params, '*', MUST_EXIST);
+            $record = $this->record;
+            $course = $this->get_course();
+            $enrolment = array_shift(enrol_get_course_users($course->id, true, [$userid]));
+
+            if ($enrolment) {
+                $usercoursestart = $course->startdate > $enrolment->uetimestart ? $course->startdate : $enrolment->uetimestart;
+                $duedateoffset = $record->duedate - $course->startdate;
+                $userprops = [
+                    'duedate' => $usercoursestart + $duedateoffset,
+                ];
+                $this->instances[$userid] = (object) array_merge((array) $record, (array) $userprops);
+            } else {
+                $this->instances[$userid] = $record;
+            }
         }
-        if (!$this->instance) {
-            throw new coding_exception('Improper use of the assignment class. ' .
-                                       'Cannot load the assignment record.');
-        }
-        return $this->instance;
+
+        return $this->instances[$userid];
     }
 
     /**
@@ -3867,7 +3888,6 @@ class assign {
         global $DB, $CFG, $SESSION, $PAGE;
 
         $o = '';
-        $instance = $this->get_instance();
 
         require_once($CFG->dirroot . '/mod/assign/gradeform.php');
 
@@ -3877,6 +3897,7 @@ class assign {
         // If userid is passed - we are only grading a single student.
         $userid = $args['userid'];
         $attemptnumber = $args['attemptnumber'];
+        $instance = $this->get_instance($userid);
 
         // Apply overrides.
         $this->update_effective_access($userid);

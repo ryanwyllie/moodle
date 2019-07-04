@@ -214,7 +214,7 @@ class assign_grading_table extends table_sql implements renderable {
               (SELECT 9999999 AS priority,
                       u.id AS userid,
                       a.allowsubmissionsfromdate,
-                      a.duedate,
+                      NULL as duedate,
                       a.cutoffdate
                  FROM {user} u
                  JOIN {assign} a ON a.id = :assignmentid7
@@ -512,6 +512,7 @@ class assign_grading_table extends table_sql implements renderable {
         $this->no_sorting('userid');
         $this->no_sorting('select');
         $this->no_sorting('outcomes');
+        $this->no_sorting('status');
 
         if ($assignment->get_instance()->teamsubmission) {
             $this->no_sorting('team');
@@ -1034,7 +1035,7 @@ class assign_grading_table extends table_sql implements renderable {
     public function col_status(stdClass $row) {
         $o = '';
 
-        $instance = $this->assignment->get_instance();
+        $instance = $this->assignment->get_instance($row->userid);
 
         $due = $instance->duedate;
         if ($row->extensionduedate) {
