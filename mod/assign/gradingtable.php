@@ -64,6 +64,8 @@ class assign_grading_table extends table_sql implements renderable {
     private $plugincache = array();
     /** @var array $scale - A list of the keys and descriptions for the custom scale */
     private $scale = null;
+    /** @var boolean $hasoverrides - Does the assignment have overrides */
+    private $hasoverrides = false;
 
     /**
      * overridden constructor keeps a reference to the assignment class that is displaying this table
@@ -167,9 +169,9 @@ class assign_grading_table extends table_sql implements renderable {
                          ON u.id = uf.userid
                         AND uf.assignment = :assignmentid3 ';
 
-        $hasoverrides = $this->assignment->has_overrides();
+        $this->hasoverrides = $this->assignment->has_overrides();
 
-        if ($hasoverrides) {
+        if ($this->hasoverrides) {
             $params['assignmentid5'] = (int)$this->assignment->get_instance()->id;
             $params['assignmentid6'] = (int)$this->assignment->get_instance()->id;
             $params['assignmentid7'] = (int)$this->assignment->get_instance()->id;
@@ -377,7 +379,7 @@ class assign_grading_table extends table_sql implements renderable {
         $columns[] = 'status';
         $headers[] = get_string('status', 'assign');
 
-        if ($hasoverrides) {
+        if ($this->hasoverrides) {
             // Allowsubmissionsfromdate.
             $columns[] = 'allowsubmissionsfromdate';
             $headers[] = get_string('allowsubmissionsfromdate', 'assign');
@@ -1145,8 +1147,16 @@ class assign_grading_table extends table_sql implements renderable {
     public function col_duedate(stdClass $row) {
         $o = '';
 
-        if ($row->duedate) {
-            $userdate = userdate($row->duedate);
+        if ($this->hasoverrides) {
+            if (!empty($row->duedate)) {
+                // The override due date.
+                $due = $row->duedate;
+            } else {
+                $instance = $this->assignment->get_instance($row->userid);
+                $due = $instance->duedate;
+            }
+
+            $userdate = userdate($due);
             $o = ($this->is_downloading()) ? $userdate : $this->output->container($userdate, 'duedate');
         }
 
