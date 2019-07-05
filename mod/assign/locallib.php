@@ -89,6 +89,7 @@ require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
 require_once($CFG->dirroot . '/mod/assign/renderable.php');
 require_once($CFG->dirroot . '/mod/assign/gradingtable.php');
 require_once($CFG->libdir . '/portfolio/caller.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 use \mod_assign\output\grading_app;
 
@@ -1637,7 +1638,7 @@ class assign {
      * @return bool
      */
     public function has_instance() {
-        return $this->instance || $this->get_course_module();
+        return $this->record || $this->get_course_module();
     }
 
     /**
@@ -1662,13 +1663,11 @@ class assign {
         if ($this->get_course_module()) {
             $record = $this->record;
             $course = $this->get_course();
-            $enrolment = array_shift(enrol_get_course_users($course->id, true, [$userid]));
+            $usercoursedates = course_get_course_dates_for_user_id($course, $userid);
 
-            if ($enrolment) {
-                $usercoursestart = $course->startdate > $enrolment->uetimestart ? $course->startdate : $enrolment->uetimestart;
-                $duedateoffset = $record->duedate - $course->startdate;
+            if ($usercoursedates['start']) {
                 $userprops = [
-                    'duedate' => $usercoursestart + $duedateoffset,
+                    'duedate' => $record->duedate + $usercoursedates['startoffset'],
                 ];
                 $this->instances[$userid] = (object) array_merge((array) $record, (array) $userprops);
             } else {
