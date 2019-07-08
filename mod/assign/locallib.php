@@ -1660,19 +1660,24 @@ class assign {
             return $this->instances[$userid];
         }
 
-        if ($this->get_course_module()) {
-            $record = $this->record;
+        $record = $this->record;
+        $hasdates = !empty($record->duedate);
+
+        if ($hasdates && $this->get_course_module()) {
             $course = $this->get_course();
             $usercoursedates = course_get_course_dates_for_user_id($course, $userid);
 
             if ($usercoursedates['start']) {
-                $userprops = [
-                    'duedate' => $record->duedate + $usercoursedates['startoffset'],
-                ];
+                $userprops = [];
+                if (!empty($record->duedate)) {
+                    $userprops['duedate'] = $record->duedate + $usercoursedates['startoffset'];
+                }
                 $this->instances[$userid] = (object) array_merge((array) $record, (array) $userprops);
             } else {
                 $this->instances[$userid] = $record;
             }
+        } else {
+            $this->instances[$userid] = $record;
         }
 
         return $this->instances[$userid];
@@ -1757,7 +1762,7 @@ class assign {
     public function get_course() {
         global $DB;
 
-        if ($this->course) {
+        if ($this->course && is_object($this->course)) {
             return $this->course;
         }
 
@@ -6380,7 +6385,8 @@ class assign {
     protected function notify_graders(stdClass $submission) {
         global $DB, $USER;
 
-        $instance = $this->get_instance();
+        $hasuserid = !empty($submission->userid);
+        $instance = $hasuserid ? $this->get_instance($submission->userid) : $this->get_instance();
 
         $late = $instance->duedate && ($instance->duedate < time());
 
@@ -6389,7 +6395,7 @@ class assign {
             return;
         }
 
-        if ($submission->userid) {
+        if ($hasuserid) {
             $user = $DB->get_record('user', array('id'=>$submission->userid), '*', MUST_EXIST);
         } else {
             $user = $USER;
