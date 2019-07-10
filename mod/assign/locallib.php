@@ -294,7 +294,7 @@ class assign {
      * @param stdClass $data The form data (instance)
      */
     public function set_instance(stdClass $data) {
-        $this->instance = $data;
+        $this->record = $data;
     }
 
     /**
@@ -715,7 +715,7 @@ class assign {
         }
 
         $returnid = $DB->insert_record('assign', $update);
-        $this->instance = $DB->get_record('assign', array('id'=>$returnid), '*', MUST_EXIST);
+        $this->record = $DB->get_record('assign', array('id'=>$returnid), '*', MUST_EXIST);
         // Cache the course record.
         $this->course = $DB->get_record('course', array('id'=>$formdata->course), '*', MUST_EXIST);
 
@@ -740,7 +740,7 @@ class assign {
             // so we need to wait before calling these two.
             $this->update_calendar($formdata->coursemodule);
             if (!empty($formdata->completionexpected)) {
-                \core_completion\api::update_completion_date_event($formdata->coursemodule, 'assign', $this->instance,
+                \core_completion\api::update_completion_date_event($formdata->coursemodule, 'assign', $this->record,
                         $formdata->completionexpected);
             }
             $this->update_gradebook(false, $formdata->coursemodule);
@@ -1459,7 +1459,7 @@ class assign {
         }
 
         $result = $DB->update_record('assign', $update);
-        $this->instance = $DB->get_record('assign', array('id'=>$update->id), '*', MUST_EXIST);
+        $this->record = $DB->get_record('assign', array('id'=>$update->id), '*', MUST_EXIST);
 
         $this->save_intro_draft_files($formdata);
 
@@ -1481,7 +1481,7 @@ class assign {
 
         $this->update_calendar($this->get_course_module()->id);
         $completionexpected = (!empty($formdata->completionexpected)) ? $formdata->completionexpected : null;
-        \core_completion\api::update_completion_date_event($this->get_course_module()->id, 'assign', $this->instance,
+        \core_completion\api::update_completion_date_event($this->get_course_module()->id, 'assign', $this->record,
                 $completionexpected);
         $this->update_gradebook(false, $this->get_course_module()->id);
 
@@ -6919,7 +6919,7 @@ class assign {
         $DB->update_record('assign', $update);
 
         // Refresh the instance data.
-        $this->instance = null;
+        $this->record = null;
 
         // Release the grades to the gradebook.
         // First create the column in the gradebook.
