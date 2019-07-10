@@ -26,12 +26,15 @@ namespace core_calendar\local\event\data_access;
 
 defined('MOODLE_INTERNAL') || die();
 
+use core\dml\table;
 use core_calendar\local\event\entities\action_event_interface;
 use core_calendar\local\event\entities\event_interface;
 use core_calendar\local\event\exceptions\limit_invalid_parameter_exception;
 use core_calendar\local\event\factories\action_factory_interface;
 use core_calendar\local\event\factories\event_factory_interface;
 use core_calendar\local\event\strategies\raw_event_retrieval_strategy_interface;
+
+require_once($CFG->dirroot . '/course/lib.php');
 
 /**
  * Event vault class.
@@ -60,6 +63,12 @@ class event_vault implements event_vault_interface {
     protected $retrievalstrategy;
 
     /**
+     * @var \stdClass $relativeuser The user who's events are being loaded. Action events will have their dates adjusted
+     *                              based on this user's course start date.
+     */
+    protected $relativeuser;
+
+    /**
      * Create an event vault.
      *
      * @param event_factory_interface $factory An event factory
@@ -67,10 +76,12 @@ class event_vault implements event_vault_interface {
      */
     public function __construct(
         event_factory_interface $factory,
-        raw_event_retrieval_strategy_interface $retrievalstrategy
+        raw_event_retrieval_strategy_interface $retrievalstrategy,
+        \stdClass $relativeuser
     ) {
         $this->factory = $factory;
         $this->retrievalstrategy = $retrievalstrategy;
+        $this->relativeuser = $relativeuser;
     }
 
     public function get_event_by_id($id) {
@@ -106,10 +117,25 @@ class event_vault implements event_vault_interface {
                 return false;
             }
 
+            $lastseentime = null;
+
+            if ($afterevent) {
+                $lastseentime = $afterevent->get_times()->{$lastseenmethod}()->getTimestamp();
+
+                if ($afterevent instanceof action_event_interface && !empty($afterevent->get_course()->get('id'))) {
+                    // We've got a course event which means we've adjusted it based on the user course
+                    // start date so we need to undo the adjustment to return it to the database value for
+                    // query. Essentially we do the reverse transformation from transform_from_database_record.
+                    $course = $afterevent->get_course()->get_proxied_instance();
+                    $dates = course_get_course_dates_for_user_id($course, $this->relativeuser->id);
+                    $lastseentime = empty($lastseentime) ? $lastseentime : $lastseentime - $dates['startoffset'];
+                }
+            }
+
             return $this->timefield_pagination_from(
                 $field,
                 $timefrom,
-                $afterevent ? $afterevent->get_times()->{$lastseenmethod}()->getTimestamp() : null,
+                $lastseentime,
                 $afterevent ? $afterevent->get_id() : null,
                 $withduration
             );
@@ -120,10 +146,25 @@ class event_vault implements event_vault_interface {
                 return false;
             }
 
+            $lastseentime = null;
+
+            if ($afterevent) {
+                $lastseentime = $afterevent->get_times()->{$lastseenmethod}()->getTimestamp();
+
+                if ($afterevent instanceof action_event_interface && !empty($afterevent->get_course()->get('id'))) {
+                    // We've got a course event which means we've adjusted it based on the user course
+                    // start date so we need to undo the adjustment to return it to the database value for
+                    // query. Essentially we do the reverse transformation from transform_from_database_record.
+                    $course = $afterevent->get_course()->get_proxied_instance();
+                    $dates = course_get_course_dates_for_user_id($course, $this->relativeuser->id);
+                    $lastseentime = empty($lastseentime) ? $lastseentime : $lastseentime - $dates['startoffset'];
+                }
+            }
+
             return $this->timefield_pagination_to(
                 $field,
                 $timeto,
-                $afterevent ? $afterevent->get_times()->{$lastseenmethod}()->getTimestamp() : null,
+                $lastseentime,
                 $afterevent ? $afterevent->get_id() : null
             );
         };
@@ -354,6 +395,18 @@ class event_vault implements event_vault_interface {
      * @return event_interface|null
      */
     protected function transform_from_database_record(\stdClass $record) {
+        // Strip out the course fields, even if they are null (not a course event).
+        $coursetable = new table('course', 'c', 'c');
+        $course = $coursetable->extract_from_result($record);
+
+        if ($record->type == CALENDAR_EVENT_TYPE_ACTION && !empty($record->courseid)) {
+            // We have a course event here so let's adjust the event date to reflect the
+            // relative user's course start date.
+            $dates = course_get_course_dates_for_user_id($course, $this->relativeuser->id);
+            $record->timestart = empty($record->timestart) ? $record->timestart : $record->timestart + $dates['startoffset'];
+            $record->timesort = empty($record->timesort) ? $record->timesort : $record->timesort + $dates['startoffset'];
+        }
+
         return $this->factory->create_instance($record);
     }
 

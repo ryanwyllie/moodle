@@ -90,6 +90,8 @@ class container {
      * Initialises the dependency graph if it hasn't yet been.
      */
     private static function init() {
+        global $USER;
+
         if (empty(self::$eventfactory)) {
             self::$actionfactory = new action_factory();
             self::$eventmapper = new event_mapper(
@@ -192,7 +194,10 @@ class container {
 
         if (empty(self::$eventvault)) {
             self::$eventretrievalstrategy = new raw_event_retrieval_strategy();
-            self::$eventvault = new event_vault(self::$eventfactory, self::$eventretrievalstrategy);
+            // Adding an explicit dependency on the global $USER here which isn't great but Moodle already
+            // depends on it everywhere. We don't currently support loading events for the non logged in user
+            // however if we do then we can adjust this to allow a user to be passed in.
+            self::$eventvault = new event_vault(self::$eventfactory, self::$eventretrievalstrategy, $USER);
         }
     }
 

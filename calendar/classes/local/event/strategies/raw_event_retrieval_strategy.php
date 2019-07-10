@@ -26,6 +26,8 @@ namespace core_calendar\local\event\strategies;
 
 defined('MOODLE_INTERNAL') || die();
 
+use core\dml\table;
+
 /**
  * Raw event retrieval strategy.
  *
@@ -286,6 +288,7 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
             $params = array_merge($params, $subqueryparams);
         }
 
+        $coursetable = new table('course', 'c', 'c');
         // Sub-query that fetches the list of unique events that were filtered based on priority.
         $subquery = "SELECT ev.modulename,
                             ev.instance,
@@ -296,7 +299,7 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
                    GROUP BY ev.modulename, ev.instance, ev.eventtype";
 
         // Build the main query.
-        $sql = "SELECT e.*
+        $sql = "SELECT e.*, {$coursetable->get_field_select()}
                   FROM {event} e
             INNER JOIN ($subquery) fe
                     ON e.modulename = fe.modulename
@@ -305,6 +308,8 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
                        AND (e.priority = fe.priority OR (e.priority IS NULL AND fe.priority IS NULL))
              LEFT JOIN {modules} m
                     ON e.modulename = m.name
+             LEFT JOIN {$coursetable->get_from_sql()}
+                    ON e.courseid = c.id
                  WHERE (m.visible = 1 OR m.visible IS NULL) AND $whereclause
               ORDER BY " . ($ordersql ? $ordersql : "e.timestart");
 
