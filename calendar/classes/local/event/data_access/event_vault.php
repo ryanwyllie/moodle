@@ -122,7 +122,12 @@ class event_vault implements event_vault_interface {
             if ($afterevent) {
                 $lastseentime = $afterevent->get_times()->{$lastseenmethod}()->getTimestamp();
 
-                if ($afterevent instanceof action_event_interface && !empty($afterevent->get_course()->get('id'))) {
+                if (
+                    $afterevent instanceof action_event_interface &&
+                    !empty($afterevent->get_course()->get('id')) &&
+                    empty($afterevent->get_user()->get('id')) &&
+                    empty($afterevent->get_group()->get('id'))
+                ) {
                     // We've got a course event which means we've adjusted it based on the user course
                     // start date so we need to undo the adjustment to return it to the database value for
                     // query. Essentially we do the reverse transformation from transform_from_database_record.
@@ -151,7 +156,12 @@ class event_vault implements event_vault_interface {
             if ($afterevent) {
                 $lastseentime = $afterevent->get_times()->{$lastseenmethod}()->getTimestamp();
 
-                if ($afterevent instanceof action_event_interface && !empty($afterevent->get_course()->get('id'))) {
+                if (
+                    $afterevent instanceof action_event_interface &&
+                    !empty($afterevent->get_course()->get('id')) &&
+                    empty($afterevent->get_user()->get('id')) &&
+                    empty($afterevent->get_group()->get('id'))
+                ) {
                     // We've got a course event which means we've adjusted it based on the user course
                     // start date so we need to undo the adjustment to return it to the database value for
                     // query. Essentially we do the reverse transformation from transform_from_database_record.
@@ -399,7 +409,12 @@ class event_vault implements event_vault_interface {
         $coursetable = new table('course', 'c', 'c');
         $course = $coursetable->extract_from_result($record);
 
-        if ($record->type == CALENDAR_EVENT_TYPE_ACTION && !empty($record->courseid)) {
+        if (
+            $record->type == CALENDAR_EVENT_TYPE_ACTION &&
+            !empty($record->courseid) &&
+            empty($record->userid) &&
+            empty($record->groupid)
+        ) {
             // We have a course event here so let's adjust the event date to reflect the
             // relative user's course start date.
             $dates = course_get_course_dates_for_user_id($course, $this->relativeuser->id);
