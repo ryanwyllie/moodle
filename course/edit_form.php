@@ -129,6 +129,19 @@ class course_edit_form extends moodleform {
         $mform->addElement('date_time_selector', 'enddate', get_string('enddate'), array('optional' => true));
         $mform->addHelpButton('enddate', 'enddate');
 
+        if (!empty($CFG->enablecourserelativedates)) {
+            $attributes = [];
+            if (!empty($course->id)) {
+                $attributes['disabled'] = true;
+            }
+            $relativeoptions = [
+                0 => get_string('no'),
+                1 => get_string('yes'),
+            ];
+            $mform->addElement('select', 'relativedatesmode', get_string('relativedatesmode'), $relativeoptions, $attributes);
+            $mform->addHelpButton('relativedatesmode', 'relativedatesmode');
+        }
+
         $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
         $mform->addHelpButton('idnumber', 'idnumbercourse');
         $mform->setType('idnumber', PARAM_RAW);
