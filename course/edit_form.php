@@ -140,6 +140,7 @@ class course_edit_form extends moodleform {
             ];
             $mform->addElement('select', 'relativedatesmode', get_string('relativedatesmode'), $relativeoptions, $attributes);
             $mform->addHelpButton('relativedatesmode', 'relativedatesmode');
+            $PAGE->requires->js_call_amd('core_course/relative_warning', 'show');
         }
 
         $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
