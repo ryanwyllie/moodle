@@ -130,6 +130,7 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('enddate', 'enddate');
 
         if (!empty($CFG->enablecourserelativedates)) {
+            $group = [];
             $attributes = [];
             if (!empty($course->id)) {
                 $attributes['disabled'] = true;
@@ -138,9 +139,10 @@ class course_edit_form extends moodleform {
                 0 => get_string('no'),
                 1 => get_string('yes'),
             ];
-            $mform->addElement('select', 'relativedatesmode', get_string('relativedatesmode'), $relativeoptions, $attributes);
-            $mform->addHelpButton('relativedatesmode', 'relativedatesmode');
-            $PAGE->requires->js_call_amd('core_course/relative_warning', 'show');
+            $group[] = $mform->createElement('select', 'relativedatesmode', get_string('relativedatesmode'), $relativeoptions, $attributes);
+            $group[] = $mform->createElement('static', 'relativedatesmodewarning', null, get_string('relativedatesmode_warning'));
+            $mform->addGroup($group, 'relativedatesmodegroup', get_string('relativedatesmode'), null, false);
+            $mform->addHelpButton('relativedatesmodegroup', 'relativedatesmode');
         }
 
         $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
