@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,20 +14,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Fancy course format.
+ * Module for viewing editing a course.
  *
- * @copyright 2019 Ryan Wyllie <ryan@moodle.com>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2019 Ryan Wyllie <ryan@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+import EditorJS from 'core/editorjs';
 
-use format_fancy\local\renderers\course_edit as course_edit_renderer;
-
-if ($USER->editing) {
-    $renderer = new course_edit_renderer($PAGE->get_renderer('core'));
-    echo $renderer->render();
-    $PAGE->requires->js("/lib/editorjs/editor.min.js");
-} else {
-
+export function init(elementId) {
+    new EditorJS({
+        holderId: elementId
+    });
 }
