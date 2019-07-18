@@ -1,0 +1,18 @@
+.path-course-view.format-fancy #page-header {
+    display: none;
+}
+
+.path-course-view.format-fancy #region-main-box {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.path-course-view.format-fancy #region-main {
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+
+.path-course-view.format-fancy #page-content {
+    min-height: 100vh;
+}

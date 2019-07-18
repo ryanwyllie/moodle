@@ -24,6 +24,9 @@
 defined('MOODLE_INTERNAL') || die();
 require_once("{$CFG->dirroot}/course/format/lib.php");
 
+use format_fancy\local\renderers\nav_bar as nav_bar_renderer;
+use renderer_base;
+
 /**
  * Main class for the Fance course format
  *
@@ -41,4 +44,26 @@ class format_fancy extends format_base {
             BLOCK_POS_RIGHT => []
         ];
     }
+}
+
+/**
+ * Renders the popup.
+ *
+ * @param renderer_base $renderer
+ * @return string The HTML
+ */
+function format_fancy_render_navbar_output(renderer_base $renderer) {
+    global $PAGE, $USER;
+
+    // Have to use the global $PAGE because the page object in the renderer
+    // is protected. Sigh...
+    $courseformat = course_get_format($PAGE->course);
+
+    if (!($courseformat instanceof format_fancy)) {
+        // Not viewing a format fancy course so do nothing.
+        return '';
+    }
+
+    $navbarrenderer = new nav_bar_renderer($renderer);
+    return $navbarrenderer->render($PAGE, $USER);
 }
