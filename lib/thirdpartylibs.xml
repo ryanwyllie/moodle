@@ -308,4 +308,10 @@
     <license>MIT</license>
     <version>6.26.0</version>
   </library>
+  <library>
+    <location>editorjs/editor.min.js</location>
+    <name>Editor.js</name>
+    <license>MIT</license>
+    <version>2.15</version>
+  </library>
 </libraries>
