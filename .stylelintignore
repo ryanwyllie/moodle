@@ -63,6 +63,9 @@ lib/geopattern-php/
 lib/php-jwt/
 lib/babel-polyfill/
 lib/editorjs/editor.min.js
+lib/amd/src/virtual-dom.js
+lib/amd/src/virtual-html.js
+lib/amd/src/vdom-virtualise.js
 media/player/videojs/amd/src/video-lazy.js
 media/player/videojs/amd/src/Youtube-lazy.js
 media/player/videojs/videojs/

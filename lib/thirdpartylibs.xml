@@ -314,4 +314,22 @@
     <license>MIT</license>
     <version>2.15</version>
   </library>
+  <library>
+    <location>amd/src/virtual-dom.js</location>
+    <name>Virtual DOM</name>
+    <license>MIT</license>
+    <version>2.15</version>
+  </library>
+  <library>
+    <location>amd/src/virtual-html.js</location>
+    <name>Virtual HTML</name>
+    <license>MIT</license>
+    <version>2.15</version>
+  </library>
+  <library>
+    <location>amd/src/vdom-virtualise.js</location>
+    <name>VDOM Virtualise</name>
+    <license>MIT</license>
+    <version>2.15</version>
+  </library>
 </libraries>
