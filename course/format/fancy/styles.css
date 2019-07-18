@@ -17,7 +17,8 @@
     min-height: 100vh;
 }
 
-.path-course-view.format-fancy .ce-inline-toolbar .icon {
+.path-course-view.format-fancy .ce-inline-toolbar .icon,
+.path-course-view.format-fancy .ce-toolbar .icon {
     height: auto;
     width: auto;
 }

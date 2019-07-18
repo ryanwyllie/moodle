@@ -21,9 +21,34 @@
  */
 
 import EditorJS from 'core/editorjs';
+import BannerImage from 'format_fancy/editorjs_plugin_banner_image';
+
+function registerEventListeners() {
+    const saveButton = document.querySelector('[data-action="save-course"]');
+
+    saveButton.addEventListener('click', (event) => {
+        const loadingIcon = saveButton.querySelector('[data-region="loading-icon-container"]');
+        const text = saveButton.querySelector('[data-region="text-container"]');
+
+        loadingIcon.classList.remove('hidden');
+        text.classList.add('hidden');
+
+        setTimeout(() => {
+            window.location = saveButton.attributes.href.value;
+        }, 1000);
+
+        event.preventDefault();
+    });
+}
 
 export function init(elementId) {
-    new EditorJS({
-        holderId: elementId
+    const editor = new EditorJS({
+        holderId: elementId,
+        autofocus: true,
+        tools: {
+            image: BannerImage
+        }
     });
+
+    registerEventListeners(editor);
 }

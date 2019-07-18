@@ -31,11 +31,14 @@
 }}
 
 {{#editbutton}}
-<a href="{{{url}}}" class="btn btn-primary mr-2">
-    <span class="icon-no-margin mr-1">
-        {{#pix}} {{icon.key}}, {{icon.component}}, {{text}} {{/pix}}
+<a href="{{{url}}}" class="btn btn-primary mr-2" data-action="save-course">
+    <span class="hidden" data-region="loading-icon-container">{{> core/loading }}</span>
+    <span data-region="text-container">
+        <span class="icon-no-margin mr-1">
+            {{#pix}} {{icon.key}}, {{icon.component}}, {{text}} {{/pix}}
+        </span>
+        {{text}}
     </span>
-    {{text}}
 </a>
 {{/editbutton}}
 
