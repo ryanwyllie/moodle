@@ -36,8 +36,7 @@ export default class Image extends TemplateBase {
     registerEventListeners(rootNode, data) {
         rootNode.querySelector('input').addEventListener('paste', (event) => {
             const url = event.clipboardData.getData('text');
-            this.data = {...data, url};
-            this.renderFromTemplate();
+            data.url = url;
         });
     }
 }

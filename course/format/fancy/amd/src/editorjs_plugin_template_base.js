@@ -24,6 +24,7 @@ import VirtualHTML from 'core/virtual-html';
 import VirtualDOM from 'core/virtual-dom';
 import VDOMVirtualise from 'core/vdom-virtualise';
 import Templates from 'core/templates';
+import { observable, autorun } from 'core/mobx';
 
 export default class TemplateBase {
     constructor({ data, config }) {
@@ -38,9 +39,11 @@ export default class TemplateBase {
     }
 
     render() {
+        window.console.log("Observable", observable);
+        this.data = observable(this.data);
         this.wrapper = document.createElement('div');
         this.tree = VDOMVirtualise.virtualise(this.wrapper);
-        this.renderFromTemplate();
+        autorun(this.renderFromTemplate.bind(this));
         this.registerEventListeners(this.wrapper, this.data);
 
         return this.wrapper;
@@ -56,6 +59,6 @@ export default class TemplateBase {
     }
 
     save() {
-        return this.data;
+        return this.data.toJS();
     }
 }
