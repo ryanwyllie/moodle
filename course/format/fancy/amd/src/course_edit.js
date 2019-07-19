@@ -21,7 +21,8 @@
  */
 
 import EditorJS from 'core/editorjs';
-import BannerImage from 'format_fancy/editorjs_plugin_banner_image';
+import Templates from 'core/templates';
+import Image from 'format_fancy/editorjs_plugin_image';
 
 function registerEventListeners() {
     const saveButton = document.querySelector('[data-action="save-course"]');
@@ -41,12 +42,19 @@ function registerEventListeners() {
     });
 }
 
-export function init(elementId) {
+export async function init(elementId) {
+    const imageTemplateSource = await Templates.getTemplateSource('format_fancy/editorjs_plugin_image');
+
     const editor = new EditorJS({
         holderId: elementId,
         autofocus: true,
         tools: {
-            image: BannerImage
+            image: {
+                class: Image,
+                config: {
+                    template: imageTemplateSource.trim()
+                }
+            }
         }
     });
 

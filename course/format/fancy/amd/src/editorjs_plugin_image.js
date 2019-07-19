@@ -20,7 +20,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-export default class Image {
+import TemplateBase from 'format_fancy/editorjs_plugin_template_base';
+
+export default class Image extends TemplateBase {
     static get toolbox() {
         return {
             title: 'Image',
@@ -31,19 +33,11 @@ export default class Image {
         };
     }
 
-    constructor({ data }) {
-        this.data = data;
-        this.wrapper = null;
-    }
-
-    render() {
-        this.wrapper = document.createElement('div');
-        return this.wrapper;
-    }
-
-    save(blockContent) {
-        return {
-            url: blockContent.value
-        };
+    registerEventListeners(rootNode, data) {
+        rootNode.querySelector('input').addEventListener('paste', (event) => {
+            const url = event.clipboardData.getData('text');
+            this.data = {...data, url};
+            this.renderFromTemplate();
+        });
     }
 }
