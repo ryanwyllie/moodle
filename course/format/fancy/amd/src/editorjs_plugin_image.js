@@ -65,6 +65,7 @@ export default class Image extends TemplateBase {
         button.addEventListener('click', () => {
             this.data.stretched = !this.data.stretched;
             this.api.blocks.stretchBlock(this.api.blocks.getCurrentBlockIndex(), !!this.data.stretched);
+            button.classList.toggle('cdx-settings-button--active');
         });
 
         return wrapper;

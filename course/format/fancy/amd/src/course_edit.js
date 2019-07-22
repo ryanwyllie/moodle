@@ -23,6 +23,7 @@
 import EditorJS from 'core/editorjs';
 import Templates from 'core/templates';
 import Image from 'format_fancy/editorjs_plugin_image';
+import Heading from 'format_fancy/editorjs_plugin_heading';
 
 function registerEventListeners() {
     const saveButton = document.querySelector('[data-action="save-course"]');
@@ -44,6 +45,7 @@ function registerEventListeners() {
 
 export async function init(elementId) {
     const imageTemplateSource = await Templates.getTemplateSource('format_fancy/editorjs_plugin_image');
+    const headingTemplateSource = await Templates.getTemplateSource('format_fancy/editorjs_plugin_heading');
 
     const editor = new EditorJS({
         holderId: elementId,
@@ -53,6 +55,12 @@ export async function init(elementId) {
                 class: Image,
                 config: {
                     template: imageTemplateSource.trim()
+                }
+            },
+            heading: {
+                class: Heading,
+                config: {
+                    template: headingTemplateSource.trim()
                 }
             }
         }

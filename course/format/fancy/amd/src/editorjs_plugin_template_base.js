@@ -20,11 +20,15 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import VirtualHTML from 'core/virtual-html';
 import VirtualDOM from 'core/virtual-dom';
-import VDOMVirtualise from 'core/vdom-virtualise';
 import Templates from 'core/templates';
 import { observable, autorun } from 'core/mobx';
+import HTMLToVdom from 'core/html-to-vdom';
+
+const convertHTML = HTMLToVdom.initializeConverter({
+    VNode: VirtualDOM.VNode,
+    VText: VirtualDOM.VText
+});
 
 export default class TemplateBase {
     constructor({ data, config }) {
@@ -39,10 +43,10 @@ export default class TemplateBase {
     }
 
     render() {
-        window.console.log("Observable", observable);
         this.data = observable(this.data);
-        this.wrapper = document.createElement('div');
-        this.tree = VDOMVirtualise.virtualise(this.wrapper);
+        const html = Templates.syncRender(this.template, this.data);
+        this.tree = convertHTML(`<div>${html}</div>`);
+        this.wrapper = VirtualDOM.create(this.tree);
         autorun(this.renderFromTemplate.bind(this));
         this.registerEventListeners(this.wrapper, this.data);
 
@@ -52,7 +56,7 @@ export default class TemplateBase {
     renderFromTemplate() {
         const html = Templates.syncRender(this.template, this.data);
         // Add our wrapping div so that we don't replace the root node.
-        const newTree = VirtualHTML.virtualHTML(`<div>${html}</div>`);
+        const newTree = convertHTML(`<div>${html}</div>`);
         const patches = VirtualDOM.diff(this.tree, newTree);
         VirtualDOM.patch(this.wrapper, patches);
         this.tree = newTree;

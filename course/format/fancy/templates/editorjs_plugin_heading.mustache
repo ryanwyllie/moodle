@@ -30,13 +30,4 @@
     }
 }}
 
-{{^url}}
-    <div style="max-height: 400px; overflow: hidden">
-        <input class="form-control" type="text" placeholder="Past image url here...">
-    </div>
-{{/url}}
-{{#url}}
-    <div style="max-height: 400px; overflow: hidden">
-        <img class="img-fluid" src="{{{url}}}">
-    </div>
-{{/url}}
+<h{{level}} contentEditable="true">{{text}}</h{{level}}>
