@@ -22,7 +22,7 @@
 
 import VirtualDOM from 'core/virtual-dom';
 import Templates from 'core/templates';
-import { observable, autorun } from 'core/mobx';
+import { observable, autorun, toJS } from 'core/mobx';
 import HTMLToVdom from 'core/html-to-vdom';
 
 const convertHTML = HTMLToVdom.initializeConverter({
@@ -54,7 +54,7 @@ export default class TemplateBase {
     }
 
     renderFromTemplate() {
-        const html = Templates.syncRender(this.template, this.data);
+        const html = Templates.syncRender(this.template, toJS(this.data));
         // Add our wrapping div so that we don't replace the root node.
         const newTree = convertHTML(`<div>${html}</div>`);
         const patches = VirtualDOM.diff(this.tree, newTree);
@@ -63,6 +63,6 @@ export default class TemplateBase {
     }
 
     save() {
-        return this.data.toJS();
+        return toJS(this.data);
     }
 }

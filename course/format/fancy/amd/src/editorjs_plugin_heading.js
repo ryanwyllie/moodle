@@ -37,7 +37,19 @@ export default class Image extends TemplateBase {
         super(args);
         this.api = args.api;
         this.data.level = this.data.level || 2;
-        this.data.text = this.data.text || 'test';
+        this.data.text = this.data.text || '';
+    }
+
+    registerEventListeners(wrapper, data) {
+        wrapper.addEventListener('input', (event) => {
+            const oldValue = data.text;
+            const newValue = event.target.innerText;
+            // Reset the innertText value back to the previous value so that the virtual
+            // DOM we're holding onto in the template re-rendering doesn't fall out of sync
+            // with that's in the actual DOM.
+            event.target.innerText = oldValue;
+            data.text = newValue;
+        });
     }
 
     renderSettings() {
@@ -158,18 +170,26 @@ export default class Image extends TemplateBase {
             }
         ];
         const wrapper = document.createElement('div');
-
-        settings.forEach((setting) => {
+        const buttons = settings.map((setting) => {
             let button = document.createElement('div');
 
             button.classList.add('cdx-settings-button');
             button.innerHTML = setting.icon;
-            wrapper.appendChild(button);
+            button.setAttribute('data-level', setting.level);
+            return button;
+        });
 
-            button.addEventListener('click', () => {
-                this.data.level = setting.level;
-                button.classList.toggle('cdx-settings-button--active');
+        buttons.forEach((button) => {
+            wrapper.appendChild(button);
+        });
+
+        wrapper.addEventListener('click', (event) => {
+            const activeButton = event.target.closest('div[data-level]');
+            this.data.level = activeButton.getAttribute('data-level');
+            buttons.forEach((button) => {
+                button.classList.remove('cdx-settings-button--active');
             });
+            activeButton.classList.add('cdx-settings-button--active');
         });
 
         return wrapper;
