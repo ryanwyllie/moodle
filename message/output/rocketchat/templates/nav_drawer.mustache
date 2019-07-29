@@ -1,0 +1,74 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template message_output_rocketchat/nav_drawer
+
+    This template will render the popover for the navigation bar.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * All data attributes are required
+
+    Context variables required for this template:
+    * userid the logged in user id
+    * urls The URLs for the popover
+
+    Example context (json):
+    {}
+
+}}
+<button id="rocketchat-toggle-{{uniqid}}" class="btn btn-icon">
+    <i class="fa fa-rocket" aria-hidden="true"></i>
+</button>
+{{#js}}
+require([], function() {
+    var toggle = document.getElementById('rocketchat-toggle-{{uniqid}}');
+    var chat = document.createElement('iframe');
+    chat.style.position = 'fixed';
+    chat.style.top = '50px';
+    chat.style.left = '0';
+    chat.style.right = '0';
+    chat.style.bottom = '0';
+    chat.style.height = '0';
+    chat.style.width = '100%';
+    chat.style.opacity = '0';
+    chat.style.visibility = 'hidden';
+    chat.style.zIndex = '1';
+    chat.src = '{{{serverurl}}}';
+    chat.frameBorder = '{{{serverurl}}}';
+    document.body.appendChild(chat);
+    var hidden = true;
+
+    toggle.addEventListener('click', function(e) {
+        if (hidden) {
+            chat.style.transition = 'opacity 0.2s ease-out';
+            chat.style.height = 'calc(100% - 50px)';
+            chat.style.opacity = '100';
+            chat.style.visibility = 'visible';
+        } else {
+            chat.style.transition = 'opacity 0.2s ease-out, height 0.1s 0.2s, visibility 0.1s 0.2s';
+            chat.style.height = '0';
+            chat.style.opacity = '0';
+            chat.style.visibility = 'hidden';
+        }
+
+        hidden = !hidden;
+    });
+});
+{{/js}}
