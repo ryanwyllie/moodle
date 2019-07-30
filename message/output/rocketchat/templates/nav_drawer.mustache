@@ -54,6 +54,7 @@ require([], function() {
     chat.frameBorder = '{{{serverurl}}}';
     document.body.appendChild(chat);
     var hidden = true;
+    var defaultOverflow = document.body.style.overflow;
 
     toggle.addEventListener('click', function(e) {
         if (hidden) {
@@ -61,11 +62,13 @@ require([], function() {
             chat.style.height = 'calc(100% - 50px)';
             chat.style.opacity = '100';
             chat.style.visibility = 'visible';
+            document.body.style.overflow = 'hidden';
         } else {
             chat.style.transition = 'opacity 0.2s ease-out, height 0.1s 0.2s, visibility 0.1s 0.2s';
             chat.style.height = '0';
             chat.style.opacity = '0';
             chat.style.visibility = 'hidden';
+            document.body.style.overflow = defaultOverflow;
         }
 
         hidden = !hidden;
