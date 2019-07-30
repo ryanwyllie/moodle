@@ -198,35 +198,6 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
     /// Let's get them all set up.
         complete_user_login($user);
 
-        if (
-            isset($CFG->rocketchatserver) &&
-            isset($CFG->rocketchatadminusername) &&
-            isset($CFG->rocketchatadminpassword)
-        ) {
-            [$adminauthtoken, $adminuserid] = rocketchat_get_user_tokens($CFG->rocketchatadminusername, $CFG->rocketchatadminpassword);
-            $headers = [
-                "X-Auth-Token: {$adminauthtoken}",
-                "X-User-Id: {$adminuserid}"
-            ];
-            $rocketuser = rocketchat_fetch_user($headers, $USER->username);
-
-            if (!$rocketuser) {
-                $rocketuser = rocketchat_create_user(
-                    $headers,
-                    $USER->email,
-                    fullname($USER),
-                    $USER->username,
-                    $frm->password
-                );
-            }
-
-            if ($rocketuser) {
-                [$rocketchatauthtoken, $rocketchatuserid] = rocketchat_get_user_tokens($USER->username, $frm->password);
-                $SESSION->rocketchatauthtoken = $rocketchatauthtoken;
-                $SESSION->rocketchatuserid = $rocketchatuserid;
-            }
-        }
-
         \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
 
         // sets the username cookie

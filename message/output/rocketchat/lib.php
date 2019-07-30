@@ -24,6 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+use message_rocketchat\local\client as rocket_chat_client;
 use renderer_base;
 
 /**
@@ -54,4 +55,74 @@ function message_rocketchat_render_navbar_output(renderer_base $renderer) {
     }
 
     return $output;
+}
+
+function message_rocketchat_after_user_login(stdClass $user, string $password) {
+    global $CFG, $PAGE, $SESSION;
+
+    if (
+        empty($CFG->rocketchatserver) ||
+        empty($CFG->rocketchatadmintoken) ||
+        empty($CFG->rocketchatadminuserid)
+    ) {
+        return;
+    }
+
+    $client = new rocket_chat_client(
+        $CFG->rocketchatserver,
+        $CFG->rocketchatadmintoken,
+        $CFG->rocketchatadminuserid
+    );
+
+    [$rocketuser, $error] = $client->fetch_user($user->username);
+
+    if (!$rocketuser) {
+        [$rocketuser] = $client->create_user(
+            $user->email,
+            fullname($user),
+            $user->username,
+            $password
+        );
+
+        if ($rocketuser) {
+            $userpicture = new user_picture($user);
+            $userpicture->size = 100;
+            $userpictureurl = $userpicture->get_url($PAGE);
+
+            $client->set_avatar($user->username, $userpictureurl->out(false));
+        }
+    }
+
+    if ($rocketuser) {
+        [['authToken' => $token, 'userId' => $id], $error] = $client->login_user($user->username, $password);
+        $SESSION->rocketchatauthtoken = $token;
+        $SESSION->rocketchatuserid = $id;
+    }
+}
+
+function message_rocketchat_before_user_logout() {
+    global $CFG, $SESSION;
+
+    if (
+        empty($CFG->rocketchatserver) ||
+        empty($CFG->rocketchatadmintoken) ||
+        empty($CFG->rocketchatadminuserid)
+    ) {
+        return;
+    }
+
+    if (isset($SESSION->rocketchatauthtoken) && isset($SESSION->rocketchatuserid)) {
+        // We've got a rocket chat session that we need to log out of.
+        $client = new rocket_chat_client(
+            $CFG->rocketchatserver,
+            $CFG->rocketchatadmintoken,
+            $CFG->rocketchatadminuserid
+        );
+
+        try {
+            $client->logout_user($SESSION->rocketchatauthtoken, $SESSION->rocketchatuserid);
+        } catch (Exception $e) {
+            // Do something?
+        }
+    }
 }

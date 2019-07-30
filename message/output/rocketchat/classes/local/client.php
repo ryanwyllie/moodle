@@ -36,7 +36,7 @@ class client {
         $this->serverurl = $serverurl;
         $this->admintoken = $admintoken;
         $this->adminuserid = $adminuserid;
-        $this->adminheaders = [
+        $this->adminuserheaders = [
             "X-Auth-Token: {$admintoken}",
             "X-User-Id: {$adminuserid}"
         ];
@@ -44,7 +44,7 @@ class client {
 
     function fetch_user(string $username) {
         [$data, $error] = $this->get("users.info?username={$username}", true);
-        return $error ? [null, $error] : [$data['user'], null];
+        return $error ? [null, $error] : [$data['user'] ?? null, null];
     }
 
     public function login_user(string $username, string $password) {
@@ -56,6 +56,25 @@ class client {
             ],
             false
         );
+        return $error ? [null, $error] : [$data['data'] ?? null, null];
+    }
+
+    public function logout_user(string $authtoken, string $userid) {
+        $userheaders = [
+            "X-Auth-Token: {$authtoken}",
+            "X-User-Id: {$userid}"
+        ];
+
+        [$data, $error] = $this->send(
+            'logout',
+            [
+                CURLOPT_HTTPHEADER => $userheaders,
+                CURLOPT_POST => 1,
+                CURLOPT_POSTFIELDS => []
+            ],
+            false
+        );
+
         return $error ? [null, $error] : [$data['data'], null];
     }
 
@@ -75,12 +94,22 @@ class client {
         return $error ? [null, $error] : [$data['user'], null];
     }
 
-    /*
-    public function get_user_tokens($username, $password) {
-        ['authToken' => $token, 'userId' => $id] = rocketchat_login_user($username, $password);
-        return [$token, $id];
+    public function set_avatar(string $username, string $url) {
+        [$data, $error] = $this->post(
+            'users.setAvatar',
+            [
+                'username' => $username,
+                'avatarUrl' => $url
+            ],
+            true
+        );
+
+        if ($error) {
+            die($error);
+        }
+
+        return $error ? [null, $error] : [true, null];
     }
-    */
 
     private function get(string $apiresource, bool $withadminheaders = true) {
         return $this->send($apiresource, [], $withadminheaders);
@@ -97,23 +126,32 @@ class client {
 
     private function send(string $apiresource, array $opts = [], bool $withadminheaders = true) {
         $url = "{$this->serverurl}/api/v1/{$apiresource}";
-        $opts = array_merge([
+        $requestopts = [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_URL => $url
-        ], $opts);
+            CURLOPT_URL => $url,
+            CURLOPT_VERBOSE => true
+        ];
 
-        if ($withadminheaders && isset($opts[CURLOPT_HTTPHEADER])) {
-            $opts[CURLOPT_HTTPHEADER] = array_merge($opts[CURLOPT_HTTPHEADER], $this->adminuserheaders);
+        foreach ($opts as $key => $value) {
+            // Can't use array merge because the keys are numeric and get renumbered.
+            $requestopts[$key] = $value;
+        }
+
+        if ($withadminheaders) {
+            $requestopts[CURLOPT_HTTPHEADER] = array_merge(
+                $requestopts[CURLOPT_HTTPHEADER] ?? [],
+                $this->adminuserheaders
+            );
         }
 
         $ch = curl_init();
-        curl_setopt_array($ch, $opts);
+        curl_setopt_array($ch, $requestopts);
         $return = [null, null];
 
         try {
             $response = json_decode(curl_exec($ch), true);
 
-            if (!empty($response['error'])) {
+            if ($response['status'] == 'error') {
                 $return = [null, $response['message']];
             } else {
                 $return = [$response, null];

@@ -3060,6 +3060,13 @@ function require_logout() {
         $authplugins[$authname]->prelogout_hook();
     }
 
+    $beforelogouts = get_plugins_with_function('before_user_logout', 'lib.php');
+    foreach ($beforelogouts as $plugintype => $plugins) {
+        foreach ($plugins as $pluginfunction) {
+            $pluginfunction($USER);
+        }
+    }
+
     // Store info that gets removed during logout.
     $sid = session_id();
     $event = \core\event\user_loggedout::create(
@@ -4535,6 +4542,14 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
 
         login_attempt_valid($user);
         $failurereason = AUTH_LOGIN_OK;
+
+        $afterlogins = get_plugins_with_function('after_user_login', 'lib.php');
+        foreach ($afterlogins as $plugintype => $plugins) {
+            foreach ($plugins as $pluginfunction) {
+                $pluginfunction($user, $password);
+            }
+        }
+
         return $user;
     }
 
