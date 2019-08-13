@@ -528,6 +528,14 @@ class mysqli_native_moodle_database extends moodle_database {
      * @return bool success
      */
     public function connect($dbhost, $dbuser, $dbpass, $dbname, $prefix, array $dboptions=null) {
+        global $CFG;
+
+        if (!empty($CFG->running_installer) && $prefix == '' && !$this->external) {
+            // Enforce prefix when installing new versions of Moodle with MySQL. Existing installations
+            // don't require the prefix.
+            throw new dml_exception('prefixcannotbeempty', $this->get_dbfamily());
+        }
+
         $driverstatus = $this->driver_installed();
 
         if ($driverstatus !== true) {
