@@ -66,6 +66,7 @@ media/player/videojs/amd/src/Youtube-lazy.js
 media/player/videojs/videojs/
 media/player/videojs/amd/src/videojs-flash-lazy.js
 media/player/videojs/videojs/video-js.swf
+message/amd/src/emojionearea.js
 mod/assign/feedback/editpdf/fpdi/
 repository/s3/S3.php
 theme/boost/scss/bootstrap/
