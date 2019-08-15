@@ -1740,4 +1740,5 @@ document = window.document || {};
         return this;
     };
 
+    return EmojioneArea;
 }, window ) );

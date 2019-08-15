@@ -69,6 +69,7 @@ define(
     'core_message/message_drawer_view_conversation_state_manager',
     'core_message/message_drawer_router',
     'core_message/message_drawer_routes',
+    'core_message/emojionearea'
 ],
 function(
     $,
@@ -85,7 +86,8 @@ function(
     Renderer,
     StateManager,
     MessageDrawerRouter,
-    MessageDrawerRoutes
+    MessageDrawerRoutes,
+    EmojiOneArea
 ) {
 
     // Contains a cache of all view states that have been loaded so far
@@ -1561,6 +1563,11 @@ function(
         ];
 
         AutoRows.init(footer);
+        var messageTextArea = footer.find(SELECTORS.MESSAGE_TEXT_AREA);
+        new EmojiOneArea(messageTextArea, {
+            autocomplete: false,
+            saveEmojisAs: 'image'
+        });
 
         CustomEvents.define(header, [
             CustomEvents.events.activate
