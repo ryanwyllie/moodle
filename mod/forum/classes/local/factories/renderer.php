@@ -124,16 +124,25 @@ class renderer {
         $baseurl = $this->urlfactory->get_discussion_view_url_from_discussion($discussion);
         $notifications = [];
 
+        if ($displaymode === FORUM_MODE_NEW) {
+            $template = 'mod_forum/forum_discussion_new';
+        } else {
+            $template = 'mod_forum/forum_discussion';
+        }
+
         return new discussion_renderer(
             $forum,
             $discussion,
             $displaymode,
+            $template,
             $rendererbase,
             $this->get_single_discussion_posts_renderer($displaymode, false),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
+            $this->urlfactory,
+            $this->entityfactory,
             $capabilitymanager,
             $ratingmanager,
             $this->entityfactory->get_exported_posts_sorter(),
@@ -180,6 +189,9 @@ class renderer {
             case FORUM_MODE_NESTED:
                 $template = 'mod_forum/forum_discussion_nested_posts';
                 break;
+            case FORUM_MODE_NEW:
+                $template = 'mod_forum/forum_discussion_posts_new';
+                break;
             default;
                 $template = 'mod_forum/forum_discussion_posts';
                 break;
@@ -221,26 +233,41 @@ class renderer {
                     $exportedposts
                 );
 
-                if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED) {
+                if ($displaymode === FORUM_MODE_NESTED || $displaymode === FORUM_MODE_THREADED || $displaymode === FORUM_MODE_NEW) {
                     $sortedposts = $exportedpostssorter->sort_into_children($exportedposts);
                     $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {
                         return array_map(function($postdata) use (&$sortintoreplies) {
                             [$post, $replies] = $postdata;
-                            $sortedreplies = $sortintoreplies($replies);
-                            // Set the parent author name on the replies. This is used for screen
-                            // readers to help them identify the structure of the discussion.
-                            $sortedreplies = array_map(function($reply) use ($post) {
-                                if (isset($post->author)) {
-                                    $reply->parentauthorname = $post->author->fullname;
-                                } else {
-                                    // The only time the author won't be set is for a single discussion
-                                    // forum. See above for where it gets unset.
-                                    $reply->parentauthorname = get_string('firstpost', 'mod_forum');
-                                }
-                                return $reply;
-                            }, $sortedreplies);
-                            $post->replies = $sortedreplies;
-                            $post->hasreplies = !empty($post->replies);
+                            $totalreplycount = 0;
+
+                            if (empty($replies)) {
+                                $post->replies = [];
+                                $post->hasreplies = false;
+                            } else {
+                                $sortedreplies = $sortintoreplies($replies);
+                                // Set the parent author name on the replies. This is used for screen
+                                // readers to help them identify the structure of the discussion.
+                                $sortedreplies = array_map(function($reply) use ($post) {
+                                    if (isset($post->author)) {
+                                        $reply->parentauthorname = $post->author->fullname;
+                                    } else {
+                                        // The only time the author won't be set is for a single discussion
+                                        // forum. See above for where it gets unset.
+                                        $reply->parentauthorname = get_string('firstpost', 'mod_forum');
+                                    }
+                                    return $reply;
+                                }, $sortedreplies);
+
+                                $totalreplycount = array_reduce($sortedreplies, function($carry, $reply) {
+                                    return $carry + 1 + $reply->totalreplycount;
+                                }, $totalreplycount);
+
+                                $post->replies = $sortedreplies;
+                                $post->hasreplies = true;
+                            }
+
+                            $post->totalreplycount = $totalreplycount;
+
                             return $post;
                         }, $nestedposts);
                     };
@@ -577,12 +604,15 @@ class renderer {
             $forum,
             $discussion,
             $displaymode,
+            'mod_forum/forum_discussion',
             $rendererbase,
             $this->get_single_discussion_posts_renderer($displaymode, false),
             $this->page,
             $this->legacydatamapperfactory,
             $this->exporterfactory,
             $this->vaultfactory,
+            $this->urlfactory,
+            $this->entityfactory,
             $capabilitymanager,
             $ratingmanager,
             $this->entityfactory->get_exported_posts_sorter(),

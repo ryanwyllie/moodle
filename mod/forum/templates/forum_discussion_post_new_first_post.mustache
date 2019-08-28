@@ -1,0 +1,212 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_forum/forum_discussion_post
+
+    Template to render a single post from a discussion.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+<article
+    id="p{{id}}"
+    class="forum-post-container"
+    data-post-id="{{id}}"
+    data-region="post"
+    data-target="{{id}}-target"
+    tabindex="0"
+    aria-labelledby="post-header-{{id}}"
+    aria-describedby="post-content-{{id}}"
+>
+    <!-- The firstpost and starter classes below aren't used for anything other than to identify the first post in behat -->
+    <div
+        class="d-flex focus-target {{#unread}}unread{{/unread}} {{#firstpost}}firstpost starter{{/firstpost}} {{$postclasses}}{{/postclasses}}"
+        aria-label='{{#str}} postbyuser, mod_forum, {"post": "{{subject}}", "user": "{{author.fullname}}"} {{/str}}'
+        data-post-id="{{id}}" data-content="forum-post"
+    >
+        {{#isfirstunread}}<a id="unread" aria-hidden="true"></a>{{/isfirstunread}}
+        {{^isdeleted}}
+            {{#author}}
+                <div class="author-image-container d-inline-block">
+                    {{#urls.profileimage}}
+                        <img
+                            class="rounded-circle w-100"
+                            src="{{{.}}}"
+                            alt="{{#str}} pictureof, core, {{author.fullname}} {{/str}}"
+                            aria-hidden="true"
+                        >
+                    {{/urls.profileimage}}
+                </div>
+            {{/author}}
+        {{/isdeleted}}
+        <div class="d-flex flex-column w-100"  data-region-content="forum-post-core">
+            <header class="mb-1">
+                {{#parentauthorname}}
+                    <span class="sr-only">{{#str}} inreplyto, mod_forum, {{.}} {{/str}}</span>
+                {{/parentauthorname}}
+                {{^isdeleted}}
+                    <div class="d-flex">
+                        <address class="mb-0" tabindex="-1">
+                            {{$authorname}}
+                                <h4 class="h5 font-weight-bold d-inline-block mb-0" data-region="author-name">{{author.fullname}}</h4>
+                            {{/authorname}}
+                            <time class="small ml-1 dimmed_text">
+                                {{#userdate}} {{timecreated}}, {{#str}} strftimerecentfull, core_langconfig {{/str}} {{/userdate}}
+                            </time>
+                        </address>
+                        {{#capabilities.view}}
+                            <a
+                                href="{{{urls.view}}}"
+                                class="d-inline-block ml-2 small dimmed_text align-self-center icon-no-margin"
+                                title="{{#str}} permanentlinktopost, mod_forum {{/str}}"
+                            >
+                                {{#pix}} e/insert_edit_link, core {{/pix}}
+                            </a>
+                        {{/capabilities.view}}
+                        <div class="dropdown">
+                            <button class="btn btn-sm dimmed_text icon-no-margin p-0 pl-2 pr-2" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{#pix}} i/moremenu {{/pix}}
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                {{#capabilities}}
+                                    {{#controlreadstatus}}
+                                        {{#unread}}
+                                            <a
+                                                href="{{{urls.markasread}}}"
+                                                class="dropdown-item"
+                                                role="menuitem"
+                                            >
+                                                {{#str}} markread, mod_forum {{/str}}
+                                            </a>
+                                        {{/unread}}
+                                        {{^unread}}
+                                            <a
+                                                href="{{{urls.markasunread}}}"
+                                                class="dropdown-item"
+                                                role="menuitem"
+                                            >
+                                                {{#str}} markunread, mod_forum {{/str}}
+                                            </a>
+                                        {{/unread}}
+                                    {{/controlreadstatus}}
+                                    {{#urls.viewparent}}
+                                        <a
+                                            href="{{{.}}}"
+                                            class="dropdown-item"
+                                            title="{{#str}} permanentlinktoparentpost, mod_forum {{/str}}"
+                                            role="menuitem"
+                                        >
+                                            {{#str}} parent, mod_forum {{/str}}
+                                        </a>
+                                    {{/urls.viewparent}}
+                                    {{#edit}}
+                                        <a
+                                            href="{{{urls.edit}}}"
+                                            class="dropdown-item"
+                                            role="menuitem"
+                                        >
+                                            {{#str}} edit, mod_forum {{/str}}
+                                        </a>
+                                    {{/edit}}
+                                    {{#split}}
+                                        <a
+                                            href="{{{urls.split}}}"
+                                            class="dropdown-item"
+                                            role="menuitem"
+                                        >
+                                            {{#str}} prune, mod_forum {{/str}}
+                                        </a>
+                                    {{/split}}
+                                    {{#delete}}
+                                        <a
+                                            href="{{{urls.delete}}}"
+                                            class="dropdown-item"
+                                            role="menuitem"
+                                        >
+                                            {{#str}} delete, mod_forum {{/str}}
+                                        </a>
+                                    {{/delete}}
+                                    {{#export}}
+                                        <a
+                                            href="{{{urls.export}}}"
+                                            class="dropdown-item"
+                                            role="menuitem"
+                                        >
+                                            {{#str}} addtoportfolio, core_portfolio {{/str}}
+                                        </a>
+                                    {{/export}}
+                                {{/capabilities}}
+                            </div>
+                        </div>
+                        {{#isprivatereply}}
+                            <div class="text-danger small align-self-center">{{#str}}postisprivatereply, forum{{/str}}</div>
+                        {{/isprivatereply}}
+                    </div>
+                    <h3 class="h1 font-weight-bold mb-0 post-subject" data-region-content="forum-post-core-subject">{{{subject}}}</h3>
+                {{/isdeleted}}
+                {{#hasreplycount}}
+                    <span class="sr-only">{{#str}} numberofreplies, mod_forum, {{replycount}} {{/str}}</span>
+                {{/hasreplycount}}
+            </header>
+
+            <div class="post-message" id="post-content-{{id}}">
+                {{{message}}}
+            </div>
+
+            {{^isdeleted}}
+                {{$footer}}
+                    <div class="d-flex mt-3">
+                        {{#capabilities.reply}}
+                            <a
+                                href="{{{urls.reply}}}"
+                                class="btn btn-primary d-inline-block"
+                                data-post-id="{{id}}"
+                                data-action="collapsible-link"
+                                data-can-reply-privately="{{canreplyprivately}}"
+                                title="{{#str}} reply, mod_forum {{/str}}"
+                                role="button"
+                            >
+                                {{#str}} reply, mod_forum {{/str}}
+                            </a>
+                        {{/capabilities.reply}}
+                    </div>
+                {{/footer}}
+            {{/isdeleted}}
+        </div>
+    </div>
+
+    {{$replies}}
+        <div class="image-spacer inline-reply-container" data-region="inpage-reply-container"></div>
+
+        <div class="image-spacer replies-container" data-region="replies-container">
+            {{#hasreplies}}
+                {{#replies}}
+                    <div class="mt-4">
+                        {{> mod_forum/forum_discussion_post_new_reply }}
+                    </div>
+                {{/replies}}
+            {{/hasreplies}}
+        </div>
+    {{/replies}}
+</article>

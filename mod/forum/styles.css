@@ -359,3 +359,79 @@ span.unread {
     outline: 5px auto -webkit-focus-ring-color;
 }
 /* stylelint-enable declaration-block-no-duplicate-properties */
+
+#page-mod-forum-discuss.new-display-mode #page-header .card {
+    border: none;
+}
+
+#page-mod-forum-discuss.new-display-mode #region-main {
+    border: none;
+}
+
+#page-mod-forum-discuss.new-display-mode.path-mod-forum .discussionsubscription {
+    margin-top: 0;
+    text-align: inherit;
+    margin-bottom: 0;
+}
+
+#page-mod-forum-discuss.new-display-mode.path-mod-forum .preload-subscribe,
+#page-mod-forum-discuss.new-display-mode.path-mod-forum .preload-unsubscribe {
+    display: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .replies-container .forum-post-container  {
+    border-top: 1px solid #dee2e6;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .replies-container .forum-post-container .replies-container .forum-post-container {
+    border-top: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .replies-container .post-subject {
+    display: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .post-message p:last-of-type {
+    margin-bottom: 0;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .author-image-container {
+    width: 70px;
+    margin-right: 24px;
+    flex-shrink: 0;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .inline-reply-container textarea {
+    border: 0;
+    resize: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .image-spacer .image-spacer {
+    padding-left: 94px;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .image-spacer .image-spacer .author-image-container {
+    width: 30px;
+    margin-right: 8px;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .image-spacer .image-spacer .image-spacer {
+    padding-left: 38px;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .replies-container .inline-reply-container .reply-author {
+    display: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .inline-reply-container input[type="checkbox"] {
+    opacity: 0;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .inline-reply-container input[type="checkbox"]:not(:checked) + label .checked {
+    display: none;
+}
+
+#page-mod-forum-discuss.new-display-mode .forum-post-container .inline-reply-container input[type="checkbox"]:checked + label .unchecked {
+    display: none;
+}
+

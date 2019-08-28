@@ -184,3 +184,46 @@ body:not(.jsenabled) .langmenu:hover > .dropdown-menu,
 .active.carousel-item-left {
     transform: translateX(-100%);
 }
+
+/**
+ * Reset all of the forced style on the page.
+ * - Remove borders on header and content.
+ * - Remove most of the vertical padding.
+ * - Make the content region flex grow so it pushes things like the
+ *   next activity selector to the bottom of the page.
+ */
+body.reset-style {
+    #page-header {
+        .card {
+            border: none;
+
+            .page-header-headings {
+                h1 {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        & > div {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+    }
+
+    #page-content {
+        padding-bottom: 0 !important;
+
+        #region-main {
+            border: none;
+            display: flex;
+            flex-direction: column;
+            padding-top: 0;
+            padding-bottom: 0;
+            height: 100%;
+
+            div[role="main"] {
+                flex: 1;
+            }
+        }
+    }
+}
