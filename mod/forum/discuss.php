@@ -293,10 +293,10 @@ if ($node && $post->get_id() != $discussion->get_first_post_id()) {
 
 $isnewdisplaymode = $displaymode == FORUM_MODE_NEW;
 $PAGE->set_title("$course->shortname: " . format_string($discussion->get_name()));
+$PAGE->set_heading($course->fullname);
 if ($isnewdisplaymode) {
-    $PAGE->add_body_class('new-display-mode');
+    $PAGE->add_body_class('new-display-mode reset-style');
 } else {
-    $PAGE->set_heading($course->fullname);
     $PAGE->set_button(forum_search_form($course));
 }
 

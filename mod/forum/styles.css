@@ -360,14 +360,6 @@ span.unread {
 }
 /* stylelint-enable declaration-block-no-duplicate-properties */
 
-#page-mod-forum-discuss.new-display-mode #page-header .card {
-    border: none;
-}
-
-#page-mod-forum-discuss.new-display-mode #region-main {
-    border: none;
-}
-
 #page-mod-forum-discuss.new-display-mode.path-mod-forum .discussionsubscription {
     margin-top: 0;
     text-align: inherit;
