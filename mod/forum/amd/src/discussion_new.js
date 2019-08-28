@@ -60,23 +60,122 @@ const getInPageReplyContainer = (postContainer) => {
     return postContainer.children().filter(Selectors.post.inpageReplyContainer);
 };
 
-const showInPageReplyForm = (container, afterAnimationCallback) => {
-    const form = container.find(Selectors.post.inpageReplyContent);
+const getInPageReplyForm = (postContainer) => {
+    return getInPageReplyContainer(postContainer).find(Selectors.post.inpageReplyContent);
+};
 
-    form.slideDown({
+const getInPageReplyCreateButton = (postContainer) => {
+    return getPostContentContainer(postContainer).find(Selectors.post.inpageReplyCreateButton);
+};
+
+const getRepliesVisibilityToggleContainer = (postContainer) => {
+    return postContainer.children(Selectors.post.repliesVisibilityToggleContainer);
+};
+
+const getRepliesContainer = (postContainer) => {
+    return postContainer.children(Selectors.post.repliesContainer);
+};
+
+const hasReplies = (pageContainer) => {
+    return getRepliesContainer(pageContainer).children().length > 0;
+};
+
+const getShowRepliesButton = (replyVisibilityToggleContainer) => {
+    return replyVisibilityToggleContainer.find(Selectors.post.showReplies);
+};
+
+const getHideRepliesButton = (replyVisibilityToggleContainer) => {
+    return replyVisibilityToggleContainer.find(Selectors.post.hideReplies);
+};
+
+const repliesVisible = (pageContainer) => {
+    const repliesContainer = getRepliesContainer(pageContainer);
+    return repliesContainer.is(':visible');
+};
+
+const showReplies = (pageContainer) => {
+    const repliesContainer = getRepliesContainer(pageContainer);
+    const replyVisibilityToggleContainer = getRepliesVisibilityToggleContainer(pageContainer);
+    const showButton = getShowRepliesButton(replyVisibilityToggleContainer);
+    const hideButton = getHideRepliesButton(replyVisibilityToggleContainer);
+
+    showButton.addClass('hidden');
+    hideButton.removeClass('hidden');
+
+    repliesContainer.slideDown({
         duration: ANIMATION_DURATION,
-        queue: false,
-        complete: afterAnimationCallback
+        queue: false
     }).css('display', 'none').fadeIn(ANIMATION_DURATION);
 };
 
-const hideInPageReplyForm = (container, afterAnimationCallback) => {
-    const form = container.find(Selectors.post.inpageReplyContent);
+const hideReplies = (pageContainer) => {
+    const repliesContainer = getRepliesContainer(pageContainer);
+    const replyVisibilityToggleContainer = getRepliesVisibilityToggleContainer(pageContainer);
+    const showButton = getShowRepliesButton(replyVisibilityToggleContainer);
+    const hideButton = getHideRepliesButton(replyVisibilityToggleContainer);
 
-    form.slideUp({
+    showButton.removeClass('hidden');
+    hideButton.addClass('hidden');
+
+    repliesContainer.slideUp({
+        duration: ANIMATION_DURATION,
+        queue: false
+    }).fadeOut(ANIMATION_DURATION);
+};
+
+let showInPageReplyForm = null;
+const buildShowInPageReplyFormFunction = (additionalTemplateContext) => {
+    return async (postContainer) => {
+
+        const inPageReplyContainer = getInPageReplyContainer(postContainer);
+        const repliesVisibilityToggleContainer = getRepliesVisibilityToggleContainer(postContainer);
+        const inPageReplyCreateButton = getInPageReplyCreateButton(postContainer);
+
+        if (!hasInPageReplyForm(inPageReplyContainer)) {
+            try {
+                const html = await renderInPageReplyTemplate(additionalTemplateContext, inPageReplyCreateButton, postContainer);
+                Templates.appendNodeContents(inPageReplyContainer, html, '');
+            } catch (e) {
+                Notification.exception(e);
+            }
+        }
+
+        inPageReplyCreateButton.fadeOut(ANIMATION_DURATION, () => {
+            const inPageReplyForm = getInPageReplyForm(postContainer);
+            inPageReplyForm.slideDown({
+                duration: ANIMATION_DURATION,
+                queue: false,
+                complete: () => {
+                    inPageReplyForm.find('textarea').focus();
+                }
+            }).css('display', 'none').fadeIn(ANIMATION_DURATION);
+
+            if (repliesVisibilityToggleContainer.length && hasReplies(postContainer)) {
+                repliesVisibilityToggleContainer.fadeIn(ANIMATION_DURATION);
+                hideReplies(postContainer);
+            }
+        });
+    };
+};
+
+const hideInPageReplyForm = (postContainer) => {
+    const inPageReplyForm = getInPageReplyForm(postContainer);
+    const inPageReplyCreateButton = getInPageReplyCreateButton(postContainer);
+    const repliesVisibilityToggleContainer = getRepliesVisibilityToggleContainer(postContainer);
+
+    if (repliesVisibilityToggleContainer.length && hasReplies(postContainer)) {
+        repliesVisibilityToggleContainer.fadeOut(ANIMATION_DURATION);
+        if (!repliesVisible(postContainer)) {
+            showReplies(postContainer);
+        }
+    }
+
+    inPageReplyForm.slideUp({
         duration: ANIMATION_DURATION,
         queue: false,
-        complete: afterAnimationCallback
+        complete: () => {
+            inPageReplyCreateButton.fadeIn(ANIMATION_DURATION);
+        }
     }).fadeOut(200);
 };
 
@@ -102,57 +201,56 @@ const renderInPageReplyTemplate = (additionalTemplateContext, button, postContai
     return Templates.render('mod_forum/inpage_reply_new', context);
 };
 
-const registerEventListeners = (root, additionalTemplateContext) => {
+const incrementTotalReplyCount = (postContainer) => {
+    getRepliesVisibilityToggleContainer(postContainer).find(Selectors.post.replyCount).each((index, element) => {
+        const currentCount = parseInt(element.innerText, 10);
+        element.innerText = currentCount + 1;
+    });
+};
+
+const registerEventListeners = (root) => {
     CustomEvents.define(root, [CustomEvents.events.activate]);
     AutoRows.init(root);
 
-    root.on(CustomEvents.events.activate, Selectors.post.inpageReplyCreateButton, async (e, data) => {
+    root.on(CustomEvents.events.activate, Selectors.post.inpageReplyCreateButton, (e, data) => {
         data.originalEvent.preventDefault();
-
+        const postContainer = getPostContainer($(e.currentTarget));
         clearUrlHash();
-
-        const button = $(e.currentTarget);
-        const postContainer = getPostContainer(button);
-        const inPageReplyContainer = getInPageReplyContainer(postContainer);
-
-        if (!hasInPageReplyForm(inPageReplyContainer)) {
-            try {
-                const html = await renderInPageReplyTemplate(additionalTemplateContext, button, postContainer);
-                Templates.appendNodeContents(inPageReplyContainer, html, '');
-            } catch (e) {
-                Notification.exception(e);
-            }
-        }
-
-        button.fadeOut(ANIMATION_DURATION, () => {
-            showInPageReplyForm(inPageReplyContainer, () => {
-                inPageReplyContainer.find(Selectors.post.inpageReplyContent).find('textarea').focus();
-            });
-        });
-
-        return;
+        showInPageReplyForm(postContainer);
     });
 
     root.on(CustomEvents.events.activate, Selectors.post.inpageReplyCancelButton, (e, data) => {
         data.originalEvent.preventDefault();
+        const postContainer = getPostContainer($(e.currentTarget));
+        hideInPageReplyForm(postContainer);
+    });
 
-        const button = $(e.currentTarget);
-        const postContainer = getPostContainer(button);
-        const postContentContainer = getPostContentContainer(postContainer);
-        const inPageReplyContainer = getInPageReplyContainer(postContainer);
-        const inPageReplyCreateButton = postContentContainer.find(Selectors.post.inpageReplyCreateButton);
-        hideInPageReplyForm(inPageReplyContainer, () => {
-            inPageReplyCreateButton.fadeIn(ANIMATION_DURATION);
-        });
+    root.on(CustomEvents.events.activate, Selectors.post.showReplies, (e, data) => {
+        data.originalEvent.preventDefault();
+        const postContainer = getPostContainer($(e.target));
+        showReplies(postContainer);
+    });
+
+    root.on(CustomEvents.events.activate, Selectors.post.hideReplies, (e, data) => {
+        data.originalEvent.preventDefault();
+        const postContainer = getPostContainer($(e.target));
+        hideReplies(postContainer);
+    });
+
+    root.on(InPageReply.EVENTS.POST_CREATED, Selectors.post.inpageSubmitBtn, (e) => {
+        const postContainer = getPostContainer($(e.currentTarget));
+        hideInPageReplyForm(postContainer);
+        incrementTotalReplyCount(postContainer);
     });
 };
 
 export const init = (root, context) => {
-    registerEventListeners(root, context);
+    showInPageReplyForm = buildShowInPageReplyFormFunction(context);
+    registerEventListeners(root);
     Discussion.init(root);
     InPageReply.init(root);
 
-    const discussionToolsContainer = root.find('[data-container="discussion-tools"]');
+    const discussionToolsContainer = root.find(Selectors.discussion.tools);
     LockToggle.init(discussionToolsContainer);
     FavouriteToggle.init(discussionToolsContainer);
     Pin.init(discussionToolsContainer);
