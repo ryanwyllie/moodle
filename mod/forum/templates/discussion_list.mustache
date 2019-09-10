@@ -33,6 +33,11 @@
     }
 }}
 <div id="discussion-list-{{uniqid}}">
+    {{#description}}
+        <h3 class="h6 mb-1 font-weight-bold">{{#str}} description, core {{/str}}</h3>
+        <div class="mb-3">{{{.}}}</div>
+    {{/description}}
+
     {{{groupchangemenu}}}
 
     {{#notifications}}
