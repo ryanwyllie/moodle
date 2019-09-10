@@ -87,8 +87,7 @@ $displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode
 $PAGE->set_context($forum->get_context());
 $PAGE->set_title($forum->get_name());
 $PAGE->add_body_class('forumtype-' . $forum->get_type() . ' reset-style');
-$PAGE->set_heading($course->fullname);
-$PAGE->set_button(forum_search_form($course, $search));
+$PAGE->set_heading($forum->get_name());
 $PAGE->set_include_region_main_settings_in_header_actions(true);
 
 if ($istypesingle && $displaymode == FORUM_MODE_MODERN) {
@@ -136,7 +135,6 @@ if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 
 if ($sortorder) {
     set_user_preference('forum_discussionlistsortorder', $sortorder);
