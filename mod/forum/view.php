@@ -138,10 +138,6 @@ if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 
-if (!$istypesingle && !empty($forum->get_intro())) {
-    echo $OUTPUT->box(format_module_intro('forum', $forumrecord, $cm->id), 'generalbox', 'intro');
-}
-
 if ($sortorder) {
     set_user_preference('forum_discussionlistsortorder', $sortorder);
 }
