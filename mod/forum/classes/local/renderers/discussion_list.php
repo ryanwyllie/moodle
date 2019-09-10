@@ -144,6 +144,7 @@ class discussion_list {
         global $PAGE;
 
         $forum = $this->forum;
+        $forumrecord = $this->legacydatamapperfactory->get_forum_data_mapper()->to_legacy_object($forum);
 
         $forumexporter = $this->exporterfactory->get_forum_exporter(
             $user,
@@ -168,6 +169,7 @@ class discussion_list {
 
         $forumview = [
             'forum' => (array) $forumexporter->export($this->renderer),
+            'description' => format_module_intro('forum', $forumrecord, $cm->id),
             'hasanyactions' => $hasanyactions,
             'groupchangemenu' => groups_print_activity_menu(
                 $cm,
@@ -194,7 +196,7 @@ class discussion_list {
 
         if ($this->postprocessfortemplate !== null) {
             // We've got some post processing to do!
-            $exportedposts = ($this->postprocessfortemplate) ($discussions, $user, $forum);
+            $exporteddiscussions = ($this->postprocessfortemplate) ($discussions, $user, $forum);
         }
 
         $baseurl = new \moodle_url($PAGE->url, array('o' => $sortorder));
@@ -204,7 +206,7 @@ class discussion_list {
             [
                 'pagination' => $this->renderer->render(new \paging_bar($alldiscussionscount, $pageno, $pagesize, $baseurl, 'p')),
             ],
-            $exportedposts
+            $exporteddiscussions
         );
 
         return $this->renderer->render_from_template($this->template, $forumview);
