@@ -2629,7 +2629,7 @@ template {
   display: none !important; }
 
 h1, h2, h3, h4, h5, h6,
-.h1, .h2, .path-calendar .maincalendar .calendar-controls .current, .h3, .h4, .h5, .h6 {
+.h1, .h2, .path-calendar .maincalendar .calendar-controls .current, body.reset-style #page-header .card .page-header-headings h1, body.reset-style #page-header #page-enrol-users #filterform .page-header-headings h1, #page-enrol-users body.reset-style #page-header #filterform .page-header-headings h1, body.reset-style #page-header .que .history .page-header-headings h1, .que body.reset-style #page-header .history .page-header-headings h1, body.reset-style #page-header .userprofile .profile_tree section .page-header-headings h1, .userprofile .profile_tree body.reset-style #page-header section .page-header-headings h1, body.reset-style #page-header .groupinfobox .page-header-headings h1, body.reset-style #page-header .well .page-header-headings h1, .h3, .h4, .h5, .h6 {
   margin-bottom: 0.5rem;
   font-weight: 300;
   line-height: 1.2; }
@@ -2637,7 +2637,7 @@ h1, h2, h3, h4, h5, h6,
 h1, .h1 {
   font-size: 2.34375rem; }
 
-h2, .h2, .path-calendar .maincalendar .calendar-controls .current {
+h2, .h2, .path-calendar .maincalendar .calendar-controls .current, body.reset-style #page-header .card .page-header-headings h1, body.reset-style #page-header #page-enrol-users #filterform .page-header-headings h1, #page-enrol-users body.reset-style #page-header #filterform .page-header-headings h1, body.reset-style #page-header .que .history .page-header-headings h1, .que body.reset-style #page-header .history .page-header-headings h1, body.reset-style #page-header .userprofile .profile_tree section .page-header-headings h1, .userprofile .profile_tree body.reset-style #page-header section .page-header-headings h1, body.reset-style #page-header .groupinfobox .page-header-headings h1, body.reset-style #page-header .well .page-header-headings h1 {
   font-size: 1.875rem; }
 
 h3, .h3 {
