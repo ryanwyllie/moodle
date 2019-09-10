@@ -78,10 +78,14 @@ require_course_login($course, true, $cm);
 
 $PAGE->set_context($forum->get_context());
 $PAGE->set_title($forum->get_name());
-$PAGE->add_body_class('forumtype-' . $forum->get_type());
-$PAGE->set_heading($course->fullname);
-$PAGE->set_button(forum_search_form($course, $search));
+$PAGE->set_heading($forum->get_name());
 $PAGE->set_include_region_main_settings_in_header_actions(true);
+
+if ($forum->get_type() != 'single') {
+    $PAGE->add_body_class('forumtype-' . $forum->get_type() . ' reset-style fixed-width-content');
+} else {
+    $PAGE->add_body_class('forumtype-' . $forum->get_type());
+}
 
 if (empty($cm->visible) && !has_capability('moodle/course:viewhiddenactivities', $forum->get_context())) {
     redirect(
@@ -124,7 +128,6 @@ if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($forum->get_name()), 2);
 
 if ($mode) {
     set_user_preference('forum_displaymode', $mode);
