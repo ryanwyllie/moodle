@@ -33,22 +33,20 @@
     }
 }}
 <div id="discussion-list-{{uniqid}}">
+    {{#notifications}}
+        {{> core/notification}}
+    {{/notifications}}
+
     {{#description}}
         <h3 class="h6 mb-1 font-weight-bold">{{#str}} description, core {{/str}}</h3>
         <div class="mb-3">{{{.}}}</div>
     {{/description}}
 
-    {{{groupchangemenu}}}
-
-    {{#notifications}}
-        {{> core/notification}}
-    {{/notifications}}
-
     {{#forum.capabilities.create}}
-        <div class="p-t-1 p-b-1">
+        <div class="p-t-1 mb-4">
             <a class="btn btn-primary" data-toggle="collapse" href="#collapseAddForm">
                 {{$discussion_create_text}}
-                    {{#str}}addanewdiscussion, forum{{/str}}
+                    {{#str}}creatediscussion, forum{{/str}}
                 {{/discussion_create_text}}
             </a>
             <div class="collapse m-t-1 mb-5" id="collapseAddForm">
@@ -58,27 +56,28 @@
     {{/forum.capabilities.create}}
     {{^forum.capabilities.create}}
         {{#forum.capabilities.selfenrol}}
-            <div class="p-t-1 p-b-1">
+            <div class="p-t-1 mb-3">
                 <a class="btn btn-primary" href="{{forum.urls.create}}">
                     {{$discussion_create_text}}
-                        {{#str}}addanewdiscussion, forum{{/str}}
+                        {{#str}}creatediscussion, forum{{/str}}
                     {{/discussion_create_text}}
                 </a>
             </div>
         {{/forum.capabilities.selfenrol}}
     {{/forum.capabilities.create}}
 
+    <div class="d-flex flex-wrap">
+        <div class="flex-grow-1 mb-3 mr-2">{{{searchform}}}</div>
+        <div class="flex-shrink-0 mb-3">{{{groupchangemenu}}}</div>
+    </div>
 
     {{#state.hasdiscussions}}
-        {{$discussion_top_pagination}}
-            {{{ pagination }}}
-        {{/discussion_top_pagination}}
         {{$discussion_list_output}}
             <span id="discussion-table-description-{{uniqid}}" class="sr-only">
                 {{#str}} showingcountoftotaldiscussions, mod_forum, {"count": "{{visiblediscussioncount}}", "total":"{{totaldiscussioncount}}"} {{/str}}
             </span>
             <table
-                class="table table-hover discussion-list"
+                class="table discussion-list"
                 aria-label='{{#str}} showingcountoftotaldiscussions, mod_forum, {"count": "{{visiblediscussioncount}}", "total":"{{totaldiscussioncount}}"} {{/str}}'
                 aria-describedby="discussion-table-description-{{uniqid}}"
             >
@@ -289,7 +288,7 @@
             </table>
         {{/discussion_list_output}}
         {{$discussion_bottom_pagination}}
-            {{{ pagination }}}
+            <div class="d-flex justify-content-end">{{{ pagination }}}</div>
         {{/discussion_bottom_pagination}}
         {{#can_create_discussion}}
             <div class="forumaddnew">

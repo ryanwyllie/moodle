@@ -3787,11 +3787,11 @@ select.form-control:focus::-ms-value {
   background-color: transparent;
   border: solid transparent;
   border-width: 1px 0; }
-  .form-control-plaintext.form-control-sm, .form-control-plaintext.form-control-lg {
+  .form-control-plaintext.form-control-sm, #page-mod-forum-view .advanced-search-form-container .tags-container input.form-control-plaintext.form-control[type="text"], .form-control-plaintext.form-control-lg {
     padding-right: 0;
     padding-left: 0; }
 
-.form-control-sm {
+.form-control-sm, #page-mod-forum-view .advanced-search-form-container .tags-container input.form-control[type="text"] {
   height: calc(1.5em + 0.5rem + 2px);
   padding: 0.25rem 0.5rem;
   font-size: 0.8203125rem;
@@ -5187,7 +5187,7 @@ p.arrow_button input[type="button"],
   .custom-select::-ms-expand {
     display: none; }
 
-.custom-select-sm {
+.custom-select-sm, #page-mod-forum-view .advanced-search-form-container .date-field-container .custom-select {
   height: calc(1.5em + 0.5rem + 2px);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
@@ -16161,6 +16161,51 @@ select {
 .forumsearch input[type=text] {
   margin-bottom: 0; }
 
+#page-mod-forum-view .search-forms-container {
+  max-width: 600px; }
+
+#page-mod-forum-view .inline-search-form .input-group-append.border, #page-mod-forum-view .inline-search-form .input-group-append.filemanager-container,
+#page-mod-forum-view .inline-search-form .input-group-append.filepicker-filelist {
+  /** Match the input border colour. */
+  border-color: #ced4da !important;
+  /* stylelint-disable-line declaration-no-important */ }
+
+#page-mod-forum-view .inline-search-form .input-group-append .btn-icon.icon-size-3 {
+  /** Reduce button size marginally in order to fit in the input */
+  height: 30px !important;
+  /* stylelint-disable-line declaration-no-important */
+  width: 30px !important;
+  /* stylelint-disable-line declaration-no-important */ }
+
+#page-mod-forum-view .advanced-search-form-container {
+  /** Styling to match the .custom-select-sm class from bootstrap */ }
+  #page-mod-forum-view .advanced-search-form-container .tags-container {
+    /** Styling to match the .form-control-sm class from bootstrap */ }
+    #page-mod-forum-view .advanced-search-form-container .tags-container .form-autocomplete-downarrow {
+      top: 0; }
+  #page-mod-forum-view .advanced-search-form-container .form-group, #page-mod-forum-view .advanced-search-form-container .form-buttons,
+  #page-mod-forum-view .advanced-search-form-container .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons,
+  #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div,
+  #page-mod-forum-view .advanced-search-form-container div.backup-section + form {
+    margin-bottom: 0.5rem; }
+    #page-mod-forum-view .advanced-search-form-container .form-group .form-group, #page-mod-forum-view .advanced-search-form-container .form-buttons .form-group, #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .form-group, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .form-group, #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .form-group, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .form-group, #page-mod-forum-view .advanced-search-form-container div.backup-section + form .form-group, #page-mod-forum-view .advanced-search-form-container .form-group .form-buttons, #page-mod-forum-view .advanced-search-form-container .form-buttons .form-buttons, #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .form-buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .form-buttons, #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .form-buttons, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .form-buttons, #page-mod-forum-view .advanced-search-form-container div.backup-section + form .form-buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-group .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .form-group .buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .form-buttons .buttons,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .buttons,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .buttons, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .path-admin .buttons, .path-admin .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .buttons,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container div.backup-section + form .buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-group .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .form-group form + div,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .form-buttons form + div,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .path-admin .buttons form + div, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .fp-content-center form + div, .fp-content-center .path-admin #page-mod-forum-view .advanced-search-form-container .buttons form + div,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div form + div,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container div.backup-section + form form + div,
+    #page-mod-forum-view .advanced-search-form-container .form-group div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons div.backup-section + form, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div div.backup-section + form, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form div.backup-section + form {
+      margin-bottom: 0; }
+
 #page-mod-forum-discuss .discussioncontrols {
   width: auto;
   margin: 0; }
@@ -17444,7 +17489,8 @@ body.reset-style #page-content {
     width: 100%;
     padding-left: 1.25rem;
     padding-right: 1.25rem;
-    vertical-align: top; }
+    vertical-align: top;
+    overflow-x: visible; }
     body.reset-style #page-content #region-main-box #region-main div[role="main"] {
       flex: 1; }
     body.reset-style #page-content #region-main-box #region-main .activity-navigation {
