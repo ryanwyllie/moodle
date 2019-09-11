@@ -1,0 +1,192 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_forum/forum_discussion_search_form
+
+    This template renders the search form within forums.
+
+    Example context (json):
+    {
+        "actionurl": "https://domain.example/mod/forum/search.php",
+        "courseid": "2",
+        "query": "find this post"
+    }
+}}
+<div id="search-forms-container-{{uniqid}}" class="search-forms-container">
+    <form
+        action="{{actionurl}}"
+        class="inline-search-form"
+        data-region="quick-search-form"
+    >
+        <input type="hidden" name="id" value="{{courseid}}">
+        <div class="input-group">
+            <label class="sr-only" for="search">{{#str}}search, forum{{/str}}</label>
+            <input
+                id="search"
+                name="search"
+                type="text"
+                class="form-control border-right-0"
+                value="{{query}}"
+                placeholder="{{#str}} searchforums, mod_forum {{/str}}"
+            >
+            <div class="input-group-append mr-3 pr-2 d-flex align-items-center border border-left-0">
+                    <button
+                        class="btn btn-icon icon-size-3 icon-no-margin colour-inherit"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-delay='{ "show": 500, "hide": 100 }'
+                        title="{{#str}} advancedsearch, mod_forum {{/str}}"
+                        aria-expanded="false"
+                        aria-controls="advanced-search-form-{{uniqid}}"
+                        data-action="show-advanced-search-form"
+                    >
+                        {{#pix}} t/more, core {{/pix}}
+                    </button>
+            </div>
+            <div class="input-group-append">
+                <button class="btn btn-secondary" type="submit">
+                    {{#pix}} i/search, core {{/pix}}
+                    {{#str}} search, mod_forum {{/str}}
+                </button>
+            </div>
+        </div>
+    </form>
+    <div class="advanced-search-form-container position-relative">
+        <form
+            id="advanced-search-form-{{uniqid}}"
+            class="w-100 position-absolute border shadow p-3 bg-white hidden"
+            action="{{actionurl}}"
+            method="get"
+            style="z-index: 1"
+            data-region="advanced-search-form"
+        >
+            <input type="hidden" value="{{courseid}}" name="id">
+            <input type="hidden" name="hfromday" value="0">
+            <input type="hidden" name="hfrommonth" value="0">
+            <input type="hidden" name="hfromyear" value="0">
+            <input type="hidden" name="hfromhour" value="0">
+            <input type="hidden" name="hfromminute" value="0">
+            <input type="hidden" name="htoday" value="0">
+            <input type="hidden" name="htomonth" value="0">
+            <input type="hidden" name="htoyear" value="0">
+            <input type="hidden" name="htohour" value="0">
+            <input type="hidden" name="htominute" value="0">
+
+            <div class="form-group row no-gutters">
+                <label for="words" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchwordsshort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control form-control-sm" name="words" id="words" value="{{words}}">
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="phrase" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchphraseshort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control form-control-sm" name="phrase" id="phrase" value="{{phrase}}">
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="notwords" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchnotwordsshort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control form-control-sm" name="notwords" id="notwords" value="{{notwords}}">
+                </div>
+            </div>
+
+            {{#showfullwords}}
+                <div class="form-group row no-gutters">
+                    <label for="fullwords" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchfullwordsshort, forum{{/str}}</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control form-control-sm" name="fullwords" id="fullwords" value="{{fullwords}}">
+                    </div>
+                </div>
+            {{/showfullwords}}
+
+            <div class="form-group row no-gutters">
+                <label for="timefromrestrict" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchdatefromshort, forum{{/str}}</label>
+                <div class="d-flex flex-wrap align-items-center col-sm-9 date-field-container">
+                    <input type="checkbox" name="timefromrestrict" value="1" {{#datefromchecked}}checked{{/datefromchecked}}>
+                    {{{datefromfields}}}
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="timetorestrict" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchdatetoshort, forum{{/str}}</label>
+                <div class="d-flex flex-wrap align-items-center col-sm-9 date-field-container">
+                    <input type="checkbox" name="timetorestrict" value="1" {{#datetochecked}}checked{{/datetochecked}}>
+                    {{{datetofields}}}
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="menuforumid" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchwhichforumsshort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <select name="forumid" id="menuforumid" class="form-control custom-select custom-select-sm w-auto">
+                        {{#forumoptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/forumoptions}}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="subject" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchsubjectshort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control form-control-sm" name="subject" id="subject" value="{{subject}}">
+                </div>
+            </div>
+
+            <div class="form-group row no-gutters">
+                <label for="user" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchusershort, forum{{/str}}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control form-control-sm" name="user" id="user" value="{{user}}">
+                </div>
+            </div>
+
+            {{^guestuser}}
+                <div class="form-group row no-gutters">
+                    <label for="starredonly" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}starredonlyshort, forum{{/str}}</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" class="form-control form-control-sm" name="starredonly" id="starredonly" value="1" {{#starredonly}}checked{{/starredonly}} />
+                    </div>
+                </div>
+            {{/guestuser}}
+
+            {{#tagsenabled}}
+                <div class="form-group row no-gutters">
+                    <label for="tags" class="col-sm-3 col-form-label line-height-3 pr-2">{{#str}}searchtagsshort, forum{{/str}}</label>
+                    <div class="col-sm-9 tags-container">
+                        <select class="custom-select custom-select-sm" name="tags[]" id="tags" multiple>
+                            {{#tagoptions}}
+                                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{text}}}</option>
+                            {{/tagoptions}}
+                        </select>
+                    </div>
+                </div>
+            {{/tagsenabled}}
+
+            <div class="text-right">
+                <button type="submit" class="btn btn-primary">{{#str}}searchforums, forum{{/str}}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{#js}}
+require(['mod_forum/discussion_search_form'], function(InitSearchForm) {
+    InitSearchForm(document.getElementById('search-forms-container-{{uniqid}}'));
+});
+{{/js}}

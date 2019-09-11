@@ -364,31 +364,3 @@ function forum_clean_search_terms($words, $prefix='') {
     }
     return trim(implode(' ', $searchterms));
 }
-
- /**
-  * Retrieve a list of the forums that this user can view.
-  *
-  * @param stdClass $course The Course to use.
-  * @return array A set of formatted forum names stored against the forum id.
-  */
-function forum_menu_list($course)  {
-    $menu = array();
-
-    $modinfo = get_fast_modinfo($course);
-    if (empty($modinfo->instances['forum'])) {
-        return $menu;
-    }
-
-    foreach ($modinfo->instances['forum'] as $cm) {
-        if (!$cm->uservisible) {
-            continue;
-        }
-        $context = context_module::instance($cm->id);
-        if (!has_capability('mod/forum:viewdiscussion', $context)) {
-            continue;
-        }
-        $menu[$cm->instance] = format_string($cm->name);
-    }
-
-    return $menu;
-}
