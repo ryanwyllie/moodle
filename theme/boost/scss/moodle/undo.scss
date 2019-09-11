@@ -228,6 +228,7 @@ $allow-reset-style: true !default;
                     padding-left: $card-spacer-x;
                     padding-right: $card-spacer-x;
                     vertical-align: top;
+                    overflow-x: visible;
 
                     div[role="main"] {
                         flex: 1;

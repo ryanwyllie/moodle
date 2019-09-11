@@ -37,7 +37,6 @@ $forumid = optional_param('f', 0, PARAM_INT);
 $mode = optional_param('mode', 0, PARAM_INT);
 $showall = optional_param('showall', '', PARAM_INT);
 $pageno = optional_param('page', 0, PARAM_INT);
-$search = optional_param('search', '', PARAM_CLEAN);
 $pageno = optional_param('p', $pageno, PARAM_INT);
 $pagesize = optional_param('s', 0, PARAM_INT);
 $sortorder = optional_param('o', null, PARAM_INT);
