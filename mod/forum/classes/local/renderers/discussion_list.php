@@ -27,16 +27,17 @@ namespace mod_forum\local\renderers;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_forum\local\entities\forum as forum_entity;
+use mod_forum\local\factories\builder as builder_factory;
 use mod_forum\local\factories\legacy_data_mapper as legacy_data_mapper_factory;
 use mod_forum\local\factories\exporter as exporter_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\factories\url as url_factory;
 use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\vaults\discussion_list as discussion_list_vault;
+use mod_forum\output\big_search_form;
 use renderer_base;
 use stdClass;
 use core\output\notification;
-use mod_forum\local\factories\builder as builder_factory;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
@@ -170,6 +171,7 @@ class discussion_list {
         $forumview = [
             'forum' => (array) $forumexporter->export($this->renderer),
             'description' => format_module_intro('forum', $forumrecord, $cm->id),
+            'searchform' => $this->get_search_form(),
             'hasanyactions' => $hasanyactions,
             'groupchangemenu' => groups_print_activity_menu(
                 $cm,
@@ -376,5 +378,13 @@ class discussion_list {
         return array_map(function($notification) {
             return $notification->export_for_template($this->renderer);
         }, $notifications);
+    }
+
+    private function get_search_form() : string {
+        $renderer = $this->renderer;
+        $bigsearchform = new big_search_form($this->forum->get_course_record());
+        $bigsearchform->set_forumid($this->forum->get_id());
+        $rendercontext = $bigsearchform->export_for_template($renderer);
+        return $renderer->render_from_template('mod_forum/forum_discussion_search_form', $rendercontext);
     }
 }

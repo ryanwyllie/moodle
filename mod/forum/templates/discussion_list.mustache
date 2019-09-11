@@ -33,19 +33,17 @@
     }
 }}
 <div id="discussion-list-{{uniqid}}">
-    <div class="my-3">{{{description}}}</div>
-
-    {{{groupchangemenu}}}
-
     {{#notifications}}
         {{> core/notification}}
     {{/notifications}}
 
+    <div class="my-3">{{{description}}}</div>
+
     {{#forum.capabilities.create}}
-        <div class="p-t-1 p-b-1">
+        <div class="p-t-1 mb-4">
             <a class="btn btn-primary" data-toggle="collapse" href="#collapseAddForm">
                 {{$discussion_create_text}}
-                    {{#str}}addanewdiscussion, forum{{/str}}
+                    {{#str}}creatediscussion, forum{{/str}}
                 {{/discussion_create_text}}
             </a>
             <div class="collapse m-t-1 mb-5" id="collapseAddForm">
@@ -55,16 +53,20 @@
     {{/forum.capabilities.create}}
     {{^forum.capabilities.create}}
         {{#forum.capabilities.selfenrol}}
-            <div class="p-t-1 p-b-1">
+            <div class="p-t-1 mb-3">
                 <a class="btn btn-primary" href="{{forum.urls.create}}">
                     {{$discussion_create_text}}
-                        {{#str}}addanewdiscussion, forum{{/str}}
+                        {{#str}}creatediscussion, forum{{/str}}
                     {{/discussion_create_text}}
                 </a>
             </div>
         {{/forum.capabilities.selfenrol}}
     {{/forum.capabilities.create}}
 
+    <div class="d-flex flex-wrap">
+        <div class="flex-grow-1 mb-3 mr-2">{{{searchform}}}</div>
+        <div class="flex-shrink-0 mb-3">{{{groupchangemenu}}}</div>
+    </div>
 
     {{#state.hasdiscussions}}
         {{$discussion_top_pagination}}
