@@ -87,10 +87,16 @@ $PAGE->set_context($forum->get_context());
 $PAGE->set_title($forum->get_name());
 $PAGE->add_body_class('forumtype-' . $forum->get_type() . ' reset-style');
 $PAGE->set_heading($forum->get_name());
-$PAGE->set_include_region_main_settings_in_header_actions(true);
 
 if ($istypesingle && $displaymode == FORUM_MODE_MODERN) {
+    $PAGE->set_include_region_main_settings_in_header_actions(false);
+    $PAGE->set_render_region_main_settings_as_drawer(false);
     $PAGE->add_body_class('modern-display-mode reset-style');
+    $settingstrigger = $OUTPUT->render_from_template('mod_forum/settings_drawer_trigger', null);
+    $PAGE->add_header_action($settingstrigger);
+} else {
+    $PAGE->set_include_region_main_settings_in_header_actions(true);
+    $PAGE->set_render_region_main_settings_as_drawer(true);
 }
 
 if (empty($cm->visible) && !has_capability('moodle/course:viewhiddenactivities', $forum->get_context())) {
