@@ -4262,11 +4262,15 @@ EOD;
         global $PAGE;
 
         if ($PAGE->include_region_main_settings_in_header_actions()) {
-            $PAGE->add_header_action(html_writer::div(
-                $this->region_main_settings_menu(),
-                'd-print-none',
-                ['id' => 'region-main-settings-menu']
-            ));
+            if ($PAGE->get_render_region_main_settings_as_drawer()) {
+                $PAGE->add_header_action($this->region_main_settings_menu(true));
+            } else {
+                $PAGE->add_header_action(html_writer::div(
+                    $this->region_main_settings_menu(false),
+                    'd-print-none',
+                    ['id' => 'region-main-settings-menu']
+                ));
+            }
         }
 
         $header = new stdClass();
@@ -4436,11 +4440,11 @@ EOD;
      * This is an optional menu that can be added to a layout by a theme. It contains the
      * menu for the most specific thing from the settings block. E.g. Module administration.
      *
+     * @param bool $asdrawer Should the region main settings be rendered as a drawer instead of dropdown?
      * @return string
      */
-    public function region_main_settings_menu() {
+    public function region_main_settings_menu(bool $asdrawer = false) {
         $context = $this->page->context;
-        $menu = new action_menu();
 
         if ($context->contextlevel == CONTEXT_MODULE) {
 
@@ -4464,20 +4468,12 @@ EOD;
             if ($buildmenu) {
                 // Get the course admin node from the settings navigation.
                 $node = $this->page->settingsnav->find('modulesettings', navigation_node::TYPE_SETTING);
-                if ($node) {
-                    // Build an action menu based on the visible nodes from this navigation tree.
-                    $this->build_action_menu_from_navigation($menu, $node);
-                }
             }
 
         } else if ($context->contextlevel == CONTEXT_COURSECAT) {
             // For course category context, show category settings menu, if we're on the course category page.
             if ($this->page->pagetype === 'course-index-category') {
                 $node = $this->page->settingsnav->find('categorysettings', navigation_node::TYPE_CONTAINER);
-                if ($node) {
-                    // Build an action menu based on the visible nodes from this navigation tree.
-                    $this->build_action_menu_from_navigation($menu, $node);
-                }
             }
 
         } else {
@@ -4486,14 +4482,40 @@ EOD;
 
             if ($navbarnode && ($navbarnode->key === 'participants')) {
                 $node = $this->page->settingsnav->find('users', navigation_node::TYPE_CONTAINER);
-                if ($node) {
-                    // Build an action menu based on the visible nodes from this navigation tree.
-                    $this->build_action_menu_from_navigation($menu, $node);
-                }
-
             }
         }
-        return $this->render($menu);
+
+        if (!$node || !$node->has_children()) {
+            return '';
+        }
+
+        if ($asdrawer) {
+            $buildnodecontext = function(navigation_node $node) use (&$buildnodecontext, $context) {
+                $nodeexporter = new \core\external\navigation_node_exporter($node, ['context' => $context]);
+                $exportednode = $nodeexporter->export($this);
+                $exportednode->children = [];
+
+                if ($node->has_children()) {
+                    foreach ($node->children as $childnode) {
+                        $exportednode->children[] = $buildnodecontext($childnode);
+                    }
+                }
+
+                return $exportednode;
+            };
+
+            $rendercontext = ['nodes' => []];
+            foreach ($node->children as $childnode) {
+                $rendercontext['nodes'][] = $buildnodecontext($childnode);
+            }
+
+            return $this->render_from_template('core/region_main_settings_drawer', $rendercontext);
+        } else {
+            $menu = new action_menu();
+            // Build an action menu based on the visible nodes from this navigation tree.
+            $this->build_action_menu_from_navigation($menu, $node);
+            return $this->render($menu);
+        }
     }
 
     /**

@@ -364,6 +364,11 @@ class moodle_page {
     protected $_regionmainsettingsinheader = false;
 
     /**
+     * @var bool Should the region main settings menu be rendered as a drawer.
+     */
+    protected $_regionmainsettingsasdrawer = false;
+
+    /**
      * Force the settings menu to be displayed on this page. This will only force the
      * settings menu on an activity / resource page that is being displayed on a theme that
      * uses a settings menu.
@@ -2072,12 +2077,30 @@ class moodle_page {
     }
 
     /**
-     * Check if the  region main settings should be rendered as an action in the header actions
+     * Check if the region main settings should be rendered as an action in the header actions
      * menu rather than at the top of the content.
      *
      * @return bool
      */
     public function include_region_main_settings_in_header_actions() : bool {
         return $this->_regionmainsettingsinheader;
+    }
+
+    /**
+     * Set the flag to indicate if the region main settings should be rendered as an a drawer
+     *
+     * @param bool $value If the settings should be in the header.
+     */
+    public function set_render_region_main_settings_as_drawer(bool $value) : void {
+        $this->_regionmainsettingsasdrawer = $value;
+    }
+
+    /**
+     * Check if the region main settings should be rendered as a a drawer.
+     *
+     * @return bool
+     */
+    public function get_render_region_main_settings_as_drawer() : bool {
+        return $this->_regionmainsettingsasdrawer;
     }
 }
