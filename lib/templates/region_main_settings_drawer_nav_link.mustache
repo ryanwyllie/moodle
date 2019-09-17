@@ -1,0 +1,50 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/region_main_settings_drawer_nav_link
+
+    This template renders the region main settings in a drawer.
+
+    Example context (json):
+    {}
+}}
+
+{{#display}}
+    <div>
+        {{#actionurl}}
+            <a
+                class="d-block p-2 {{#classes}}{{.}}{{/classes}} {{#hidden}}text-muted{{/hidden}}{{^hidden}}colour-inherit{{/hidden}} {{$child}}{{/child}}"
+                href="{{actionurl}}"
+            >
+                {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
+                {{text}}
+            </a>
+        {{/actionurl}}
+        {{^actionurl}}
+            <span class="d-block p-2 {{#classes}}{{.}}{{/classes}} {{#hidden}}text-muted{{/hidden}} {{$child}}{{/child}}">
+                {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
+                {{text}}
+            </span>
+        {{/actionurl}}
+    </div>
+
+    {{#children}}
+        {{< core/region_main_settings_drawer_nav_link }}
+            {{$child}}pl-5{{/child}}
+        {{/ core/region_main_settings_drawer_nav_link }}
+    {{/children}}
+{{/display}}

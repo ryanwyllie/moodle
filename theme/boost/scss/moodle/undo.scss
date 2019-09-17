@@ -207,6 +207,7 @@ $allow-reset-style: true !default;
 
                 .page-header-headings {
                     h1 {
+                        @extend .h2;
                         margin-bottom: 0;
                     }
                 }
@@ -221,17 +222,34 @@ $allow-reset-style: true !default;
         #page-content {
             padding-bottom: 0 !important;  /* stylelint-disable-line declaration-no-important */
 
-            #region-main {
-                border: none;
+            #region-main-box {
                 display: flex;
-                flex-direction: column;
-                padding: 0;
-                height: 100%;
-                width: 100%;
-                overflow: visible;
 
-                div[role="main"] {
-                    flex: 1;
+                #region-main {
+                    border: none;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 0;
+                    height: 100%;
+                    overflow: visible;
+                    flex-grow: 1;
+
+                    div[role="main"] {
+                        flex: 1;
+                    }
+                }
+
+                [data-region="blocks-column"] {
+                    flex-shrink: 0;
+                    margin-left: $grid-gutter-width;
+                }
+
+                @include media-breakpoint-down(lg) {
+                    flex-direction: column;
+
+                    [data-region="blocks-column"] {
+                        margin-left: 0;
+                    }
                 }
             }
         }

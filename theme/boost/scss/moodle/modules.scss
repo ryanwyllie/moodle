@@ -177,6 +177,53 @@ select {
     margin-bottom: 0;
 }
 
+#page-mod-forum-view {
+    .search-forms-container {
+        max-width: 600px;
+    }
+
+    .inline-search-form {
+        .input-group-append {
+            &.border {
+                /** Match the input border colour. */
+                border-color: $input-border-color !important; /* stylelint-disable-line declaration-no-important */
+            }
+
+            .btn-icon.icon-size-3 {
+                /** Reduce button size marginally in order to fit in the input */
+                height: 30px !important; /* stylelint-disable-line declaration-no-important */
+                width: 30px !important; /* stylelint-disable-line declaration-no-important */
+            }
+        }
+    }
+
+    .advanced-search-form-container {
+        /** Styling to match the .custom-select-sm class from bootstrap */
+        .date-field-container .custom-select {
+            @extend .custom-select-sm;
+        }
+
+        .tags-container {
+            /** Styling to match the .form-control-sm class from bootstrap */
+            input[type="text"].form-control {
+                @extend .form-control-sm;
+            }
+
+            .form-autocomplete-downarrow {
+                top: 0;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 0.5rem;
+
+            .form-group {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
 #page-mod-forum-discuss .discussioncontrols {
     width: auto;
     margin: 0;

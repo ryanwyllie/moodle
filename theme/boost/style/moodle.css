@@ -2629,7 +2629,7 @@ template {
   display: none !important; }
 
 h1, h2, h3, h4, h5, h6,
-.h1, .h2, .path-calendar .maincalendar .calendar-controls .current, .h3, .h4, .h5, .h6 {
+.h1, .h2, .path-calendar .maincalendar .calendar-controls .current, body.reset-style #page-header .card .page-header-headings h1, body.reset-style #page-header #page-enrol-users #filterform .page-header-headings h1, #page-enrol-users body.reset-style #page-header #filterform .page-header-headings h1, body.reset-style #page-header .que .history .page-header-headings h1, .que body.reset-style #page-header .history .page-header-headings h1, body.reset-style #page-header .userprofile .profile_tree section .page-header-headings h1, .userprofile .profile_tree body.reset-style #page-header section .page-header-headings h1, body.reset-style #page-header .groupinfobox .page-header-headings h1, body.reset-style #page-header .well .page-header-headings h1, .h3, .h4, .h5, .h6 {
   margin-bottom: 0.5rem;
   font-weight: 300;
   line-height: 1.2; }
@@ -2637,7 +2637,7 @@ h1, h2, h3, h4, h5, h6,
 h1, .h1 {
   font-size: 2.34375rem; }
 
-h2, .h2, .path-calendar .maincalendar .calendar-controls .current {
+h2, .h2, .path-calendar .maincalendar .calendar-controls .current, body.reset-style #page-header .card .page-header-headings h1, body.reset-style #page-header #page-enrol-users #filterform .page-header-headings h1, #page-enrol-users body.reset-style #page-header #filterform .page-header-headings h1, body.reset-style #page-header .que .history .page-header-headings h1, .que body.reset-style #page-header .history .page-header-headings h1, body.reset-style #page-header .userprofile .profile_tree section .page-header-headings h1, .userprofile .profile_tree body.reset-style #page-header section .page-header-headings h1, body.reset-style #page-header .groupinfobox .page-header-headings h1, body.reset-style #page-header .well .page-header-headings h1 {
   font-size: 1.875rem; }
 
 h3, .h3 {
@@ -3787,11 +3787,11 @@ select.form-control:focus::-ms-value {
   background-color: transparent;
   border: solid transparent;
   border-width: 1px 0; }
-  .form-control-plaintext.form-control-sm, .form-control-plaintext.form-control-lg {
+  .form-control-plaintext.form-control-sm, #page-mod-forum-view .advanced-search-form-container .tags-container input.form-control-plaintext.form-control[type="text"], .form-control-plaintext.form-control-lg {
     padding-right: 0;
     padding-left: 0; }
 
-.form-control-sm {
+.form-control-sm, #page-mod-forum-view .advanced-search-form-container .tags-container input.form-control[type="text"] {
   height: calc(1.5em + 0.5rem + 2px);
   padding: 0.25rem 0.5rem;
   font-size: 0.8203125rem;
@@ -5187,7 +5187,7 @@ p.arrow_button input[type="button"],
   .custom-select::-ms-expand {
     display: none; }
 
-.custom-select-sm {
+.custom-select-sm, #page-mod-forum-view .advanced-search-form-container .date-field-container .custom-select {
   height: calc(1.5em + 0.5rem + 2px);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
@@ -11453,6 +11453,10 @@ div.editor_atto_toolbar button .icon {
   text-decoration: none !important;
   /* stylelint-disable-line declaration-no-important */ }
 
+.colour-inherit {
+  color: inherit !important;
+  /* stylelint-disable-line declaration-no-important */ }
+
 .position-right {
   right: 0 !important;
   /* stylelint-disable-line declaration-no-important */ }
@@ -11479,6 +11483,11 @@ div.editor_atto_toolbar button .icon {
 
 body.fixed-width-content #page {
   max-width: 960px; }
+  body.fixed-width-content #page.has-blocks {
+    max-width: 1380px; }
+    @media (max-width: 1199.98px) {
+      body.fixed-width-content #page.has-blocks {
+        max-width: 960px; } }
 
 .icon {
   font-size: 16px;
@@ -13586,7 +13595,7 @@ body.drawer-ease {
 [data-region=right-hand-drawer] {
   display: flex;
   flex-direction: column;
-  transition: all 0.2s ease-in-out; }
+  transition: right 0.2s ease-in-out; }
   @media (prefers-reduced-motion: reduce) {
     [data-region=right-hand-drawer] {
       transition: none; } }
@@ -13598,10 +13607,18 @@ body.drawer-ease {
     height: calc(100% - 50px);
     width: 320px;
     box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.08);
-    padding: 0; }
+    padding: 0;
+    visibility: visible;
+    opacity: 1; }
   [data-region=right-hand-drawer].hidden {
     display: block;
-    right: -320px; }
+    right: -320px;
+    visibility: hidden;
+    opacity: 0;
+    transition: right 0.2s ease-in-out, visibility 0s ease-in-out 0.2s, opacity 0s ease-in-out 0.2s; }
+    @media (prefers-reduced-motion: reduce) {
+      [data-region=right-hand-drawer].hidden {
+        transition: none; } }
 
 .dir-rtl [data-region=right-hand-drawer] {
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08); }
@@ -16134,6 +16151,51 @@ select {
 .forumsearch input[type=text] {
   margin-bottom: 0; }
 
+#page-mod-forum-view .search-forms-container {
+  max-width: 600px; }
+
+#page-mod-forum-view .inline-search-form .input-group-append.border, #page-mod-forum-view .inline-search-form .input-group-append.filemanager-container,
+#page-mod-forum-view .inline-search-form .input-group-append.filepicker-filelist {
+  /** Match the input border colour. */
+  border-color: #ced4da !important;
+  /* stylelint-disable-line declaration-no-important */ }
+
+#page-mod-forum-view .inline-search-form .input-group-append .btn-icon.icon-size-3 {
+  /** Reduce button size marginally in order to fit in the input */
+  height: 30px !important;
+  /* stylelint-disable-line declaration-no-important */
+  width: 30px !important;
+  /* stylelint-disable-line declaration-no-important */ }
+
+#page-mod-forum-view .advanced-search-form-container {
+  /** Styling to match the .custom-select-sm class from bootstrap */ }
+  #page-mod-forum-view .advanced-search-form-container .tags-container {
+    /** Styling to match the .form-control-sm class from bootstrap */ }
+    #page-mod-forum-view .advanced-search-form-container .tags-container .form-autocomplete-downarrow {
+      top: 0; }
+  #page-mod-forum-view .advanced-search-form-container .form-group, #page-mod-forum-view .advanced-search-form-container .form-buttons,
+  #page-mod-forum-view .advanced-search-form-container .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons,
+  #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div,
+  #page-mod-forum-view .advanced-search-form-container div.backup-section + form {
+    margin-bottom: 0.5rem; }
+    #page-mod-forum-view .advanced-search-form-container .form-group .form-group, #page-mod-forum-view .advanced-search-form-container .form-buttons .form-group, #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .form-group, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .form-group, #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .form-group, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .form-group, #page-mod-forum-view .advanced-search-form-container div.backup-section + form .form-group, #page-mod-forum-view .advanced-search-form-container .form-group .form-buttons, #page-mod-forum-view .advanced-search-form-container .form-buttons .form-buttons, #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .form-buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .form-buttons, #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .form-buttons, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .form-buttons, #page-mod-forum-view .advanced-search-form-container div.backup-section + form .form-buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-group .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .form-group .buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .form-buttons .buttons,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .buttons,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div .buttons, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .path-admin .buttons, .path-admin .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div .buttons,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form .path-admin .buttons, .path-admin #page-mod-forum-view .advanced-search-form-container div.backup-section + form .buttons,
+    #page-mod-forum-view .advanced-search-form-container .form-group .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .form-group form + div,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .form-buttons form + div,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container .path-admin .buttons form + div, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons .fp-content-center form + div, .fp-content-center .path-admin #page-mod-forum-view .advanced-search-form-container .buttons form + div,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div form + div,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form .fp-content-center form + div, .fp-content-center #page-mod-forum-view .advanced-search-form-container div.backup-section + form form + div,
+    #page-mod-forum-view .advanced-search-form-container .form-group div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .form-buttons div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .path-admin .buttons div.backup-section + form, .path-admin #page-mod-forum-view .advanced-search-form-container .buttons div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container .fp-content-center form + div div.backup-section + form, .fp-content-center #page-mod-forum-view .advanced-search-form-container form + div div.backup-section + form,
+    #page-mod-forum-view .advanced-search-form-container div.backup-section + form div.backup-section + form {
+      margin-bottom: 0; }
+
 #page-mod-forum-discuss .discussioncontrols {
   width: auto;
   margin: 0; }
@@ -16902,8 +16964,10 @@ p.arrow_button {
   margin: 0 0 10px 5px; }
 
 .btn.btn-icon, #page-grade-grading-manage .actions .btn-icon.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon, #rubric-rubric.gradingform_rubric .btn-icon.addcriterion {
-  height: 16px;
-  width: 16px;
+  height: 36px;
+  width: 36px;
+  font-size: 16px;
+  line-height: 16px;
   padding: 0;
   border-radius: 50%;
   flex-shrink: 0; }
@@ -16913,31 +16977,55 @@ p.arrow_button {
     height: 20px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 20px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 0 !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 0 !important;
     /* stylelint-disable-line declaration-no-important */ }
   .btn.btn-icon.icon-size-1, #page-grade-grading-manage .actions .btn-icon.icon-size-1.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon.icon-size-1, #rubric-rubric.gradingform_rubric .btn-icon.icon-size-1.addcriterion {
     height: 24px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 24px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 4px !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 4px !important;
     /* stylelint-disable-line declaration-no-important */ }
   .btn.btn-icon.icon-size-2, #page-grade-grading-manage .actions .btn-icon.icon-size-2.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon.icon-size-2, #rubric-rubric.gradingform_rubric .btn-icon.icon-size-2.addcriterion {
     height: 28px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 28px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 8px !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 8px !important;
     /* stylelint-disable-line declaration-no-important */ }
   .btn.btn-icon.icon-size-3, #page-grade-grading-manage .actions .btn-icon.icon-size-3.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon.icon-size-3, #rubric-rubric.gradingform_rubric .btn-icon.icon-size-3.addcriterion {
     height: 36px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 36px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 16px !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 16px !important;
     /* stylelint-disable-line declaration-no-important */ }
   .btn.btn-icon.icon-size-4, #page-grade-grading-manage .actions .btn-icon.icon-size-4.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon.icon-size-4, #rubric-rubric.gradingform_rubric .btn-icon.icon-size-4.addcriterion {
     height: 44px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 44px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 24px !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 24px !important;
     /* stylelint-disable-line declaration-no-important */ }
   .btn.btn-icon.icon-size-5, #page-grade-grading-manage .actions .btn-icon.icon-size-5.action, #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input.btn-icon.icon-size-5, #rubric-rubric.gradingform_rubric .btn-icon.icon-size-5.addcriterion {
     height: 68px !important;
     /* stylelint-disable-line declaration-no-important */
     width: 68px !important;
+    /* stylelint-disable-line declaration-no-important */
+    font-size: 48px !important;
+    /* stylelint-disable-line declaration-no-important */
+    line-height: 48px !important;
     /* stylelint-disable-line declaration-no-important */ }
 
 .gradetreebox h4 {
@@ -17380,16 +17468,26 @@ body.reset-style #page-header > div {
 body.reset-style #page-content {
   padding-bottom: 0 !important;
   /* stylelint-disable-line declaration-no-important */ }
-  body.reset-style #page-content #region-main {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: visible; }
-    body.reset-style #page-content #region-main div[role="main"] {
-      flex: 1; }
+  body.reset-style #page-content #region-main-box {
+    display: flex; }
+    body.reset-style #page-content #region-main-box #region-main {
+      border: none;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      height: 100%;
+      overflow: visible;
+      flex-grow: 1; }
+      body.reset-style #page-content #region-main-box #region-main div[role="main"] {
+        flex: 1; }
+    body.reset-style #page-content #region-main-box [data-region="blocks-column"] {
+      flex-shrink: 0;
+      margin-left: 30px; }
+    @media (max-width: 1199.98px) {
+      body.reset-style #page-content #region-main-box {
+        flex-direction: column; }
+        body.reset-style #page-content #region-main-box [data-region="blocks-column"] {
+          margin-left: 0; } }
 
 body.behat-site .fixed-top {
   position: absolute; }

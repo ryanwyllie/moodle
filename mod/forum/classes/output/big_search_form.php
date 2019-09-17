@@ -74,7 +74,7 @@ class big_search_form implements renderable, templatable {
         $this->showfullwords = $DB->get_dbfamily() == 'mysql' || $DB->get_dbfamily() == 'postgres';
         $this->actionurl = new moodle_url('/mod/forum/search.php');
 
-        $forumoptions = ['' => get_string('allforums', 'forum')] + forum_menu_list($course);
+        $forumoptions = ['' => get_string('allforums', 'forum')] + $this->forum_menu_list($course);
         $this->forumoptions = array_map(function($option) use ($forumoptions) {
             return [
                 'value' => $option,
@@ -258,4 +258,32 @@ class big_search_form implements renderable, templatable {
         return $data;
     }
 
+
+    /**
+     * Retrieve a list of the forums that this user can view.
+     *
+     * @param stdClass $course The Course to use.
+     * @return array A set of formatted forum names stored against the forum id.
+     */
+    private function forum_menu_list($course)  {
+        $menu = array();
+
+        $modinfo = get_fast_modinfo($course);
+        if (empty($modinfo->instances['forum'])) {
+            return $menu;
+        }
+
+        foreach ($modinfo->instances['forum'] as $cm) {
+            if (!$cm->uservisible) {
+                continue;
+            }
+            $context = \context_module::instance($cm->id);
+            if (!has_capability('mod/forum:viewdiscussion', $context)) {
+                continue;
+            }
+            $menu[$cm->instance] = format_string($cm->name);
+        }
+
+        return $menu;
+    }
 }
