@@ -13583,6 +13583,29 @@ body.drawer-ease {
   body.drawer-open-right {
     margin-right: 285px; } }
 
+[data-region=right-hand-drawer] {
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease-in-out; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-region=right-hand-drawer] {
+      transition: none; } }
+  [data-region=right-hand-drawer].drawer {
+    z-index: 1020;
+    position: fixed;
+    top: 50px;
+    right: 0;
+    height: calc(100% - 50px);
+    width: 320px;
+    box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.08);
+    padding: 0; }
+  [data-region=right-hand-drawer].hidden {
+    display: block;
+    right: -320px; }
+
+.dir-rtl [data-region=right-hand-drawer] {
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08); }
+
 #page-my-index {
   background-color: #f8f9fa; }
 
@@ -14621,33 +14644,21 @@ a.ygtvspacer:hover {
       visibility: visible;
       transition: right 0.25s; } }
 
+.drawer .message-app {
+  height: 100%; }
+  .drawer .message-app .icon-back-in-app {
+    display: none; }
+  .drawer .message-app .icon-back-in-drawer {
+    display: inherit; }
+
 .message-app {
   display: flex;
   flex-direction: column;
-  background-color: #eff1f3;
-  transition: all 0.2s ease-in-out; }
-  @media (prefers-reduced-motion: reduce) {
-    .message-app {
-      transition: none; } }
+  background-color: #eff1f3; }
   .message-app .icon-back-in-drawer {
     display: none; }
-  .message-app.drawer {
-    z-index: 1020;
-    position: fixed;
-    top: 50px;
-    right: 0;
-    height: calc(100% - 50px);
-    width: 320px;
-    box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.08); }
-    .message-app.drawer .icon-back-in-app {
-      display: none; }
-    .message-app.drawer .icon-back-in-drawer {
-      display: inherit; }
   .message-app.main {
     min-height: 400px; }
-  .message-app.hidden {
-    display: block;
-    right: -320px; }
   .message-app .header-container {
     flex-shrink: 0; }
   .message-app .body-container {
@@ -16079,6 +16090,15 @@ select {
 .path-mod-forum .activesetting {
   color: #373a3c;
   font-weight: bold; }
+
+.discussion-settings-trigger .icon {
+  height: 32px;
+  font-size: 32px;
+  width: auto; }
+
+.discussion-settings-container .custom-select,
+.discussion-settings-container input {
+  max-width: 100%; }
 
 .forumpost {
   border: 1px solid #dee2e6;
