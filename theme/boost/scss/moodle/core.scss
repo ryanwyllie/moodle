@@ -2286,10 +2286,20 @@ $switch-transition: .2s all !default;
     float: right !important; /* stylelint-disable-line declaration-no-important */
 }
 
+$content-max-width: 960px !default;
+
 body {
     &.fixed-width-content {
         #page {
-            max-width: 960px;
+            max-width: $content-max-width;
+
+            &.has-blocks {
+                max-width: ($content-max-width + 360px + ($grid-gutter-width * 2));
+
+                @include media-breakpoint-down(lg) {
+                    max-width: $content-max-width;
+                }
+            }
         }
     }
 }
