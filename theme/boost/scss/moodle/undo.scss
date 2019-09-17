@@ -204,6 +204,7 @@ body.reset-style {
 
             .page-header-headings {
                 h1 {
+                    @extend .h2;
                     margin-bottom: 0;
                 }
             }
