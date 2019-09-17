@@ -32,13 +32,11 @@
     {}
 
 }}
-<div class="float-right">
-    <button id="discussion-settings-drawer-trigger-{{uniqid}}"
-            class="btn btn-link btn-lg discussion-settings-trigger icon-no-margin position-relative"
-            data-toggle="discussion-settings">
-        {{#pix}} i/settings, core, {{#str}} togglesettingsdrawer, mod_forum {{/str}} {{/pix}}
-    </button>
-</div>
+<button id="discussion-settings-drawer-trigger-{{uniqid}}"
+        class="btn btn-icon icon-size-4 icon-no-margin colour-inherit"
+        data-toggle="discussion-settings">
+    {{#pix}} i/settings, core, {{#str}} togglesettingsdrawer, mod_forum {{/str}} {{/pix}}
+</button>
 
 {{#js}}
 require(

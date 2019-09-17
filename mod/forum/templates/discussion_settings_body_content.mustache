@@ -34,8 +34,8 @@
 
 }}
 
-<div data-region="settings" class="p-3 discussion-settings-container" data-container="discussion-tools">
-    <h3 class="mb-2 mt-2 h6 font-weight-bold">{{#str}} general, core {{/str}}</h3>
+<div data-region="settings" class="p-2 discussion-settings-container" data-container="discussion-tools">
+    <h3 class="mb-2 mt-3 h6 font-weight-bold">{{#str}} general, core {{/str}}</h3>
     {{#capabilities.subscribe}}
         <div data-region="subscribe">
             {{< mod_forum/setting_switch}}
@@ -109,21 +109,21 @@
     {{/capabilities.manage}}
 
     {{#modeselectorform}}
-        <h3 class="h6 mt-2 font-weight-bold">{{#str}} view, core {{/str}}</h3>
+        <h3 class="h6 mt-3 font-weight-bold">{{#str}} view, core {{/str}}</h3>
         <div data-region="view" class="mb-3">
             {{{.}}}
         </div>
     {{/modeselectorform}}
 
     {{#movediscussion}}
-        <h3 class="h6 mt-2 font-weight-bold">{{#str}} move, core {{/str}}</h3>
+        <h3 class="h6 mt-4 font-weight-bold">{{#str}} move, core {{/str}}</h3>
         <div data-region="move" class="mb-3">
             {{{.}}}
         </div>
     {{/movediscussion}}
 
     {{#exportdiscussion}}
-        <h3 class="h6 mt-2 font-weight-bold">{{#str}} portfolio, portfolio {{/str}}</h3>
+        <h3 class="h6 mt-4 font-weight-bold">{{#str}} portfolio, portfolio {{/str}}</h3>
         <div data-region="export" class="mb-3">
             {{{.}}}
         </div>
