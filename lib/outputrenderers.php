@@ -4261,6 +4261,39 @@ EOD;
     public function full_header() {
         global $PAGE;
 
+        if ($PAGE->render_blocks_in_drawer()) {
+            $blockcontents = $PAGE->blocks->get_content_for_region('side-pre', $this);
+            $rendercontext = ['blocks' => []];
+
+            foreach ($blockcontents as $bc) {
+                if ($bc instanceof block_contents) {
+                    $id = !empty($bc->attributes['id']) ? $bc->attributes['id'] : uniqid('block-');
+                    $hascontrols = !empty($bc->controls);
+                    $rendercontext['blocks'][] = [
+                        'skipid' => $bc->skipid,
+                        'blockinstanceid' => $bc->blockinstanceid,
+                        'dockable' => $bc->dockable,
+                        'id' => $id,
+                        'hidden' => $bc->collapsible == block_contents::HIDDEN,
+                        'skiptitle' => strip_tags($bc->title),
+                        'showskiplink' => !empty($context->skiptitle),
+                        'arialabel' => $bc->arialabel,
+                        'ariarole' => !empty($bc->attributes['role']) ? $bc->attributes['role'] : 'complementary',
+                        'class' => $bc->attributes['class'],
+                        'type' => $bc->attributes['data-block'],
+                        'title' => $bc->title,
+                        'content' => $bc->content,
+                        'annotation' => $bc->annotation,
+                        'footer' => $bc->footer,
+                        'hascontrols' => !empty($bc->controls),
+                        'controls' => $hascontrols ? $this->block_controls($bc->controls, $id) : null
+                    ];
+                }
+            }
+
+            $PAGE->add_header_action($this->render_from_template('core/blocks_drawer', $rendercontext));
+        }
+
         if ($PAGE->include_region_main_settings_in_header_actions()) {
             if ($PAGE->get_render_region_main_settings_as_drawer()) {
                 $PAGE->add_header_action($this->region_main_settings_menu(true));

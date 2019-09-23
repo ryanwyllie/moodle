@@ -369,6 +369,11 @@ class moodle_page {
     protected $_regionmainsettingsasdrawer = false;
 
     /**
+     * @var bool Should the blocks be rendered in a drawer.
+     */
+    protected $_blocksindrawer = false;
+
+    /**
      * Force the settings menu to be displayed on this page. This will only force the
      * settings menu on an activity / resource page that is being displayed on a theme that
      * uses a settings menu.
@@ -2102,5 +2107,23 @@ class moodle_page {
      */
     public function get_render_region_main_settings_as_drawer() : bool {
         return $this->_regionmainsettingsasdrawer;
+    }
+
+    /**
+     * Set the flag to indicate if the blocks should be rendered in a drawer.
+     *
+     * @param bool $value If the settings should be in the header.
+     */
+    public function set_render_blocks_in_drawer(bool $value) : void {
+        $this->_blocksindrawer = $value;
+    }
+
+    /**
+     * Check if the blocks should be rendered in a drawer.
+     *
+     * @return bool
+     */
+    public function render_blocks_in_drawer() : bool {
+        return $this->_blocksindrawer;
     }
 }

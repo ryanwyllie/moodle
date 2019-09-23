@@ -30,15 +30,15 @@
         data-placement="bottom"
         aria-controls="drawer-{{uniqid}}"
         aria-expanded="false"
-        title="{{#str}} settings, core {{/str}}"
+        title="{{#str}} blocks, core {{/str}}"
     >
-        {{#pix}} i/settings, core {{/pix}}
+        {{#pix}} a/view_icon_active, core {{/pix}}
     </button>
     {{< core/drawer }}
         {{$drawerid}}drawer-{{uniqid}}{{/drawerid}}
         {{$drawercontent}}
-            <div class="h-100 w-100 bg-white d-flex flex-column p-2">
-                <div class="d-flex align-items-center mb-2">
+            <div class="h-100 w-100 bg-white d-flex flex-column">
+                <div class="d-flex align-items-center mb-2  p-2">
                     <button
                         class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
                         data-action="toggle-drawer-{{uniqid}}"
@@ -49,10 +49,23 @@
                         <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
                         <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
                     </button>
-                    <h2 class="font-weight-bold h3 mb-0">{{#str}} settings, core {{/str}}</h2>
+                    <h2 class="font-weight-bold h3 mb-0">{{#str}} blocks, core {{/str}}</h2>
+                    <button
+                        class="btn btn-icon icon-size-3 icon-no-margin colour-inherit ml-auto"
+                        title="{{#str}} addblock, core {{/str}}"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-key="addblock"
+                    >
+                        {{#pix}} e/insert, core {{/pix}}
+                    </button>
                 </div>
-                <div class="d-flex flex-column" aria-orientation="vertical">
-                    {{#nodes}} {{> core/region_main_settings_drawer_nav_link }} {{/nodes}}
+                <div class="d-flex flex-column" aria-orientation="vertical" style="overflow-y: auto">
+                    {{#blocks}}
+                        <div class="border-top">
+                            {{> core/block }}
+                        </div>
+                    {{/blocks}}
                 </div>
             </div>
         {{/drawercontent}}

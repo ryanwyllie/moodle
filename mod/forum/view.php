@@ -80,6 +80,7 @@ $PAGE->set_title($forum->get_name());
 $PAGE->set_heading($forum->get_name());
 $PAGE->set_include_region_main_settings_in_header_actions(true);
 $PAGE->set_render_region_main_settings_as_drawer(true);
+$PAGE->set_render_blocks_in_drawer(true);
 
 if ($forum->get_type() != 'single') {
     $PAGE->add_body_class('forumtype-' . $forum->get_type() . ' reset-style');
