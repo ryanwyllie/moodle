@@ -69,6 +69,7 @@ define(
     'core_message/message_drawer_view_conversation_state_manager',
     'core_message/message_drawer_router',
     'core_message/message_drawer_routes',
+    'core_message/emoji/picker'
 ],
 function(
     $,
@@ -85,7 +86,8 @@ function(
     Renderer,
     StateManager,
     MessageDrawerRouter,
-    MessageDrawerRoutes
+    MessageDrawerRoutes,
+    initialiseEmojiPicker
 ) {
 
     // Contains a cache of all view states that have been loaded so far
@@ -1512,6 +1514,12 @@ function(
         };
     };
 
+    var handleToggleEmojiPicker = function(e, data) {
+        var newState = StateManager.setShowEmojiPicker(viewState, !viewState.showEmojiPicker);
+        render(newState);
+        data.originalEvent.preventDefault();
+    };
+
     /**
      * Listen to, and handle events for conversations.
      *
@@ -1523,6 +1531,8 @@ function(
     var registerEventListeners = function(namespace, header, body, footer) {
         var isLoadingMoreMessages = false;
         var messagesContainer = getMessagesContainer(body);
+        var emojiPickerElement = footer.find(SELECTORS.EMOJI_PICKER);
+        var messageTextArea = footer.find(SELECTORS.MESSAGE_TEXT_AREA);
         var headerActivateHandlers = [
             [SELECTORS.ACTION_REQUEST_BLOCK, generateConfirmActionHandler(requestBlockUser)],
             [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
@@ -1555,12 +1565,29 @@ function(
         ];
         var footerActivateHandlers = [
             [SELECTORS.SEND_MESSAGE_BUTTON, handleSendMessage],
+            [SELECTORS.TOGGLE_EMOJI_PICKER_BUTTON, handleToggleEmojiPicker],
             [SELECTORS.ACTION_REQUEST_DELETE_SELECTED_MESSAGES, generateConfirmActionHandler(requestDeleteSelectedMessages)],
             [SELECTORS.ACTION_REQUEST_ADD_CONTACT, generateConfirmActionHandler(requestAddContact)],
             [SELECTORS.ACTION_REQUEST_UNBLOCK, generateConfirmActionHandler(requestUnblockUser)],
         ];
 
         AutoRows.init(footer);
+
+        initialiseEmojiPicker(emojiPickerElement[0], function(emoji) {
+            var newState = StateManager.setShowEmojiPicker(viewState, !viewState.showEmojiPicker);
+            render(newState);
+
+            messageTextArea.focus();
+            var cursorPos = messageTextArea.prop('selectionStart');
+            var currentText = messageTextArea.val();
+            var textBefore = currentText.substring(0, cursorPos);
+            var textAfter = currentText.substring(cursorPos, currentText.length);
+
+            messageTextArea.val(textBefore + emoji + textAfter);
+            // Set the cursor position to after the inserted emoji.
+            messageTextArea.prop('selectionStart', cursorPos + emoji.length);
+            messageTextArea.prop('selectionEnd', cursorPos + emoji.length);
+        });
 
         CustomEvents.define(header, [
             CustomEvents.events.activate
@@ -1570,7 +1597,8 @@ function(
         ]);
         CustomEvents.define(footer, [
             CustomEvents.events.activate,
-            CustomEvents.events.enter
+            CustomEvents.events.enter,
+            CustomEvents.events.escape
         ]);
         CustomEvents.define(messagesContainer, [
             CustomEvents.events.scrollTop,
@@ -1624,6 +1652,8 @@ function(
                 handleSendMessage(e, data);
             }
         });
+
+        footer.on(CustomEvents.events.escape, SELECTORS.EMOJI_PICKER_CONTAINER, handleToggleEmojiPicker);
 
         PubSub.subscribe(MessageDrawerEvents.ROUTE_CHANGED, function(newRouteData) {
             if (newMessagesPollTimer) {
