@@ -669,3 +669,50 @@ $message-day-color: color-yiq($message-app-bg) !default;
         box-shadow: 2px 2px 4px rgba(0, 0, 0, .08);
     }
 }
+
+// Emoji picker.
+$picker-width: 350px !default;
+$picker-height: 400px !default;
+$picker-row-height: 40px !default;
+$picker-emoji-button-size: 35px !default;
+$picker-emoji-button-font-size: 24px !default;
+
+.emoji-picker {
+    width: $picker-width;
+    height: $picker-height;
+
+    .category-button {
+        padding: .375rem 0;
+        height: 100%;
+        width: $picker-width / 9;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: 2px solid transparent;
+
+        &.selected {
+            border-bottom: 2px solid map-get($theme-colors, 'primary');
+        }
+    }
+
+    .picker-row {
+        height: $picker-row-height;
+
+        .category-name {
+            line-height: $picker-row-height;
+        }
+
+        .emoji-button {
+            height: $picker-emoji-button-size;
+            width: $picker-emoji-button-size;
+            line-height: $picker-emoji-button-size;
+            font-size: $picker-emoji-button-font-size;
+        }
+    }
+
+    .emoji-preview {
+        height: $picker-row-height;
+        font-size: $picker-row-height;
+        line-height: $picker-row-height;
+    }
+}
