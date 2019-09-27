@@ -14841,6 +14841,39 @@ a.ygtvspacer:hover {
 .dir-rtl .message-drawer {
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08); }
 
+.emoji-picker {
+  width: 350px;
+  height: 400px; }
+  .emoji-picker .category-button {
+    padding: .375rem 0;
+    height: 100%;
+    width: 38.8888888889px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 2px solid transparent; }
+    .emoji-picker .category-button.selected {
+      border-bottom: 2px solid #1177d1; }
+  .emoji-picker .emojis-container,
+  .emoji-picker .search-results-container {
+    min-width: 280px; }
+  .emoji-picker .picker-row {
+    height: 40px; }
+    .emoji-picker .picker-row .category-name {
+      line-height: 40px; }
+    .emoji-picker .picker-row .emoji-button {
+      height: 40px;
+      width: 40px;
+      line-height: 40px;
+      font-size: 24px;
+      overflow: hidden; }
+  .emoji-picker .emoji-preview {
+    height: 40px;
+    font-size: 40px;
+    line-height: 40px; }
+  .emoji-picker .emoji-short-name {
+    line-height: 20px; }
+
 /* Question */
 .questionbank h2 {
   margin-top: 0; }
