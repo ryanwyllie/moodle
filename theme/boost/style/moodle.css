@@ -14697,8 +14697,7 @@ a.ygtvspacer:hover {
       top: 0;
       bottom: 0; }
   .message-app .footer-container {
-    flex-shrink: 0;
-    overflow-x: hidden; }
+    flex-shrink: 0; }
     .message-app .footer-container textarea {
       direction: ltr; }
   .message-app .matchtext {
@@ -14873,6 +14872,10 @@ a.ygtvspacer:hover {
     line-height: 40px; }
   .emoji-picker .emoji-short-name {
     line-height: 20px; }
+
+.message-app .emoji-picker .picker-row .emoji-button {
+  height: 40px;
+  width: 40px; }
 
 /* Question */
 .questionbank h2 {
