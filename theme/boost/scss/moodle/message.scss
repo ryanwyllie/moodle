@@ -471,7 +471,6 @@ $message-day-color: color-yiq($message-app-bg) !default;
 
     .footer-container {
         flex-shrink: 0;
-        overflow-x: hidden;
 
         textarea {
             direction: ltr;
@@ -715,5 +714,17 @@ $picker-emojis-per-row: 7 !default;
 
     .emoji-short-name {
         line-height: $picker-row-height / 2;
+    }
+}
+
+.message-app {
+    .emoji-picker {
+        .picker-row {
+            // To override the button styling for the message app.
+            .emoji-button {
+                height: $picker-emoji-button-size;
+                width: $picker-emoji-button-size;
+            }
+        }
     }
 }
