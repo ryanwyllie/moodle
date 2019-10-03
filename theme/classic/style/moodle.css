@@ -15188,6 +15188,17 @@ a.ygtvspacer:hover {
   height: 40px;
   width: 40px; }
 
+.message-app .emoji-auto-complete-container {
+  overflow: auto;
+  max-height: 90px;
+  transition: max-height .15s ease-in-out;
+  visibility: visible; }
+  .message-app .emoji-auto-complete-container.hidden {
+    display: block;
+    max-height: 0;
+    visibility: hidden;
+    transition: max-height .15s ease-in-out, visibility 0s linear .15s; }
+
 /* Question */
 .questionbank h2 {
   margin-top: 0; }
