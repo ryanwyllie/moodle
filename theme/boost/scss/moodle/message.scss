@@ -742,4 +742,19 @@ $picker-emojis-per-row: 7 !default;
             }
         }
     }
+
+    .emoji-auto-complete-container {
+        overflow: auto;
+        // Add a 50px buffer to account for scroll bars.
+        max-height: $picker-row-height + 50px;
+        transition: max-height .15s ease-in-out;
+        visibility: visible;
+
+        &.hidden {
+            display: block;
+            max-height: 0;
+            visibility: hidden;
+            transition: max-height .15s ease-in-out, visibility 0s linear .15s;
+        }
+    }
 }
