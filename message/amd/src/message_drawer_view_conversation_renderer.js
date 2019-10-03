@@ -431,6 +431,16 @@ function(
     };
 
     /**
+     * Get the emoji picker container element.
+     *
+     * @param  {Object} footer Conversation footer container element.
+     * @return {Object} The emoji picker container element.
+     */
+    var getEmojiAutoCompleteContainer = function(footer) {
+        return footer.find(SELECTORS.EMOJI_AUTO_COMPLETE_CONTAINER);
+    };
+
+    /**
      * Get a message element.
      *
      * @param  {Object} body Conversation body container element.
@@ -994,6 +1004,24 @@ function(
         if (show) {
             container.removeClass('hidden');
             container.find(SELECTORS.EMOJI_PICKER_SEARCH_INPUT).focus();
+        } else {
+            container.addClass('hidden');
+        }
+    };
+
+    /**
+     * Hide or show the emoji auto complete.
+     *
+     * @param {Object} header The header container element.
+     * @param {Object} body The body container element.
+     * @param {Object} footer The footer container element.
+     * @param {Bool} show Should the emoji picker be visible.
+     */
+    var renderShowEmojiAutoComplete = function(header, body, footer, show) {
+        var container = getEmojiAutoCompleteContainer(footer);
+
+        if (show) {
+            container.removeClass('hidden');
         } else {
             container.addClass('hidden');
         }
@@ -1667,7 +1695,8 @@ function(
                 isMuted: renderIsMuted,
                 loadingConfirmAction: renderLoadingConfirmAction,
                 inEditMode: renderInEditMode,
-                showEmojiPicker: renderShowEmojiPicker
+                showEmojiPicker: renderShowEmojiPicker,
+                showEmojiAutoComplete: renderShowEmojiAutoComplete,
             },
             {
                 // Scrolling should be last to make sure everything

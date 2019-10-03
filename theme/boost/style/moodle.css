@@ -14849,6 +14849,17 @@ a.ygtvspacer:hover {
   height: 35px;
   width: 35px; }
 
+.message-app .emoji-auto-complete-container {
+  overflow: auto;
+  height: 40px;
+  transition: height .15s ease-in-out;
+  visibility: visible; }
+  .message-app .emoji-auto-complete-container.hidden {
+    display: block;
+    height: 0;
+    visibility: hidden;
+    transition: height .15s ease-in-out, visibility 0s linear .15s; }
+
 /* Question */
 .questionbank h2 {
   margin-top: 0; }
