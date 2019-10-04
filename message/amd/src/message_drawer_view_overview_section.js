@@ -208,11 +208,9 @@ function(
         // (such as in the event of an empty personal space).
         var pending = new Pending();
         var parser = new DOMParser();
-        var formatMessagePreview = function(lastMessage) {
+        var formatMessagePreview = async function(lastMessage) {
             if (!lastMessage) {
-                return new Promise(function(resolve) {
-                    resolve(null);
-                });
+                return null;
             }
             var isMedia = lastMessage.text.includes('src');
 
@@ -221,9 +219,7 @@ function(
                 // If that's not possible, we'll report it under the catch-all 'other media'.
                 var messagePreview = $(lastMessage.text).text();
                 if (messagePreview) {
-                    return new Promise(function(resolve) {
-                        resolve(messagePreview);
-                    });
+                    return messagePreview;
                 }
             }
 
@@ -231,32 +227,32 @@ function(
             var pix = 'i/messagecontentmultimediageneral';
             var label = 'messagecontentmultimediageneral';
 
-            // Try to get the tagName using the dom parser.
-            // This method won't cause network traffic for <img> tags, like with jquery selectors.
-            var doc = parser.parseFromString(lastMessage.text, "text/html");
-            var type = doc.body.firstChild ? (doc.body.firstChild.tagName || '').toLowerCase() : '';
-            type = lastMessage.text.includes('<video') ? 'video' : type;
-            type = lastMessage.text.includes('<audio') ? 'audio' : type;
-
-            if (type === 'img') {
-                pix = 'i/messagecontentimage';
-                label = 'messagecontentimage';
-            } else if (type === 'video') {
+            if (lastMessage.text.includes('<video')) {
                 pix = 'i/messagecontentvideo';
                 label = 'messagecontentvideo';
-            } else if (type === 'audio') {
+            } else if (lastMessage.text.includes('<audio')) {
                 pix = 'i/messagecontentaudio';
                 label = 'messagecontentaudio';
+            } else {
+                // Try to get the tagName using the dom parser.
+                // This method won't cause network traffic for <img> tags, like with jquery selectors.
+                var doc = parser.parseFromString(lastMessage.text, "text/html");
+                var type = doc.body.firstChild ? (doc.body.firstChild.tagName || '').toLowerCase() : '';
+
+                if (type === 'img') {
+                    pix = 'i/messagecontentimage';
+                    label = 'messagecontentimage';
+                }
             }
 
-            var labelPromise = Str.get_string(label, 'core_message');
-            var pixPromise = labelPromise.then(function(string) {
-                return Templates.renderPix(pix, 'core', string);
-            });
-            return Promise.all([labelPromise, pixPromise])
-                .then(function([labelResult, pixResult]) {
-                    return pixResult + ' ' + labelResult;
-                }).catch(Notification.exception);
+            try {
+                var labelString = await Str.get_string(label, 'core_message');
+                var icon = await Templates.renderPix(pix, 'core', labelString);
+                return icon + ' ' + labelString;
+            } catch (error) {
+                Notification.exception(error);
+                return null;
+            }
         };
 
         var mapPromises = conversations.map(function(conversation) {
