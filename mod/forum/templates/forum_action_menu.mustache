@@ -83,7 +83,9 @@
                 {{> forum/discussion_lock_toggle }}
             {{/istimelocked}}
         {{/capabilities.manage}}
-        {{> forum/discussion_subscription_toggle }}
+        {{^settings.excludesubscription}}
+            {{> forum/discussion_subscription_toggle }}
+        {{/settings.excludesubscription}}
         {{#unread}}
             {{> forum/mark_as_read }}
         {{/unread}}
