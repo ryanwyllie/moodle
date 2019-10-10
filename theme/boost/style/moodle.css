@@ -16236,6 +16236,10 @@ select {
     #page-mod-forum-view .advanced-search-form-container div.backup-section + form div.backup-section + form {
       margin-bottom: 0; }
 
+#page-mod-forum-view table .fit-content {
+  width: 1px;
+  white-space: nowrap; }
+
 #page-mod-forum-view #page select,
 #page-mod-forum-view #page .btn:not(.btn-icon),
 #page-mod-forum-view #page #page-grade-grading-manage .actions .action:not(.btn-icon),

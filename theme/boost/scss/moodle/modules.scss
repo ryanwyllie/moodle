@@ -221,6 +221,13 @@ select {
         }
     }
 
+    table {
+        .fit-content {
+            width: 1px;
+            white-space: nowrap;
+        }
+    }
+
     #page {
         select,
         .btn:not(.btn-icon) {
