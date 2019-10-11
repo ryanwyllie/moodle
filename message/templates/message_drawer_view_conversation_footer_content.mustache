@@ -35,13 +35,15 @@
 
 }}
 
-<div
-    class="emoji-auto-complete-container w-100 hidden"
-    data-region="emoji-auto-complete-container"
-    aria-live="polite"
-    aria-hidden="true"
->
-</div>
+{{#showemojipicker}}
+    <div
+        class="emoji-auto-complete-container w-100 hidden"
+        data-region="emoji-auto-complete-container"
+        aria-live="polite"
+        aria-hidden="true"
+    >
+    </div>
+{{/showemojipicker}}
 <div class="d-flex mt-1">
     <textarea
         dir="auto"
@@ -58,20 +60,22 @@
     ></textarea>
 
     <div class="position-relative d-flex flex-column">
-        <div
-            data-region="emoji-picker-container"
-            class="position-absolute hidden"
-            style="top: -5px; right: 5px; transform: translateY(-100%);"
-            aria-hidden="true"
-        >
-            {{> core_message/emoji/picker }}
-        </div>
-        <button
-            class="btn btn-link btn-icon icon-size-3 ml-1"
-            data-action="toggle-emoji-picker"
-        >
-            {{#pix}} e/emoticons, core{{/pix}}
-        </button>
+        {{#showemojipicker}}
+            <div
+                data-region="emoji-picker-container"
+                class="position-absolute hidden"
+                style="top: -5px; right: 5px; transform: translateY(-100%);"
+                aria-hidden="true"
+            >
+                {{> core_message/emoji/picker }}
+            </div>
+            <button
+                class="btn btn-link btn-icon icon-size-3 ml-1"
+                data-action="toggle-emoji-picker"
+            >
+                {{#pix}} e/emoticons, core{{/pix}}
+            </button>
+        {{/showemojipicker}}
         <button
             class="btn btn-link btn-icon icon-size-3 ml-1 mt-auto"
             aria-label="{{#str}} sendmessage, core_message {{/str}}"
