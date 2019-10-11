@@ -308,4 +308,10 @@
     <license>MIT</license>
     <version>6.26.0</version>
   </library>
+  <library>
+    <location>fonts</location>
+    <name>Noto Sans</name>
+    <license>Apache 2.0</license>
+    <version>1.0</version>
+  </library>
 </libraries>
