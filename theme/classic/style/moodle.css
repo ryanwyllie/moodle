@@ -16474,6 +16474,8 @@ select {
   height: 30px !important;
   /* stylelint-disable-line declaration-no-important */
   width: 30px !important;
+  /* stylelint-disable-line declaration-no-important */
+  line-height: 30px !important;
   /* stylelint-disable-line declaration-no-important */ }
 
 #page-mod-forum-view .advanced-search-form-container {
@@ -16505,6 +16507,19 @@ select {
     #page-mod-forum-view .advanced-search-form-container div.backup-section + form div.backup-section + form {
       margin-bottom: 0; }
 
+#page-mod-forum-view #page select,
+#page-mod-forum-view #page .btn:not(.btn-icon),
+#page-mod-forum-view #page #page-grade-grading-manage .actions .action:not(.btn-icon),
+#page-grade-grading-manage .actions #page-mod-forum-view #page .action:not(.btn-icon),
+#page-mod-forum-view #page #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input:not(.btn-icon),
+#rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel #page-mod-forum-view #page input:not(.btn-icon),
+#page-mod-forum-view #page #rubric-rubric.gradingform_rubric .addcriterion:not(.btn-icon),
+#rubric-rubric.gradingform_rubric #page-mod-forum-view #page .addcriterion:not(.btn-icon) {
+  border-radius: 0.3rem; }
+
+#page-mod-forum-view #page .advanced-search-form select {
+  border-radius: 0; }
+
 #page-mod-forum-discuss .discussioncontrols {
   width: auto;
   margin: 0; }
@@ -16524,6 +16539,19 @@ select {
   /** Don't show the discussion locked alert in this mode because it's already indicated with a badge. */
   /** Fix muted text contrast ratios for accessibility. */
   /** Make the tag list text screen reader visible only */ }
+  .path-mod-forum.modern-display-mode #page {
+    font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+    .path-mod-forum.modern-display-mode #page select:not(.ratinginput),
+    .path-mod-forum.modern-display-mode #page input,
+    .path-mod-forum.modern-display-mode #page textarea,
+    .path-mod-forum.modern-display-mode #page .btn:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #page-grade-grading-manage .actions .action:not(.btn-icon),
+    #page-grade-grading-manage .actions .path-mod-forum.modern-display-mode #page .action:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input:not(.btn-icon),
+    #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel .path-mod-forum.modern-display-mode #page input:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #rubric-rubric.gradingform_rubric .addcriterion:not(.btn-icon),
+    #rubric-rubric.gradingform_rubric .path-mod-forum.modern-display-mode #page .addcriterion:not(.btn-icon) {
+      border-radius: 0.3rem; }
   .path-mod-forum.modern-display-mode .discussionsubscription {
     margin-top: 0;
     text-align: inherit;
@@ -16558,6 +16586,9 @@ select {
     line-height: 1;
     height: auto;
     border-radius: 10rem; }
+    @media (max-width: 767.98px) {
+      .path-mod-forum.modern-display-mode .ratinginput {
+        margin-top: .5rem; } }
   .path-mod-forum.modern-display-mode .group-image {
     width: 35px;
     height: 35px;
@@ -16619,7 +16650,8 @@ select {
                  */ }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .author-image-container {
         width: 30px;
-        margin-right: 8px; }
+        margin-right: 8px;
+        padding-top: 3px; }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .indent {
         padding-left: 38px;
         /**

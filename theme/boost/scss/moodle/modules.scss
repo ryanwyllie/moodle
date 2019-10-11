@@ -190,6 +190,7 @@ select {
                 /** Reduce button size marginally in order to fit in the input */
                 height: 30px !important; /* stylelint-disable-line declaration-no-important */
                 width: 30px !important; /* stylelint-disable-line declaration-no-important */
+                line-height: 30px !important; /* stylelint-disable-line declaration-no-important */
             }
         }
     }
@@ -216,6 +217,19 @@ select {
 
             .form-group {
                 margin-bottom: 0;
+            }
+        }
+    }
+
+    #page {
+        select,
+        .btn:not(.btn-icon) {
+            border-radius: $border-radius-lg;
+        }
+
+        .advanced-search-form {
+            select {
+                border-radius: 0;
             }
         }
     }
@@ -246,6 +260,17 @@ $author-image-margin-sm: 8px;
 }
 
 .path-mod-forum.modern-display-mode {
+    #page {
+        font-family: "Noto Sans", $font-family-base;
+
+        select:not(.ratinginput),
+        input,
+        textarea,
+        .btn:not(.btn-icon) {
+            border-radius: $border-radius-lg;
+        }
+    }
+
     .discussionsubscription {
         margin-top: 0;
         text-align: inherit;
@@ -296,6 +321,10 @@ $author-image-margin-sm: 8px;
         line-height: 1;
         height: auto;
         border-radius: 10rem;
+
+        @include media-breakpoint-down(sm) {
+            margin-top: .5rem;
+        }
     }
 
     .group-image {
@@ -383,6 +412,7 @@ $author-image-margin-sm: 8px;
                 .author-image-container {
                     width: $author-image-width-sm;
                     margin-right: $author-image-margin-sm;
+                    padding-top: (36px - $author-image-width-sm) / 2;
                 }
 
                 /**

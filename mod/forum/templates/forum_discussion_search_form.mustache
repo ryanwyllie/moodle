@@ -39,11 +39,11 @@
                 id="search"
                 name="search"
                 type="text"
-                class="form-control border-right-0"
+                class="form-control border-right-0 rounded-left search-input"
                 value="{{query}}"
                 placeholder="{{#str}} searchforums, mod_forum {{/str}}"
             >
-            <div class="input-group-append mr-3 pr-2 d-flex align-items-center border border-left-0">
+            <div class="input-group-append mr-3 pr-2 d-flex align-items-center border border-left-0 rounded-right">
                     <button
                         class="btn btn-icon icon-size-3 icon-no-margin colour-inherit"
                         type="button"
@@ -59,7 +59,7 @@
                     </button>
             </div>
             <div class="input-group-append">
-                <button class="btn btn-secondary" type="submit">
+                <button class="btn btn-secondary rounded-lg" type="submit">
                     {{#pix}} i/search, core {{/pix}}
                     {{#str}} search, mod_forum {{/str}}
                 </button>
@@ -69,7 +69,7 @@
     <div class="advanced-search-form-container position-relative">
         <form
             id="advanced-search-form-{{uniqid}}"
-            class="w-100 position-absolute border shadow p-3 bg-white hidden"
+            class="advanced-search-form w-100 position-absolute border shadow p-3 bg-white hidden"
             action="{{actionurl}}"
             method="get"
             style="z-index: 1"
@@ -181,7 +181,7 @@
             {{/tagsenabled}}
 
             <div class="text-right">
-                <button type="submit" class="btn btn-primary">{{#str}}searchforums, forum{{/str}}</button>
+                <button type="submit" class="btn btn-primary rounded-lg">{{#str}}searchforums, forum{{/str}}</button>
             </div>
         </form>
     </div>

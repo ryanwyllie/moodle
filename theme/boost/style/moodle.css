@@ -16203,6 +16203,8 @@ select {
   height: 30px !important;
   /* stylelint-disable-line declaration-no-important */
   width: 30px !important;
+  /* stylelint-disable-line declaration-no-important */
+  line-height: 30px !important;
   /* stylelint-disable-line declaration-no-important */ }
 
 #page-mod-forum-view .advanced-search-form-container {
@@ -16234,6 +16236,19 @@ select {
     #page-mod-forum-view .advanced-search-form-container div.backup-section + form div.backup-section + form {
       margin-bottom: 0; }
 
+#page-mod-forum-view #page select,
+#page-mod-forum-view #page .btn:not(.btn-icon),
+#page-mod-forum-view #page #page-grade-grading-manage .actions .action:not(.btn-icon),
+#page-grade-grading-manage .actions #page-mod-forum-view #page .action:not(.btn-icon),
+#page-mod-forum-view #page #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input:not(.btn-icon),
+#rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel #page-mod-forum-view #page input:not(.btn-icon),
+#page-mod-forum-view #page #rubric-rubric.gradingform_rubric .addcriterion:not(.btn-icon),
+#rubric-rubric.gradingform_rubric #page-mod-forum-view #page .addcriterion:not(.btn-icon) {
+  border-radius: 0.3rem; }
+
+#page-mod-forum-view #page .advanced-search-form select {
+  border-radius: 0; }
+
 #page-mod-forum-discuss .discussioncontrols {
   width: auto;
   margin: 0; }
@@ -16253,6 +16268,19 @@ select {
   /** Don't show the discussion locked alert in this mode because it's already indicated with a badge. */
   /** Fix muted text contrast ratios for accessibility. */
   /** Make the tag list text screen reader visible only */ }
+  .path-mod-forum.modern-display-mode #page {
+    font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+    .path-mod-forum.modern-display-mode #page select:not(.ratinginput),
+    .path-mod-forum.modern-display-mode #page input,
+    .path-mod-forum.modern-display-mode #page textarea,
+    .path-mod-forum.modern-display-mode #page .btn:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #page-grade-grading-manage .actions .action:not(.btn-icon),
+    #page-grade-grading-manage .actions .path-mod-forum.modern-display-mode #page .action:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel input:not(.btn-icon),
+    #rubric-rubric.gradingform_rubric #rubric-criteria .criterion .addlevel .path-mod-forum.modern-display-mode #page input:not(.btn-icon),
+    .path-mod-forum.modern-display-mode #page #rubric-rubric.gradingform_rubric .addcriterion:not(.btn-icon),
+    #rubric-rubric.gradingform_rubric .path-mod-forum.modern-display-mode #page .addcriterion:not(.btn-icon) {
+      border-radius: 0.3rem; }
   .path-mod-forum.modern-display-mode .discussionsubscription {
     margin-top: 0;
     text-align: inherit;
@@ -16287,6 +16315,9 @@ select {
     line-height: 1;
     height: auto;
     border-radius: 10rem; }
+    @media (max-width: 767.98px) {
+      .path-mod-forum.modern-display-mode .ratinginput {
+        margin-top: .5rem; } }
   .path-mod-forum.modern-display-mode .group-image {
     width: 35px;
     height: 35px;
@@ -16348,7 +16379,8 @@ select {
                  */ }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .author-image-container {
         width: 30px;
-        margin-right: 8px; }
+        margin-right: 8px;
+        padding-top: 3px; }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .indent {
         padding-left: 38px;
         /**
@@ -17498,6 +17530,10 @@ body.reset-style #page-header .card, body.reset-style #page-header #page-enrol-u
   border: none; }
   body.reset-style #page-header .card .page-header-headings h1, body.reset-style #page-header #page-enrol-users #filterform .page-header-headings h1, #page-enrol-users body.reset-style #page-header #filterform .page-header-headings h1, body.reset-style #page-header .que .history .page-header-headings h1, .que body.reset-style #page-header .history .page-header-headings h1, body.reset-style #page-header .userprofile .profile_tree section .page-header-headings h1, .userprofile .profile_tree body.reset-style #page-header section .page-header-headings h1, body.reset-style #page-header .groupinfobox .page-header-headings h1, body.reset-style #page-header .well .page-header-headings h1 {
     margin-bottom: 0; }
+  @media (max-width: 767.98px) {
+    body.reset-style #page-header .card .card-body, body.reset-style #page-header #page-enrol-users #filterform .card-body, #page-enrol-users body.reset-style #page-header #filterform .card-body, body.reset-style #page-header .que .history .card-body, .que body.reset-style #page-header .history .card-body, body.reset-style #page-header .userprofile .profile_tree section .card-body, .userprofile .profile_tree body.reset-style #page-header section .card-body, body.reset-style #page-header .groupinfobox .card-body, body.reset-style #page-header .well .card-body, body.reset-style #page-header .card .userprofile .profile_tree section, .userprofile .profile_tree body.reset-style #page-header .card section, body.reset-style #page-header #page-enrol-users #filterform .userprofile .profile_tree section, .userprofile .profile_tree body.reset-style #page-header #page-enrol-users #filterform section, #page-enrol-users body.reset-style #page-header #filterform .userprofile .profile_tree section, .userprofile .profile_tree #page-enrol-users body.reset-style #page-header #filterform section, body.reset-style #page-header .que .history .userprofile .profile_tree section, .userprofile .profile_tree body.reset-style #page-header .que .history section, .que body.reset-style #page-header .history .userprofile .profile_tree section, .userprofile .profile_tree .que body.reset-style #page-header .history section, body.reset-style #page-header .userprofile .profile_tree section section, .userprofile .profile_tree body.reset-style #page-header section section, body.reset-style #page-header .groupinfobox .userprofile .profile_tree section, .userprofile .profile_tree body.reset-style #page-header .groupinfobox section, body.reset-style #page-header .well .userprofile .profile_tree section, .userprofile .profile_tree body.reset-style #page-header .well section {
+      padding-left: 0;
+      padding-right: 0; } }
 
 body.reset-style #page-header > div {
   padding-top: 0 !important;
@@ -17528,6 +17564,10 @@ body.reset-style #page-content {
       @media (max-width: 1199.98px) {
         body.reset-style #page-content #region-main-box #region-main.has-blocks {
           width: 100%; } }
+    @media (max-width: 767.98px) {
+      body.reset-style #page-content #region-main-box #region-main {
+        padding-left: 0;
+        padding-right: 0; } }
   body.reset-style #page-content #region-main-box [data-region="blocks-column"] {
     margin-left: auto; }
   @media (max-width: 1199.98px) {
