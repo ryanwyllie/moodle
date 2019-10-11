@@ -279,6 +279,8 @@ $string['configmaxeditingtime'] = 'This specifies the amount of time people have
 $string['configmaxevents'] = 'Events to Lookahead';
 $string['configmessaging'] = 'If enabled, users can send messages to other users on the site.';
 $string['configmessagingallowemailoverride'] = 'Allow users to have email message notifications sent to an email address other than the email address in their profile';
+$string['configmessagingallowemojipicker'] = 'Display the emoji picker within messaging';
+$string['configmessagingallowemojipickerincompatible'] = 'Your current database configuration does not properly support emojis. In order to enable the emoji picker you will need to <a href="https://docs.moodle.org/37/en/MySQL_full_unicode_support">upgrade your database for full unicode support</a>.';
 $string['configmessagingdefaultpressenter'] = 'Whether \'Use enter to send\' is enabled by default in users\' messaging settings.';
 $string['configmessagingdeletereadnotificationsdelay'] = 'Read notifications can be deleted to save space. How long after a notification is read can it be deleted?';
 $string['configmessagingdeleteallnotificationsdelay'] = 'Read and unread notifications can be deleted to save space. How long after a notification is created can it be deleted?';
@@ -780,6 +782,7 @@ $string['mediapluginwmv'] = 'Enable .wmv filter';
 $string['mediapluginyoutube'] = 'Enable YouTube links filter';
 $string['messaging'] = 'Enable messaging system';
 $string['messagingallowemailoverride'] = 'Notification email override';
+$string['messagingallowemojipicker'] = 'Enable emoji picker';
 $string['messagingallusers'] = 'Allow site-wide messaging';
 $string['messagingcategory'] = 'Messaging';
 $string['messagingdefaultpressenter'] = 'Use enter to send enabled by default';

@@ -68,6 +68,32 @@ if ($hassiteconfig) {
     $ADMIN->add('messaging', $temp);
     $ADMIN->add('messaging', new admin_page_managemessageoutputs());
 
+    $fullunicodesupport = true;
+    if ($DB->get_dbfamily() == 'mysql') {
+        $collation = $DB->get_dbcollation();
+        $collationinfo = explode('_', $collation);
+        $charset = reset($collationinfo);
+
+        if ($charset !== 'utf8') {
+            $fullunicodesupport = false;
+        }
+    }
+
+    if ($fullunicodesupport) {
+        $temp->add(new admin_setting_configcheckbox(
+            'messagingallowemojipicker',
+            new lang_string('messagingallowemojipicker', 'admin'),
+            new lang_string('configmessagingallowemojipicker', 'admin'),
+            1
+        ));
+    } else {
+        $temp->add(new admin_setting_description(
+            'messagingallowemojipicker',
+            new lang_string('messagingallowemojipicker', 'admin'),
+            new lang_string('configmessagingallowemojipickerincompatible', 'admin')
+        ));
+    }
+
     // Notification outputs plugins.
     $plugins = core_plugin_manager::instance()->get_plugins_of_type('message');
     core_collator::asort_objects_by_property($plugins, 'displayname');
