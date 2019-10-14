@@ -30,24 +30,40 @@
     {
     }
 }}
-<div class="grader-grading-panel  border-left border-secondary col-md-4">
-    <div class="col-md-12 bg-light px-2 py-3 mb-3">
-        <!--TODO  Manipulate grader panel-->
-        <h4 class="d-inline font-weight-bold mb-0 fa fa-arrow-right" aria-label="Open or close grader panel" data-action="expandgrader"></h4>
-
-        <h4 class="d-inline font-weight-bold mb-0">{{#str}}grading, mod_forum{{/str}}</h4>
-    </div>
-    <div data-region="user_picker">
-        {{> mod_forum/local/grades/local/grader/user_picker_placeholder }}
-        <hr/>
-    </div>
-    <div class="grader-grading-panel-display col-sm-12">
-        <h4 class="d-inline mb-0 fa fa-star-o"></h4>
-        <h4 class="d-inline mb-0 ">{{#str}}grade, core_grades{{/str}}</h4>
-        <div data-region="grade" class="col-md-12 mt-3">
-          {{> mod_forum/local/grades/local/grader/grade_placeholder }}
+{{<core/drawer}}
+    {{$drawerid}}grading-drawer{{/drawerid}}
+    {{$drawerclasses}}grader-grading-panel{{/drawerclasses}}
+    {{$drawercontent}}
+        <div class="h-100 w-100 bg-white d-flex flex-column">
+            <div class="d-flex align-items-center bg-light py-3 mb-2">
+                <button
+                        class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
+                        data-action="toggle-grading-drawer"
+                        aria-controls="grading-drawer"
+                        aria-expanded="true"
+                        title="{{#str}} closebuttontitle, core {{/str}}"
+                >
+                    <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
+                    <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
+                </button>
+                <h2 class="font-weight-bold h3 mb-0">
+                    {{#str}}grading, mod_forum{{/str}}
+                </h2>
+            </div>
+            <div class="body-container position-relative p-2" data-region="body-container">
+                <div data-region="user_picker">
+                    {{> mod_forum/local/grades/local/grader/user_picker_placeholder }}
+                    <hr class="mt-2"/>
+                </div>
+                <div class="grader-grading-panel-display">
+                    <h4 class="d-inline mb-0 fa fa-magic"></h4>
+                    <h4 class="d-inline mb-0 ">{{#str}}grade, core_grades{{/str}}</h4>
+                    <div data-region="grade" class="col-md-12 mt-3">
+                        {{> mod_forum/local/grades/local/grader/grade_placeholder }}
+                    </div>
+                    <div data-region="grade-errors" role="alert" aria-role="assertive"></div>
+                </div>
+            </div>
         </div>
-        <div data-region="grade-errors" role="alert" aria-role="assertive"></div>
-        <hr/>
-    </div>
-</div>
+    {{/drawercontent}}
+{{/core/drawer}}

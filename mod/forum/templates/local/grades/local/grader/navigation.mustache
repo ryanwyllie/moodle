@@ -30,27 +30,55 @@
     {
     }
 }}
-<div class="grader-grading_navigation col-sm-12">
+<div class="grader-grading_navigation shadow-sm col-sm-12">
     <div class="row">
         <div class="col-sm-12 col-md-8 py-3">
             <div class="d-block">
-                <h6 class="d-inline btn px-0 font-weight-bold text-muted mb-0">{{moduleName}}</h6>
-                <h6 class="d-inline btn px-0 font-weight-bold text-muted mb-0"> > </h6>
-                <h6 class="d-inline btn px-0 font-weight-bold mb-0">{{#str}}grading, forum{{/str}}</h6>
+                <a href="#" role="" class="" data-action="closegrader">
+                    <h5 class="d-inline px-0 text-muted mb-0">{{moduleName}}</h5>
+                </a>
+                <h5 class="d-inline px-0 text-muted mb-0 fa fa-angle-right"></h5>
+                <h5 class="d-inline px-0 mb-0">{{#str}}grading, forum{{/str}}</h5>
             </div>
         </div>
 
         <div class="col-sm-12 col-md-4 py-3">
 
-            <a href="#" class="btn fa fa-arrows-alt float-right" aria-label="Toggle fullscreen" data-action="togglefullscreen"></a>
+            <button
+                    class="btn btn-icon text-muted icon-no-margin icon-size-3 ml-2 pull-right"
+                    type="button"
+                    id="grader-actions-menu-{{uniqid}}"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-label="{{#str}} actionsforgraderinterface, mod_forum {{/str}}"
+            >
+                {{#pix}} i/moremenu {{/pix}}
+            </button>
+            <!-- inline style to fix RTL placement bug -->
+            <div class="dropdown-menu" aria-labelledby="grader-actions-menu-{{uniqid}}" style="right: auto">
+                <a href="#" class="btn" aria-label="{{#str}} togglefullscreen, mod_forum {{/str}}" data-action="togglefullscreen">
+                    {{#str}} togglefullscreen, mod_forum {{/str}}
+                </a>
+            </div>
 
-            <a href="#" class="btn btn-secondary float-right" aria-label="Close grade interface" data-action="closegrader">Close</a>
+            <a href="#" role="button" class="btn btn-outline-dark font-weight-bold rounded ml-2 px-4 pull-right" aria-label="{{#str}} closegrader, mod_forum {{/str}}" data-action="closegrader">{{#str}} close, mod_forum {{/str}}</a>
 
-            <a href="#" role="button" class="btn btn-primary float-right" aria-label="Save and quit" data-action="savegrade">Save</a>
+            <a href="#" role="button" class="btn btn-primary font-weight-bold rounded ml-2 px-4 pull-right" aria-label="{{#str}} save {{/str}}" data-action="savegrade">{{#str}} save {{/str}}</a>
 
-            <!--TODO Manipulate grader panel see also Grading panel-->
-            <a href="#" role="button" class="btn fa fa-check-circle float-right" aria-label="Open or close grader panel" data-action="expandgrader"></a>
-
+            <a id="toggle-grading-drawer-{{uniqid}}" href="#" role="button" class="btn btn-secondary rounded pull-right" aria-label="Open or close grader panel" data-action="expandgrader">
+                {{#pix}} layout-default, mod_forum, {{#str}} defaultlayout, mod_forum {{/str}} {{/pix}}
+            </a>
         </div>
     </div>
 </div>
+
+{{#js}}
+    require(['jquery', 'core/drawer'], function($, Drawer) {
+        var drawer = $('#grading-drawer');
+        Drawer.show(drawer);
+        var toggles = drawer.find('[data-action="toggle-grading-drawer"]');
+        toggles = toggles.add('#toggle-grading-drawer-{{uniqid}}');
+        Drawer.registerToggles(drawer, toggles);
+    });
+{{/js}}

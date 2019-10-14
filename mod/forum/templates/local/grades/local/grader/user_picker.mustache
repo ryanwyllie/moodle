@@ -36,29 +36,28 @@
             <div data-region="user_picker/user"></div>
         </div>
         <div class="col-md-4">
-            <ul class="pagination">
-                <li class="page-item mr-3">
-                    <a class="page-link" href="#" aria-label="Previous" data-action="change-user" data-direction="-1">
-                        <span aria-hidden="true">&langle;</span>
+            <ul class="pagination mb-0">
+                <li class="mr-3">
+                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="Previous" data-action="change-user" data-direction="-1">
+                        <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
                         <span class="sr-only">{{#str}} previous {{/str}}</span>
-                    </a>
+                    </button>
                 </li>
-                <li class="page-item mr-3">
-                    <a class="page-link" href="#" aria-label="Next" data-action="change-user" data-direction="1">
-                        <span aria-hidden="true">&rangle;</span>
+                <li class="mr-3">
+                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="Next" data-action="change-user" data-direction="1">
+                        <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
                         <span class="sr-only">{{#str}} next {{/str}}</span>
-                    </a>
+                    </button>
                 </li>
-                <li class="page-item">
-                    <a class="page-link disabled" href="#" aria-label="Search" data-action="search-user">
-                        <span class="fa fa-search" aria-hidden="true"></span>
+                <li>
+                    <button class="disabled btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="{{#str}} search {{/str}}" data-action="search-user">
+                        <i class="icon fa fa-search fa-fw" aria-hidden="true"></i>
                         <span class="sr-only">{{#str}} search {{/str}}</span>
-                    </a>
+                    </button>
                 </li>
-
             </ul>
         </div>
     </div>
-    <hr>
+    <hr class="mt-2">
 </div>
 

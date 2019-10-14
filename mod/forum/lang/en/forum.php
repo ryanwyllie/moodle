@@ -723,6 +723,13 @@ $string['gradeitemnameforwholeforum'] = 'Whole forum grade for {$a->name}';
 $string['gradeitemnameforrating'] = 'Rating grade for {$a->name}';
 $string['grades:gradesavedfor'] = 'Grade saved for {$a->fullname}';
 $string['grades:gradesavefailed'] = 'Unable to save grade for {$a->fullname}: {$a->error}';
+$string['outof'] = 'out of {$a}';
+$string['defaultlayout'] = 'Restore default layout';
+$string['collapsegradepanel'] = 'Collapse grade panel';
+$string['actionsforgraderinterface'] = 'Actions for grader interface';
+$string['togglefullscreen'] = 'Toggle fullscreen';
+$string['close'] = 'Close';
+$string['closegrader'] = 'Close grade interface';
 
 // Deprecated since Moodle 3.8.
 $string['inpagereplysubject'] = 'Re: {$a}';
