@@ -31,7 +31,7 @@
 }}
 <div data-region="posts" id="post-region-{{uniqid}}">
     {{#discussions}}
-        <div class="hr-sect mt-0">{{name}}</div>
+        <h2 class="mt-3 font-weight-bold">{{name}}</h2>
         {{#posts}}
             {{#parent}}
                 {{> mod_forum/forum_discussion_modern_post_reply }}
@@ -53,7 +53,7 @@
                     <div class="indent replies-container" data-region="replies-container">
                         <div class="indent replies-container" data-region="replies-container">
                             {{> mod_forum/forum_discussion_modern_post_reply }}
-                            <a class="btn btn-outline-dark"
+                            <a class="btn btn-outline-dark rounded"
                                role="button"
                                data-action="view-context"
                                data-discussionid="{{discussionid}}"
@@ -66,8 +66,9 @@
                     </div>
                 </div>
             {{/starter}}
-            <hr>
+            <hr class="w-75 mx-auto">
         {{/posts}}
+        <hr>
     {{/discussions}}
     {{^discussions}}
         <h3>{{#str}} noposts, forum {{/str}}</h3>
