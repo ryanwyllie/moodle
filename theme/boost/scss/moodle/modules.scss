@@ -359,6 +359,7 @@ $author-image-margin-sm: 8px;
 
 /** Extra small devices (portrait phones, less than 576px). */
 @include media-breakpoint-down(sm) {
+    #page-mod-forum-view [data-region="unified-grader"],
     #page-mod-forum-discuss.modern-display-mode {
         .forum-post-container {
             .author-image-container {
@@ -384,6 +385,25 @@ $author-image-margin-sm: 8px;
     }
 }
 
+[data-region=right-hand-drawer].grader-grading-panel {
+    width: 30%;
+    overflow: auto;
+    top: 68px;
+    height: calc(100% - 68px);
+    transition: right .7s ease-in-out;
+    &.hidden {
+        right: -30%;
+        transition: right .7s ease-in-out, visibility 0s ease-in-out .7s, opacity 0s ease-in-out .7s;
+    }
+}
+[aria-expanded=true].grader-grading-panel + .grader-module-content {
+    margin-right: 30%;
+    transition: margin-right .7s ease-in-out;
+}
+
+#page-mod-forum-view [data-region="unified-grader"] .dropdown-menu.show {
+    z-index: 1025;
+}
 // End styling for mod_forum.
 
 .maincalendar .calendarmonth td,

@@ -249,7 +249,7 @@
 }
 
 .criterion button.collapse[aria-expanded="false"]:before {
-    content: $fa-var-angle-up;
+    content: $fa-var-angle-right;
     margin-right: 0;
     @include fa-icon();
     font-size: 16px;

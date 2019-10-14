@@ -16694,16 +16694,37 @@ select {
 
 /** Extra small devices (portrait phones, less than 576px). */
 @media (max-width: 767.98px) {
+  #page-mod-forum-view [data-region="unified-grader"] .forum-post-container .author-image-container,
   #page-mod-forum-discuss.modern-display-mode .forum-post-container .author-image-container {
     width: 30px;
     margin-right: 8px; }
+  #page-mod-forum-view [data-region="unified-grader"] .forum-post-container .indent .indent,
   #page-mod-forum-discuss.modern-display-mode .forum-post-container .indent .indent {
     padding-left: 38px; }
+    #page-mod-forum-view [data-region="unified-grader"] .forum-post-container .indent .indent .indent .indent,
     #page-mod-forum-discuss.modern-display-mode .forum-post-container .indent .indent .indent .indent {
       padding-left: 0; }
+  #page-mod-forum-view [data-region="unified-grader"] .group-image,
   #page-mod-forum-discuss.modern-display-mode .group-image {
     width: 30px;
     height: 30px; } }
+
+[data-region=right-hand-drawer].grader-grading-panel {
+  width: 30%;
+  overflow: auto;
+  top: 68px;
+  height: calc(100% - 68px);
+  transition: right .7s ease-in-out; }
+  [data-region=right-hand-drawer].grader-grading-panel.hidden {
+    right: -30%;
+    transition: right .7s ease-in-out, visibility 0s ease-in-out .7s, opacity 0s ease-in-out .7s; }
+
+[aria-expanded=true].grader-grading-panel + .grader-module-content {
+  margin-right: 30%;
+  transition: margin-right .7s ease-in-out; }
+
+#page-mod-forum-view [data-region="unified-grader"] .dropdown-menu.show {
+  z-index: 1025; }
 
 .maincalendar .calendarmonth td,
 .maincalendar .calendarmonth th {
@@ -17562,7 +17583,7 @@ p.arrow_button {
   width: 16px; }
 
 .criterion button.collapse[aria-expanded="false"]:before {
-  content: "";
+  content: "";
   margin-right: 0;
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
