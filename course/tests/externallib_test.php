@@ -2993,10 +2993,21 @@ class core_course_externallib_testcase extends externallib_advanced_testcase {
      * Test get enrolled users by cmid function.
      */
     public function test_get_enrolled_users_by_cmid() {
+        global $PAGE;
         $this->resetAfterTest(true);
 
         $user1 = self::getDataGenerator()->create_user();
         $user2 = self::getDataGenerator()->create_user();
+
+        $user1picture = new user_picture($user1);
+        $user1->profileimagesm = $user1picture->get_url($PAGE)->out(false);
+        $user1picture->size = 1;
+        $user1->profileimagelg = $user1picture->get_url($PAGE)->out(false);
+
+        $user2picture = new user_picture($user2);
+        $user2->profileimagesm = $user2picture->get_url($PAGE)->out(false);
+        $user2picture->size = 1;
+        $user2->profileimagelg = $user2picture->get_url($PAGE)->out(false);
 
         // Set the first created user to the test user.
         self::setUser($user1);
@@ -3024,12 +3035,16 @@ class core_course_externallib_testcase extends externallib_advanced_testcase {
             'fullname' => fullname($user1),
             'firstname' => $user1->firstname,
             'lastname' => $user1->lastname,
+            'profileimagesm' => $user1->profileimagesm,
+            'profileimagelg' => $user1->profileimagelg,
         ];
         $expectedusers['users'][1] = [
             'id' => $user2->id,
             'fullname' => fullname($user2),
             'firstname' => $user2->firstname,
             'lastname' => $user2->lastname,
+            'profileimagesm' => $user2->profileimagesm,
+            'profileimagelg' => $user2->profileimagelg,
         ];
 
         // Test getting the users in a given context.
