@@ -16454,6 +16454,11 @@ select {
 #page-mod-forum-view [data-region="unified-grader"] .dropdown-menu.show {
   z-index: 1025; }
 
+.sideways {
+  transition: all 1s ease-in-out;
+  animation-direction: reverse;
+  width: 0; }
+
 .maincalendar .calendarmonth td,
 .maincalendar .calendarmonth th {
   border: 1px dotted #dee2e6; }
