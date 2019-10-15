@@ -92,7 +92,6 @@ $PAGE->add_body_class('forumtype-' . $forum->get_type() . ' reset-style');
 $PAGE->set_heading($course->fullname);
 $PAGE->set_include_region_main_settings_in_header_actions(true);
 
-$buttons = [];
 if ($capabilitymanager->can_grade($USER)) {
     $forumgradeitem = forum_gradeitem::load_from_forum_entity($forum);
     if ($forumgradeitem->is_grading_enabled()) {
@@ -105,11 +104,11 @@ if ($capabilitymanager->can_grade($USER)) {
             'gradingcomponent' => $forumgradeitem->get_grading_component_name(),
             'gradingcomponentsubtype' => $forumgradeitem->get_grading_component_subtype(),
         ];
-        $buttons[] = $OUTPUT->render_from_template('mod_forum/grades/grade_button', $gradeobj);
+        $PAGE->add_header_action($OUTPUT->render_from_template('mod_forum/grades/grade_button', $gradeobj));
     }
 }
-$buttons[] = forum_search_form($course, $search);
-$PAGE->set_button(implode('', $buttons));
+
+$PAGE->set_button(forum_search_form($course, $search));
 
 if ($istypesingle && $displaymode == FORUM_MODE_MODERN) {
     $PAGE->add_body_class('modern-display-mode reset-style');
