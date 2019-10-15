@@ -32,10 +32,10 @@
 }}
 {{<core/drawer}}
     {{$drawerid}}grading-drawer{{/drawerid}}
-    {{$drawerclasses}}grader-grading-panel{{/drawerclasses}}
+    {{$drawerclasses}}grader-grading-panel flex-shrink-0{{/drawerclasses}}
     {{$drawercontent}}
         <div class="h-100 w-100 bg-white d-flex flex-column">
-            <div class="d-flex align-items-center bg-light py-3 mb-2">
+            <div class="d-flex align-items-center bg-light p-2 mb-2">
                 <button
                         class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
                         data-action="toggle-grading-drawer"
@@ -46,7 +46,7 @@
                     <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
                     <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
                 </button>
-                <h2 class="font-weight-bold h3 mb-0">
+                <h2 class="font-weight-bold h4 mb-0">
                     {{#str}}grading, mod_forum{{/str}}
                 </h2>
             </div>

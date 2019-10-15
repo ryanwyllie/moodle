@@ -30,55 +30,63 @@
     {
     }
 }}
-<div class="grader-grading_navigation shadow-sm col-sm-12">
-    <div class="row">
-        <div class="col-sm-12 col-md-8 py-3">
-            <div class="d-block">
-                <a href="#" role="" class="" data-action="closegrader">
-                    <h5 class="d-inline px-0 text-muted mb-0">{{moduleName}}</h5>
-                </a>
-                <h5 class="d-inline px-0 text-muted mb-0 fa fa-angle-right"></h5>
-                <h5 class="d-inline px-0 mb-0">{{#str}}grading, forum{{/str}}</h5>
-            </div>
-        </div>
+<nav class="grader-grading_navigation navbar">
+    <button class="btn btn-link px-2 colour-inherit" data-action="closegrader">
+        <h5 class="d-inline px-0 mb-0">{{moduleName}}</h5>
+    </button>
+    <span class="text-muted icon-no-margin">{{#pix}} i/breadcrumbdivider, core {{/pix}}</span>
+    <h5 class="d-inline px-2 mb-0">{{#str}}grading, forum{{/str}}</h5>
 
-        <div class="col-sm-12 col-md-4 py-3">
-
-            <button
-                    class="btn btn-icon text-muted icon-no-margin icon-size-3 ml-2 pull-right"
-                    type="button"
-                    id="grader-actions-menu-{{uniqid}}"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    aria-label="{{#str}} actionsforgraderinterface, mod_forum {{/str}}"
+    <div class="ml-auto">
+        <button
+            id="toggle-grading-drawer-{{uniqid}}"
+            class="btn btn-icon icon-no-margin"
+            aria-label="Open or close grader panel"
+            data-action="expandgrader"
+        >
+            {{#pix}} layout-default, mod_forum, {{#str}} defaultlayout, mod_forum {{/str}} {{/pix}}
+        </button>
+        <button
+            class="btn btn-primary font-weight-bold ml-2 px-4"
+            data-action="savegrade"
+        >
+            {{#str}} save {{/str}}
+        </button>
+        <button
+            class="btn btn-outline-dark font-weight-bold ml-2 px-4"
+            aria-label="{{#str}} closegrader, mod_forum {{/str}}"
+            data-action="closegrader"
+        >
+            {{#str}} close, mod_forum {{/str}}
+        </button>
+        <div class="btn-group">
+        <button
+                class="btn btn-icon text-muted icon-no-margin icon-size-3 ml-2"
+                type="button"
+                id="grader-actions-menu-{{uniqid}}"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-label="{{#str}} actionsforgraderinterface, mod_forum {{/str}}"
             >
                 {{#pix}} i/moremenu {{/pix}}
             </button>
-            <!-- inline style to fix RTL placement bug -->
-            <div class="dropdown-menu" aria-labelledby="grader-actions-menu-{{uniqid}}" style="right: auto">
-                <a href="#" class="btn" aria-label="{{#str}} togglefullscreen, mod_forum {{/str}}" data-action="togglefullscreen">
+            <div class="dropdown-menu dropdown-menu-right border-0 rounded-lg shadow" aria-labelledby="grader-actions-menu-{{uniqid}}">
+                <button
+                    class="dropdown-item"
+                    type="button"
+                    data-action="togglefullscreen"
+                >
                     {{#str}} togglefullscreen, mod_forum {{/str}}
-                </a>
+                </button>
             </div>
-
-            <a href="#" role="button" class="btn btn-outline-dark font-weight-bold rounded ml-2 px-4 pull-right" aria-label="{{#str}} closegrader, mod_forum {{/str}}" data-action="closegrader">{{#str}} close, mod_forum {{/str}}</a>
-
-            <a href="#" role="button" class="btn btn-primary font-weight-bold rounded ml-2 px-4 pull-right" aria-label="{{#str}} save {{/str}}" data-action="savegrade">{{#str}} save {{/str}}</a>
-
-            <a id="toggle-grading-drawer-{{uniqid}}" href="#" role="button" class="btn btn-secondary rounded pull-right" aria-label="" data-action="expandgrader">
-                <span class="sr-only">{{#str}}managegradepanel, mod_forum{{/str}}</span>
-                {{#pix}} layout-default, mod_forum, {{#str}} managegradepanel, mod_forum {{/str}} {{/pix}}
-                {{#pix}} layout-expand-left, mod_forum, {{#str}} managegradepanel, mod_forum {{/str}} {{/pix}}
-            </a>
         </div>
     </div>
-</div>
+</nav>
 
 {{#js}}
     require(['jquery', 'core/drawer'], function($, Drawer) {
         var drawer = $('#grading-drawer');
-        Drawer.show(drawer);
         var toggles = drawer.find('[data-action="toggle-grading-drawer"]');
         toggles = toggles.add('#toggle-grading-drawer-{{uniqid}}');
         Drawer.registerToggles(drawer, toggles);

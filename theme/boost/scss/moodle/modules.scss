@@ -385,24 +385,35 @@ $author-image-margin-sm: 8px;
     }
 }
 
-[data-region=right-hand-drawer].grader-grading-panel {
-    width: 30%;
-    overflow: auto;
-    top: 68px;
-    height: calc(100% - 68px);
-    transition: right .7s ease-in-out;
-    &.hidden {
-        right: -30%;
-        transition: right .7s ease-in-out, visibility 0s ease-in-out .7s, opacity 0s ease-in-out .7s;
+.path-mod-forum .unified-grader {
+    .navbar {
+        max-height: none;
+        z-index: 1;
     }
-}
-[aria-expanded=true].grader-grading-panel + .grader-module-content {
-    margin-right: 30%;
-    transition: margin-right .7s ease-in-out;
-}
 
-#page-mod-forum-view [data-region="unified-grader"] .dropdown-menu.show {
-    z-index: 1025;
+    .grader-grading-panel {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        z-index: 0;
+    }
+
+    .grader-module-content {
+        margin-right: $right-drawer-width;
+        @include transition(margin-right .2s ease-in-out);
+    }
+
+    .grader-grading-panel.hidden + .grader-module-content {
+        margin-right: 0;
+    }
+
+    .btn:not(.btn-icon) {
+        border-radius: $border-radius-lg;
+    }
+
+    .grader-module-content {
+        overflow-y: auto;
+    }
 }
 // End styling for mod_forum.
 

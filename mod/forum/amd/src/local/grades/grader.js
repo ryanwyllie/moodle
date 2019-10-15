@@ -159,7 +159,10 @@ export const launch = async(getListOfUsers, getContentForUser, getGradeForUser, 
         userList,
     ] = await Promise.all([
         createFullScreenWindow({fullscreen: false, showLoader: false}),
-        Templates.renderForPromise(templateNames.grader.app, {moduleName: moduleName}),
+        Templates.renderForPromise(templateNames.grader.app, {
+            moduleName,
+            drawer: {show: true}
+        }),
         getListOfUsers(),
     ]);
     const graderContainer = graderLayout.getContainer();
