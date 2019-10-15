@@ -43,6 +43,7 @@ export default {
         pickerRegion: getDataSelector('region', 'user_picker'),
         gradingPanel: getDataSelector('region', 'grade'),
         gradingPanelErrors: getDataSelector('region', 'grade-errors'),
+        statusContainer: getDataSelector('region', 'status-container'),
     },
 };
 

@@ -36,6 +36,7 @@ const templateNames = {
         gradingPanel: {
             error: 'mod_forum/local/grades/local/grader/gradingpanel/error',
         },
+        status: 'mod_forum/local/grades/local/grader/status'
     },
 };
 
@@ -179,31 +180,49 @@ const displayGradingError = async(root, user, err) => {
  * @param {Function} setGradeForUser A function to set the grade for a specific user
  */
 export const launch = async(getListOfUsers, getContentForUser, getGradeForUser, setGradeForUser, {
-    initialUserId = null, moduleName
+    initialUserId = null, moduleName, courseName, courseUrl
 } = {}) => {
 
     // We need all of these functions to be executed in series, if one step runs before another the interface
     // will not work.
     const [
         graderLayout,
-        graderHTML,
+        {html, js},
         userList,
     ] = await Promise.all([
         createFullScreenWindow({fullscreen: false, showLoader: false}),
-        Templates.render(templateNames.grader.app, {moduleName: moduleName}),
+        Templates.renderForPromise(templateNames.grader.app, {
+            moduleName,
+            courseName,
+            courseUrl,
+            drawer: {show: true}
+        }),
         getListOfUsers(),
     ]);
     const graderContainer = graderLayout.getContainer();
 
     const saveGradeFunction = getSaveUserGradeFunction(graderContainer, setGradeForUser);
 
-    Templates.replaceNodeContents(graderContainer, graderHTML, '');
+    Templates.replaceNodeContents(graderContainer, html, js);
     const updateUserContent = getUpdateUserContentFunction(graderContainer, getContentForUser, getGradeForUser);
 
+    const userIds = userList.map(user => user.id);
+    const statusContainer = graderContainer.querySelector(Selectors.regions.statusContainer);
     // Fetch the userpicker for display.
     const userPicker = await getUserPicker(
         userList,
-        updateUserContent,
+        user => {
+            const renderContext = {
+                status: 'Ungraded',
+                index: userIds.indexOf(user.id) + 1,
+                total: userList.length
+            };
+            Templates.render(templateNames.grader.status, renderContext).then(html => {
+                statusContainer.innerHTML = html;
+                return html;
+            }).catch();
+            updateUserContent(user);
+        },
         saveGradeFunction,
         {
             initialUserId,

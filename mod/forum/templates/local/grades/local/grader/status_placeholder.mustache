@@ -15,23 +15,19 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_forum/local/grades/local/grader/content
+    @template mod_forum/local/grades/local/grader/status_placeholder
 
     Classes required for JS:
     * none
 
     Data attributes required for JS:
-    * none
+    *
 
     Context variables required for this template:
-    * none
+    *
 
     Example context (json):
-    {
-    }
+    {}
 }}
-<div class="grader-module-content w-100 h-100">
-    <div data-region="module_content" class="grader-module-content-display">
-        {{> mod_forum/local/grades/local/grader/module_content_placeholder }}
-    </div>
-</div>
+<div class="bg-pulse-grey mb-1" style="height: 22px; width: 75px"></div>
+<div class="bg-pulse-grey ml-auto mr-auto" style="height: 19px; width: 60px"></div>
