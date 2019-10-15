@@ -50,14 +50,24 @@
                     </button>
                 </li>
                 <li>
-                    <button class="disabled btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="{{#str}} search {{/str}}" data-action="search-user">
+                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="{{#str}} search {{/str}}" data-target="#searchbox" aria-expanded="false" aria-controls="searchbox" data-toggle="collapse">
                         <i class="icon fa fa-search fa-fw" aria-hidden="true"></i>
                         <span class="sr-only">{{#str}} search {{/str}}</span>
                     </button>
                 </li>
             </ul>
         </div>
+        <div id="searchbox" class="col-md-12 collapse">
+            <form action="" class="search-form w-100">
+                <input type="text" data-action="search-user-input" class="form-control input-lg" placeholder="Search user">
+            </form>
+            <div data-action="search-user-box"></div>
+        </div>
     </div>
     <hr class="mt-2">
 </div>
 
+<form action="#" class="d-flex w-100">
+    <input id="wow" class="ml-auto sideways p-0 border-0" type="email" placeholder="Enter something" data-action="testing">
+    <button data-action="testingbutton" type="button" class="fa fa-search pull-right"></button>
+</form>
