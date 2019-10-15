@@ -122,26 +122,6 @@ class UserPicker {
             const button = e.target.closest(Selectors.actions.changeUser);
             const input = e.target.closest(Selectors.actions.searchUserInput);
 
-            const wow = e.target.closest('[data-action="testingbutton"]');
-            if (wow) {
-                const testing = this.root.querySelector('[data-action="testing"]');
-                if (testing.classList.contains('d-inline')) {
-                    testing.classList.remove('d-inline');
-                    testing.classList.remove('flex-grow-1');
-                    testing.classList.remove('p-1');
-                    testing.classList.add('p-0');
-                    testing.classList.remove('border-1');
-                    testing.classList.add('border-0');
-                } else {
-                    testing.classList.add('d-inline');
-                    testing.classList.add('flex-grow-1');
-                    testing.classList.remove('p-0');
-                    testing.classList.add('p-1');
-                    testing.classList.remove('border-0');
-                    testing.classList.add('border-1');
-                }
-            }
-
             const graderRegion = document.querySelector('[data-region="unified-grader"]');
             if (button) {
                 const result = await this.preChangeUserCallback(this.currentUser);
