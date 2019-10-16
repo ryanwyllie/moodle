@@ -386,6 +386,7 @@ $author-image-margin-sm: 8px;
 }
 
 $grading-drawer-width: 430px;
+$grading-user-picker-animation-duration: .2s;
 
 .path-mod-forum .unified-grader {
     .navbar {
@@ -405,7 +406,8 @@ $grading-drawer-width: 430px;
         }
 
         .user-picker-container {
-            height: 44px;
+            height: 50px;
+            overflow: hidden;
 
             .userpicture {
                 height: calc(36px - .25rem);
@@ -421,80 +423,157 @@ $grading-drawer-width: 430px;
                 height: 35px;
             }
 
-            .input-group {
-                .btn.btn-icon {
-                    height: 30px;
-                    width: 30px;
-                }
-            }
-
-            /*
             .user-navigation-container {
-                position: relative;
-                overflow: hidden;
+                position: absolute;
+                top: 50%;
+                left: 0;
+                transform: translateY(-50%);
+                width: calc(100% - 35px);
                 opacity: 1;
                 visibility: visible;
-                max-width: $grading-drawer-width;
-                flex-wrap: nowrap;
-                transition:
-                    opacity 1s linear,
-                    visibility 0s linear,
-                    max-width 2s linear;
+                transition: left $grading-user-picker-animation-duration ease-in-out;
 
-                .user-navigation {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: calc(100% - 43px);
-                    transition: left 2s linear;
+                .search-button {
+                    opacity: 1;
+                    visibility: visible;
+                    transition:
+                        opacity 0s linear $grading-user-picker-animation-duration,
+                        visibility 0s linear $grading-user-picker-animation-duration;
+
+                    @include hover-focus {
+                        border-color: $input-border-color;
+                    }
                 }
             }
 
             .user-search-container {
-                &:not(.show) {
-                    max-width: 0;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition:
-                        opacity 1s linear,
-                        visibility 0s linear 2s,
-                        max-width 2s linear;
+                overflow: hidden;
+                height: 100% !important; /* stylelint-disable-line declaration-no-important */
 
-                    .search-input-container {
-                        flex-wrap: nowrap;
+                .search-input-container {
+                    position: relative;
+                    margin-left: map-get($spacers, 1);
+                    margin-right: map-get($spacers, 1);
+                    overflow: visible;
+
+                    input {
+                        padding-left: calc(#{$input-padding-x * 2} + 16px);
+                        padding-right: calc(#{map-get($spacers, 2)} + 35px);
+                        border-radius: $input-border-radius-lg;
+                        border: none;
+                        background-color: $gray-100;
+                        transition: $custom-forms-transition;
+
+                        &:focus {
+                            background-color: $white;
+                            box-shadow: $box-shadow-sm, 0 0.1rem 0.5rem rgba(0,0,0,.1);
+                        }
+                    }
+
+                    .search-icon {
+                        position: absolute;
+                        top: 50%;
+                        left: $input-padding-x;
+                        transform: translateY(-50%);
+                        color: $input-color;
+                    }
+
+                    .toggle-search-button {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
                     }
                 }
 
-                &.show {
-                    max-width: $grading-drawer-width;
-                    opacity: 1;
-                    visibility: visible;
-                    transition:
-                        opacity 1s linear,
-                        visibility 0s linear,
-                        max-width 2s linear;
+                &:not(.show),
+                &:not(.collapsing) {
+                    max-width: 41px;
+                    transition: max-width $grading-user-picker-animation-duration ease-in-out;
 
                     .search-input-container {
                         flex-wrap: nowrap;
+
+                        input,
+                        .search-icon {
+                            max-width: 0;
+                            opacity: 0;
+                            visibility: hidden;
+                            transition:
+                                max-width 0s linear $grading-user-picker-animation-duration,
+                                opacity 0s linear $grading-user-picker-animation-duration,
+                                visibility 0s linear $grading-user-picker-animation-duration;
+                        }
+
+                        input {
+                            padding-left: 0;
+                            padding-right: 0;
+                        }
+
+                        .toggle-search-button {
+                            color: inherit;
+                            right: 0;
+
+                            @include hover-focus {
+                                box-shadow: $box-shadow-sm, 0 0.1rem 0.5rem rgba(0,0,0,.1);
+                            }
+                        }
+                    }
+                }
+
+                &.show,
+                &.collapsing {
+                    max-width: $grading-drawer-width;
+
+                    .search-input-container {
+                        flex-wrap: nowrap;
+
+                        input,
+                        .search-icon {
+                            max-width: $grading-drawer-width;
+                            opacity: 1;
+                            visibility: visible;
+                        }
+
+                        input {
+                            padding-left: calc(#{$input-padding-x * 2} + 16px);
+                            padding-right: calc(#{map-get($spacers, 2)} + 35px);
+                        }
+
+                        .toggle-search-button {
+                            @extend .btn-icon;
+                            right: #{map-get($spacers, 2)};
+
+                            @include hover-focus {
+                                box-shadow: none;
+                            }
+                        }
+
+                        .toggle-search-button.btn,
+                        .toggle-search-button.btn:hover,
+                        .toggle-search-button.btn:focus {
+                            color: $input-color;
+                        }
                     }
                 }
             }
 
-            .user-search-container.show + .user-navigation-container {
-                max-width: 0;
+            .user-search-container.show + .user-navigation-container,
+            .user-search-container.collapsing + .user-navigation-container {
                 opacity: 0;
                 visibility: hidden;
+                left: calc(100% * -1);
                 transition:
-                    opacity 1s linear,
-                    visibility 0s linear 2s,
-                    max-width 2s linear;
+                    left $grading-user-picker-animation-duration ease-in-out,
+                    opacity 0s linear $grading-user-picker-animation-duration,
+                    visibility 0s linear $grading-user-picker-animation-duration,
+                    padding 0s linear $grading-user-picker-animation-duration;
 
-                .user-navigation {
-                    left: calc((100% - 43px) * -1);
-                    transition: left 2s linear;
+                .search-button {
+                    width: 0;
+                    opacity: 0;
+                    visibility: hidden;
                 }
             }
-            */
         }
     }
 

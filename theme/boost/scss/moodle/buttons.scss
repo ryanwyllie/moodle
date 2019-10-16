@@ -83,15 +83,3 @@ p.arrow_button {
         box-shadow: $box-shadow-sm;
     }
 }
-
-.btn.btn-shadow-hover {
-    background-color: $white;
-
-    @include hover-focus {
-        box-shadow: $box-shadow-sm, 0 0.1rem 0.5rem rgba(0,0,0,.1);
-    }
-
-    &:active {
-        box-shadow: $box-shadow-sm;
-    }
-}
