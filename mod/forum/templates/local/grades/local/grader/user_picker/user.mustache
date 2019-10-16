@@ -30,13 +30,11 @@
     {
     }
 }}
-<div class="d-flex align-content-center">
-    <img class="rounded-circle userpicture d-inline" src="{{profileimagelg}}"
-         alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
-         title="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" >
-    <div class="d-inline">
-        <h5 class="d-block font-weight-bolder mb-0" data-region="name" data-userid="{{id}}">{{fullname}}</h5>
-        <div class="d-block"><div class="d-inline" data-region="index">{{displayIndex}}</div> {{#str}}outof, forum, {{total}}{{/str}}</div>
-    </div>
+<img class="rounded-circle userpicture mr-2" src="{{profileimagelg}}"
+        alt="{{#str}}pictureof, moodle, {{fullname}}{{/str}}"
+        title="{{#str}}pictureof, moodle, {{fullname}}{{/str}}" >
+<div>
+    <h5 class="mb-0 font-weight-normal user-full-name text-truncate" data-region="name" data-userid="{{id}}">{{fullname}}</h5>
+    <div> <span data-region="index">{{displayIndex}}</span> {{#str}}outof, forum, {{total}}{{/str}}</div>
 </div>
 

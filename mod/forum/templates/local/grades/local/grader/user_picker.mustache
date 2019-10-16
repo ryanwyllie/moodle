@@ -30,39 +30,53 @@
     {
     }
 }}
-<div class="col-md-12">
-    <div class="row">
-        <div class="col-md-8">
-            <div data-region="user_picker/user"></div>
+
+<div class="d-flex user-picker-container">
+    <div class="d-flex flex-grow-1 align-items-center user-navigation-container pr-1">
+        <div class="d-flex flex-grow-1 align-items-center user-navigation">
+            <div class="d-flex align-items-center" data-region="user_picker/user"></div>
+            <div class="ml-auto flex-shrink-0">
+                <button class="btn btn-shadow icon-size-4 icon-no-margin colour-inherit p-0 mr-2" data-action="change-user" data-direction="-1">
+                    <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
+                    <span class="sr-only">{{#str}} previous {{/str}}</span>
+                </button>
+                <button class="btn btn-shadow icon-size-4 icon-no-margin colour-inherit p-0 mr-2" data-action="change-user" data-direction="1">
+                    <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
+                    <span class="sr-only">{{#str}} next {{/str}}</span>
+                </button>
+            </div>
         </div>
-        <div class="col-md-4">
-            <ul class="pagination mb-0">
-                <li class="mr-3">
-                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="Previous" data-action="change-user" data-direction="-1">
-                        <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
-                        <span class="sr-only">{{#str}} previous {{/str}}</span>
-                    </button>
-                </li>
-                <li class="mr-3">
-                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="Next" data-action="change-user" data-direction="1">
-                        <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
-                        <span class="sr-only">{{#str}} next {{/str}}</span>
-                    </button>
-                </li>
-                <li>
-                    <button class="btn btn-icon icon-size-4 icon-no-margin colour-inherit" href="#" aria-label="{{#str}} search {{/str}}" data-target="#searchbox" aria-expanded="false" aria-controls="searchbox" data-toggle="collapse">
-                        <i class="icon fa fa-search fa-fw" aria-hidden="true"></i>
-                        <span class="sr-only">{{#str}} search {{/str}}</span>
-                    </button>
-                </li>
-            </ul>
+        <button
+            class="btn btn-shadow-hover icon-size-3 icon-no-margin colour-inherit p-0 search-button ml-auto"
+            data-target="#searchbox-{{uniqid}}"
+            aria-expanded="false"
+            aria-controls="searchbox-{{uniqid}}"
+            data-toggle="collapse"
+        >
+            {{#pix}} i/search, core {{/pix}}
+            <span class="sr-only">{{#str}} search {{/str}}</span>
+        </button>
+    </div>
+</div>
+<div id="searchbox-{{uniqid}}" class="mt-3 user-search-container collapse">
+    <div class="search-input-container input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text bg-white icon-no-margin">{{#pix}} i/search, core {{/pix}}</span>
         </div>
-        <div id="searchbox" class="col-md-12 collapse">
-            <form action="" class="search-form my-3 w-100">
-                <input type="text" data-action="search-user-input" class="form-control input-lg" placeholder="Search user">
-            </form>
-            <div data-action="search-user-box"></div>
+        <input type="text" data-action="search-user-input" class="form-control px-0 border-left-0 border-right-0 input-lg" placeholder="Search user">
+        <div class="input-group-append">
+            <span class="input-group-text py-0 pr-1 bg-white">
+                <button
+                    class="btn btn-icon colour-inherit icon-no-margin"
+                    data-target="#searchbox-{{uniqid}}"
+                    aria-expanded="false"
+                    aria-controls="searchbox-{{uniqid}}"
+                    data-toggle="collapse"
+                >
+                    {{#pix}} e/cancel, core {{/pix}}
+                </button>
+            </span>
         </div>
     </div>
-    <hr class="mt-2">
 </div>
+<div data-action="search-user-box"></div>

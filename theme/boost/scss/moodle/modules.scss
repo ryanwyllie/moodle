@@ -385,6 +385,8 @@ $author-image-margin-sm: 8px;
     }
 }
 
+$grading-drawer-width: 430px;
+
 .path-mod-forum .unified-grader {
     .navbar {
         max-height: none;
@@ -396,10 +398,108 @@ $author-image-margin-sm: 8px;
         top: 0;
         height: 100%;
         z-index: 0;
+        width: $grading-drawer-width;
+
+        &.hidden {
+            right: ($grading-drawer-width * -1);
+        }
+
+        .user-picker-container {
+            height: 44px;
+
+            .userpicture {
+                height: calc(36px - .25rem);
+                width: calc(36px - .25rem);
+            }
+
+            .user-full-name {
+                max-width: 230px;
+            }
+
+            .btn {
+                width: 35px;
+                height: 35px;
+            }
+
+            .input-group {
+                .btn.btn-icon {
+                    height: 30px;
+                    width: 30px;
+                }
+            }
+
+            /*
+            .user-navigation-container {
+                position: relative;
+                overflow: hidden;
+                opacity: 1;
+                visibility: visible;
+                max-width: $grading-drawer-width;
+                flex-wrap: nowrap;
+                transition:
+                    opacity 1s linear,
+                    visibility 0s linear,
+                    max-width 2s linear;
+
+                .user-navigation {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: calc(100% - 43px);
+                    transition: left 2s linear;
+                }
+            }
+
+            .user-search-container {
+                &:not(.show) {
+                    max-width: 0;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition:
+                        opacity 1s linear,
+                        visibility 0s linear 2s,
+                        max-width 2s linear;
+
+                    .search-input-container {
+                        flex-wrap: nowrap;
+                    }
+                }
+
+                &.show {
+                    max-width: $grading-drawer-width;
+                    opacity: 1;
+                    visibility: visible;
+                    transition:
+                        opacity 1s linear,
+                        visibility 0s linear,
+                        max-width 2s linear;
+
+                    .search-input-container {
+                        flex-wrap: nowrap;
+                    }
+                }
+            }
+
+            .user-search-container.show + .user-navigation-container {
+                max-width: 0;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 1s linear,
+                    visibility 0s linear 2s,
+                    max-width 2s linear;
+
+                .user-navigation {
+                    left: calc((100% - 43px) * -1);
+                    transition: left 2s linear;
+                }
+            }
+            */
+        }
     }
 
     .grader-module-content {
-        margin-right: $right-drawer-width;
+        margin-right: $grading-drawer-width;
         @include transition(margin-right .2s ease-in-out);
     }
 
