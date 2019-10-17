@@ -69,8 +69,8 @@ define(
     'core_message/message_drawer_view_conversation_state_manager',
     'core_message/message_drawer_router',
     'core_message/message_drawer_routes',
-    'core_message/emoji/auto_complete',
-    'core_message/emoji/picker'
+    'core/emoji/auto_complete',
+    'core/emoji/picker'
 ],
 function(
     $,
