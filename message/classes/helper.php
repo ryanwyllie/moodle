@@ -773,7 +773,7 @@ class helper {
                 'notification' => $notification
             ],
             'isdrawer' => $isdrawer,
-            'showemojipicker' => !empty($CFG->messagingallowemojipicker)
+            'showemojipicker' => !empty($CFG->allowemojipicker)
         ];
 
         if ($sendtouser || $conversationid) {
