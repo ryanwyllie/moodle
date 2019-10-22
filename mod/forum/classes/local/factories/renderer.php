@@ -182,8 +182,8 @@ class renderer {
             case FORUM_MODE_NESTED:
                 $template = 'mod_forum/forum_discussion_nested_posts';
                 break;
-            case FORUM_MODE_MODERN:
-                $template = 'mod_forum/forum_discussion_modern_posts';
+            case FORUM_MODE_NESTED_V2:
+                $template = 'mod_forum/forum_discussion_nested_v2_posts';
                 break;
             default;
                 $template = 'mod_forum/forum_discussion_posts';
@@ -227,7 +227,7 @@ class renderer {
                             $seenfirstunread = true;
                         }
 
-                        if ($displaymode === FORUM_MODE_MODERN) {
+                        if ($displaymode === FORUM_MODE_NESTED_V2) {
                             $exportedpost->showactionmenu = $exportedpost->capabilities['view'] ||
                                                             $exportedpost->capabilities['controlreadstatus'] ||
                                                             $exportedpost->capabilities['edit'] ||
@@ -245,7 +245,7 @@ class renderer {
                 if (
                     $displaymode === FORUM_MODE_NESTED ||
                     $displaymode === FORUM_MODE_THREADED ||
-                    $displaymode === FORUM_MODE_MODERN
+                    $displaymode === FORUM_MODE_NESTED_V2
                 ) {
                     $sortedposts = $exportedpostssorter->sort_into_children($exportedposts);
                     $sortintoreplies = function($nestedposts) use (&$sortintoreplies) {

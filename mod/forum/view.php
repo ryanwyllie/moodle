@@ -90,8 +90,8 @@ $PAGE->add_body_class('forumtype-' . $forum->get_type());
 $PAGE->set_heading($course->fullname);
 $PAGE->set_button(forum_search_form($course, $search));
 
-if ($istypesingle && $displaymode == FORUM_MODE_MODERN) {
-    $PAGE->add_body_class('modern-display-mode reset-style');
+if ($istypesingle && $displaymode == FORUM_MODE_NESTED_V2) {
+    $PAGE->add_body_class('nested-v2-display-mode reset-style');
 }
 
 if (empty($cm->visible) && !has_capability('moodle/course:viewhiddenactivities', $forum->get_context())) {
