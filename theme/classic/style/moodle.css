@@ -16486,6 +16486,9 @@ select {
     line-height: 1;
     height: auto;
     border-radius: 10rem; }
+    @media (max-width: 767.98px) {
+      .path-mod-forum.modern-display-mode .ratinginput {
+        margin-top: .5rem; } }
   .path-mod-forum.modern-display-mode .group-image {
     width: 35px;
     height: 35px;
@@ -16547,7 +16550,8 @@ select {
                  */ }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .author-image-container {
         width: 30px;
-        margin-right: 8px; }
+        margin-right: 8px;
+        padding-top: 3px; }
       .path-mod-forum.modern-display-mode .forum-post-container .indent .indent .indent {
         padding-left: 38px;
         /**
