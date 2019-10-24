@@ -386,7 +386,7 @@ $author-image-margin-sm: 8px;
 }
 
 $grading-drawer-width: 430px !default;
-$grading-user-picker-animation-duration: 2s !default;
+$grading-user-picker-animation-duration: .3s !default;
 $grading-icon-button-size: 36px !default;
 $grading-search-input-padding-left: calc(#{map-get($spacers, 2)} + #{map-get($spacers, 2)} + #{$grading-icon-button-size - ($input-border-width * 2)}) !default;
 $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-icon-button-size}) !default;
@@ -398,20 +398,17 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
         border-radius: $grading-icon-button-size / 2;
         background-color: $gray-200;
     }
-    50% {
-        width: 100%;
-        height: $grading-icon-button-size;
-        border-radius: $grading-icon-button-size / 2;
-        background-color: $gray-200;
-        padding-left: calc(#{map-get($spacers, 2)} + 8px);
-        right: 0;
-    }
     100% {
         width: 100%;
         height: $input-height-lg;
         border-radius: 0;
         background-color: $input-bg;
+        border-color: $input-border-color;
         padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        padding-top: $input-padding-y-lg;
+        padding-bottom: $input-padding-y-lg;
+        @include font-size($input-font-size-lg);
+        line-height: $input-line-height-lg;
         right: 0;
     }
 }
@@ -422,15 +419,12 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
         height: $input-height-lg;
         border-radius: 0;
         background-color: $input-bg;
+        border-color: $input-border-color;
         padding-left: calc(#{map-get($spacers, 2)} + 8px);
-        right: 0;
-    }
-    50% {
-        width: 100%;
-        height: $grading-icon-button-size;
-        border-radius: $grading-icon-button-size / 2;
-        background-color: $gray-200;
-        padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        padding-top: $input-padding-y-lg;
+        padding-bottom: $input-padding-y-lg;
+        @include font-size($input-font-size-lg);
+        line-height: $input-line-height-lg;
         right: 0;
     }
     100% {
@@ -621,57 +615,6 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
                                     opacity 0s linear,
                                     max-height 0s linear,
                                     max-width 0s linear;
-                            }
-                        }
-                    }
-                }
-
-                &.collapse.show,
-                &.collapsing {
-                    width: $grading-drawer-width;
-
-                    .search-input-container {
-                        flex-wrap: nowrap;
-
-                        input,
-                        .search-icon {
-                            opacity: 1;
-                            visibility: visible;
-                            transition:
-                                opacity 0s linear $grading-user-picker-animation-duration,
-                                visibility 0s linear $grading-user-picker-animation-duration;
-                        }
-
-                        input {
-                            padding-left: calc(#{map-get($spacers, 2)} + #{map-get($spacers, 2)} + #{$grading-icon-button-size - ($input-border-width * 2)});
-                            padding-right: calc(#{map-get($spacers, 2)} + #{$grading-icon-button-size});
-                        }
-
-                        .toggle-search-button {
-                            right: map-get($spacers, 2);
-                            animation-name: expandSearchButton;
-                            animation-duration: $grading-user-picker-animation-duration;
-                            transition: right 0s linear $grading-user-picker-animation-duration;
-
-                            .expanded-icon {
-                                opacity: 1;
-                                max-width: 50px;
-                                max-height: 50px;
-                                transition:
-                                    opacity 0s linear $grading-user-picker-animation-duration,
-                                    max-height 0s linear $grading-user-picker-animation-duration,
-                                    max-width 0s linear $grading-user-picker-animation-duration;
-                            }
-
-                            .collapsed-icon {
-                                opacity: 0;
-                                max-height: 0;
-                                max-width: 0;
-                                overflow: hidden;
-                                transition:
-                                    opacity 0s linear $grading-user-picker-animation-duration,
-                                    max-height 0s linear $grading-user-picker-animation-duration,
-                                    max-width 0s linear $grading-user-picker-animation-duration;
                             }
                         }
                     }
