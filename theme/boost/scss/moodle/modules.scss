@@ -403,14 +403,16 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
         height: $grading-icon-button-size;
         border-radius: $grading-icon-button-size / 2;
         background-color: $gray-200;
-        padding-left: calc(#{map-get($spacers, 2)} + 9px);
+        padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        right: 0;
     }
     100% {
         width: 100%;
         height: $input-height-lg;
         border-radius: 0;
         background-color: $input-bg;
-        padding-left: calc(#{map-get($spacers, 2)} + 9px);
+        padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        right: 0;
     }
 }
 
@@ -420,14 +422,16 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
         height: $input-height-lg;
         border-radius: 0;
         background-color: $input-bg;
-        padding-left: calc(#{map-get($spacers, 2)} + 9px);
+        padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        right: 0;
     }
     50% {
         width: 100%;
         height: $grading-icon-button-size;
         border-radius: $grading-icon-button-size / 2;
         background-color: $gray-200;
-        padding-left: calc(#{map-get($spacers, 2)} + 9px);
+        padding-left: calc(#{map-get($spacers, 2)} + 8px);
+        right: 0;
     }
     100% {
         height: $grading-icon-button-size;
@@ -508,6 +512,7 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
                 .search-input-container {
                     position: relative;
                     overflow: visible;
+                    flex-wrap: nowrap;
 
                     input {
                         padding-left: calc(#{map-get($spacers, 2)} + #{map-get($spacers, 2)} + #{$grading-icon-button-size - ($input-border-width * 2)});
@@ -526,15 +531,49 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
                         background-color: $input-bg;
                     }
 
+                    input,
+                    .search-icon {
+                        opacity: 1;
+                        visibility: visible;
+                        transition:
+                            opacity 0s linear $grading-user-picker-animation-duration,
+                            visibility 0s linear $grading-user-picker-animation-duration;
+                    }
+
                     .toggle-search-button {
                         position: absolute;
                         top: 50%;
-                        right: 0;
+                        right: map-get($spacers, 2);
                         transform: translateY(-50%);
                         z-index: 1;
                         color: inherit;
                         text-align: left;
                         padding-left: 9px;
+                        animation-name: expandSearchButton;
+                        animation-duration: $grading-user-picker-animation-duration;
+                        animation-timing-function: ease-in-out;
+                        transition: right 0s linear $grading-user-picker-animation-duration;
+
+                        .expanded-icon {
+                            opacity: 1;
+                            max-width: 50px;
+                            max-height: 50px;
+                            transition:
+                                opacity 0s linear $grading-user-picker-animation-duration,
+                                max-height 0s linear $grading-user-picker-animation-duration,
+                                max-width 0s linear $grading-user-picker-animation-duration;
+                        }
+
+                        .collapsed-icon {
+                            opacity: 0;
+                            max-height: 0;
+                            max-width: 0;
+                            overflow: hidden;
+                            transition:
+                                opacity 0s linear $grading-user-picker-animation-duration,
+                                max-height 0s linear $grading-user-picker-animation-duration,
+                                max-width 0s linear $grading-user-picker-animation-duration;
+                        }
                     }
                 }
 
