@@ -418,9 +418,13 @@ $grading-user-picker-animation-duration: .2s;
                 max-width: 230px;
             }
 
-            .btn {
+            .page-link {
                 width: 35px;
                 height: 35px;
+                display: flex;
+                text-align: center;
+                align-items: center;
+                justify-content: center;
             }
 
             .user-navigation-container {
@@ -584,10 +588,6 @@ $grading-user-picker-animation-duration: .2s;
 
     .grader-grading-panel.hidden + .grader-module-content {
         margin-right: 0;
-    }
-
-    .btn:not(.btn-icon) {
-        border-radius: $border-radius-lg;
     }
 
     .grader-module-content {

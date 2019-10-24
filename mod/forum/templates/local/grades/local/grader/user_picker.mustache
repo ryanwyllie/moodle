@@ -32,38 +32,36 @@
 }}
 
 <div class="d-flex flex-row-reverse position-relative user-picker-container">
-    <div id="searchbox-{{uniqid}}" class="d-flex flex-grow-1 align-items-center ml-auto user-search-container collapse">
-        <div class="search-input-container w-100">
-            <span class="search-icon icon-no-margin">{{#pix}} i/search, core {{/pix}}</span>
-            <input
-                type="text"
-                data-action="search-user-input"
-                class="form-control form-control-lg"
-                placeholder="Search user"
-            >
-            <button
-                class="toggle-search-button btn btn-icon icon-no-margin p-0"
-                data-target="#searchbox-{{uniqid}}"
-                aria-expanded="false"
-                aria-controls="searchbox-{{uniqid}}"
-                data-toggle="collapse"
-            >
-                {{#pix}} e/cancel, core {{/pix}}
-            </button>
-        </div>
-    </div>
     <div class="d-flex flex-grow-1 align-items-center user-navigation-container pr-1">
         <div class="d-flex flex-grow-1 align-items-center user-navigation">
             <div class="d-flex align-items-center" data-region="user_picker/user"></div>
             <div class="ml-auto flex-shrink-0">
-                <button class="btn btn-shadow icon-size-4 icon-no-margin colour-inherit p-0 mr-2" data-action="change-user" data-direction="-1">
-                    <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
-                    <span class="sr-only">{{#str}} previous {{/str}}</span>
-                </button>
-                <button class="btn btn-shadow icon-size-4 icon-no-margin colour-inherit p-0 mr-2" data-action="change-user" data-direction="1">
-                    <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
-                    <span class="sr-only">{{#str}} next {{/str}}</span>
-                </button>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination mb-0">
+                        <li class="page-item">
+                            <a
+                                class="page-link icon-size-4 icon-no-margin p-0"
+                                href="#"
+                                aria-label="{{#str}} previous {{/str}}"
+                                data-action="change-user"
+                                data-direction="-1"
+                            >
+                                <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a
+                                class="page-link icon-size-4 icon-no-margin p-0 ml-2"
+                                href="#"
+                                aria-label="{{#str}} next {{/str}}"
+                                data-action="change-user"
+                                data-direction="1"
+                            >
+                                <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>

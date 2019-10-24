@@ -35,20 +35,43 @@
     {{$drawerclasses}}grader-grading-panel flex-shrink-0{{/drawerclasses}}
     {{$drawercontent}}
         <div class="h-100 w-100 bg-white d-flex flex-column">
-            <div class="d-flex align-items-center bg-light p-2 mb-2">
-                <button
-                        class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
-                        data-action="toggle-grading-drawer"
-                        aria-controls="grading-drawer"
-                        aria-expanded="true"
-                        title="{{#str}} closebuttontitle, core {{/str}}"
-                >
-                    <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
-                    <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
-                </button>
-                <h2 class="font-weight-bold h4 mb-0">
-                    {{#str}}grading, mod_forum{{/str}}
-                </h2>
+            <div class="d-flex flex-row-reverse align-items-center bg-light p-2 mb-2">
+                <div id="searchbox-{{uniqid}}" class="d-flex flex-grow-1 align-items-center ml-auto user-search-container collapse">
+                    <div class="search-input-container w-100">
+                        <span class="search-icon icon-no-margin">{{#pix}} i/search, core {{/pix}}</span>
+                        <input
+                            type="text"
+                            data-action="search-user-input"
+                            class="form-control form-control-lg"
+                            placeholder="Search user"
+                        >
+                        <button
+                            class="toggle-search-button btn btn-icon icon-no-margin p-0"
+                            data-target="#searchbox-{{uniqid}}"
+                            aria-expanded="false"
+                            aria-controls="searchbox-{{uniqid}}"
+                            data-toggle="collapse"
+                        >
+                            {{#pix}} e/cancel, core {{/pix}}
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button
+                            class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
+                            data-action="toggle-grading-drawer"
+                            aria-controls="grading-drawer"
+                            aria-expanded="true"
+                            title="{{#str}} closebuttontitle, core {{/str}}"
+                    >
+                        <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
+                        <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
+                    </button>
+                    <div>
+                        <h2 class="font-weight-bold h4 mb-0">Ungraded</h2>
+                        <div><span data-region="index">{{displayIndex}}</span> {{#str}}outof, forum, {{total}}{{/str}}</div>
+                    </div>
+                </div>
             </div>
             <div class="body-container position-relative p-2" data-region="body-container">
                 <div data-region="user_picker">
