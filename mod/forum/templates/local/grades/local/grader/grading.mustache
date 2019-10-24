@@ -35,10 +35,12 @@
     {{$drawerclasses}}grader-grading-panel flex-shrink-0{{/drawerclasses}}
     {{$drawercontent}}
         <div class="h-100 w-100 bg-white d-flex flex-column">
-            <div class="d-flex flex-row-reverse align-items-center bg-light p-2 mb-2">
-                <div id="searchbox-{{uniqid}}" class="d-flex flex-grow-1 align-items-center ml-auto user-search-container collapse">
+            <div class="header-container bg-light">
+                <div id="searchbox-{{uniqid}}" class="user-search-container d-flex flex-grow-1 align-items-center collapse">
                     <div class="search-input-container w-100">
-                        <span class="search-icon icon-no-margin">{{#pix}} i/search, core {{/pix}}</span>
+                        <span class="search-icon icon-no-margin d-flex align-items-center justify-content-center">
+                            {{#pix}} i/search, core {{/pix}}
+                        </span>
                         <input
                             type="text"
                             data-action="search-user-input"
@@ -46,19 +48,20 @@
                             placeholder="Search user"
                         >
                         <button
-                            class="toggle-search-button btn btn-icon icon-no-margin p-0"
+                            class="toggle-search-button btn btn-icon icon-no-margin"
                             data-target="#searchbox-{{uniqid}}"
                             aria-expanded="false"
                             aria-controls="searchbox-{{uniqid}}"
                             data-toggle="collapse"
                         >
-                            {{#pix}} e/cancel, core {{/pix}}
+                            <div class="expanded-icon">{{#pix}} e/cancel, core {{/pix}}</div>
+                            <div class="collapsed-icon">{{#pix}} i/search, core {{/pix}}</div>
                         </button>
                     </div>
                 </div>
-                <div class="d-flex align-items-center">
+                <div class="info-container d-flex align-items-center">
                     <button
-                            class="btn btn-icon icon-size-3 icon-no-margin mr-1 colour-inherit"
+                            class="btn btn-icon icon-size-3 icon-no-margin colour-inherit"
                             data-action="toggle-grading-drawer"
                             aria-controls="grading-drawer"
                             aria-expanded="true"
@@ -67,8 +70,8 @@
                         <span class="dir-ltr-hide">{{#pix}} t/left, core {{/pix}}</span>
                         <span class="dir-rtl-hide">{{#pix}} t/right, core {{/pix}}</span>
                     </button>
-                    <div>
-                        <h2 class="font-weight-bold h4 mb-0">Ungraded</h2>
+                    <div class="ml-auto mr-auto text-center">
+                        <h2 class="font-weight-bold h5 mb-0">Ungraded</h2>
                         <div><span data-region="index">{{displayIndex}}</span> {{#str}}outof, forum, {{total}}{{/str}}</div>
                     </div>
                 </div>
