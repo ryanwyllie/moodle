@@ -35,7 +35,7 @@
     {{$drawerclasses}}grader-grading-panel flex-shrink-0{{/drawerclasses}}
     {{$drawercontent}}
         <div class="h-100 w-100 bg-white d-flex flex-column">
-            <div class="header-container bg-light">
+            <div class="header-container bg-light flex-shrink-0">
                 <div id="searchbox-{{uniqid}}" class="user-search-container d-flex flex-grow-1 align-items-center collapse">
                     <div class="search-input-container w-100">
                         <span class="search-icon icon-no-margin d-flex align-items-center justify-content-center">
@@ -62,7 +62,7 @@
                 <div class="info-container d-flex align-items-center">
                     <button
                             class="btn btn-icon icon-size-3 icon-no-margin colour-inherit"
-                            data-action="toggle-grading-drawer"
+                            data-action="collapse-grading-drawer"
                             aria-controls="grading-drawer"
                             aria-expanded="true"
                             title="{{#str}} closebuttontitle, core {{/str}}"
@@ -76,15 +76,15 @@
                     </div>
                 </div>
             </div>
-            <div class="body-container position-relative p-2" data-region="body-container">
-                <div data-region="user_picker">
+            <div class="body-container position-relative d-flex flex-column overflow-auto" data-region="body-container">
+                <div class="border-bottom px-3 pt-2" data-region="user_picker">
                     {{> mod_forum/local/grades/local/grader/user_picker_placeholder }}
                 </div>
-                <hr class="mt-2"/>
-                <div class="grader-grading-panel-display">
-                    <h4 class="d-inline mb-0 fa fa-magic"></h4>
-                    <h4 class="d-inline mb-0 ">{{#str}}grade, core_grades{{/str}}</h4>
-                    <div data-region="grade" class="col-md-12 mt-3">
+                <div class="grader-grading-panel-display pt-3 overflow-auto">
+                    <h4 class="mb-0 h5 px-3 font-weight-normal">
+                        {{#pix}} i/grading, core {{/pix}}{{#str}} gradingmodulename, core_grades, {{moduleName}} {{/str}}
+                    </h4>
+                    <div data-region="grade" class="pt-3 px-3">
                         {{> mod_forum/local/grades/local/grader/grade_placeholder }}
                     </div>
                     <div data-region="grade-errors" role="alert" aria-role="assertive"></div>

@@ -30,7 +30,7 @@
     {
     }
 }}
-<nav class="grader-grading_navigation navbar">
+<nav id="nav-container-{{uniqid}}" class="grader-grading_navigation navbar">
     <button class="btn btn-link px-2 colour-inherit" data-action="closegrader">
         <h5 class="d-inline px-0 mb-0">COURSE NAME HERE</h5>
     </button>
@@ -43,12 +43,25 @@
 
     <div class="ml-auto">
         <button
-            id="toggle-grading-drawer-{{uniqid}}"
-            class="btn btn-icon icon-no-margin"
-            aria-label="Open or close grader panel"
-            data-action="expandgrader"
+            class="btn btn-icon icon-no-margin drawer-button active"
+            data-action="expand-grading-drawer"
+            aria-controls="grading-drawer"
+            aria-expanded="true"
+            type="button"
+            title="{{#str}} showgraderpanel, mod_forum {{/str}}"
         >
-            {{#pix}} layout-default, mod_forum, {{#str}} defaultlayout, mod_forum {{/str}} {{/pix}}
+            <span aria-hidden="true">{{#pix}} show-grader-panel, mod_forum, {{#str}} showgraderpanel, mod_forum {{/str}} {{/pix}}</span>
+        </button>
+        <button
+            class="btn btn-icon icon-no-margin drawer-button"
+            aria-label="Open or close grader panel"
+            data-action="collapse-grading-drawer"
+            aria-controls="grading-drawer"
+            aria-expanded="true"
+            type="button"
+            title="{{#str}} hidegraderpanel, mod_forum {{/str}}"
+        >
+            <span aria-hidden="true">{{#pix}} hide-grader-panel, mod_forum, {{#str}} hidegraderpanel, mod_forum {{/str}} {{/pix}}</span>
         </button>
         <button
             class="btn btn-primary font-weight-bold ml-2 px-4"
@@ -60,6 +73,7 @@
             class="btn btn-outline-dark font-weight-bold ml-2 px-4"
             aria-label="{{#str}} closegrader, mod_forum {{/str}}"
             data-action="closegrader"
+            type="button"
         >
             {{#str}} close, mod_forum {{/str}}
         </button>
@@ -80,6 +94,7 @@
                     class="dropdown-item"
                     type="button"
                     data-action="togglefullscreen"
+                    type="button"
                 >
                     {{#str}} togglefullscreen, mod_forum {{/str}}
                 </button>
@@ -91,8 +106,25 @@
 {{#js}}
     require(['jquery', 'core/drawer'], function($, Drawer) {
         var drawer = $('#grading-drawer');
-        var toggles = drawer.find('[data-action="toggle-grading-drawer"]');
-        toggles = toggles.add('#toggle-grading-drawer-{{uniqid}}');
-        Drawer.registerToggles(drawer, toggles);
+        var navContainer = $('#nav-container-{{uniqid}}');
+        var expandButtons = navContainer.find('[data-action="expand-grading-drawer"]');
+        var collapseButtons = navContainer.find('[data-action="collapse-grading-drawer"]');
+        collapseButtons = collapseButtons.add(drawer.find('[data-action="collapse-grading-drawer"]'));
+
+        expandButtons.click(function() {
+            collapseButtons.removeClass('active');
+            expandButtons.addClass('active');
+            collapseButtons.attr('aria-expanded', true);
+            expandButtons.attr('aria-expanded', true);
+            Drawer.show(drawer);
+        });
+
+        collapseButtons.click(function() {
+            expandButtons.removeClass('active');
+            collapseButtons.addClass('active');
+            collapseButtons.attr('aria-expanded', false);
+            expandButtons.attr('aria-expanded', false);
+            Drawer.hide(drawer);
+        });
     });
 {{/js}}

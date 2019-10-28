@@ -452,6 +452,10 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
             right: ($grading-drawer-width * -1);
         }
 
+        .grading-icon {
+            width: $grading-icon-button-size;
+        }
+
         .user-picker-container {
             .userpicture {
                 height: 60px;
@@ -636,6 +640,7 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
     }
 
     .grader-module-content {
+        overflow-y: auto;
         margin-right: $grading-drawer-width;
         @include transition(margin-right .2s ease-in-out);
     }
@@ -644,8 +649,18 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
         margin-right: 0;
     }
 
-    .grader-module-content {
-        overflow-y: auto;
+    .drawer-button {
+        position: relative;
+
+        &.active::after {
+            content: "";
+            position: absolute;
+            bottom: calc(#{map-get($spacers, 2) * -1} - 1px);
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: map-get($theme-colors, 'primary');
+        }
     }
 }
 
