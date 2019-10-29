@@ -172,10 +172,22 @@ export const launch = async(getListOfUsers, getContentForUser, getGradeForUser, 
     Templates.replaceNodeContents(graderContainer, html, js);
     const updateUserContent = getUpdateUserContentFunction(graderContainer, getContentForUser, getGradeForUser);
 
+    const userIds = userList.map(user => user.id);
+    const userCountContainer = graderContainer.querySelector('[data-region="user-count"]');
     // Fetch the userpicker for display.
     const userPicker = await getUserPicker(
         userList,
-        updateUserContent,
+        user => {
+            const params = {
+                index: userIds.indexOf(user.id) + 1,
+                total: userList.length
+            };
+            getString('indexoutoftotal', 'mod_forum', params).then(string => {
+                userCountContainer.innerHTML = string;
+                return string;
+            }).catch();
+            updateUserContent(user);
+        },
         saveGradeFunction,
         {
             initialUserId,

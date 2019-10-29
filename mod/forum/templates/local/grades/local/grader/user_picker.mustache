@@ -34,29 +34,30 @@
 <div class="d-flex align-items-center user-picker-container mb-2 py-2">
     <div class="d-flex align-items-center" data-region="user_picker/user"></div>
     <div class="ml-auto flex-shrink-0">
-        <!-- TODO: add aria lable -->
-        <nav aria-label="">
+        <nav aria-label="{{#str}} usernavigation, mod_forum {{/str}}">
             <ul class="pagination mb-0">
                 <li class="page-item">
                     <a
-                        class="page-link icon-size-4 icon-no-margin p-0"
+                        class="page-link icon-no-margin p-0"
                         href="#"
                         aria-label="{{#str}} previous {{/str}}"
                         data-action="change-user"
                         data-direction="-1"
+                        title="{{#str}} previoususer, mod_forum {{/str}}"
                     >
-                        <i aria-hidden="true" class="icon fa fa-angle-left fa-fw"></i>
+                        {{#pix}} i/previous, core {{/pix}}
                     </a>
                 </li>
                 <li class="page-item">
                     <a
-                        class="page-link icon-size-4 icon-no-margin p-0 ml-2"
+                        class="page-link icon-no-margin p-0 ml-2"
                         href="#"
                         aria-label="{{#str}} next {{/str}}"
                         data-action="change-user"
                         data-direction="1"
+                        title="{{#str}} nextuser, mod_forum {{/str}}"
                     >
-                        <i aria-hidden="true" class="icon fa fa-angle-right fa-fw"></i>
+                        {{#pix}} i/next, core {{/pix}}
                     </a>
                 </li>
             </ul>
