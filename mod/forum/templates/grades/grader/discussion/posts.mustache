@@ -29,46 +29,32 @@
     {
     }
 }}
-<div data-region="posts" id="post-region-{{uniqid}}">
+<div data-region="posts" id="post-region-{{uniqid}}" class="pt-4">
     {{#discussions}}
-        <h2 class="mt-3 font-weight-bold">{{name}}</h2>
-        {{#posts}}
-            {{#parent}}
-                {{> mod_forum/forum_discussion_modern_post_reply }}
-            {{/parent}}
-            {{#starter}}
-                {{> mod_forum/forum_discussion_modern_first_post }}
-                <a class="btn btn-outline-dark"
-                   role="button"
-                   data-action="view-context"
-                   data-discussionid="{{discussionid}}"
-                   data-postid="{{id}}"
-                   data-name="{{name}}"
-                   href="#">
-                    {{#str}} viewconversation, forum {{/str}}
-                </a>
-            {{/starter}}
-            {{^starter}}
-                <div class="forum-post-container" data-region="replies-container">
-                    <div class="indent replies-container" data-region="replies-container">
-                        <div class="indent replies-container" data-region="replies-container">
-                            {{> mod_forum/forum_discussion_modern_post_reply }}
-                            <a class="btn btn-outline-dark rounded"
-                               role="button"
-                               data-action="view-context"
-                               data-discussionid="{{discussionid}}"
-                               data-postid="{{id}}"
-                               data-name="{{name}}"
-                               href="#">
-                                {{#str}} viewconversation, forum {{/str}}
-                            </a>
-                        </div>
-                    </div>
+        <div class="discussion-container">
+            <div class="px-4">
+                <div class="d-flex align-items-center mb-4">
+                    <h2 class="mb-0 font-weight-bold">{{name}}</h2>
+                    <button
+                        class="btn btn-link border ml-auto"
+                        type="button"
+                        data-action="view-context"
+                        data-discussionid="{{id}}"
+                        data-postid="{{id}}"
+                        data-name="{{name}}"
+                    >
+                        {{#str}} viewconversation, forum {{/str}}
+                    </button>
                 </div>
-            {{/starter}}
-            <hr class="w-75 mx-auto">
-        {{/posts}}
-        <hr>
+                {{#posts}}
+                    <div class="post-container">
+                        {{> mod_forum/forum_discussion_nested_post }}
+                        <hr class="w-75 mx-auto my-5">
+                    </div>
+                {{/posts}}
+            </div>
+            <hr class="my-5">
+        </div>
     {{/discussions}}
     {{^discussions}}
         <h3>{{#str}} noposts, forum {{/str}}</h3>

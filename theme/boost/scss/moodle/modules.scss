@@ -662,6 +662,24 @@ $grading-search-input-padding-right: calc(#{map-get($spacers, 2)} + #{$grading-i
             background-color: map-get($theme-colors, 'primary');
         }
     }
+
+    .grader-module-content-display {
+        .discussion-container {
+            &:last-of-type {
+                > hr {
+                    display: none;
+                }
+            }
+
+            .post-container {
+                &:last-of-type {
+                    > hr {
+                        display: none;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // End styling for mod_forum.
