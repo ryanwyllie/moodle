@@ -705,6 +705,7 @@ $string['usermarksread'] = 'Manual message read marking';
 $string['usernavigation'] = 'User navigation';
 $string['unpindiscussion'] = 'Unpin this discussion';
 $string['viewalldiscussions'] = 'View all discussions';
+$string['viewparentpost'] = 'View parent post';
 $string['viewthediscussion'] = 'View the discussion';
 $string['warnafter'] = 'Post threshold for warning';
 $string['warnafter_help'] = 'Students can be warned as they approach the maximum number of posts allowed in a given period. This setting specifies after how many posts they are warned. Users with the capability mod/forum:postwithoutthrottling are exempt from post limits.';

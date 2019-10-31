@@ -84,13 +84,15 @@ const discussionPostMapper = discussion => {
 
         const parent = post.parentid ? parentMap.get(post.parentid) : null;
         if (parent) {
-            parent.hasreplies = true;
-            parent.replies = [post];
-            // parent.hasreplies = false;
-            // parent.replies = [];
+            parent.hasreplies = false;
+            parent.replies = [];
             parent.readonly = true;
         }
-        return parent ? parent : post;
+
+        return {
+            parent,
+            post
+        };
     });
 
     return {

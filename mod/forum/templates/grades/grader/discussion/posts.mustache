@@ -29,35 +29,57 @@
     {
     }
 }}
-<div data-region="posts" id="post-region-{{uniqid}}" class="pt-4">
+<div data-region="posts" id="post-region-{{uniqid}}">
     {{#discussions}}
         <div class="discussion-container">
-            <div class="px-4">
-                <div class="d-flex align-items-center mb-4">
-                    <h2 class="mb-0 font-weight-bold">{{name}}</h2>
-                    <button
-                        class="btn btn-link border ml-auto"
-                        type="button"
-                        data-action="view-context"
-                        data-discussionid="{{id}}"
-                        data-postid="{{id}}"
-                        data-name="{{name}}"
-                    >
-                        {{#str}} viewconversation, forum {{/str}}
-                    </button>
-                </div>
+            <div class="p-4">
+                <h2 class="mb-4 font-weight-bold">{{name}}</h2>
+
                 {{#posts}}
-                    <div class="post-container">
-                        {{> mod_forum/forum_discussion_nested_post }}
+                    <div class="posts-container">
+                        {{#parent}}
+                            <div class="parent-container">
+                                <button
+                                    class="btn btn-link show-content-button collapsed"
+                                    data-target="#parent-post-content-{{id}}"
+                                    aria-expanded="false"
+                                    aria-controls="parent-post-content-{{id}}"
+                                    data-toggle="collapse"
+                                >
+                                    {{#str}} viewparentpost, mod_forum {{/str}}
+                                </button>
+                                <div id="parent-post-content-{{id}}" class="content collapse">
+                                    {{> mod_forum/forum_discussion_nested_post }}
+                                </div>
+                            </div>
+                        {{/parent}}
+                        {{#post}}
+                            <div class="post-container">
+                                {{> mod_forum/forum_discussion_nested_post }}
+                            </div>
+                            <button
+                                class="btn btn-link border ml-auto"
+                                type="button"
+                                data-action="view-context"
+                                data-discussionid="{{discussionid}}"
+                                data-postid="{{id}}"
+                                data-name="{{name}}"
+                            >
+                                {{#str}} viewconversation, forum {{/str}}
+                            </button>
+                        {{/post}}
                         <hr class="w-75 mx-auto my-5">
                     </div>
                 {{/posts}}
             </div>
-            <hr class="my-5">
+            <hr>
         </div>
     {{/discussions}}
     {{^discussions}}
-        <h3>{{#str}} noposts, forum {{/str}}</h3>
+        <div class="no-post-container text-center p-5">
+            {{#pix}} no-posts, mod_forum {{/pix}}
+            <h2 class="mt-3 font-weight-bold">{{#str}} noposts, mod_forum {{/str}}</h2>
+        </div>
     {{/discussions}}
 </div>
 {{#js}}
