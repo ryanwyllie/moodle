@@ -195,6 +195,7 @@ $string['discussionsubscription'] = 'Discussion subscription';
 $string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
 $string['discussions'] = 'Discussions';
 $string['discussionsstartedby'] = 'Discussions started by {$a}';
+$string['discussionstartedby'] = 'Discussion started by {$a}';
 $string['discussionsstartedbyrecent'] = 'Discussions recently started by {$a}';
 $string['discussionsstartedbyuserincourse'] = 'Discussions started by {$a->fullname} in {$a->coursename}';
 $string['discussionunpin'] = 'Unpin';

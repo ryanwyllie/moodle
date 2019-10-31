@@ -96,8 +96,7 @@ const discussionPostMapper = discussion => {
     });
 
     return {
-        id: discussion.id,
-        name: discussion.name,
+        ...discussion,
         posts: userPosts,
     };
 };
