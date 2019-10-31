@@ -31,9 +31,9 @@
     }
 }}
 <nav id="nav-container-{{uniqid}}" class="grader-grading_navigation navbar">
-    <button class="btn btn-link px-2 colour-inherit" data-action="closegrader">
-        <h5 class="d-inline px-0 mb-0">COURSE NAME HERE</h5>
-    </button>
+    <a href="{{{courseUrl}}}" class="btn btn-link px-2 colour-inherit">
+        <h5 class="d-inline px-0 mb-0">{{courseName}}</h5>
+    </a>
     <span class="text-muted icon-no-margin">{{#pix}} i/breadcrumbdivider, core {{/pix}}</span>
     <button class="btn btn-link px-2 colour-inherit" data-action="closegrader">
         <h5 class="d-inline px-0 mb-0">{{moduleName}}</h5>

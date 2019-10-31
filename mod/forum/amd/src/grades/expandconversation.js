@@ -63,21 +63,24 @@ const showPostInContext = async rootNode => {
         // Destroy when hidden.
         modal.destroy();
     });
-
-    modal.show();
-
-    // Note: We do not use await here because it messes with the Modal transitions.
-    const templatePromise = Templates.render('mod_forum/grades/grader/discussion/post_modal', allPosts);
-    modal.setBody(templatePromise);
-    // eslint-disable-next-line promise/catch-or-return
-    templatePromise.then(() => {
+    modal.getRoot().on(ModalEvents.bodyRendered, () => {
         const relevantPost = modal.getRoot()[0].querySelector(`#p${postId}`);
         if (relevantPost) {
             relevantPost.scrollIntoView({behavior: "smooth"});
         }
-
-        return;
     });
+
+    modal.show();
+
+    // Note: We do not use await here because it messes with the Modal transitions.
+    const renderContext = {
+        posts: allPosts.posts.map(post => {
+            post.readonly = true;
+            return post;
+        })
+    };
+    const templatePromise = Templates.render('mod_forum/grades/grader/discussion/post_modal', renderContext);
+    modal.setBody(templatePromise);
 };
 
 /**
