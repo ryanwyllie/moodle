@@ -186,18 +186,21 @@ export const launch = async(getListOfUsers, getContentForUser, getGradeForUser, 
     // will not work.
     const [
         graderLayout,
-        graderHTML,
+        {html, js},
         userList,
     ] = await Promise.all([
         createFullScreenWindow({fullscreen: false, showLoader: false}),
-        Templates.render(templateNames.grader.app, {moduleName: moduleName}),
+        Templates.renderForPromise(templateNames.grader.app, {
+            moduleName,
+            drawer: {show: true}
+        }),
         getListOfUsers(),
     ]);
     const graderContainer = graderLayout.getContainer();
 
     const saveGradeFunction = getSaveUserGradeFunction(graderContainer, setGradeForUser);
 
-    Templates.replaceNodeContents(graderContainer, graderHTML, '');
+    Templates.replaceNodeContents(graderContainer, html, js);
     const updateUserContent = getUpdateUserContentFunction(graderContainer, getContentForUser, getGradeForUser);
 
     // Fetch the userpicker for display.
